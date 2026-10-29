@@ -1,0 +1,1197 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>캘린더 디자인 5종 비교 (5안 추가) | 보건약학프로젝트</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
+      background: #F0F2F5;
+      color: #2D3748;
+      padding: 30px 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    header {
+      text-align: center;
+      max-width: 900px;
+      margin-bottom: 20px;
+    }
+    h1 {
+      font-size: 26px;
+      font-weight: 700;
+      color: #1A202C;
+      margin-bottom: 8px;
+    }
+    p.subtitle {
+      font-size: 15px;
+      color: #4A5568;
+      line-height: 1.5;
+    }
+    .legend-banner {
+      background: #FFFFFF;
+      border: 1px solid #E2E8F0;
+      border-radius: 12px;
+      padding: 12px 24px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 20px;
+      align-items: center;
+      justify-content: center;
+      font-size: 13px;
+      margin-bottom: 25px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    }
+    .legend-item { display: flex; align-items: center; gap: 7px; }
+    .dot-sample { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
+    .bar-sample { width: 16px; height: 4px; border-radius: 2px; display: inline-block; }
+
+    /* 5분할/그리드 */
+    .comparison-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+      gap: 24px;
+      max-width: 1260px;
+      width: 100%;
+    }
+    .option-card {
+      background: #FFFFFF;
+      border-radius: 20px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.06);
+      overflow: hidden;
+      border: 2px solid transparent;
+      transition: all 0.2s ease;
+      display: flex;
+      flex-direction: column;
+    }
+    .option-card:hover {
+      border-color: #7B61A8;
+      transform: translateY(-2px);
+      box-shadow: 0 12px 30px rgba(123, 97, 168, 0.15);
+    }
+    .option-card.highlight {
+      border: 2.5px solid #7B61A8;
+      box-shadow: 0 12px 32px rgba(123, 97, 168, 0.2);
+    }
+    .option-header {
+      padding: 16px 20px;
+      background: #FAF8FD;
+      border-bottom: 1px solid #EFEAF6;
+    }
+    .option-card.highlight .option-header {
+      background: #F3EDF9;
+    }
+    .option-tag {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      color: #7B61A8;
+      letter-spacing: 0.5px;
+      margin-bottom: 3px;
+    }
+    .option-title {
+      font-size: 17px;
+      font-weight: 700;
+      color: #2D3748;
+      margin-bottom: 4px;
+    }
+    .option-desc {
+      font-size: 12px;
+      color: #718096;
+      line-height: 1.4;
+    }
+
+    /* 캘린더 본체 */
+    .calendar-body {
+      padding: 18px;
+      flex: 1;
+    }
+    .cal-month-nav {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+      font-size: 15px;
+      font-weight: 700;
+      color: #2D3748;
+    }
+    .cal-grid {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 5px;
+      text-align: center;
+    }
+    .weekday-header {
+      font-size: 11px;
+      font-weight: 600;
+      color: #A0AEC0;
+      padding-bottom: 6px;
+    }
+    .cal-cell {
+      height: 44px;
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      border-radius: 8px;
+      user-select: none;
+      transition: all 0.15s ease;
+    }
+    .cal-num {
+      font-size: 13px;
+      font-weight: 500;
+      color: #2D3748;
+      z-index: 2;
+    }
+
+    /* 할일 인디케이터 (상단 우측 라벤더 닷) */
+    .task-dot {
+      position: absolute;
+      top: 4px;
+      right: 4px;
+      width: 5px;
+      height: 5px;
+      border-radius: 50%;
+      background: #7B61A8;
+      z-index: 3;
+    }
+    .cal-cell.today .task-dot {
+      background: #FFFFFF;
+    }
+
+    .cal-bar {
+      width: 16px;
+      height: 4px;
+      border-radius: 2px;
+      margin-top: 3px;
+    }
+
+    /* ============================================================== */
+    /* 🌟 [5안] 평소 캡슐바 + 약 미복용만 연분홍 틴트 (선택적 하이라이트) */
+    /* ============================================================== */
+    .opt-selective-tint .cal-cell {
+      background: transparent; /* 평소에는 흰 바탕에 바만 */
+    }
+    .opt-selective-tint .cal-cell.full .cal-bar { background: #38A169; }
+    .opt-selective-tint .cal-cell.partial .cal-bar { background: #ED8936; }
+    
+    /* 🔴 약 미복용일만 연분홍 틴트 + 빨간 바 + 빨간 숫자 */
+    .opt-selective-tint .cal-cell.missed {
+      background: #FEECEC;
+      border: 1px dashed #FEB2B2;
+    }
+    .opt-selective-tint .cal-cell.missed .cal-num { color: #C53030; font-weight: 700; }
+    .opt-selective-tint .cal-cell.missed .cal-bar { background: #E53E3E; }
+    
+    .opt-selective-tint .cal-cell.today {
+      background: #7B61A8;
+      border-radius: 10px;
+    }
+    .opt-selective-tint .cal-cell.today .cal-num { color: #FFFFFF; font-weight: 700; }
+    /* ============================================================== */
+    /* 🌟 [6안] 완료는 통(면적 틴트) + 덜한 날은 바(캡슐 바) */
+    /* ============================================================== */
+    .opt-block-and-bar .cal-cell {
+      background: transparent;
+    }
+    /* 완료한 날: 셀 전체를 '통으로' 연초록 배경 채움 (바 없음) */
+    .opt-block-and-bar .cal-cell.full {
+      background: #E6F8F0;
+      border-radius: 8px;
+    }
+    .opt-block-and-bar .cal-cell.full .cal-num {
+      color: #065F46;
+      font-weight: 700;
+    }
+    /* 덜한 날 (부분 완료): 배경은 깨끗하고 하단에 주황색 캡슐 바만 */
+    .opt-block-and-bar .cal-cell.partial .cal-bar {
+      background: #F59E0B;
+    }
+    .opt-block-and-bar .cal-cell.partial .cal-num {
+      color: #2D3748;
+      font-weight: 600;
+    }
+    /* 약 미복용일: 빨간색 바 + 빨간 숫자 */
+    .opt-block-and-bar .cal-cell.missed .cal-bar {
+      background: #EF4444;
+    }
+    .opt-block-and-bar .cal-cell.missed .cal-num {
+      color: #DC2626;
+      font-weight: 700;
+    }
+    /* 오늘 (14일) */
+    .opt-block-and-bar .cal-cell.today {
+      background: #7B61A8;
+      border-radius: 10px;
+    }
+    .opt-block-and-bar .cal-cell.today .cal-num {
+      color: #FFFFFF;
+      font-weight: 700;
+    }
+
+    /* ============================================================== */
+    /* 1안: 파스텔 틴트만 (Only Tint) */
+    /* ============================================================== */
+    .opt-tint-only .cal-cell.full { background: #EBF8F2; }
+    .opt-tint-only .cal-cell.partial { background: #FFF8F0; }
+    .opt-tint-only .cal-cell.missed { background: #FEECEC; border: 1px dashed #FEB2B2; }
+    .opt-tint-only .cal-cell.missed .cal-num { color: #C53030; font-weight: 700; }
+    .opt-tint-only .cal-cell.today { background: #7B61A8; border-radius: 10px; }
+    .opt-tint-only .cal-cell.today .cal-num { color: #FFFFFF; font-weight: 700; }
+
+    /* ============================================================== */
+    /* 2안: 캡슐 바만 (Only Capsule Bar) */
+    /* ============================================================== */
+    .opt-bar-only .cal-cell { background: transparent; }
+    .opt-bar-only .cal-cell.full .cal-bar { background: #38A169; }
+    .opt-bar-only .cal-cell.partial .cal-bar { background: #ED8936; }
+    .opt-bar-only .cal-cell.missed .cal-bar { background: #E53E3E; }
+    .opt-bar-only .cal-cell.missed .cal-num { color: #C53030; font-weight: 600; }
+    .opt-bar-only .cal-cell.today { background: #7B61A8; border-radius: 10px; }
+    .opt-bar-only .cal-cell.today .cal-num { color: #FFFFFF; font-weight: 700; }
+    .opt-bar-only .cal-cell.today .cal-bar { background: #FFFFFF; }
+
+    /* ============================================================== */
+    /* 3안: 틴트 + 캡슐 바 결합 (Combo) */
+    /* ============================================================== */
+    .opt-combo .cal-cell.full { background: #EBF8F2; }
+    .opt-combo .cal-cell.partial { background: #FFF8F0; }
+    .opt-combo .cal-cell.missed { background: #FEECEC; border: 1px dashed #FEB2B2; }
+    .opt-combo .cal-cell.missed .cal-num { color: #C53030; font-weight: 700; }
+    .opt-combo .cal-cell.full .cal-bar { background: #38A169; }
+    .opt-combo .cal-cell.partial .cal-bar { background: #ED8936; }
+    .opt-combo .cal-cell.missed .cal-bar { background: #E53E3E; }
+    .opt-combo .cal-cell.today { background: #7B61A8; border-radius: 10px; }
+    .opt-combo .cal-cell.today .cal-num { color: #FFFFFF; font-weight: 700; }
+    .opt-combo .cal-cell.today .cal-bar { background: #FFFFFF; }
+
+    /* ============================================================== */
+    /* 4안: 날짜 서클 뱃지 (Circle Badge) */
+    /* ============================================================== */
+    .opt-badge .cal-cell { background: transparent; }
+    .badge-circle {
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .opt-badge .cal-cell.full .badge-circle { background: #E6F4EA; }
+    .opt-badge .cal-cell.full .cal-num { color: #22543D; font-weight: 600; }
+    .opt-badge .cal-cell.partial .badge-circle { background: #FEF3E2; }
+    .opt-badge .cal-cell.partial .cal-num { color: #7B341E; font-weight: 600; }
+    .opt-badge .cal-cell.missed .badge-circle { background: #FEE2E2; border: 1.5px solid #E53E3E; }
+    .opt-badge .cal-cell.missed .cal-num { color: #9B1C1C; font-weight: 700; }
+    .opt-badge .cal-cell.today .badge-circle { background: #7B61A8; }
+    .opt-badge .cal-cell.today .cal-num { color: #FFFFFF; font-weight: 700; }
+
+    .card-footer {
+      padding: 10px 18px;
+      background: #F8F9FA;
+      border-top: 1px solid #EDF2F7;
+      font-size: 11.5px;
+      color: #4A5568;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .badge-pill {
+      background: #E2E8F0;
+      padding: 3px 8px;
+      border-radius: 6px;
+      font-size: 11px;
+      font-weight: 600;
+    }
+    .badge-pill.hot {
+      background: #7B61A8;
+      color: #FFFFFF;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <h1>📅 캘린더 디자인 6종 비교 (신규 6안 추가)</h1>
+    <p class="subtitle">
+      <strong>[6안] 완료한 날은 '통으로(면적)' 꽉 채우고, 덜한 날은 '바 형식'으로 표시하는 하이브리드 시안</strong>이 추가되었습니다!<br>
+      오늘(14일) 이후 미래 날짜(15~31일)는 복약 진행도를 일체 표시하지 않으며, 오직 예정된 [할일 닷(•)]만 노출됩니다.
+    </p>
+  </header>
+
+  <!-- 범례 배너 -->
+  <div class="legend-banner">
+    <div class="legend-item">
+      <span style="display:inline-block; width:16px; height:16px; background:#E6F8F0; border-radius:4px; border:1px solid #A7F3D0; vertical-align:middle;"></span>
+      <span><strong>완료한 날 (통으로 면적 채움)</strong></span>
+    </div>
+    <div class="legend-item">
+      <span class="bar-sample" style="background:#F59E0B;"></span>
+      <span><strong>덜한 날 (바 형식만 표시)</strong></span>
+    </div>
+    <div class="legend-item">
+      <span class="bar-sample" style="background:#EF4444;"></span>
+      <span><strong style="color:#DC2626;">약 미복용</strong> (빨간 바)</span>
+    </div>
+    <div class="legend-item">
+      <span class="dot-sample" style="background:#7B61A8;"></span>
+      <span><strong>• 등록된 할일 있음</strong> (미래는 진행도 없이 할일 점만 표시)</span>
+    </div>
+    <div class="legend-item">
+      <span class="dot-sample" style="background:#7B61A8; width:14px; height:14px; border-radius:4px;"></span>
+      <span><strong>오늘 (14일)</strong></span>
+    </div>
+  </div>
+
+  <div class="comparison-grid">
+
+    <!-- ========================================== -->
+    <!-- 🌟 [6안] 완료는 통(면적) + 덜한 날은 바(캡슐 바) (신규 추가!) -->
+    <!-- ========================================== -->
+    <div class="option-card opt-block-and-bar highlight" style="border: 2.5px solid #059669; box-shadow: 0 12px 32px rgba(5, 150, 105, 0.2);">
+      <div class="option-header" style="background: #ECFDF5; border-bottom: 1px solid #D1FAE5;">
+        <div class="option-tag" style="color:#059669; font-weight: 800;">👑 사용자 맞춤 신규 6안 (강력 추천!)</div>
+        <div class="option-title" style="color: #065F46;">완료는 통(면적) + 덜한 날은 바(Bar)</div>
+        <div class="option-desc">
+          <strong>다 한 날은 셀 전체를 통으로(연초록 면적)</strong> 꽉 채우고, <strong>덜한 날은 캡슐 바</strong>로만 표시하여 달성도의 차이가 한눈에 극명하게 드러납니다!
+        </div>
+      </div>
+      <div class="calendar-body">
+        <div class="cal-month-nav"><span>&lt;</span><span>2026년 10월</span><span>&gt;</span></div>
+        <div class="cal-grid">
+          <div class="weekday-header">일</div><div class="weekday-header">월</div><div class="weekday-header">화</div><div class="weekday-header">수</div><div class="weekday-header">목</div><div class="weekday-header">금</div><div class="weekday-header">토</div>
+          <div class="cal-cell empty"></div><div class="cal-cell empty"></div><div class="cal-cell empty"></div><div class="cal-cell empty"></div>
+          <!-- 완료한 날: 통으로 채움 (바 없음) -->
+          <div class="cal-cell full"><span class="cal-num">1</span></div>
+          <!-- 덜한 날: 바 형식 -->
+          <div class="cal-cell partial"><span class="cal-num">2</span><div class="cal-bar"></div></div>
+          <!-- 미복용일: 빨간 바 -->
+          <div class="cal-cell missed"><span class="cal-num">3</span><div class="cal-bar"></div></div>
+          <div class="cal-cell"><span class="cal-num">4</span></div>
+          <div class="cal-cell partial"><span class="cal-num">5</span><div class="cal-bar"></div></div>
+          <div class="cal-cell full"><span class="cal-num">6</span></div>
+          <div class="cal-cell missed"><span class="cal-num">7</span><div class="cal-bar"></div></div>
+          <div class="cal-cell full"><span class="cal-num">8</span></div>
+          <div class="cal-cell full"><span class="cal-num">9</span></div>
+          <div class="cal-cell partial"><span class="cal-num">10</span><div class="cal-bar"></div></div>
+          <div class="cal-cell"><span class="cal-num">11</span></div>
+          <div class="cal-cell full"><span class="cal-num">12</span></div>
+          <div class="cal-cell full"><span class="cal-num">13</span></div>
+          <!-- 🟣 오늘 (14일 수요일) -->
+          <div class="cal-cell today"><span class="task-dot"></span><span class="cal-num">14</span></div>
+          <!-- 🔮 미래 날짜 (15~31일): 진행도 완전 제거, 오직 할일 닷(•)만 표시 -->
+          <div class="cal-cell"><span class="cal-num">15</span></div>
+          <div class="cal-cell"><span class="task-dot"></span><span class="cal-num">16</span></div>
+          <div class="cal-cell"><span class="cal-num">17</span></div>
+          <div class="cal-cell"><span class="cal-num">18</span></div>
+          <div class="cal-cell"><span class="cal-num">19</span></div>
+          <div class="cal-cell"><span class="cal-num">20</span></div>
+          <div class="cal-cell"><span class="task-dot"></span><span class="cal-num">21</span></div>
+          <div class="cal-cell"><span class="cal-num">22</span></div>
+          <div class="cal-cell"><span class="cal-num">23</span></div>
+          <div class="cal-cell"><span class="cal-num">24</span></div>
+          <div class="cal-cell"><span class="cal-num">25</span></div>
+          <div class="cal-cell"><span class="cal-num">26</span></div>
+          <div class="cal-cell"><span class="cal-num">27</span></div>
+          <div class="cal-cell"><span class="task-dot"></span><span class="cal-num">28</span></div>
+          <div class="cal-cell"><span class="cal-num">29</span></div>
+          <div class="cal-cell"><span class="cal-num">30</span></div>
+          <div class="cal-cell"><span class="cal-num">31</span></div>
+        </div>
+      </div>
+      <div class="card-footer" style="background:#F0FDF4; border-top:1px solid #D1FAE5;">
+        <span>특징: 완료는 면적, 미완료는 바(Bar) 차등화</span>
+        <span class="badge-pill hot" style="background:#059669;">면적 vs 바 대비</span>
+      </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- 🌟 [5안] 평소 캡슐바 + 약 미복용만 연분홍 틴트 (강력 추천!) -->
+    <!-- ========================================== -->
+    <div class="option-card opt-selective-tint highlight">
+      <div class="option-header">
+        <div class="option-tag" style="color:#6B46C1;">👑 사용자 맞춤 신규 5안</div>
+        <div class="option-title">평소 캡슐 바 + 약 미복용만 틴트</div>
+        <div class="option-desc">
+          평소에는 깔끔한 캡슐 바만 표시되다가, <strong>과거 약을 거른 날(3, 7일)에만 연분홍 틴트</strong>가 켜집니다. 오늘(14일) 이후 <strong>미래 날짜는 진행도 없이 예정된 할일(16, 21, 28일) 닷(•)만 노출</strong>됩니다!
+        </div>
+      </div>
+      <div class="calendar-body">
+        <div class="cal-month-nav"><span>&lt;</span><span>2026년 10월</span><span>&gt;</span></div>
+        <div class="cal-grid">
+          <div class="weekday-header">일</div><div class="weekday-header">월</div><div class="weekday-header">화</div><div class="weekday-header">수</div><div class="weekday-header">목</div><div class="weekday-header">금</div><div class="weekday-header">토</div>
+          <div class="cal-cell empty"></div><div class="cal-cell empty"></div><div class="cal-cell empty"></div><div class="cal-cell empty"></div>
+          <div class="cal-cell full"><span class="cal-num">1</span><div class="cal-bar"></div></div>
+          <div class="cal-cell partial"><span class="cal-num">2</span><div class="cal-bar"></div></div>
+          <!-- 🔴 과거 약 미복용일만 연분홍 틴트 적용! -->
+          <div class="cal-cell missed"><span class="cal-num">3</span><div class="cal-bar"></div></div>
+          <div class="cal-cell"><span class="cal-num">4</span></div>
+          <div class="cal-cell partial"><span class="cal-num">5</span><div class="cal-bar"></div></div>
+          <div class="cal-cell full"><span class="cal-num">6</span><div class="cal-bar"></div></div>
+          <!-- 🔴 과거 약 미복용일만 연분홍 틴트 적용! -->
+          <div class="cal-cell missed"><span class="cal-num">7</span><div class="cal-bar"></div></div>
+          <div class="cal-cell full"><span class="cal-num">8</span><div class="cal-bar"></div></div>
+          <div class="cal-cell full"><span class="cal-num">9</span><div class="cal-bar"></div></div>
+          <div class="cal-cell partial"><span class="cal-num">10</span><div class="cal-bar"></div></div>
+          <div class="cal-cell"><span class="cal-num">11</span></div>
+          <div class="cal-cell full"><span class="cal-num">12</span><div class="cal-bar"></div></div>
+          <div class="cal-cell full"><span class="cal-num">13</span><div class="cal-bar"></div></div>
+          <!-- 🟣 오늘 (14일 수요일) -->
+          <div class="cal-cell today"><span class="task-dot"></span><span class="cal-num">14</span><div class="cal-bar"></div></div>
+          <!-- 🔮 미래 날짜 (15~31일): 진행도 완전 제거, 오직 할일 닷(•)만 표시 -->
+          <div class="cal-cell"><span class="cal-num">15</span></div>
+          <div class="cal-cell"><span class="task-dot"></span><span class="cal-num">16</span></div>
+          <div class="cal-cell"><span class="cal-num">17</span></div>
+          <div class="cal-cell"><span class="cal-num">18</span></div>
+          <div class="cal-cell"><span class="cal-num">19</span></div>
+          <div class="cal-cell"><span class="cal-num">20</span></div>
+          <div class="cal-cell"><span class="task-dot"></span><span class="cal-num">21</span></div>
+          <div class="cal-cell"><span class="cal-num">22</span></div>
+          <div class="cal-cell"><span class="cal-num">23</span></div>
+          <div class="cal-cell"><span class="cal-num">24</span></div>
+          <div class="cal-cell"><span class="cal-num">25</span></div>
+          <div class="cal-cell"><span class="cal-num">26</span></div>
+          <div class="cal-cell"><span class="cal-num">27</span></div>
+          <div class="cal-cell"><span class="task-dot"></span><span class="cal-num">28</span></div>
+          <div class="cal-cell"><span class="cal-num">29</span></div>
+          <div class="cal-cell"><span class="cal-num">30</span></div>
+          <div class="cal-cell"><span class="cal-num">31</span></div>
+        </div>
+      </div>
+      <div class="card-footer">
+        <span>특징: 평소엔 미니멀, 누락일만 집중 포착</span>
+        <span class="badge-pill hot">선택적 대비 최고</span>
+      </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- 2안: 캡슐 바만 (Only Capsule Bar) -->
+    <!-- ========================================== -->
+    <div class="option-card opt-bar-only">
+      <div class="option-header">
+        <div class="option-tag">🎨 시안 2</div>
+        <div class="option-title">캡슐 바만 (No Tint)</div>
+        <div class="option-desc">모든 날에 배경색 없이 흰 바탕 위에 <strong>도톰한 캡슐 바</strong>만 배치하며, 미래 날짜는 할일 점만 표시합니다.</div>
+      </div>
+      <div class="calendar-body">
+        <div class="cal-month-nav"><span>&lt;</span><span>2026년 10월</span><span>&gt;</span></div>
+        <div class="cal-grid">
+          <div class="weekday-header">일</div><div class="weekday-header">월</div><div class="weekday-header">화</div><div class="weekday-header">수</div><div class="weekday-header">목</div><div class="weekday-header">금</div><div class="weekday-header">토</div>
+          <div class="cal-cell empty"></div><div class="cal-cell empty"></div><div class="cal-cell empty"></div><div class="cal-cell empty"></div>
+          <div class="cal-cell full"><span class="cal-num">1</span><div class="cal-bar"></div></div>
+          <div class="cal-cell partial"><span class="cal-num">2</span><div class="cal-bar"></div></div>
+          <div class="cal-cell missed"><span class="cal-num">3</span><div class="cal-bar"></div></div>
+          <div class="cal-cell"><span class="cal-num">4</span></div>
+          <div class="cal-cell partial"><span class="cal-num">5</span><div class="cal-bar"></div></div>
+          <div class="cal-cell full"><span class="cal-num">6</span><div class="cal-bar"></div></div>
+          <div class="cal-cell missed"><span class="cal-num">7</span><div class="cal-bar"></div></div>
+          <div class="cal-cell full"><span class="cal-num">8</span><div class="cal-bar"></div></div>
+          <div class="cal-cell full"><span class="cal-num">9</span><div class="cal-bar"></div></div>
+          <div class="cal-cell partial"><span class="cal-num">10</span><div class="cal-bar"></div></div>
+          <div class="cal-cell"><span class="cal-num">11</span></div>
+          <div class="cal-cell full"><span class="cal-num">12</span><div class="cal-bar"></div></div>
+          <div class="cal-cell full"><span class="cal-num">13</span><div class="cal-bar"></div></div>
+          <!-- 🟣 오늘 (14일) -->
+          <div class="cal-cell today"><span class="task-dot"></span><span class="cal-num">14</span><div class="cal-bar"></div></div>
+          <!-- 🔮 미래 날짜 (15~31일) -->
+          <div class="cal-cell"><span class="cal-num">15</span></div>
+          <div class="cal-cell"><span class="task-dot"></span><span class="cal-num">16</span></div>
+          <div class="cal-cell"><span class="cal-num">17</span></div>
+          <div class="cal-cell"><span class="cal-num">18</span></div>
+          <div class="cal-cell"><span class="cal-num">19</span></div>
+          <div class="cal-cell"><span class="cal-num">20</span></div>
+          <div class="cal-cell"><span class="task-dot"></span><span class="cal-num">21</span></div>
+          <div class="cal-cell"><span class="cal-num">22</span></div>
+          <div class="cal-cell"><span class="cal-num">23</span></div>
+          <div class="cal-cell"><span class="cal-num">24</span></div>
+          <div class="cal-cell"><span class="cal-num">25</span></div>
+          <div class="cal-cell"><span class="cal-num">26</span></div>
+          <div class="cal-cell"><span class="cal-num">27</span></div>
+          <div class="cal-cell"><span class="task-dot"></span><span class="cal-num">28</span></div>
+          <div class="cal-cell"><span class="cal-num">29</span></div>
+          <div class="cal-cell"><span class="cal-num">30</span></div>
+          <div class="cal-cell"><span class="cal-num">31</span></div>
+        </div>
+      </div>
+      <div class="card-footer">
+        <span>특징: 기존 점(Dot)보다 4배 선명</span>
+        <span class="badge-pill">바 중심</span>
+      </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- 3안: 틴트 + 캡슐 바 결합 (Combo) -->
+    <!-- ========================================== -->
+    <div class="option-card opt-combo">
+      <div class="option-header">
+        <div class="option-tag" style="color:#2B6CB0;">🎨 시안 3</div>
+        <div class="option-title">파스텔 틴트 + 캡슐 바 (전체 결합)</div>
+        <div class="option-desc">과거 달성 날짜에 <strong>면적 틴트와 캡슐 바</strong>가 함께 들어가며, 미래 날짜는 할일 점만 표시합니다.</div>
+      </div>
+      <div class="calendar-body">
+        <div class="cal-month-nav"><span>&lt;</span><span>2026년 10월</span><span>&gt;</span></div>
+        <div class="cal-grid">
+          <div class="weekday-header">일</div><div class="weekday-header">월</div><div class="weekday-header">화</div><div class="weekday-header">수</div><div class="weekday-header">목</div><div class="weekday-header">금</div><div class="weekday-header">토</div>
+          <div class="cal-cell empty"></div><div class="cal-cell empty"></div><div class="cal-cell empty"></div><div class="cal-cell empty"></div>
+          <div class="cal-cell full"><span class="cal-num">1</span><div class="cal-bar"></div></div>
+          <div class="cal-cell partial"><span class="cal-num">2</span><div class="cal-bar"></div></div>
+          <div class="cal-cell missed"><span class="cal-num">3</span><div class="cal-bar"></div></div>
+          <div class="cal-cell"><span class="cal-num">4</span></div>
+          <div class="cal-cell partial"><span class="cal-num">5</span><div class="cal-bar"></div></div>
+          <div class="cal-cell full"><span class="cal-num">6</span><div class="cal-bar"></div></div>
+          <div class="cal-cell missed"><span class="cal-num">7</span><div class="cal-bar"></div></div>
+          <div class="cal-cell full"><span class="cal-num">8</span><div class="cal-bar"></div></div>
+          <div class="cal-cell full"><span class="cal-num">9</span><div class="cal-bar"></div></div>
+          <div class="cal-cell partial"><span class="cal-num">10</span><div class="cal-bar"></div></div>
+          <div class="cal-cell"><span class="cal-num">11</span></div>
+          <div class="cal-cell full"><span class="cal-num">12</span><div class="cal-bar"></div></div>
+          <div class="cal-cell full"><span class="cal-num">13</span><div class="cal-bar"></div></div>
+          <!-- 🟣 오늘 (14일) -->
+          <div class="cal-cell today"><span class="task-dot"></span><span class="cal-num">14</span><div class="cal-bar"></div></div>
+          <!-- 🔮 미래 날짜 (15~31일) -->
+          <div class="cal-cell"><span class="cal-num">15</span></div>
+          <div class="cal-cell"><span class="task-dot"></span><span class="cal-num">16</span></div>
+          <div class="cal-cell"><span class="cal-num">17</span></div>
+          <div class="cal-cell"><span class="cal-num">18</span></div>
+          <div class="cal-cell"><span class="cal-num">19</span></div>
+          <div class="cal-cell"><span class="cal-num">20</span></div>
+          <div class="cal-cell"><span class="task-dot"></span><span class="cal-num">21</span></div>
+          <div class="cal-cell"><span class="cal-num">22</span></div>
+          <div class="cal-cell"><span class="cal-num">23</span></div>
+          <div class="cal-cell"><span class="cal-num">24</span></div>
+          <div class="cal-cell"><span class="cal-num">25</span></div>
+          <div class="cal-cell"><span class="cal-num">26</span></div>
+          <div class="cal-cell"><span class="cal-num">27</span></div>
+          <div class="cal-cell"><span class="task-dot"></span><span class="cal-num">28</span></div>
+          <div class="cal-cell"><span class="cal-num">29</span></div>
+          <div class="cal-cell"><span class="cal-num">30</span></div>
+          <div class="cal-cell"><span class="cal-num">31</span></div>
+        </div>
+      </div>
+      <div class="card-footer">
+        <span>특징: 정보량과 화려함</span>
+        <span class="badge-pill">결합형</span>
+      </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- 1안: 파스텔 틴트만 (Only Tint) -->
+    <!-- ========================================== -->
+    <div class="option-card opt-tint-only">
+      <div class="option-header">
+        <div class="option-tag">🎨 시안 1</div>
+        <div class="option-title">파스텔 틴트만 (No Bar)</div>
+        <div class="option-desc">바 없이 <strong>과거 셀 배경 틴트만</strong>으로 면적감을 주며, 미래 날짜는 할일 점만 표시합니다.</div>
+      </div>
+      <div class="calendar-body">
+        <div class="cal-month-nav"><span>&lt;</span><span>2026년 10월</span><span>&gt;</span></div>
+        <div class="cal-grid">
+          <div class="weekday-header">일</div><div class="weekday-header">월</div><div class="weekday-header">화</div><div class="weekday-header">수</div><div class="weekday-header">목</div><div class="weekday-header">금</div><div class="weekday-header">토</div>
+          <div class="cal-cell empty"></div><div class="cal-cell empty"></div><div class="cal-cell empty"></div><div class="cal-cell empty"></div>
+          <div class="cal-cell full"><span class="cal-num">1</span></div>
+          <div class="cal-cell partial"><span class="cal-num">2</span></div>
+          <div class="cal-cell missed"><span class="cal-num">3</span></div>
+          <div class="cal-cell"><span class="cal-num">4</span></div>
+          <div class="cal-cell partial"><span class="cal-num">5</span></div>
+          <div class="cal-cell full"><span class="cal-num">6</span></div>
+          <div class="cal-cell missed"><span class="cal-num">7</span></div>
+          <div class="cal-cell full"><span class="cal-num">8</span></div>
+          <div class="cal-cell full"><span class="cal-num">9</span></div>
+          <div class="cal-cell partial"><span class="cal-num">10</span></div>
+          <div class="cal-cell"><span class="cal-num">11</span></div>
+          <div class="cal-cell full"><span class="cal-num">12</span></div>
+          <div class="cal-cell full"><span class="cal-num">13</span></div>
+          <!-- 🟣 오늘 (14일) -->
+          <div class="cal-cell today"><span class="task-dot"></span><span class="cal-num">14</span></div>
+          <!-- 🔮 미래 날짜 (15~31일) -->
+          <div class="cal-cell"><span class="cal-num">15</span></div>
+          <div class="cal-cell"><span class="task-dot"></span><span class="cal-num">16</span></div>
+          <div class="cal-cell"><span class="cal-num">17</span></div>
+          <div class="cal-cell"><span class="cal-num">18</span></div>
+          <div class="cal-cell"><span class="cal-num">19</span></div>
+          <div class="cal-cell"><span class="cal-num">20</span></div>
+          <div class="cal-cell"><span class="task-dot"></span><span class="cal-num">21</span></div>
+          <div class="cal-cell"><span class="cal-num">22</span></div>
+          <div class="cal-cell"><span class="cal-num">23</span></div>
+          <div class="cal-cell"><span class="cal-num">24</span></div>
+          <div class="cal-cell"><span class="cal-num">25</span></div>
+          <div class="cal-cell"><span class="cal-num">26</span></div>
+          <div class="cal-cell"><span class="cal-num">27</span></div>
+          <div class="cal-cell"><span class="task-dot"></span><span class="cal-num">28</span></div>
+          <div class="cal-cell"><span class="cal-num">29</span></div>
+          <div class="cal-cell"><span class="cal-num">30</span></div>
+          <div class="cal-cell"><span class="cal-num">31</span></div>
+        </div>
+      </div>
+      <div class="card-footer">
+        <span>특징: 플랫하고 잔디 스타일</span>
+        <span class="badge-pill">면적형</span>
+      </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- 4안: 날짜 서클 뱃지 (Circle Badge) -->
+    <!-- ========================================== -->
+    <div class="option-card opt-badge">
+      <div class="option-header">
+        <div class="option-tag" style="color:#4A5568;">🎨 시안 4</div>
+        <div class="option-title">날짜 서클 뱃지 (Badge)</div>
+        <div class="option-desc">날짜 숫자 자체에 <strong>원형 칩</strong>을 씌워 표현하며, 미래 날짜는 색상 뱃지 없이 할일 점만 표시됩니다.</div>
+      </div>
+      <div class="calendar-body">
+        <div class="cal-month-nav"><span>&lt;</span><span>2026년 10월</span><span>&gt;</span></div>
+        <div class="cal-grid">
+          <div class="weekday-header">일</div><div class="weekday-header">월</div><div class="weekday-header">화</div><div class="weekday-header">수</div><div class="weekday-header">목</div><div class="weekday-header">금</div><div class="weekday-header">토</div>
+          <div class="cal-cell empty"></div><div class="cal-cell empty"></div><div class="cal-cell empty"></div><div class="cal-cell empty"></div>
+          <div class="cal-cell full"><div class="badge-circle"><span class="cal-num">1</span></div></div>
+          <div class="cal-cell partial"><div class="badge-circle"><span class="cal-num">2</span></div></div>
+          <div class="cal-cell missed"><div class="badge-circle"><span class="cal-num">3</span></div></div>
+          <div class="cal-cell"><div class="badge-circle"><span class="cal-num">4</span></div></div>
+          <div class="cal-cell partial"><div class="badge-circle"><span class="cal-num">5</span></div></div>
+          <div class="cal-cell full"><div class="badge-circle"><span class="cal-num">6</span></div></div>
+          <div class="cal-cell missed"><div class="badge-circle"><span class="cal-num">7</span></div></div>
+          <div class="cal-cell full"><div class="badge-circle"><span class="cal-num">8</span></div></div>
+          <div class="cal-cell full"><div class="badge-circle"><span class="cal-num">9</span></div></div>
+          <div class="cal-cell partial"><div class="badge-circle"><span class="cal-num">10</span></div></div>
+          <div class="cal-cell"><div class="badge-circle"><span class="cal-num">11</span></div></div>
+          <div class="cal-cell full"><div class="badge-circle"><span class="cal-num">12</span></div></div>
+          <div class="cal-cell full"><div class="badge-circle"><span class="cal-num">13</span></div></div>
+          <!-- 🟣 오늘 (14일) -->
+          <div class="cal-cell today"><span class="task-dot"></span><div class="badge-circle"><span class="cal-num">14</span></div></div>
+          <!-- 🔮 미래 날짜 (15~31일) -->
+          <div class="cal-cell"><div class="badge-circle"><span class="cal-num">15</span></div></div>
+          <div class="cal-cell"><span class="task-dot"></span><div class="badge-circle"><span class="cal-num">16</span></div></div>
+          <div class="cal-cell"><div class="badge-circle"><span class="cal-num">17</span></div></div>
+          <div class="cal-cell"><div class="badge-circle"><span class="cal-num">18</span></div></div>
+          <div class="cal-cell"><div class="badge-circle"><span class="cal-num">19</span></div></div>
+          <div class="cal-cell"><div class="badge-circle"><span class="cal-num">20</span></div></div>
+          <div class="cal-cell"><span class="task-dot"></span><div class="badge-circle"><span class="cal-num">21</span></div></div>
+          <div class="cal-cell"><div class="badge-circle"><span class="cal-num">22</span></div></div>
+          <div class="cal-cell"><div class="badge-circle"><span class="cal-num">23</span></div></div>
+          <div class="cal-cell"><div class="badge-circle"><span class="cal-num">24</span></div></div>
+          <div class="cal-cell"><div class="badge-circle"><span class="cal-num">25</span></div></div>
+          <div class="cal-cell"><div class="badge-circle"><span class="cal-num">26</span></div></div>
+          <div class="cal-cell"><div class="badge-circle"><span class="cal-num">27</span></div></div>
+          <div class="cal-cell"><span class="task-dot"></span><div class="badge-circle"><span class="cal-num">28</span></div></div>
+          <div class="cal-cell"><div class="badge-circle"><span class="cal-num">29</span></div></div>
+          <div class="cal-cell"><div class="badge-circle"><span class="cal-num">30</span></div></div>
+          <div class="cal-cell"><div class="badge-circle"><span class="cal-num">31</span></div></div>
+        </div>
+      </div>
+      <div class="card-footer">
+        <span>특징: 숫자와 상태 일체화</span>
+        <span class="badge-pill">아이콘형</span>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ============================================================== -->
+  <!-- 📝 할일 추가 2가지 상태 프리뷰 (반복 없음 vs 반복 있음) -->
+  <!-- ============================================================== -->
+  <div style="margin-top: 50px; text-align: center; max-width: 900px; width: 100%;">
+    <h2 style="font-size: 22px; font-weight: 700; color: #1A202C; margin-bottom: 8px;">📝 '할일 추가' 2가지 상태 프리뷰</h2>
+    <p style="font-size: 14px; color: #4A5568; margin-bottom: 25px;">
+      불필요한 '직접 입력'을 없애고 <strong>[반복 없음] vs [반복 있음] 2지선다</strong>로만 명확히 정돈했습니다.<br>
+      반복 있음의 세부 설정 영역은 지시하신 대로 <strong>'캘린더앱 참고' 플레이스홀더 박스로 깔끔하게 비워두었습니다.</strong>
+    </p>
+
+    <div style="display: flex; gap: 25px; justify-content: center; flex-wrap: wrap;">
+      
+      <!-- 1. 기본형 (반복 없음) -->
+      <div style="background: #FFFFFF; border-radius: 20px; width: 360px; box-shadow: 0 8px 24px rgba(0,0,0,0.06); overflow: hidden; text-align: left; border: 1px solid #E2E8F0;">
+        <div style="padding: 16px 20px; background: #FAF8FD; border-bottom: 1px solid #EFEAF6;">
+          <div style="font-size: 11px; font-weight: 700; color: #7B61A8; margin-bottom: 3px;">상태 1</div>
+          <div style="font-size: 16px; font-weight: 700; color: #2D3748;">할일 추가 - 1. 기본형 (반복 없음)</div>
+          <div style="font-size: 12px; color: #718096;">반복 세부 옵션 없이 짧고 산뜻하게 끝나는 기본 폼</div>
+        </div>
+        <div style="padding: 20px; display: flex; flex-direction: column; gap: 16px;">
+          <div>
+            <label style="font-size: 12px; font-weight: 600; color: #4A5568; display: block; margin-bottom: 6px;">할일 이름</label>
+            <div style="padding: 10px 14px; background: #F8F9FA; border: 1px solid #E2E8F0; border-radius: 8px; font-size: 13px; color: #718096;">예: 유기화학 과제 제출, 신경과 정기 진료</div>
+          </div>
+          <div>
+            <label style="font-size: 12px; font-weight: 600; color: #4A5568; display: block; margin-bottom: 6px;">날짜 및 시간</label>
+            <div style="display: flex; gap: 8px;">
+              <span style="padding: 8px 12px; background: #FAF8FD; border: 1px solid #7B61A8; color: #7B61A8; border-radius: 8px; font-size: 12px; font-weight: 600;">오늘 (10/14 수)</span>
+              <span style="padding: 8px 12px; background: #F8F9FA; border: 1px solid #E2E8F0; color: #4A5568; border-radius: 8px; font-size: 12px;">종일</span>
+              <span style="padding: 8px 12px; background: #F8F9FA; border: 1px solid #E2E8F0; color: #A0AEC0; border-radius: 8px; font-size: 12px;">시간 지정</span>
+            </div>
+          </div>
+          <div>
+            <label style="font-size: 12px; font-weight: 600; color: #4A5568; display: block; margin-bottom: 6px;">반복 설정</label>
+            <div style="display: flex; gap: 8px;">
+              <span style="flex: 1; text-align: center; padding: 10px; background: #F3EDF9; border: 1.5px solid #7B61A8; color: #7B61A8; border-radius: 8px; font-size: 13px; font-weight: 700;">● 반복 없음</span>
+              <span style="flex: 1; text-align: center; padding: 10px; background: #F8F9FA; border: 1px solid #E2E8F0; color: #718096; border-radius: 8px; font-size: 13px;">○ 반복 있음</span>
+            </div>
+          </div>
+          <div style="font-size: 11.5px; color: #718096; background: #FAF8FD; padding: 10px; border-radius: 8px; line-height: 1.4;">
+            💡 놓쳐도 괜찮아요. 언제든 다시 일정을 조율할 수 있어요.
+          </div>
+          <div style="display: flex; gap: 8px; margin-top: 5px;">
+            <span style="flex: 1; text-align: center; padding: 10px; background: #EDF2F7; color: #4A5568; border-radius: 8px; font-size: 13px; font-weight: 600;">취소</span>
+            <span style="flex: 1; text-align: center; padding: 10px; background: #7B61A8; color: #FFFFFF; border-radius: 8px; font-size: 13px; font-weight: 700;">할일 저장</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 2. 확장형 (반복 있음) -->
+      <div style="background: #FFFFFF; border-radius: 20px; width: 360px; box-shadow: 0 8px 24px rgba(0,0,0,0.06); overflow: hidden; text-align: left; border: 2px solid #7B61A8;">
+        <div style="padding: 16px 20px; background: #F3EDF9; border-bottom: 1px solid #EFEAF6;">
+          <div style="font-size: 11px; font-weight: 700; color: #7B61A8; margin-bottom: 3px;">상태 2</div>
+          <div style="font-size: 16px; font-weight: 700; color: #2D3748;">할일 추가 - 2. 확장형 (반복 있음)</div>
+          <div style="font-size: 12px; color: #718096;">반복 있음 선택 시 세부 영역이 열린 폼</div>
+        </div>
+        <div style="padding: 20px; display: flex; flex-direction: column; gap: 16px;">
+          <div>
+            <label style="font-size: 12px; font-weight: 600; color: #4A5568; display: block; margin-bottom: 6px;">할일 이름</label>
+            <div style="padding: 10px 14px; background: #F8F9FA; border: 1px solid #E2E8F0; border-radius: 8px; font-size: 13px; color: #2D3748;">예: 유기화학 과제 제출, 정기 병원 진료</div>
+          </div>
+          <div>
+            <label style="font-size: 12px; font-weight: 600; color: #4A5568; display: block; margin-bottom: 6px;">시작 날짜 및 시간</label>
+            <div style="display: flex; gap: 8px;">
+              <span style="padding: 8px 12px; background: #FAF8FD; border: 1px solid #7B61A8; color: #7B61A8; border-radius: 8px; font-size: 12px; font-weight: 600;">10/14 수 시작</span>
+              <span style="padding: 8px 12px; background: #F8F9FA; border: 1px solid #E2E8F0; color: #4A5568; border-radius: 8px; font-size: 12px;">종일</span>
+              <span style="padding: 8px 12px; background: #F8F9FA; border: 1px solid #E2E8F0; color: #A0AEC0; border-radius: 8px; font-size: 12px;">시간 지정</span>
+            </div>
+          </div>
+          <div>
+            <label style="font-size: 12px; font-weight: 600; color: #4A5568; display: block; margin-bottom: 6px;">반복 설정</label>
+            <div style="display: flex; gap: 8px; margin-bottom: 10px;">
+              <span style="flex: 1; text-align: center; padding: 10px; background: #F8F9FA; border: 1px solid #E2E8F0; color: #718096; border-radius: 8px; font-size: 13px;">○ 반복 없음</span>
+              <span style="flex: 1; text-align: center; padding: 10px; background: #F3EDF9; border: 1.5px solid #7B61A8; color: #7B61A8; border-radius: 8px; font-size: 13px; font-weight: 700;">● 반복 있음</span>
+            </div>
+
+            <!-- 🌟 사용자 요청: 캘린더앱 참고 플레이스홀더 박스 -->
+            <div style="background: #FAF8FD; border: 1.5px dashed #7B61A8; border-radius: 10px; padding: 18px 14px; text-align: center;">
+              <div style="font-size: 13px; font-weight: 700; color: #7B61A8; margin-bottom: 4px;">📱 캘린더앱 참고 (추후 스크린샷 기반 반영 예정)</div>
+              <div style="font-size: 11px; color: #718096;">[언제, 얼마나 반복할지 세부 UI는 스크린샷 전달 시 정밀 구현]</div>
+            </div>
+          </div>
+
+          <div style="display: flex; gap: 8px; margin-top: 5px;">
+            <span style="flex: 1; text-align: center; padding: 10px; background: #EDF2F7; color: #4A5568; border-radius: 8px; font-size: 13px; font-weight: 600;">취소</span>
+            <span style="flex: 1; text-align: center; padding: 10px; background: #7B61A8; color: #FFFFFF; border-radius: 8px; font-size: 13px; font-weight: 700;">반복 일정 저장</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ============================================================== -->
+  <!-- ✨ [확정] 전 화면 마스코트 상시 동행 시스템 (헤더 미니 아바타 1번 안) -->
+  <!-- ============================================================== -->
+  <div style="margin-top: 60px; text-align: center; max-width: 1100px; width: 100%; margin-bottom: 20px;">
+    <div style="display: inline-block; padding: 4px 14px; background: #FEF3C7; color: #B45309; border-radius: 20px; font-size: 12px; font-weight: 700; margin-bottom: 10px;">
+      IDENTITY · 1번 안 확정: 상단 헤더 미니 아바타
+    </div>
+    <h2 style="font-size: 24px; font-weight: 700; color: #1A202C; margin-bottom: 8px;">
+      ✨ 전 화면 마스코트 상시 동행 (헤더 미니 아바타 단독 적용)
+    </h2>
+    <p style="font-size: 14.5px; color: #4A5568; margin-bottom: 30px; line-height: 1.6;">
+      말씀해주신 대로 배너까지 넣으면 화면이 번잡해지고 소중한 세로 여백을 차지하므로,<br>
+      <strong>상단 헤더 우측 [36×36 미니 아바타 버튼]만 깔끔하게 상시 노출</strong>하여 미니멀하고 쾌적한 뷰를 완성했습니다.
+    </p>
+
+    <div style="display: flex; gap: 24px; justify-content: center; flex-wrap: wrap;">
+      
+      <!-- 화면 1: 복약 화면 (Meds Screen) -->
+      <div style="width: 340px; background: #FFFFFF; border-radius: 24px; border: 1.5px solid #E2E8F0; box-shadow: 0 10px 25px rgba(0,0,0,0.06); overflow: hidden; text-align: left;">
+        <div style="padding: 12px 16px; background: #F8FAFC; border-bottom: 1px solid #E2E8F0; font-size: 11px; font-weight: 700; color: #64748B; display: flex; justify-content: space-between;">
+          <span>📱 복약 화면 (Meds screen)</span>
+          <span style="color: #7B61A8; font-weight: 700;">상단 헤더 아바타</span>
+        </div>
+        <!-- 모의 헤더 -->
+        <div style="padding: 16px 18px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #F1F5F9;">
+          <div style="font-size: 22px; font-weight: 800; color: #1E293B;">복약</div>
+          <div style="display: flex; align-items: center; gap: 10px;">
+            <div style="width: 32px; height: 32px; border-radius: 50%; background: #F1F5F9; display: flex; align-items: center; justify-content: center; font-size: 14px; color: #64748B;">🔍</div>
+            <div style="width: 32px; height: 32px; border-radius: 50%; background: #F1F5F9; display: flex; align-items: center; justify-content: center; font-size: 14px; color: #64748B;">🔔</div>
+            <!-- 마스코트 아바타 버튼 (1번 안 단독) -->
+            <button onclick="showToast('•ᴗ• 마스코트 룸으로 이동합니다! (언제든 마스코트와 교감)')" title="마스코트 바로가기" style="width: 36px; height: 36px; border-radius: 50%; background: #F3EDF9; border: 1.5px solid #E0D5F2; display: flex; align-items: center; justify-content: center; font-size: 14px; cursor: pointer; transition: all 0.2s ease; box-shadow: 0 2px 6px rgba(123,97,168,0.18);" onmouseover="this.style.transform='scale(1.12)'" onmouseout="this.style.transform='scale(1)'">
+              •ᴗ•
+            </button>
+          </div>
+        </div>
+        <!-- 복약 콘텐츠 영역 -->
+        <div style="padding: 16px; display: flex; flex-direction: column; gap: 10px;">
+          <div style="padding: 12px 14px; background: #FAF8FD; border: 1px solid #EFEAF6; border-radius: 14px; display: flex; justify-content: space-between; align-items: center;">
+            <div>
+              <div style="font-size: 11px; font-weight: 700; color: #7B61A8; margin-bottom: 2px;">오후 12:30 · 점심</div>
+              <div style="font-size: 14px; font-weight: 700; color: #2D3748;">Focusin 10mg</div>
+              <div style="font-size: 11px; color: #718096;">식후 30분 복용 (처방약)</div>
+            </div>
+            <span style="padding: 6px 12px; background: #7B61A8; color: #FFFFFF; border-radius: 8px; font-size: 12px; font-weight: 700;">복용</span>
+          </div>
+          <div style="padding: 10px 14px; background: #FAF8FD; border-radius: 12px; font-size: 11.5px; color: #64748B; text-align: center; border: 1px dashed #DDD6FE;">
+            💡 배너를 없애 본문 복약 카드가 한눈에 시원하게 들어옵니다.
+          </div>
+        </div>
+      </div>
+
+      <!-- 화면 2: 습관 화면 (Habits Screen) -->
+      <div style="width: 340px; background: #FFFFFF; border-radius: 24px; border: 1.5px solid #E2E8F0; box-shadow: 0 10px 25px rgba(0,0,0,0.06); overflow: hidden; text-align: left;">
+        <div style="padding: 12px 16px; background: #F8FAFC; border-bottom: 1px solid #E2E8F0; font-size: 11px; font-weight: 700; color: #64748B; display: flex; justify-content: space-between;">
+          <span>📱 습관 화면 (Habbits screen)</span>
+          <span style="color: #059669; font-weight: 700;">상단 헤더 아바타</span>
+        </div>
+        <!-- 모의 헤더 -->
+        <div style="padding: 16px 18px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #F1F5F9;">
+          <div style="font-size: 22px; font-weight: 800; color: #1E293B;">습관</div>
+          <div style="display: flex; align-items: center; gap: 10px;">
+            <div style="width: 32px; height: 32px; border-radius: 50%; background: #F1F5F9; display: flex; align-items: center; justify-content: center; font-size: 14px; color: #64748B;">🔍</div>
+            <div style="width: 32px; height: 32px; border-radius: 50%; background: #F1F5F9; display: flex; align-items: center; justify-content: center; font-size: 14px; color: #64748B;">🔔</div>
+            <!-- 마스코트 아바타 버튼 (1번 안 단독) -->
+            <button onclick="showToast('•ᴗ• 마스코트 룸으로 이동합니다! (언제든 마스코트와 교감)')" title="마스코트 바로가기" style="width: 36px; height: 36px; border-radius: 50%; background: #ECFDF5; border: 1.5px solid #A7F3D0; display: flex; align-items: center; justify-content: center; font-size: 14px; cursor: pointer; transition: all 0.2s ease; box-shadow: 0 2px 6px rgba(16,185,129,0.18);" onmouseover="this.style.transform='scale(1.12)'" onmouseout="this.style.transform='scale(1)'">
+              •ᴗ•
+            </button>
+          </div>
+        </div>
+        <!-- 습관 콘텐츠 영역 -->
+        <div style="padding: 16px; display: flex; flex-direction: column; gap: 10px;">
+          <div style="padding: 12px 14px; background: #F0FDF4; border: 1px solid #DCFCE7; border-radius: 14px; display: flex; justify-content: space-between; align-items: center;">
+            <div>
+              <div style="font-size: 11px; font-weight: 700; color: #059669; margin-bottom: 2px;">오늘의 습관 · 3일 연속</div>
+              <div style="font-size: 14px; font-weight: 700; color: #2D3748;">물 한 컵 마시기</div>
+              <div style="font-size: 11px; color: #718096;">자유 빈도형 (주 3회 목표)</div>
+            </div>
+            <span style="padding: 6px 12px; background: #10B981; color: #FFFFFF; border-radius: 8px; font-size: 12px; font-weight: 700;">실천</span>
+          </div>
+          <div style="padding: 10px 14px; background: #F0FDF4; border-radius: 12px; font-size: 11.5px; color: #059669; text-align: center; border: 1px dashed #BBF7D0;">
+            🌱 상단 우측에 항상 대기 중인 마스코트를 탭하여 응원을 들을 수 있어요.
+          </div>
+        </div>
+      </div>
+
+      <!-- 화면 3: 달력 화면 (Calendar Screen) -->
+      <div style="width: 340px; background: #FFFFFF; border-radius: 24px; border: 1.5px solid #E2E8F0; box-shadow: 0 10px 25px rgba(0,0,0,0.06); overflow: hidden; text-align: left;">
+        <div style="padding: 12px 16px; background: #F8FAFC; border-bottom: 1px solid #E2E8F0; font-size: 11px; font-weight: 700; color: #64748B; display: flex; justify-content: space-between;">
+          <span>📱 달력 화면 (Calendar screen)</span>
+          <span style="color: #8C6D53; font-weight: 700;">상단 헤더 아바타</span>
+        </div>
+        <!-- 모의 헤더 -->
+        <div style="padding: 16px 18px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #F1F5F9;">
+          <div style="font-size: 22px; font-weight: 800; color: #1E293B;">달력</div>
+          <div style="display: flex; align-items: center; gap: 10px;">
+            <div style="width: 32px; height: 32px; border-radius: 50%; background: #F1F5F9; display: flex; align-items: center; justify-content: center; font-size: 14px; color: #64748B;">🔍</div>
+            <div style="width: 32px; height: 32px; border-radius: 50%; background: #F1F5F9; display: flex; align-items: center; justify-content: center; font-size: 14px; color: #64748B;">🔔</div>
+            <!-- 마스코트 아바타 버튼 (1번 안 단독) -->
+            <button onclick="showToast('•ᴗ• 마스코트 룸으로 이동합니다! (언제든 마스코트와 교감)')" title="마스코트 바로가기" style="width: 36px; height: 36px; border-radius: 50%; background: #F5EFE6; border: 1.5px solid #E6D8C7; display: flex; align-items: center; justify-content: center; font-size: 14px; cursor: pointer; transition: all 0.2s ease; box-shadow: 0 2px 6px rgba(140,109,83,0.18);" onmouseover="this.style.transform='scale(1.12)'" onmouseout="this.style.transform='scale(1)'">
+              •ᴗ•
+            </button>
+          </div>
+        </div>
+        <!-- 달력 콘텐츠 영역 -->
+        <div style="padding: 16px; display: flex; flex-direction: column; gap: 10px;">
+          <div style="padding: 12px 14px; background: #FAF9F7; border: 1px solid #EFEAE3; border-radius: 14px; display: flex; justify-content: space-between; align-items: center;">
+            <div>
+              <div style="font-size: 11px; font-weight: 700; color: #8C6D53; margin-bottom: 2px;">2026년 10월 스트릭</div>
+              <div style="font-size: 14px; font-weight: 700; color: #2D3748;">🔥 5일 연속 달성 중!</div>
+              <div style="font-size: 11px; color: #718096;">복약 순응도 85% 돌파</div>
+            </div>
+            <span style="padding: 6px 12px; background: #8C6D53; color: #FFFFFF; border-radius: 8px; font-size: 12px; font-weight: 700;">달력보기</span>
+          </div>
+          <div style="padding: 10px 14px; background: #FAF9F7; border-radius: 12px; font-size: 11.5px; color: #8C6D53; text-align: center; border: 1px dashed #DFCEB9;">
+            📅 월간 매트릭스가 상단에 걸림 없이 바로 시작되어 시인성이 극대화됩니다.
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ============================================================== -->
+  <!-- 📱 2×1 규격 (338×158 dp) 위젯 7종 리뉴얼 실시간 프리뷰 -->
+  <!-- ============================================================== -->
+  <div style="margin-top: 60px; text-align: center; max-width: 1100px; width: 100%; margin-bottom: 50px;">
+    <div style="display: inline-block; padding: 4px 14px; background: #EDE9FE; color: #6D28D9; border-radius: 20px; font-size: 12px; font-weight: 700; margin-bottom: 10px;">
+      NEW · 2×1 규격 (338 × 158 dp) 리뉴얼
+    </div>
+    <h2 style="font-size: 24px; font-weight: 700; color: #1A202C; margin-bottom: 8px;">
+      📱 2×1 중간 위젯 7종 실시간 프리뷰
+    </h2>
+    <p style="font-size: 14.5px; color: #4A5568; margin-bottom: 30px; line-height: 1.6;">
+      <strong>동기부여 위젯</strong>은 1×1 느낌을 벗어나 2×1 와이드 공간을 꽉 채운 캐릭터 무대+스트릭 바로 개편하였고,<br>
+      <strong>원탭 체크 위젯</strong>은 <strong>왼쪽에 상세 내용, 오른쪽에 큼직한 원터치 확인 버튼</strong>으로 인체공학적 배치를 완료했습니다.
+    </p>
+
+    <!-- [그룹 1: 순수 의욕 증진용 4종] -->
+    <div style="text-align: left; margin-bottom: 35px;">
+      <h3 style="font-size: 17px; font-weight: 700; color: #2D3748; margin-bottom: 6px; display: flex; align-items: center; gap: 8px;">
+        <span style="font-size: 19px;">✨</span> [그룹 1] 마스코트 의욕 증진 위젯 (2×1 와이드 캐릭터 무대 & 게이지)
+      </h3>
+      <p style="font-size: 13px; color: #718096; margin-bottom: 16px;">
+        좌측에 마스코트 표정 무대, 우측에 큼직한 말풍선과 스트릭/상태 칩을 배치하여 2×1 가로 비율의 안정감을 살렸습니다. (위젯에서 불필요한 캐릭터명 제거)
+      </p>
+
+      <div style="display: flex; gap: 20px; flex-wrap: wrap; justify-content: center;">
+        
+        <!-- 위젯 1: 올클리어 축하 -->
+        <div style="width: 338px; height: 158px; background: #FAF7FF; border: 1.5px solid #E0D5F2; border-radius: 22px; padding: 16px 18px; box-shadow: 0 6px 16px rgba(0,0,0,0.05); display: flex; align-items: center; justify-content: space-between; box-sizing: border-box; text-align: left; gap: 14px;">
+          <!-- 좌측: 마스코트 무대 (84x124) -->
+          <div style="width: 84px; height: 124px; background: #FFFFFF; border: 1px solid #E0D5F2; border-radius: 16px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; flex-shrink: 0; box-shadow: 0 2px 6px rgba(0,0,0,0.03);">
+            <div style="width: 72px; height: 54px; border-radius: 14px; background: #EDE9FE; display: flex; align-items: center; justify-content: center; font-size: 15px; font-weight: 800; color: #6D28D9;">
+              ദ്디 ˙ᗜ˙ )
+            </div>
+            <span style="font-size: 10px; font-weight: 700; background: #EDE9FE; color: #6D28D9; padding: 2px 7px; border-radius: 4px;">올클리어!</span>
+          </div>
+          <!-- 우측: 와이드 컨텐츠 & 스트릭 바 (204x124) -->
+          <div style="flex: 1; height: 124px; display: flex; flex-direction: column; justify-content: space-between;">
+            <div style="font-size: 10.5px; font-weight: 700; color: #6D28D9; letter-spacing: 0.5px;">🎉 ALL CLEAR</div>
+            <div style="font-size: 13px; font-weight: 600; color: #1F2937; line-height: 1.35;">
+              오늘 약이랑 루틴 전부 올클리어!<br>너 진짜 최고야, 너무 멋져!
+            </div>
+            <div style="background: #EDE9FE; color: #6D28D9; font-size: 10.5px; font-weight: 700; padding: 6px 10px; border-radius: 8px; text-align: center;">
+              🔥 5일 연속 달성 · 🪙 +50 코인
+            </div>
+          </div>
+        </div>
+
+        <!-- 위젯 2: 평소 응원 -->
+        <div style="width: 338px; height: 158px; background: #FFFFFF; border: 1.5px solid #E5E7EB; border-radius: 22px; padding: 16px 18px; box-shadow: 0 6px 16px rgba(0,0,0,0.05); display: flex; align-items: center; justify-content: space-between; box-sizing: border-box; text-align: left; gap: 14px;">
+          <!-- 좌측: 마스코트 무대 (84x124) -->
+          <div style="width: 84px; height: 124px; background: #FFFFFF; border: 1px solid #E5E7EB; border-radius: 16px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; flex-shrink: 0; box-shadow: 0 2px 6px rgba(0,0,0,0.03);">
+            <div style="width: 72px; height: 54px; border-radius: 14px; background: #ECFDF5; display: flex; align-items: center; justify-content: center; font-size: 15px; font-weight: 800; color: #059669;">
+              ( •̀ω•́ )و
+            </div>
+            <span style="font-size: 10px; font-weight: 700; background: #ECFDF5; color: #059669; padding: 2px 7px; border-radius: 4px;">힘내자!</span>
+          </div>
+          <!-- 우측: 와이드 컨텐츠 & 리마인더 칩 (204x124) -->
+          <div style="flex: 1; height: 124px; display: flex; flex-direction: column; justify-content: space-between;">
+            <div style="font-size: 10.5px; font-weight: 700; color: #059669; letter-spacing: 0.5px;">🌱 MENTAL CARE</div>
+            <div style="font-size: 13px; font-weight: 600; color: #1F2937; line-height: 1.35;">
+              한 가지만 해도 충분해.<br>오늘 약 하나만 챙겨도 대단해!
+            </div>
+            <div style="background: #ECFDF5; color: #047857; font-size: 10.5px; font-weight: 700; padding: 6px 10px; border-radius: 8px; text-align: center;">
+              ⏰ 다음 복약 : 오후 12:30 (Focusin)
+            </div>
+          </div>
+        </div>
+
+        <!-- 위젯 3: 1~3일 미접속 애절 -->
+        <div style="width: 338px; height: 158px; background: #FAF9F7; border: 1.5px solid #EAE6E1; border-radius: 22px; padding: 16px 18px; box-shadow: 0 6px 16px rgba(0,0,0,0.05); display: flex; align-items: center; justify-content: space-between; box-sizing: border-box; text-align: left; gap: 14px;">
+          <!-- 좌측: 마스코트 무대 (84x124) -->
+          <div style="width: 84px; height: 124px; background: #FFFFFF; border: 1px solid #EAE6E1; border-radius: 16px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; flex-shrink: 0; box-shadow: 0 2px 6px rgba(0,0,0,0.03);">
+            <div style="width: 72px; height: 54px; border-radius: 14px; background: #F5EFE6; display: flex; align-items: center; justify-content: center; font-size: 15px; font-weight: 800; color: #8C6D53;">
+              ( 🥺 •́︿•̀ )
+            </div>
+            <span style="font-size: 10px; font-weight: 700; background: #F5EFE6; color: #8C6D53; padding: 2px 7px; border-radius: 4px;">기다렸어...</span>
+          </div>
+          <!-- 우측: 와이드 컨텐츠 & 경고 바 (204x124) -->
+          <div style="flex: 1; height: 124px; display: flex; flex-direction: column; justify-content: space-between;">
+            <div style="font-size: 10.5px; font-weight: 700; color: #8C6D53; letter-spacing: 0.5px;">🥺 WE MISS YOU</div>
+            <div style="font-size: 13px; font-weight: 600; color: #1F2937; line-height: 1.35;">
+              많이 바빴지? 오늘 약은 챙겼어?<br>1초만 얼굴 보고 가자...
+            </div>
+            <div style="background: #F5EFE6; color: #8C6D53; font-size: 10.5px; font-weight: 700; padding: 6px 10px; border-radius: 8px; text-align: center;">
+              ⏳ 연속 기록 유지까지 4시간 남음
+            </div>
+          </div>
+        </div>
+
+        <!-- 위젯 4: 4일 이상 미접속 듀오링고 모드 -->
+        <div style="width: 338px; height: 158px; background: #FFF5F5; border: 1.5px solid #FECACA; border-radius: 22px; padding: 16px 18px; box-shadow: 0 6px 16px rgba(0,0,0,0.05); display: flex; align-items: center; justify-content: space-between; box-sizing: border-box; text-align: left; gap: 14px;">
+          <!-- 좌측: 마스코트 무대 (84x124) -->
+          <div style="width: 84px; height: 124px; background: #FFFFFF; border: 1px solid #FECACA; border-radius: 16px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; flex-shrink: 0; box-shadow: 0 2px 6px rgba(0,0,0,0.03);">
+            <div style="width: 72px; height: 54px; border-radius: 14px; background: #FEE2E2; display: flex; align-items: center; justify-content: center; font-size: 15px; font-weight: 800; color: #DC2626;">
+              ( 👁️ _ 👁️ )
+            </div>
+            <span style="font-size: 10px; font-weight: 700; background: #FEE2E2; color: #DC2626; padding: 2px 7px; border-radius: 4px;">지켜본다</span>
+          </div>
+          <!-- 우측: 와이드 컨텐츠 & 긴급 바 (204x124) -->
+          <div style="flex: 1; height: 124px; display: flex; flex-direction: column; justify-content: space-between;">
+            <div style="font-size: 10.5px; font-weight: 700; color: #DC2626; letter-spacing: 0.5px;">👁️ DUOLINGO MODE</div>
+            <div style="font-size: 13px; font-weight: 600; color: #1F2937; line-height: 1.35;">
+              너 나 잊은 거 아니지?<br>나 여기서 너만 기다리고 있는데...
+            </div>
+            <div style="background: #FEE2E2; color: #DC2626; font-size: 10.5px; font-weight: 700; padding: 6px 10px; border-radius: 8px; text-align: center;">
+              ⚠️ 4일째 미접속 · 오늘 약 복용 시급!
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- [그룹 2: 원탭 체크용 통합 위젯 3종] -->
+    <div style="text-align: left;">
+      <h3 style="font-size: 17px; font-weight: 700; color: #2D3748; margin-bottom: 6px; display: flex; align-items: center; gap: 8px;">
+        <span style="font-size: 19px;">⚡</span> [그룹 2] 원탭 체크 통합 위젯 (왼쪽 내용 + 오른쪽 확인 버튼)
+      </h3>
+      <p style="font-size: 13px; color: #718096; margin-bottom: 16px;">
+        요청하신 대로 <strong>왼쪽에 복약/습관/할일 상세 내용</strong>을 명확히 표시하고, <strong>오른쪽에 엄지손가락이 닿기 쉬운 큼직한 원터치 확인 버튼</strong>을 배치했습니다!
+      </p>
+
+      <div style="display: flex; gap: 20px; flex-wrap: wrap; justify-content: center;">
+        
+        <!-- 위젯 5: 복약 체크 모드 -->
+        <div style="width: 338px; height: 158px; background: #FFFFFF; border: 1.5px solid #E5E7EB; border-radius: 22px; padding: 16px 18px; box-shadow: 0 6px 16px rgba(0,0,0,0.05); display: flex; align-items: center; justify-content: space-between; box-sizing: border-box; text-align: left; gap: 16px;">
+          <!-- 좌측 내용 영역 -->
+          <div style="flex: 1; height: 124px; display: flex; flex-direction: column; justify-content: space-between;">
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <span style="font-size: 11px; font-weight: 700; background: #F3EDF9; color: #7B61A8; padding: 3px 8px; border-radius: 6px;">💊 다음 복약</span>
+              <span id="med-progress" style="font-size: 11.5px; color: #6B7280; font-weight: 500;">2/3 완료</span>
+            </div>
+            <div>
+              <div id="med-title" style="font-size: 17px; font-weight: 700; color: #1F2937;">Focusin 10mg</div>
+              <div style="font-size: 12.5px; color: #4B5568; margin-top: 2px;">오후 12:30 · 식후 30분 복용</div>
+            </div>
+            <div>
+              <span style="font-size: 10.5px; font-weight: 600; background: #F8F9FA; color: #6B7280; border: 1px solid #E2E8F0; padding: 2px 7px; border-radius: 5px;">🔒 처방약 (시간 엄수)</span>
+            </div>
+          </div>
+          <!-- 우측 세로형 대형 확인 버튼 -->
+          <button id="med-btn" onclick="toggleWidgetCheck('med', this)" style="width: 88px; height: 124px; background: #7B61A8; color: #FFFFFF; border: none; border-radius: 16px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; cursor: pointer; transition: all 0.2s ease; box-shadow: 0 4px 10px rgba(123,97,168,0.25); flex-shrink: 0;">
+            <span style="font-size: 26px; font-weight: 800; line-height: 1;">✓</span>
+            <span style="font-size: 12.5px; font-weight: 700;">복용 완료</span>
+            <span style="font-size: 9.5px; opacity: 0.8;">1-Tap</span>
+          </button>
+        </div>
+
+        <!-- 위젯 6: 습관 체크 모드 -->
+        <div style="width: 338px; height: 158px; background: #FFFFFF; border: 1.5px solid #E5E7EB; border-radius: 22px; padding: 16px 18px; box-shadow: 0 6px 16px rgba(0,0,0,0.05); display: flex; align-items: center; justify-content: space-between; box-sizing: border-box; text-align: left; gap: 16px;">
+          <!-- 좌측 내용 영역 -->
+          <div style="flex: 1; height: 124px; display: flex; flex-direction: column; justify-content: space-between;">
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <span style="font-size: 11px; font-weight: 700; background: #ECFDF5; color: #059669; padding: 3px 8px; border-radius: 6px;">🌱 오늘의 습관</span>
+              <span id="habit-progress" style="font-size: 11.5px; color: #6B7280; font-weight: 500;">2/4 실천 중</span>
+            </div>
+            <div>
+              <div id="habit-title" style="font-size: 17px; font-weight: 700; color: #1F2937;">물 한 컵 마시기</div>
+              <div style="font-size: 12.5px; color: #4B5568; margin-top: 2px;">언제든 자유롭게 · 1컵</div>
+            </div>
+            <div>
+              <span style="font-size: 10.5px; font-weight: 600; background: #F8F9FA; color: #6B7280; border: 1px solid #E2E8F0; padding: 2px 7px; border-radius: 5px;">🔥 3일 연속 실천 중</span>
+            </div>
+          </div>
+          <!-- 우측 세로형 대형 확인 버튼 -->
+          <button id="habit-btn" onclick="toggleWidgetCheck('habit', this)" style="width: 88px; height: 124px; background: #10B981; color: #FFFFFF; border: none; border-radius: 16px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; cursor: pointer; transition: all 0.2s ease; box-shadow: 0 4px 10px rgba(16,185,129,0.25); flex-shrink: 0;">
+            <span style="font-size: 26px; font-weight: 800; line-height: 1;">✓</span>
+            <span style="font-size: 12.5px; font-weight: 700;">실천 완료</span>
+            <span style="font-size: 9.5px; opacity: 0.8;">1-Tap</span>
+          </button>
+        </div>
+
+        <!-- 위젯 7: 할일 체크 모드 -->
+        <div style="width: 338px; height: 158px; background: #FFFFFF; border: 1.5px solid #E5E7EB; border-radius: 22px; padding: 16px 18px; box-shadow: 0 6px 16px rgba(0,0,0,0.05); display: flex; align-items: center; justify-content: space-between; box-sizing: border-box; text-align: left; gap: 16px;">
+          <!-- 좌측 내용 영역 -->
+          <div style="flex: 1; height: 124px; display: flex; flex-direction: column; justify-content: space-between;">
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <span style="font-size: 11px; font-weight: 700; background: #EFF6FF; color: #2563EB; padding: 3px 8px; border-radius: 6px;">📝 오늘의 할일</span>
+              <span id="task-progress" style="font-size: 11.5px; color: #6B7280; font-weight: 500;">1/2 완료</span>
+            </div>
+            <div>
+              <div id="task-title" style="font-size: 17px; font-weight: 700; color: #1F2937;">유기화학 과제 제출</div>
+              <div style="font-size: 12.5px; color: #4B5568; margin-top: 2px;">오늘 오후 6:00까지 마감 · 레포트</div>
+            </div>
+            <div>
+              <span style="font-size: 10.5px; font-weight: 600; background: #F8F9FA; color: #6B7280; border: 1px solid #E2E8F0; padding: 2px 7px; border-radius: 5px;">⏰ 마감 2시간 전</span>
+            </div>
+          </div>
+          <!-- 우측 세로형 대형 확인 버튼 -->
+          <button id="task-btn" onclick="toggleWidgetCheck('task', this)" style="width: 88px; height: 124px; background: #3B82F6; color: #FFFFFF; border: none; border-radius: 16px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; cursor: pointer; transition: all 0.2s ease; box-shadow: 0 4px 10px rgba(59,130,246,0.25); flex-shrink: 0;">
+            <span style="font-size: 26px; font-weight: 800; line-height: 1;">✓</span>
+            <span style="font-size: 12.5px; font-weight: 700;">과제 완료</span>
+            <span style="font-size: 9.5px; opacity: 0.8;">1-Tap</span>
+          </button>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- 스크립터 가이드 배너 -->
+    <div style="margin-top: 35px; background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 14px; padding: 18px 24px; text-align: left; display: flex; justify-content: space-between; align-items: center; flex-wrap: gap; gap: 15px;">
+      <div>
+        <div style="font-size: 14px; font-weight: 700; color: #2D3748;">🎨 Figma에 리뉴얼 2×1 위젯 자동 배치 준비 완료!</div>
+        <div style="font-size: 12.5px; color: #718096; margin-top: 2px;">
+          폴더의 <code>figma_scripter_widgets.js</code>를 Scripter 플러그인에 붙여넣고 [▶ Run]을 누르면 피그마에 즉시 생성됩니다.
+        </div>
+      </div>
+      <span style="padding: 8px 16px; background: #F3EDF9; color: #7B61A8; font-size: 12px; font-weight: 700; border-radius: 8px; white-space: nowrap;">규격: 338×158 dp</span>
+    </div>
+
+  </div>
+
+  <!-- 토스트 알림 컨테이너 -->
+  <div id="toast" style="position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); background: #1F2937; color: #FFFFFF; padding: 12px 24px; border-radius: 30px; font-size: 13.5px; font-weight: 600; box-shadow: 0 10px 25px rgba(0,0,0,0.2); opacity: 0; pointer-events: none; transition: opacity 0.3s ease; z-index: 9999;">
+    알림 메시지
+  </div>
+
+  <script>
+    function showToast(msg) {
+      const t = document.getElementById('toast');
+      t.innerText = msg;
+      t.style.opacity = '1';
+      setTimeout(() => {
+        t.style.opacity = '0';
+      }, 2200);
+    }
+
+    function toggleWidgetCheck(type, btn) {
+      if (type === 'med') {
+        const title = document.getElementById('med-title');
+        const prog = document.getElementById('med-progress');
+        if (btn.innerText.includes('완료됨')) {
+          btn.innerHTML = '<span style="font-size: 26px; font-weight: 800; line-height: 1;">✓</span><span style="font-size: 12.5px; font-weight: 700;">복용 완료</span><span style="font-size: 9.5px; opacity: 0.8;">1-Tap</span>';
+          btn.style.background = '#7B61A8';
+          title.style.textDecoration = 'none';
+          title.style.opacity = '1';
+          prog.innerText = '2/3 완료';
+          showToast('💊 복약 완료 상태가 취소되었습니다.');
+        } else {
+          btn.innerHTML = '<span style="font-size: 26px; font-weight: 800; line-height: 1;">✔</span><span style="font-size: 12.5px; font-weight: 700;">완료됨</span><span style="font-size: 9.5px; opacity: 0.8;">취소하기</span>';
+          btn.style.background = '#4A5568';
+          title.style.textDecoration = 'line-through';
+          title.style.opacity = '0.5';
+          prog.innerText = '3/3 완료 (올클리어!)';
+          showToast('💊 Focusin 복용 완료! 오늘 복약 목표를 모두 달성했습니다 🎉');
+        }
+      } else if (type === 'habit') {
+        const title = document.getElementById('habit-title');
+        const prog = document.getElementById('habit-progress');
+        if (btn.innerText.includes('완료됨')) {
+          btn.innerHTML = '<span style="font-size: 26px; font-weight: 800; line-height: 1;">✓</span><span style="font-size: 12.5px; font-weight: 700;">실천 완료</span><span style="font-size: 9.5px; opacity: 0.8;">1-Tap</span>';
+          btn.style.background = '#10B981';
+          title.style.textDecoration = 'none';
+          title.style.opacity = '1';
+          prog.innerText = '2/4 실천 중';
+          showToast('🌱 습관 실천 상태가 취소되었습니다.');
+        } else {
+          btn.innerHTML = '<span style="font-size: 26px; font-weight: 800; line-height: 1;">✔</span><span style="font-size: 12.5px; font-weight: 700;">완료됨</span><span style="font-size: 9.5px; opacity: 0.8;">취소하기</span>';
+          btn.style.background = '#4A5568';
+          title.style.textDecoration = 'line-through';
+          title.style.opacity = '0.5';
+          prog.innerText = '3/4 실천 중';
+          showToast('💧 물 한 컵 마시기 실천 완료! 훌륭해요 🌱');
+        }
+      } else if (type === 'task') {
+        const title = document.getElementById('task-title');
+        const prog = document.getElementById('task-progress');
+        if (btn.innerText.includes('완료됨')) {
+          btn.innerHTML = '<span style="font-size: 26px; font-weight: 800; line-height: 1;">✓</span><span style="font-size: 12.5px; font-weight: 700;">과제 완료</span><span style="font-size: 9.5px; opacity: 0.8;">1-Tap</span>';
+          btn.style.background = '#3B82F6';
+          title.style.textDecoration = 'none';
+          title.style.opacity = '1';
+          prog.innerText = '1/2 완료';
+          showToast('📝 할일 완료 상태가 취소되었습니다.');
+        } else {
+          btn.innerHTML = '<span style="font-size: 26px; font-weight: 800; line-height: 1;">✔</span><span style="font-size: 12.5px; font-weight: 700;">완료됨</span><span style="font-size: 9.5px; opacity: 0.8;">취소하기</span>';
+          btn.style.background = '#4A5568';
+          title.style.textDecoration = 'line-through';
+          title.style.opacity = '0.5';
+          prog.innerText = '2/2 완료 (모두 완료!)';
+          showToast('📝 유기화학 과제 제출 완료 체크되었습니다 ✨');
+        }
+      }
+    }
+  </script>
+</body>
+</html>

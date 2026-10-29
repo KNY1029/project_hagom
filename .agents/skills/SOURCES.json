@@ -1,0 +1,53 @@
+{
+  "note": "Community skills downloaded for cross-agent use. Review local security and exact licence terms before use.",
+  "skills": [
+    {
+      "name": "figma-to-flutter",
+      "path": "figma-to-flutter/SKILL.md",
+      "source": "https://github.com/edicardenas/figma-to-flutter-skill",
+      "sha256": "33480371f31ef61d8fa8f0715be5921eeb4d5e063f9a929e44378b5e3af4fc5c"
+    },
+    {
+      "name": "flutter-app-architecture",
+      "path": "flutter-app-architecture/SKILL.md",
+      "source": "https://github.com/evanca/flutter-ai-rules",
+      "sha256": "21fd6f83cdfac490230f0c8477fdc505b867fb3468bc465bae507812cee3a0e8"
+    },
+    {
+      "name": "flutter-auth",
+      "path": "flutter-auth/SKILL.md",
+      "source": "https://github.com/evanca/flutter-ai-rules",
+      "sha256": "25ed419ab15bf2d98ace7d95561dc8114e86a448048236d2e5dd4de1bccfcd31"
+    },
+    {
+      "name": "flutter-best-practices",
+      "path": "flutter-best-practices/SKILL.md",
+      "source": "https://github.com/evanca/flutter-ai-rules",
+      "sha256": "afcdc9a37f8bd4f9e128e8bbb9db5e5f153ed95c04a9dbec769ba69569b46e2e"
+    },
+    {
+      "name": "flutter-firestore",
+      "path": "flutter-firestore/SKILL.md",
+      "source": "https://github.com/evanca/flutter-ai-rules",
+      "sha256": "56e64fe49847724c1451554aa0c7e023eb0b9f4091a4a366ca3cb027132bbc70"
+    },
+    {
+      "name": "flutter-riverpod",
+      "path": "flutter-riverpod/SKILL.md",
+      "source": "https://github.com/evanca/flutter-ai-rules",
+      "sha256": "5cbcf72c77a2e87030599cb408d9f3d5f6ef780f67ae23b08afb43e733a3e56e"
+    },
+    {
+      "name": "flutter-testing",
+      "path": "flutter-testing/SKILL.md",
+      "source": "https://github.com/evanca/flutter-ai-rules",
+      "sha256": "48cbdfddc0d154fe32746b1848c73f8f787af56f1072220970e01ad66d9ce897"
+    },
+    {
+      "name": "flutterfire-configure",
+      "path": "flutterfire-configure/SKILL.md",
+      "source": "https://github.com/evanca/flutter-ai-rules",
+      "sha256": "11b620956d97906f4a6a6c1d49b88378b117e8de4427fa2e0007813c52d57199"
+    }
+  ]
+}
