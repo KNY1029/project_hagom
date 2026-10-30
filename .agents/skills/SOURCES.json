@@ -2,6 +2,13 @@
   "note": "Community skills downloaded for cross-agent use. Review local security and exact licence terms before use.",
   "skills": [
     {
+      "name": "accessibility-as-code",
+      "path": "accessibility-as-code/SKILL.md",
+      "source": "https://github.com/zakariaf/Flutter-Skills/tree/main/skills/accessibility-as-code",
+      "license": "MIT",
+      "sha256": "121fc6ac78eb24c03c8d92a25fb0eeecc3ed8a89ebd358d9613e7c37ec50e496"
+    },
+    {
       "name": "figma-to-flutter",
       "path": "figma-to-flutter/SKILL.md",
       "source": "https://github.com/edicardenas/figma-to-flutter-skill",
@@ -48,6 +55,13 @@
       "path": "flutterfire-configure/SKILL.md",
       "source": "https://github.com/evanca/flutter-ai-rules",
       "sha256": "11b620956d97906f4a6a6c1d49b88378b117e8de4427fa2e0007813c52d57199"
+    },
+    {
+      "name": "humanizer",
+      "path": "humanizer/SKILL.md",
+      "source": "https://github.com/blader/humanizer/blob/main/SKILL.md",
+      "license": "MIT",
+      "sha256": "0612f1dfb1672b0ea9b97e139bf1f06cabe98d8b27424fe8ff01e1fb4cc99cad"
     }
   ]
 }
