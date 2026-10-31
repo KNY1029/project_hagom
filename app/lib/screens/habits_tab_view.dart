@@ -1,0 +1,756 @@
+import 'package:flutter/material.dart';
+import '../constants/app_colors.dart';
+import '../models/habit_item.dart';
+import '../state/app_state_manager.dart';
+import '../widgets/celebration_toast.dart';
+/// 🌱 [습관 탭: 복수 알림 시간, 정렬된 저장 버튼, 간편 삭제 기능 완성본]
+/// 
+/// 1. 다중 알림 시각 지원:
+///    - 하루 여러 번 하는 습관에 맞춰 [+ 시각 추가]로 여러 알림 시각을 등록 및 삭제 가능!
+/// 2. 균형 잡힌 버튼 레이아웃:
+///    - [수정 내용 저장] 버튼이 오른쪽으로 치우치지 않고 시원하고 균형 있게 배치됨
+/// 3. 습관 카드 펼침 메뉴에 [🗑️ 삭제] 버튼 및 확인창 추가
+/// 4. 주 N회 입력란 스타일을 깔끔하게 정돈
+class HabitsTabView extends StatefulWidget {
+  const HabitsTabView({super.key});
+
+  @override
+  State<HabitsTabView> createState() => _HabitsTabViewState();
+}
+
+class _HabitsTabViewState extends State<HabitsTabView> {
+  final AppStateManager _state = AppStateManager();
+
+  @override
+  void initState() {
+    super.initState();
+    _state.addListener(_onStateChanged);
+  }
+
+  @override
+  void dispose() {
+    _state.removeListener(_onStateChanged);
+    super.dispose();
+  }
+
+  void _onStateChanged() {
+    if (mounted) setState(() {});
+  }
+
+  // 습관 삭제 확인 다이얼로그
+  void _confirmDeleteHabit(HabitItem habit) {
+    showDialog(
+      context: context,
+      builder: (dCtx) => AlertDialog(
+        title: const Text('습관 삭제', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+        content: Text('\'${habit.title}\' 습관을 목록에서 삭제할까요?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dCtx).pop(),
+            child: const Text('취소', style: TextStyle(color: AppColors.textSecondary)),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: AppColors.neutralDark),
+            onPressed: () {
+              _state.deleteHabit(habit.id);
+              Navigator.of(dCtx).pop();
+            },
+            child: const Text('삭제하기', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // 습관 추가 및 정보 수정 모달
+  void _showHabitEditModal({HabitItem? habit}) {
+    final isEditing = habit != null;
+
+    final titleCtrl = TextEditingController(text: isEditing ? habit.title : '');
+    final subCtrl = TextEditingController(text: isEditing ? habit.subtitle : '');
+
+    String recurrenceType = isEditing
+        ? (habit.recurrenceSummary.startsWith('매주')
+            ? '요일 선택'
+            : (habit.recurrenceSummary.contains('주') ? '주 N회' : (habit.recurrenceSummary == '오늘만' ? '오늘만' : '매일')))
+        : '매일';
+
+    List<String> selectedDays = isEditing ? List.from(habit.repeatDays) : [];
+
+    final weeklyTimesCtrl = TextEditingController(
+      text: isEditing && habit.recurrenceSummary.contains('주')
+          ? habit.recurrenceSummary.replaceAll(RegExp(r'[^0-9]'), '')
+          : '',
+    );
+
+    final targetPerDayCtrl = TextEditingController(
+      text: isEditing ? habit.targetPerDay.toString() : '1',
+    );
+
+    // 🌟 복수 알림 시간 지원 (여러 개 시각 리스트)
+    List<String> scheduledTimes = isEditing ? List.from(habit.scheduledTimes) : [];
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) {
+        return StatefulBuilder(
+          builder: (context, setModalState) {
+            return Container(
+              padding: EdgeInsets.only(
+                top: 20,
+                left: 20,
+                right: 20,
+                bottom: MediaQuery.of(ctx).viewInsets.bottom + 20,
+              ),
+              decoration: const BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        isEditing ? '습관 정보 수정' : '새로운 습관 추가',
+                        style: const TextStyle(fontSize: 17, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.close, color: AppColors.textMuted, size: 20),
+                        onPressed: () => Navigator.of(ctx).pop(),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 14),
+
+                  // 1. 습관 이름
+                  TextField(
+                    controller: titleCtrl,
+                    autofocus: !isEditing,
+                    decoration: InputDecoration(
+                      isDense: true,
+                      labelText: '습관 이름',
+                      hintText: '물 마시기, 가벼운 산책 등',
+                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 11),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+
+                  // 2. 작은 목표 설명 & 하루 목표 횟수
+                  Row(
+                    children: [
+                      Expanded(
+                        flex: 3,
+                        child: TextField(
+                          controller: subCtrl,
+                          decoration: InputDecoration(
+                            isDense: true,
+                            labelText: '작은 목표 설명',
+                            hintText: '하루 4잔 시원하게 등',
+                            border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+                            contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 11),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        flex: 2,
+                        child: TextField(
+                          controller: targetPerDayCtrl,
+                          keyboardType: TextInputType.number,
+                          textAlign: TextAlign.center,
+                          decoration: InputDecoration(
+                            isDense: true,
+                            labelText: '하루 목표',
+                            suffixText: '회',
+                            border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+                            contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 11),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 14),
+
+                  // 3. 실천 주기 (매일, 요일 선택, 주 N회, 오늘만)
+                  const Text('실천 주기', style: TextStyle(fontSize: 12.5, fontWeight: FontWeight.bold, color: AppColors.textSecondary)),
+                  const SizedBox(height: 6),
+                  Wrap(
+                    spacing: 6,
+                    children: ['매일', '요일 선택', '주 N회', '오늘만'].map((type) {
+                      final isSel = recurrenceType == type;
+                      return ChoiceChip(
+                        label: Text(type),
+                        selected: isSel,
+                        selectedColor: AppColors.lightLavender,
+                        labelStyle: TextStyle(
+                          color: isSel ? AppColors.primaryPurple : AppColors.textPrimary,
+                          fontWeight: isSel ? FontWeight.bold : FontWeight.normal,
+                          fontSize: 11.5,
+                        ),
+                        onSelected: (selected) {
+                          if (selected) {
+                            setModalState(() {
+                              recurrenceType = type;
+                            });
+                          }
+                        },
+                      );
+                    }).toList(),
+                  ),
+
+                  // 요일 선택 (7개 요일 균등 1줄 정렬)
+                  if (recurrenceType == '요일 선택') ...[
+                    const SizedBox(height: 8),
+                    Row(
+                      children: ['월', '화', '수', '목', '금', '토', '일'].map((day) {
+                        final isDaySel = selectedDays.contains(day);
+                        return Expanded(
+                          child: GestureDetector(
+                            onTap: () {
+                              setModalState(() {
+                                if (isDaySel) {
+                                  selectedDays.remove(day);
+                                } else {
+                                  selectedDays.add(day);
+                                }
+                              });
+                            },
+                            child: Container(
+                              margin: const EdgeInsets.symmetric(horizontal: 2),
+                              padding: const EdgeInsets.symmetric(vertical: 8),
+                              alignment: Alignment.center,
+                              decoration: BoxDecoration(
+                                color: isDaySel ? AppColors.primaryPurple : const Color(0xFFF3F4F6),
+                                borderRadius: BorderRadius.circular(8),
+                                border: Border.all(
+                                  color: isDaySel ? AppColors.primaryPurple : AppColors.divider,
+                                ),
+                              ),
+                              child: Text(
+                                day,
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.bold,
+                                  color: isDaySel ? Colors.white : AppColors.textPrimary,
+                                ),
+                              ),
+                            ),
+                          ),
+                        );
+                      }).toList(),
+                    ),
+                  ],
+
+                  // 주 N회 직접 입력 (디자인 통일)
+                  if (recurrenceType == '주 N회') ...[
+                    const SizedBox(height: 8),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFF9FAFB),
+                        borderRadius: BorderRadius.circular(10),
+                        border: Border.all(color: AppColors.divider),
+                      ),
+                      child: Row(
+                        children: [
+                          const Text('일주일에 ', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w500)),
+                          SizedBox(
+                            width: 50,
+                            child: TextField(
+                              controller: weeklyTimesCtrl,
+                              keyboardType: TextInputType.number,
+                              textAlign: TextAlign.center,
+                              decoration: InputDecoration(
+                                isDense: true,
+                                hintText: '숫자',
+                                border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                                contentPadding: const EdgeInsets.symmetric(horizontal: 4, vertical: 6),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 6),
+                          const Text('번 실천하기', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w500)),
+                        ],
+                      ),
+                    ),
+                  ],
+
+                  const SizedBox(height: 14),
+
+                  // 4. 복수 알림 시간 설정
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text('알림 시각', style: TextStyle(fontSize: 12.5, fontWeight: FontWeight.bold, color: AppColors.textSecondary)),
+                      TextButton.icon(
+                        style: TextButton.styleFrom(padding: EdgeInsets.zero, minimumSize: Size.zero),
+                        icon: const Icon(Icons.add, size: 14, color: AppColors.primaryPurple),
+                        label: const Text('시각 추가', style: TextStyle(fontSize: 12, color: AppColors.primaryPurple, fontWeight: FontWeight.bold)),
+                        onPressed: () async {
+                          final time = await showTimePicker(
+                            context: context,
+                            initialTime: TimeOfDay.now(),
+                            helpText: '새로운 알림 시각 추가',
+                          );
+                          if (time != null) {
+                            final period = time.period == DayPeriod.am ? '오전' : '오후';
+                            final hour = time.hourOfPeriod == 0 ? 12 : time.hourOfPeriod;
+                            final min = time.minute.toString().padLeft(2, '0');
+                            setModalState(() {
+                              scheduledTimes.add('$period $hour:$min');
+                            });
+                          }
+                        },
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 6),
+
+                  if (scheduledTimes.isEmpty)
+                    const Text('시각 미지정 (원할 때 자유롭게 실천)', style: TextStyle(fontSize: 12, color: AppColors.textMuted))
+                  else
+                    Wrap(
+                      spacing: 6,
+                      runSpacing: 6,
+                      children: scheduledTimes.map((t) {
+                        return Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: AppColors.lightLavender,
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(color: AppColors.primaryPurple.withOpacity(0.3)),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(t, style: const TextStyle(fontSize: 11.5, color: AppColors.primaryPurple, fontWeight: FontWeight.bold)),
+                              const SizedBox(width: 4),
+                              GestureDetector(
+                                onTap: () {
+                                  setModalState(() {
+                                    scheduledTimes.remove(t);
+                                  });
+                                },
+                                child: const Icon(Icons.close, size: 13, color: AppColors.primaryPurple),
+                              ),
+                            ],
+                          ),
+                        );
+                      }).toList(),
+                    ),
+
+                  const SizedBox(height: 22),
+
+                  // 5. 저장 / 삭제 버튼 (정중앙 균형 잡힌 레이아웃)
+                  Row(
+                    children: [
+                      if (isEditing) ...[
+                        OutlinedButton(
+                          onPressed: () {
+                            Navigator.of(ctx).pop();
+                            _confirmDeleteHabit(habit);
+                          },
+                          style: OutlinedButton.styleFrom(
+                            side: const BorderSide(color: AppColors.neutralDark),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                          ),
+                          child: const Row(
+                            mainAxisSize: MainAxisSize.min,
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(Icons.delete_outline, size: 17, color: AppColors.neutralDark),
+                              SizedBox(width: 4),
+                              Text('삭제', style: TextStyle(color: AppColors.neutralDark, fontWeight: FontWeight.bold, fontSize: 13)),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                      ],
+                      Expanded(
+                        child: SizedBox(
+                          height: 44,
+                          child: ElevatedButton(
+                            onPressed: () {
+                              if (titleCtrl.text.trim().isEmpty) return;
+
+                              String recSummary = '매일';
+                              if (recurrenceType == '요일 선택') {
+                                recSummary = selectedDays.isEmpty ? '매일' : '매주 ${selectedDays.join(",")}';
+                              } else if (recurrenceType == '주 N회') {
+                                final n = weeklyTimesCtrl.text.trim().isEmpty ? '3' : weeklyTimesCtrl.text.trim();
+                                recSummary = '주 $n회';
+                              } else if (recurrenceType == '오늘만') {
+                                recSummary = '오늘만';
+                              }
+
+                              final targetCount = int.tryParse(targetPerDayCtrl.text.trim()) ?? 1;
+
+                              if (isEditing) {
+                                _state.updateHabit(
+                                  id: habit.id,
+                                  title: titleCtrl.text.trim(),
+                                  subtitle: subCtrl.text.trim().isEmpty ? '가볍게 실천' : subCtrl.text.trim(),
+                                  recurrenceSummary: recSummary,
+                                  repeatDays: recurrenceType == '요일 선택' ? selectedDays : [],
+                                  scheduledTimes: scheduledTimes,
+                                  targetPerDay: targetCount > 0 ? targetCount : 1,
+                                );
+                              } else {
+                                _state.addHabit(
+                                  title: titleCtrl.text.trim(),
+                                  subtitle: subCtrl.text.trim().isEmpty ? '가볍게 실천' : subCtrl.text.trim(),
+                                  recurrenceSummary: recSummary,
+                                  repeatDays: recurrenceType == '요일 선택' ? selectedDays : [],
+                                  scheduledTimes: scheduledTimes,
+                                  targetPerDay: targetCount > 0 ? targetCount : 1,
+                                );
+                              }
+                              Navigator.of(ctx).pop();
+                            },
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: AppColors.primaryPurple,
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                            ),
+                            child: Text(
+                              isEditing ? '수정 내용 저장' : '습관 추가 완료',
+                              style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 15),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return ListView(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      children: [
+        _buildSlimProgressHeader(),
+        const SizedBox(height: 10),
+
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          decoration: BoxDecoration(
+            color: AppColors.lightLavender.withOpacity(0.5),
+            borderRadius: BorderRadius.circular(10),
+          ),
+          child: const Row(
+            children: [
+              Text('🌱', style: TextStyle(fontSize: 14)),
+              SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  '지켜야 할 연속 기록이 아니에요. 오늘도 돌아왔다는 작은 증표예요.',
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: AppColors.textPrimary,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 12),
+
+        ..._state.habits.map((habit) => _buildHabitCard(habit)),
+
+        const SizedBox(height: 12),
+        SizedBox(
+          width: double.infinity,
+          height: 42,
+          child: OutlinedButton.icon(
+            icon: const Icon(Icons.add, color: AppColors.primaryPurple, size: 18),
+            label: const Text(
+              '+ 작은 습관 추가',
+              style: TextStyle(
+                color: AppColors.primaryPurple,
+                fontWeight: FontWeight.bold,
+                fontSize: 14,
+              ),
+            ),
+            onPressed: () => _showHabitEditModal(),
+            style: OutlinedButton.styleFrom(
+              side: const BorderSide(color: AppColors.primaryPurple, width: 1.0),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+              backgroundColor: Colors.white,
+            ),
+          ),
+        ),
+        const SizedBox(height: 24),
+      ],
+    );
+  }
+
+  Widget _buildSlimProgressHeader() {
+    final total = _state.habits.length;
+    final score = _state.habitTotalScore;
+    final rate = _state.habitCompletionRate;
+
+    String formatScore(double s) {
+      if (s == s.roundToDouble()) {
+        return '${s.toInt()}';
+      } else {
+        return '${s.toInt()}½';
+      }
+    }
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AppColors.divider),
+      ),
+      child: Column(
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Row(
+                children: [
+                  const Text(
+                    '오늘 습관 ',
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.textPrimary,
+                    ),
+                  ),
+                  Text(
+                    '$total개 중 ${formatScore(score)}개 실천',
+                    style: const TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.primaryPurple,
+                    ),
+                  ),
+                ],
+              ),
+              Text(
+                '${(rate * 100).toInt()}%',
+                style: const TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.primaryPurple,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(6),
+            child: LinearProgressIndicator(
+              value: rate,
+              minHeight: 6,
+              backgroundColor: AppColors.lightLavender,
+              valueColor: const AlwaysStoppedAnimation<Color>(AppColors.primaryPurple),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildHabitCard(HabitItem habit) {
+    Color getStatusColor() {
+      final s = habit.score;
+      if (s >= 1.0) return AppColors.successGreen;
+      if (s > 0.0) return AppColors.partialOrange;
+      return AppColors.textSecondary;
+    }
+
+    Color getStatusBg() {
+      final s = habit.score;
+      if (s >= 1.0) return AppColors.successBg;
+      if (s > 0.0) return const Color(0xFFFFFBEB);
+      return const Color(0xFFF3F4F6);
+    }
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 8),
+        decoration: BoxDecoration(
+          color: habit.score >= 1.0
+              ? const Color(0xFFEAF8F1) // 은은한 불투명 솔리드 연초록 (뒤 비침 원천 차단!)
+              : (habit.isExpanded ? const Color(0xFFF8F6FF) : Colors.white),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: habit.score >= 1.0
+                ? AppColors.successGreen.withOpacity(0.3)
+                : (habit.isExpanded ? AppColors.primaryPurple.withOpacity(0.4) : AppColors.divider),
+            width: habit.isExpanded ? 1.4 : 1.0,
+          ),
+        ),
+        child: Column(
+          children: [
+            InkWell(
+            borderRadius: BorderRadius.circular(12),
+            onTap: () => _state.toggleHabitExpanded(habit.id),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 11),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Wrap(
+                          crossAxisAlignment: WrapCrossAlignment.center,
+                          spacing: 5,
+                          children: [
+                            Text(
+                              habit.title,
+                              style: TextStyle(
+                                fontSize: 14.5,
+                                fontWeight: FontWeight.bold,
+                                color: habit.score >= 1.0
+                                    ? AppColors.successGreen
+                                    : AppColors.textPrimary,
+                              ),
+                            ),
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
+                              decoration: BoxDecoration(
+                                color: AppColors.lightLavender,
+                                borderRadius: BorderRadius.circular(3),
+                              ),
+                              child: Text(
+                                habit.recurrenceSummary,
+                                style: const TextStyle(fontSize: 9.5, color: AppColors.primaryPurple, fontWeight: FontWeight.bold),
+                              ),
+                            ),
+                            if (habit.targetPerDay > 1)
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
+                                decoration: BoxDecoration(
+                                  color: AppColors.warmBrown.withOpacity(0.12),
+                                  borderRadius: BorderRadius.circular(3),
+                                ),
+                                child: Text(
+                                  '하루 ${habit.targetPerDay}회',
+                                  style: const TextStyle(fontSize: 9.5, color: AppColors.warmBrown, fontWeight: FontWeight.bold),
+                                ),
+                              ),
+                            ...habit.scheduledTimes.map((t) => Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFFF3F4F6),
+                                    borderRadius: BorderRadius.circular(3),
+                                  ),
+                                  child: Text(
+                                    t,
+                                    style: const TextStyle(fontSize: 9.5, color: AppColors.textSecondary, fontWeight: FontWeight.w600),
+                                  ),
+                                )),
+                          ],
+                        ),
+                        const SizedBox(height: 3),
+                        Text(
+                          habit.subtitle,
+                          style: const TextStyle(
+                            fontSize: 12,
+                            color: AppColors.textSecondary,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  const SizedBox(width: 8),
+
+                  // 🔒 [우측 상태 칩: 76x32dp 복약 탭과 칼정렬]
+                  GestureDetector(
+                    onTap: () {
+                      _state.cycleHabitProgress(habit.id);
+                      if (habit.score >= 1.0) {
+                        CelebrationToast.show(
+                          context,
+                          title: '습관 실천 완료 🌱',
+                          message: '\'${habit.title}\' 목표를 달성했어요! 훌륭해요 👏',
+                        );
+                      } else if (habit.score > 0.0) {
+                        CelebrationToast.show(
+                          context,
+                          title: '작은 발걸음 성공 🐾',
+                          message: '조금이라도 실천한 것이 정말 큰 의미가 있어요 :)',
+                        );
+                      }
+                    },
+                    child: SizedBox(
+                      width: 76,
+                      height: 32,
+                      child: Container(
+                        alignment: Alignment.center,
+                        decoration: BoxDecoration(
+                          color: getStatusBg(),
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(
+                            color: habit.score >= 1.0
+                                ? AppColors.successGreen.withOpacity(0.4)
+                                : (habit.score > 0.0 ? AppColors.partialOrange.withOpacity(0.4) : AppColors.divider),
+                          ),
+                        ),
+                        child: Text(
+                          habit.statusLabel,
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            fontSize: 11.5,
+                            fontWeight: FontWeight.bold,
+                            color: getStatusColor(),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+
+          // 카드 탭 시 펼쳐지는 아코디언 옵션 메뉴
+          if (habit.isExpanded) ...[
+            const Divider(height: 1),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+              child: Row(
+                children: [
+                  TextButton.icon(
+                    style: TextButton.styleFrom(padding: EdgeInsets.zero, minimumSize: Size.zero),
+                    icon: const Icon(Icons.edit_note, size: 16, color: AppColors.primaryPurple),
+                    label: const Text(' 정보 수정', style: TextStyle(color: AppColors.primaryPurple, fontSize: 12, fontWeight: FontWeight.bold)),
+                    onPressed: () => _showHabitEditModal(habit: habit),
+                  ),
+                  const Spacer(),
+                  TextButton.icon(
+                    style: TextButton.styleFrom(padding: EdgeInsets.zero, minimumSize: Size.zero),
+                    icon: const Icon(Icons.refresh, size: 14, color: AppColors.textSecondary),
+                    label: const Text(' 상태 초기화', style: TextStyle(color: AppColors.textSecondary, fontSize: 12)),
+                    onPressed: () {
+                      _state.cycleHabitProgress(habit.id);
+                    },
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+}
