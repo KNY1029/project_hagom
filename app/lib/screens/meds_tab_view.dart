@@ -1212,7 +1212,7 @@ class _MedsTabViewState extends State<MedsTabView> {
                                     slot.isSkipped
                                         ? '${slot.label} 건너뜀'
                                         : (slot.isCompleted
-                                            ? '${slot.label} ${slot.takenTime?.split(' ').last ?? slot.scheduledTime?.split(' ').last ?? '완료'} ✓'.trim()
+                                            ? '${slot.label} ${slot.takenTime?.split(' ').last ?? slot.scheduledTime?.split(' ').last ?? ''}'.trim()
                                             : '${slot.label} ${slot.scheduledTime?.split(' ').last ?? ''}'.trim()),
                                     textAlign: TextAlign.center,
                                     style: TextStyle(
@@ -1277,7 +1277,7 @@ class _MedsTabViewState extends State<MedsTabView> {
                           border: isAllDone ? Border.all(color: AppColors.successGreen.withOpacity(0.4)) : null,
                         ),
                         child: Text(
-                          isAllDone ? '✓ 완료' : '지금 복용',
+                          isAllDone ? '완료' : '지금 복용',
                           style: TextStyle(
                             fontSize: 11.5,
                             fontWeight: FontWeight.bold,

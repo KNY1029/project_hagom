@@ -600,7 +600,7 @@ class _CalendarTabViewState extends State<CalendarTabView> {
                             child: Text(
                               selectedMedRate == null
                                   ? '기록 대기'
-                                  : (selectedMedRate >= 1.0 ? '✓ 전체 완료' : (selectedMedRate > 0.0 ? '일부 복용' : '건너뜀/미기록')),
+                                  : (selectedMedRate >= 1.0 ? '전체 완료' : (selectedMedRate > 0.0 ? '일부 복용' : '건너뜀/미기록')),
                               style: TextStyle(
                                 fontSize: 11.5,
                                 fontWeight: FontWeight.bold,
@@ -763,7 +763,7 @@ class _CalendarTabViewState extends State<CalendarTabView> {
                               selectedHabitRate == null
                                   ? '기록 대기'
                                   : (selectedHabitRate >= 1.0
-                                      ? '✓ 전체 달성'
+                                      ? '전체 달성'
                                       : (selectedHabitRate > 0.0
                                           ? '${(selectedHabitRate * _state.habits.length).toStringAsFixed(1)}/${_state.habits.length}개 실천'
                                           : '미실천/기록 없음')),
