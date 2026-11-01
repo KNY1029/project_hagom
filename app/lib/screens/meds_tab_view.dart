@@ -935,33 +935,7 @@ class _MedsTabViewState extends State<MedsTabView> {
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       children: [
         _buildSlimProgressHeader(),
-        const SizedBox(height: 10),
-
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-          decoration: BoxDecoration(
-            color: AppColors.lightLavender.withOpacity(0.5),
-            borderRadius: BorderRadius.circular(10),
-          ),
-          child: const Row(
-            children: [
-              Text('🩺', style: TextStyle(fontSize: 14)),
-              SizedBox(width: 8),
-              Expanded(
-                child: Text(
-                  '놓친 복용은 실패가 아니라 유용한 데이터예요 🌱',
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: AppColors.textPrimary,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
         const SizedBox(height: 12),
-
         ..._state.medications.map((med) => _buildMedCard(med)),
 
         const SizedBox(height: 12),
@@ -997,11 +971,18 @@ class _MedsTabViewState extends State<MedsTabView> {
     final rate = total == 0 ? 0.0 : (completed / total);
 
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppColors.divider),
+        border: Border.all(color: AppColors.divider.withOpacity(0.6)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.02),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
       ),
       child: Column(
         children: [
@@ -1011,24 +992,31 @@ class _MedsTabViewState extends State<MedsTabView> {
               Row(
                 children: [
                   const Text(
-                    '오늘 복약 ',
-                    style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
+                    '오늘 복약',
+                    style: TextStyle(
+                      fontSize: 13.5,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.textPrimary,
+                    ),
                   ),
+                  const SizedBox(width: 6),
                   Text(
-                    '$completed/$total 회차 완료',
-                    style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: AppColors.primaryPurple),
+                    '$total회 중 $completed회',
+                    style: const TextStyle(
+                      fontSize: 13.5,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.primaryPurple,
+                    ),
                   ),
                 ],
               ),
-              Row(
-                children: [
-                  const Icon(Icons.verified, size: 13, color: AppColors.warmBrown),
-                  const SizedBox(width: 4),
-                  Text(
-                    '준수율 ${(rate * 100).toInt()}%',
-                    style: const TextStyle(fontSize: 12, color: AppColors.warmBrown, fontWeight: FontWeight.bold),
-                  ),
-                ],
+              Text(
+                '${(rate * 100).toInt()}%',
+                style: const TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.primaryPurple,
+                ),
               ),
             ],
           ),
@@ -1055,20 +1043,19 @@ class _MedsTabViewState extends State<MedsTabView> {
     return Container(
       margin: const EdgeInsets.only(bottom: 8),
       decoration: BoxDecoration(
-        color: isSkipped
-            ? const Color(0xFFF9FAFB) // 회색 톤 85% 불투명도 느낌
-            : (isAllDone
-                ? const Color(0xFFEAF8F1)
-                : (med.isExpanded ? const Color(0xFFF8F6FF) : Colors.white)),
+        color: isSkipped ? const Color(0xFFF9FAFB) : Colors.white,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: isSkipped
-              ? AppColors.divider
-              : (isAllDone
-                  ? AppColors.successGreen.withOpacity(0.3)
-                  : (med.isExpanded ? AppColors.primaryPurple.withOpacity(0.4) : AppColors.divider)),
-          width: med.isExpanded ? 1.4 : 1.0,
+          color: med.isExpanded ? AppColors.primaryPurple.withOpacity(0.35) : AppColors.divider.withOpacity(0.6),
+          width: 1.0,
         ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.015),
+            blurRadius: 6,
+            offset: const Offset(0, 1.5),
+          ),
+        ],
       ),
       child: Column(
         children: [
@@ -1083,11 +1070,11 @@ class _MedsTabViewState extends State<MedsTabView> {
               ),
               child: const Row(
                 children: [
-                  Text('🌿', style: TextStyle(fontSize: 12)),
+                  Icon(Icons.check_circle_outline, size: 13, color: AppColors.textSecondary),
                   SizedBox(width: 6),
                   Text(
                     '이번 복용을 건너뛰었어요 · 다음 복용에 집중해요',
-                    style: TextStyle(fontSize: 11, color: AppColors.textSecondary, fontWeight: FontWeight.bold),
+                    style: TextStyle(fontSize: 11, color: AppColors.textSecondary, fontWeight: FontWeight.w500),
                   ),
                 ],
               ),
@@ -1199,12 +1186,12 @@ class _MedsTabViewState extends State<MedsTabView> {
                                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                                   decoration: BoxDecoration(
                                     color: slot.isCompleted
-                                        ? AppColors.successBg.withOpacity(0.5)
+                                        ? AppColors.completedBg
                                         : (slot.isSkipped ? const Color(0xFFF9FAFB) : const Color(0xFFF3F4F6)),
                                     borderRadius: BorderRadius.circular(6),
                                     border: Border.all(
                                       color: slot.isCompleted
-                                          ? AppColors.successGreen.withOpacity(0.4)
+                                          ? AppColors.completedBorder
                                           : (slot.isSkipped ? AppColors.divider.withOpacity(0.3) : AppColors.divider),
                                     ),
                                   ),
@@ -1219,7 +1206,7 @@ class _MedsTabViewState extends State<MedsTabView> {
                                       fontSize: 11.0,
                                       fontWeight: slot.isCompleted ? FontWeight.bold : FontWeight.w500,
                                       color: slot.isCompleted
-                                          ? AppColors.successGreen
+                                          ? AppColors.completedText
                                           : (slot.isSkipped ? AppColors.textMuted.withOpacity(0.6) : AppColors.textPrimary),
                                       decoration: slot.isSkipped ? TextDecoration.lineThrough : null, // 🌿 건너뛴 회차는 취소선 + 흐린 텍스트로 덜 눈에 띄게!
                                     ),
@@ -1271,10 +1258,10 @@ class _MedsTabViewState extends State<MedsTabView> {
                         alignment: Alignment.center,
                         decoration: BoxDecoration(
                           color: isAllDone
-                              ? AppColors.successBg
+                              ? AppColors.completedBg
                               : AppColors.primaryPurple,
                           borderRadius: BorderRadius.circular(8),
-                          border: isAllDone ? Border.all(color: AppColors.successGreen.withOpacity(0.4)) : null,
+                          border: isAllDone ? Border.all(color: AppColors.completedBorder) : null,
                         ),
                         child: Text(
                           isAllDone ? '완료' : '지금 복용',
@@ -1282,7 +1269,7 @@ class _MedsTabViewState extends State<MedsTabView> {
                             fontSize: 11.5,
                             fontWeight: FontWeight.bold,
                             color: isAllDone
-                                ? AppColors.successGreen
+                                ? AppColors.completedText
                                 : Colors.white,
                           ),
                         ),
@@ -1301,28 +1288,37 @@ class _MedsTabViewState extends State<MedsTabView> {
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
               child: Row(
                 children: [
-                  TextButton.icon(
-                    style: TextButton.styleFrom(padding: EdgeInsets.zero, minimumSize: Size.zero),
-                    icon: const Icon(Icons.edit_note, size: 16, color: AppColors.primaryPurple),
-                    label: const Text(' 정보 수정', style: TextStyle(color: AppColors.primaryPurple, fontSize: 12, fontWeight: FontWeight.bold)),
+                  TextButton(
+                    style: TextButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+                      minimumSize: Size.zero,
+                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    ),
                     onPressed: () => _showMedEditModal(med: med),
+                    child: const Text('정보 수정', style: TextStyle(color: AppColors.primaryPurple, fontSize: 12, fontWeight: FontWeight.w600)),
                   ),
-                  const SizedBox(width: 14),
+                  const SizedBox(width: 8),
                   // 🌟 PRD 5.1절 [건너뛰기] 버튼 (남은 다음 회차만 핀셋 건너뜀)
                   if (!isAllDone && med.nextPendingSlot != null)
-                    TextButton.icon(
-                      style: TextButton.styleFrom(padding: EdgeInsets.zero, minimumSize: Size.zero),
-                      icon: const Icon(Icons.skip_next_outlined, size: 15, color: AppColors.textSecondary),
-                      label: Text(' ${med.nextPendingSlot!.label} 건너뛰기', style: const TextStyle(color: AppColors.textSecondary, fontSize: 12)),
+                    TextButton(
+                      style: TextButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+                        minimumSize: Size.zero,
+                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                      ),
                       onPressed: () => _showSkipConfirmDialog(med),
+                      child: Text('${med.nextPendingSlot!.label} 건너뛰기', style: const TextStyle(color: AppColors.textSecondary, fontSize: 12, fontWeight: FontWeight.w500)),
                     ),
                   const Spacer(),
                   if (med.completedSlotsCount > 0)
-                    TextButton.icon(
-                      style: TextButton.styleFrom(padding: EdgeInsets.zero, minimumSize: Size.zero),
-                      icon: const Icon(Icons.undo, size: 14, color: AppColors.warmBrown),
-                      label: const Text(' 되돌리기', style: TextStyle(color: AppColors.warmBrown, fontSize: 12, fontWeight: FontWeight.bold)),
+                    TextButton(
+                      style: TextButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+                        minimumSize: Size.zero,
+                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                      ),
                       onPressed: () => _state.revertMedication(med.id),
+                      child: const Text('되돌리기', style: TextStyle(color: AppColors.warmBrown, fontSize: 12, fontWeight: FontWeight.w600)),
                     ),
                 ],
               ),

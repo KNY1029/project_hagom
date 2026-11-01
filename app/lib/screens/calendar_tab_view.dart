@@ -269,31 +269,31 @@ class _CalendarTabViewState extends State<CalendarTabView> {
           padding: const EdgeInsets.all(12),
           decoration: BoxDecoration(
             color: Colors.white,
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: AppColors.divider),
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: AppColors.divider.withOpacity(0.6)),
             boxShadow: [
               BoxShadow(color: Colors.black.withOpacity(0.02), blurRadius: 8, offset: const Offset(0, 2)),
             ],
           ),
           child: Column(
             children: [
-              // 요일 헤더
+              // 요일 헤더 (안티-슬롭 폰트 웨이트 정돈: w600으로 단정하게)
               const Padding(
                 padding: EdgeInsets.only(bottom: 8),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceAround,
                   children: [
-                    Text('일', style: TextStyle(color: AppColors.missedRed, fontWeight: FontWeight.bold, fontSize: 12)),
-                    Text('월', style: TextStyle(color: AppColors.textSecondary, fontWeight: FontWeight.bold, fontSize: 12)),
-                    Text('화', style: TextStyle(color: AppColors.textSecondary, fontWeight: FontWeight.bold, fontSize: 12)),
-                    Text('수', style: TextStyle(color: AppColors.textSecondary, fontWeight: FontWeight.bold, fontSize: 12)),
-                    Text('목', style: TextStyle(color: AppColors.textSecondary, fontWeight: FontWeight.bold, fontSize: 12)),
-                    Text('금', style: TextStyle(color: AppColors.textSecondary, fontWeight: FontWeight.bold, fontSize: 12)),
-                    Text('토', style: TextStyle(color: AppColors.primaryPurple, fontWeight: FontWeight.bold, fontSize: 12)),
+                    Text('일', style: TextStyle(color: AppColors.missedRed, fontWeight: FontWeight.w600, fontSize: 12)),
+                    Text('월', style: TextStyle(color: AppColors.textSecondary, fontWeight: FontWeight.w500, fontSize: 12)),
+                    Text('화', style: TextStyle(color: AppColors.textSecondary, fontWeight: FontWeight.w500, fontSize: 12)),
+                    Text('수', style: TextStyle(color: AppColors.textSecondary, fontWeight: FontWeight.w500, fontSize: 12)),
+                    Text('목', style: TextStyle(color: AppColors.textSecondary, fontWeight: FontWeight.w500, fontSize: 12)),
+                    Text('금', style: TextStyle(color: AppColors.textSecondary, fontWeight: FontWeight.w500, fontSize: 12)),
+                    Text('토', style: TextStyle(color: AppColors.primaryPurple, fontWeight: FontWeight.w600, fontSize: 12)),
                   ],
                 ),
               ),
-              const Divider(height: 1),
+              const Divider(height: 1, color: Color(0xFFF3F4F6)),
               const SizedBox(height: 6),
 
               // 날짜 셀 그리드
@@ -418,8 +418,11 @@ class _CalendarTabViewState extends State<CalendarTabView> {
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
             color: Colors.white,
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: AppColors.divider),
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: AppColors.divider.withOpacity(0.6)),
+            boxShadow: [
+              BoxShadow(color: Colors.black.withOpacity(0.02), blurRadius: 8, offset: const Offset(0, 2)),
+            ],
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -636,12 +639,10 @@ class _CalendarTabViewState extends State<CalendarTabView> {
                 Column(
                   children: _state.medications.map((med) {
                     return Container(
-                      margin: const EdgeInsets.only(bottom: 8),
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFF9FAFB),
-                        borderRadius: BorderRadius.circular(10),
-                        border: Border.all(color: AppColors.divider),
+                      margin: const EdgeInsets.only(bottom: 6),
+                      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
+                      decoration: const BoxDecoration(
+                        border: Border(bottom: BorderSide(color: Color(0xFFF3F4F6))),
                       ),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -746,7 +747,7 @@ class _CalendarTabViewState extends State<CalendarTabView> {
                     children: [
                       Row(
                         children: [
-                          const Text('🌱 습관 현황', style: TextStyle(fontSize: 13.5, fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
+                          const Text('습관 현황', style: TextStyle(fontSize: 13.5, fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
                           const SizedBox(width: 8),
                           // 습관 완료 여부 뱃지
                           Container(
@@ -823,12 +824,10 @@ class _CalendarTabViewState extends State<CalendarTabView> {
                     }
 
                     return Container(
-                      margin: const EdgeInsets.only(bottom: 8),
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFF9FAFB),
-                        borderRadius: BorderRadius.circular(10),
-                        border: Border.all(color: AppColors.divider),
+                      margin: const EdgeInsets.only(bottom: 4),
+                      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
+                      decoration: const BoxDecoration(
+                        border: Border(bottom: BorderSide(color: Color(0xFFF3F4F6))),
                       ),
                       child: Row(
                         children: [

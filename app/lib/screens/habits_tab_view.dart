@@ -447,35 +447,8 @@ class _HabitsTabViewState extends State<HabitsTabView> {
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       children: [
         _buildSlimProgressHeader(),
-        const SizedBox(height: 10),
-
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-          decoration: BoxDecoration(
-            color: AppColors.lightLavender.withOpacity(0.5),
-            borderRadius: BorderRadius.circular(10),
-          ),
-          child: const Row(
-            children: [
-              Text('🌱', style: TextStyle(fontSize: 14)),
-              SizedBox(width: 8),
-              Expanded(
-                child: Text(
-                  '지켜야 할 연속 기록이 아니에요. 오늘도 돌아왔다는 작은 증표예요.',
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: AppColors.textPrimary,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
         const SizedBox(height: 12),
-
         ..._state.habits.map((habit) => _buildHabitCard(habit)),
-
         const SizedBox(height: 12),
         SizedBox(
           width: double.infinity,
@@ -517,11 +490,18 @@ class _HabitsTabViewState extends State<HabitsTabView> {
     }
 
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppColors.divider),
+        border: Border.all(color: AppColors.divider.withOpacity(0.6)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.02),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
       ),
       child: Column(
         children: [
@@ -531,18 +511,19 @@ class _HabitsTabViewState extends State<HabitsTabView> {
               Row(
                 children: [
                   const Text(
-                    '오늘 습관 ',
+                    '오늘 습관',
                     style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.bold,
+                      fontSize: 13.5,
+                      fontWeight: FontWeight.w600,
                       color: AppColors.textPrimary,
                     ),
                   ),
+                  const SizedBox(width: 6),
                   Text(
-                    '$total개 중 ${formatScore(score)}개 실천',
+                    '$total개 중 ${formatScore(score)}개',
                     style: const TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.bold,
+                      fontSize: 13.5,
+                      fontWeight: FontWeight.w600,
                       color: AppColors.primaryPurple,
                     ),
                   ),
@@ -576,32 +557,35 @@ class _HabitsTabViewState extends State<HabitsTabView> {
   Widget _buildHabitCard(HabitItem habit) {
     Color getStatusColor() {
       final s = habit.score;
-      if (s >= 1.0) return AppColors.successGreen;
+      if (s >= 1.0) return AppColors.completedText;
       if (s > 0.0) return AppColors.partialOrange;
       return AppColors.textSecondary;
     }
 
     Color getStatusBg() {
       final s = habit.score;
-      if (s >= 1.0) return AppColors.successBg;
+      if (s >= 1.0) return AppColors.completedBg;
       if (s > 0.0) return const Color(0xFFFFFBEB);
       return const Color(0xFFF3F4F6);
     }
 
     return Container(
       margin: const EdgeInsets.only(bottom: 8),
-        decoration: BoxDecoration(
-          color: habit.score >= 1.0
-              ? const Color(0xFFEAF8F1) // 은은한 불투명 솔리드 연초록 (뒤 비침 원천 차단!)
-              : (habit.isExpanded ? const Color(0xFFF8F6FF) : Colors.white),
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(
-            color: habit.score >= 1.0
-                ? AppColors.successGreen.withOpacity(0.3)
-                : (habit.isExpanded ? AppColors.primaryPurple.withOpacity(0.4) : AppColors.divider),
-            width: habit.isExpanded ? 1.4 : 1.0,
-          ),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: habit.isExpanded ? AppColors.primaryPurple.withOpacity(0.35) : AppColors.divider.withOpacity(0.6),
+          width: 1.0,
         ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.015),
+            blurRadius: 6,
+            offset: const Offset(0, 1.5),
+          ),
+        ],
+      ),
         child: Column(
           children: [
             InkWell(
@@ -725,7 +709,7 @@ class _HabitsTabViewState extends State<HabitsTabView> {
                           borderRadius: BorderRadius.circular(8),
                           border: Border.all(
                             color: habit.score >= 1.0
-                                ? AppColors.successGreen.withOpacity(0.4)
+                                ? AppColors.completedBorder
                                 : (habit.score > 0.0 ? AppColors.partialOrange.withOpacity(0.4) : AppColors.divider),
                           ),
                         ),
@@ -753,26 +737,32 @@ class _HabitsTabViewState extends State<HabitsTabView> {
               padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
               child: Row(
                 children: [
-                  TextButton.icon(
-                    style: TextButton.styleFrom(padding: EdgeInsets.zero, minimumSize: Size.zero),
-                    icon: const Icon(Icons.edit_note, size: 16, color: AppColors.primaryPurple),
-                    label: const Text(' 정보 수정', style: TextStyle(color: AppColors.primaryPurple, fontSize: 12, fontWeight: FontWeight.bold)),
+                  TextButton(
+                    style: TextButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+                      minimumSize: Size.zero,
+                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    ),
                     onPressed: () => _showHabitEditModal(habit: habit),
+                    child: const Text('정보 수정', style: TextStyle(color: AppColors.primaryPurple, fontSize: 12, fontWeight: FontWeight.w600)),
                   ),
                   const Spacer(),
                   if (habit.score > 0.0)
-                    TextButton.icon(
-                      style: TextButton.styleFrom(padding: EdgeInsets.zero, minimumSize: Size.zero),
-                      icon: const Icon(Icons.undo, size: 14, color: AppColors.warmBrown),
-                      label: const Text(' 되돌리기', style: TextStyle(color: AppColors.warmBrown, fontSize: 12, fontWeight: FontWeight.bold)),
+                    TextButton(
+                      style: TextButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+                        minimumSize: Size.zero,
+                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                      ),
                       onPressed: () {
                         _state.resetHabitProgress(habit.id);
                         CelebrationToast.show(
                           context,
-                          title: '상태 되돌림 🌿',
-                          message: '\'${habit.title}\' 실천 상태를 대기로 편안하게 되돌렸어요.',
+                          title: '되돌리기 완료',
+                          message: '\'${habit.title}\' 실천 상태를 대기로 되돌렸어요.',
                         );
                       },
+                      child: const Text('되돌리기', style: TextStyle(color: AppColors.warmBrown, fontSize: 12, fontWeight: FontWeight.w600)),
                     ),
                 ],
               ),
