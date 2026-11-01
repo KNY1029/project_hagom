@@ -73,28 +73,31 @@ class HagomDialogue {
     '오늘 하루 동안 수고한 내 마음을 토닥토닥 안아주자. 넌 항상 빛나고 있어 ✨',
     '잘 해내야 한다는 부담은 내려놓아도 돼. 그냥 오늘을 살아낸 것만으로도 100점이야 🍀',
   ];
+  static int _toastSeqIndex = 0;
+  static int _headerSeqIndex = 0;
+  static int _roomSeqIndex = 0;
 
-  /// 무작위 복약 완료 토스트 반환
+  /// 순차적 복약 완료 토스트 반환 (테스트용)
   static Map<String, String> getRandomMedToast(String medName) {
-    final item = medCompletionToasts[_rng.nextInt(medCompletionToasts.length)];
+    final item = medCompletionToasts[_toastSeqIndex % medCompletionToasts.length];
+    _toastSeqIndex++;
     return {
       'title': item['title']!,
       'message': '$medName ${item['message']!}',
     };
   }
 
-  /// 무작위 헤더 말풍선 반환
+  /// 순차적 헤더 말풍선 반환 (테스트용)
   static String getRandomHeaderQuote() {
-    return headerBubbleQuotes[_rng.nextInt(headerBubbleQuotes.length)];
+    final q = headerBubbleQuotes[_headerSeqIndex % headerBubbleQuotes.length];
+    _headerSeqIndex++;
+    return q;
   }
 
-  /// 무작위 룸 대사 반환 (이전 대사와 겹치지 않게)
+  /// 순차적 룸 대사 반환 (테스트용)
   static String getRandomRoomQuote(String? previousQuote) {
-    if (roomQuotes.length <= 1) return roomQuotes.first;
-    String newQuote = roomQuotes[_rng.nextInt(roomQuotes.length)];
-    while (newQuote == previousQuote) {
-      newQuote = roomQuotes[_rng.nextInt(roomQuotes.length)];
-    }
-    return newQuote;
+    final q = roomQuotes[_roomSeqIndex % roomQuotes.length];
+    _roomSeqIndex++;
+    return q;
   }
 }

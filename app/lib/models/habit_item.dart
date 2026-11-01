@@ -46,16 +46,26 @@ class HabitItem {
     }
   }
 
-  // 탭 시 진행 순환
-  void cycleNext() {
+  // 탭 시 진행 (대기 ➔ 조금 실천 ➔ 완료 도달 시 잠금!)
+  // 완료된 상태에서 무심코 다시 눌렀을 때 허무하게 대기로 풀리지 않도록 보호
+  bool advanceProgress() {
     if (targetPerDay > 1) {
-      if (currentCount >= targetPerDay) {
-        currentCount = 0;
-      } else {
+      if (currentCount < targetPerDay) {
         currentCount++;
+        return true; // 진행됨
       }
+      return false; // 이미 완료됨
     } else {
-      currentCount = (currentCount + 1) % 3;
+      if (currentCount < 2) {
+        currentCount++;
+        return true; // 진행됨
+      }
+      return false; // 이미 완료됨
     }
+  }
+
+  // 상태 초기화 (되돌리기 / 리셋)
+  void resetProgress() {
+    currentCount = 0;
   }
 }

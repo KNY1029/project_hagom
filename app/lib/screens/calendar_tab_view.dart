@@ -31,6 +31,7 @@ class _CalendarTabViewState extends State<CalendarTabView> {
   late DateTime _selectedDate;
   late DateTime _currentMonth;
   bool _isMedDetailsExpanded = false; // 복약 상세 펼침 여부 (기본은 접힘)
+  bool _isHabitDetailsExpanded = false; // 습관 상세 펼침 여부 (기본은 접힘)
   @override
   void initState() {
     super.initState();
@@ -75,13 +76,18 @@ class _CalendarTabViewState extends State<CalendarTabView> {
 
     showModalBottomSheet(
       context: context,
+      useRootNavigator: false,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (mCtx) => StatefulBuilder(
         builder: (ctx, setMState) => Container(
-          decoration: const BoxDecoration(
+          margin: const EdgeInsets.only(bottom: 8, left: 12, right: 12),
+          decoration: BoxDecoration(
             color: Colors.white,
-            borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+            borderRadius: BorderRadius.circular(20),
+            boxShadow: [
+              BoxShadow(color: Colors.black.withOpacity(0.12), blurRadius: 16, offset: const Offset(0, -4)),
+            ],
           ),
           padding: EdgeInsets.only(
             left: 20,
@@ -219,7 +225,7 @@ class _CalendarTabViewState extends State<CalendarTabView> {
     final isSelectedDatePast = _selectedDate.isBefore(today);
     final isSelectedDateToday = _selectedDate.isAtSameMomentAs(today);
     final selectedMedRate = _state.getMedRateForDay(_selectedDate);
-
+    final selectedHabitRate = _state.getHabitRateForDay(_selectedDate);
     return ListView(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       children: [
@@ -714,6 +720,173 @@ class _CalendarTabViewState extends State<CalendarTabView> {
                                 ),
                               );
                             }).toList(),
+                          ),
+                        ],
+                      ),
+                    );
+                  }).toList(),
+                ),
+              ],
+              const SizedBox(height: 12),
+              const Divider(height: 1),
+              const SizedBox(height: 12),
+
+              // 3. 🌱 [습관 현황 요약 및 펼침 아코디언]
+              InkWell(
+                borderRadius: BorderRadius.circular(8),
+                onTap: () {
+                  setState(() {
+                    _isHabitDetailsExpanded = !_isHabitDetailsExpanded;
+                  });
+                },
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 4),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Row(
+                        children: [
+                          const Text('🌱 습관 현황', style: TextStyle(fontSize: 13.5, fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
+                          const SizedBox(width: 8),
+                          // 습관 완료 여부 뱃지
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                            decoration: BoxDecoration(
+                              color: selectedHabitRate != null && selectedHabitRate >= 1.0
+                                  ? AppColors.successBg
+                                  : (selectedHabitRate != null && selectedHabitRate > 0.0
+                                      ? AppColors.partialOrange.withOpacity(0.12)
+                                      : const Color(0xFFF3F4F6)),
+                              borderRadius: BorderRadius.circular(5),
+                            ),
+                            child: Text(
+                              selectedHabitRate == null
+                                  ? '기록 대기'
+                                  : (selectedHabitRate >= 1.0
+                                      ? '✓ 전체 달성'
+                                      : (selectedHabitRate > 0.0
+                                          ? '${(selectedHabitRate * _state.habits.length).toStringAsFixed(1)}/${_state.habits.length}개 실천'
+                                          : '미실천/기록 없음')),
+                              style: TextStyle(
+                                fontSize: 11.5,
+                                fontWeight: FontWeight.bold,
+                                color: selectedHabitRate != null && selectedHabitRate >= 1.0
+                                    ? AppColors.successGreen
+                                    : (selectedHabitRate != null && selectedHabitRate > 0.0 ? AppColors.partialOrange : AppColors.textSecondary),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      Row(
+                        children: [
+                          Text(
+                            _isHabitDetailsExpanded ? '접기' : '자세히 보기',
+                            style: const TextStyle(fontSize: 12, color: AppColors.primaryPurple, fontWeight: FontWeight.bold),
+                          ),
+                          Icon(
+                            _isHabitDetailsExpanded ? Icons.keyboard_arrow_up : Icons.keyboard_arrow_down,
+                            size: 18,
+                            color: AppColors.primaryPurple,
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+
+              // 펼쳤을 때 나오는 개별 습관 실천 상태 및 소급 체크
+              if (_isHabitDetailsExpanded) ...[
+                const SizedBox(height: 10),
+                Column(
+                  children: _state.habits.map((habit) {
+                    final hScore = _state.getHabitScoreForDay(_selectedDate, habit.id);
+                    final isFull = hScore >= 1.0;
+                    final isPart = hScore > 0.0 && hScore < 1.0;
+
+                    String label = '○ 대기';
+                    Color bg = Colors.white;
+                    Color border = AppColors.divider;
+                    Color textCol = AppColors.textSecondary;
+
+                    if (isFull) {
+                      label = '● 완료';
+                      bg = AppColors.successBg;
+                      border = AppColors.successGreen.withOpacity(0.4);
+                      textCol = AppColors.successGreen;
+                    } else if (isPart) {
+                      label = '◐ 조금 실천';
+                      bg = AppColors.partialOrange.withOpacity(0.1);
+                      border = AppColors.partialOrange.withOpacity(0.4);
+                      textCol = AppColors.partialOrange;
+                    }
+
+                    return Container(
+                      margin: const EdgeInsets.only(bottom: 8),
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFF9FAFB),
+                        borderRadius: BorderRadius.circular(10),
+                        border: Border.all(color: AppColors.divider),
+                      ),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  habit.title,
+                                  style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
+                                ),
+                                const SizedBox(height: 2),
+                                Text(
+                                  habit.subtitle,
+                                  style: const TextStyle(fontSize: 11, color: AppColors.textSecondary),
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+
+                          // 습관 실천 소급 순환 버튼
+                          InkWell(
+                            borderRadius: BorderRadius.circular(6),
+                            onTap: () {
+                              final newScore = _state.advancePastHabitProgress(_selectedDate, habit.id);
+                              if (newScore >= 1.0) {
+                                CelebrationToast.show(
+                                  context,
+                                  title: '습관 실천 완료! 👏',
+                                  message: '\'${habit.title}\' 목표를 달성했어요! 언제든 멋져요 ✨',
+                                );
+                              } else if (newScore > 0.0) {
+                                CelebrationToast.show(
+                                  context,
+                                  title: '작은 발걸음 기록 🐾',
+                                  message: '조금이라도 실천한 것이 정말 큰 의미가 있어요 :)',
+                                );
+                              } else {
+                                CelebrationToast.show(
+                                  context,
+                                  title: '이미 완료한 습관이에요 ✨',
+                                  message: '오늘 목표를 이미 멋지게 달성하셨어요!',
+                                );
+                              }
+                            },
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                              decoration: BoxDecoration(
+                                color: bg,
+                                borderRadius: BorderRadius.circular(6),
+                                border: Border.all(color: border, width: isFull ? 1.2 : 1.0),
+                              ),
+                              child: Text(
+                                label,
+                                style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.bold, color: textCol),
+                              ),
+                            ),
                           ),
                         ],
                       ),

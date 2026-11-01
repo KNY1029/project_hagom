@@ -6,17 +6,25 @@ import '../constants/app_assets.dart';
 /// 
 /// 복약 완료 또는 습관 완료 시 화면 하단에 앙증맞게 떠서
 /// 하곰이 얼굴과 함께 비처벌적 칭찬/축하 멘트를 건네는 스낵바 알림!
+/// [actionLabel] 및 [onAction] 전달 시 토스트 안에서 바로 1초 되돌리기 지원!
 class CelebrationToast {
-  static void show(BuildContext context, {required String title, required String message}) {
+  static void show(
+    BuildContext context, {
+    required String title,
+    required String message,
+    String? actionLabel,
+    VoidCallback? onAction,
+    Duration duration = const Duration(milliseconds: 3200),
+  }) {
     ScaffoldMessenger.of(context).hideCurrentSnackBar();
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         elevation: 6,
         behavior: SnackBarBehavior.floating,
         backgroundColor: Colors.transparent,
-        margin: const EdgeInsets.only(bottom: 16, left: 16, right: 16),
+        margin: const EdgeInsets.only(bottom: 16, left: 14, right: 14),
         padding: EdgeInsets.zero,
-        duration: const Duration(milliseconds: 2500),
+        duration: duration,
         content: Container(
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
           decoration: BoxDecoration(
@@ -82,6 +90,32 @@ class CelebrationToast {
                   ],
                 ),
               ),
+
+              // 🌟 우측 인라인 액션 버튼 (되돌리기 등)
+              if (actionLabel != null && onAction != null) ...[
+                const SizedBox(width: 8),
+                TextButton(
+                  style: TextButton.styleFrom(
+                    backgroundColor: AppColors.warmBrown.withOpacity(0.1),
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                    minimumSize: Size.zero,
+                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                  ),
+                  onPressed: () {
+                    ScaffoldMessenger.of(context).hideCurrentSnackBar();
+                    onAction();
+                  },
+                  child: Text(
+                    actionLabel,
+                    style: const TextStyle(
+                      color: AppColors.warmBrown,
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ],
             ],
           ),
         ),

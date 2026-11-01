@@ -92,21 +92,26 @@ class _HabitsTabViewState extends State<HabitsTabView> {
 
     showModalBottomSheet(
       context: context,
+      useRootNavigator: false,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (ctx) {
         return StatefulBuilder(
           builder: (context, setModalState) {
             return Container(
+              margin: const EdgeInsets.only(bottom: 8, left: 12, right: 12),
               padding: EdgeInsets.only(
                 top: 20,
                 left: 20,
                 right: 20,
                 bottom: MediaQuery.of(ctx).viewInsets.bottom + 20,
               ),
-              decoration: const BoxDecoration(
+              decoration: BoxDecoration(
                 color: Colors.white,
-                borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+                borderRadius: BorderRadius.circular(20),
+                boxShadow: [
+                  BoxShadow(color: Colors.black.withOpacity(0.12), blurRadius: 16, offset: const Offset(0, -4)),
+                ],
               ),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
@@ -478,7 +483,7 @@ class _HabitsTabViewState extends State<HabitsTabView> {
           child: OutlinedButton.icon(
             icon: const Icon(Icons.add, color: AppColors.primaryPurple, size: 18),
             label: const Text(
-              '+ 작은 습관 추가',
+              '작은 습관 추가',
               style: TextStyle(
                 color: AppColors.primaryPurple,
                 fontWeight: FontWeight.bold,
@@ -677,18 +682,36 @@ class _HabitsTabViewState extends State<HabitsTabView> {
                   // 🔒 [우측 상태 칩: 76x32dp 복약 탭과 칼정렬]
                   GestureDetector(
                     onTap: () {
-                      _state.cycleHabitProgress(habit.id);
-                      if (habit.score >= 1.0) {
+                      final advanced = _state.advanceHabitProgress(habit.id);
+                      if (advanced) {
+                        if (habit.score >= 1.0) {
+                          CelebrationToast.show(
+                            context,
+                            title: '습관 실천 완료 🌱',
+                            message: '\'${habit.title}\' 목표를 달성했어요! 훌륭해요 👏',
+                          );
+                        } else if (habit.score > 0.0) {
+                          CelebrationToast.show(
+                            context,
+                            title: '작은 발걸음 성공 🐾',
+                            message: '조금이라도 실천한 것이 정말 큰 의미가 있어요 :)',
+                          );
+                        }
+                      } else {
+                        // 이미 완료된 상태에서 다시 눌렀을 때 토스트 안에서 바로 1초 되돌리기 지원!
                         CelebrationToast.show(
                           context,
-                          title: '습관 실천 완료 🌱',
-                          message: '\'${habit.title}\' 목표를 달성했어요! 훌륭해요 👏',
-                        );
-                      } else if (habit.score > 0.0) {
-                        CelebrationToast.show(
-                          context,
-                          title: '작은 발걸음 성공 🐾',
-                          message: '조금이라도 실천한 것이 정말 큰 의미가 있어요 :)',
+                          title: '이미 완료한 습관이에요 ✨',
+                          message: '\'${habit.title}\' 목표를 달성한 상태예요.',
+                          actionLabel: '되돌리기',
+                          onAction: () {
+                            _state.resetHabitProgress(habit.id);
+                            CelebrationToast.show(
+                              context,
+                              title: '되돌리기 완료 🌿',
+                              message: '\'${habit.title}\' 상태를 대기로 되돌렸어요.',
+                            );
+                          },
                         );
                       }
                     },
@@ -737,14 +760,20 @@ class _HabitsTabViewState extends State<HabitsTabView> {
                     onPressed: () => _showHabitEditModal(habit: habit),
                   ),
                   const Spacer(),
-                  TextButton.icon(
-                    style: TextButton.styleFrom(padding: EdgeInsets.zero, minimumSize: Size.zero),
-                    icon: const Icon(Icons.refresh, size: 14, color: AppColors.textSecondary),
-                    label: const Text(' 상태 초기화', style: TextStyle(color: AppColors.textSecondary, fontSize: 12)),
-                    onPressed: () {
-                      _state.cycleHabitProgress(habit.id);
-                    },
-                  ),
+                  if (habit.score > 0.0)
+                    TextButton.icon(
+                      style: TextButton.styleFrom(padding: EdgeInsets.zero, minimumSize: Size.zero),
+                      icon: const Icon(Icons.undo, size: 14, color: AppColors.warmBrown),
+                      label: const Text(' 되돌리기', style: TextStyle(color: AppColors.warmBrown, fontSize: 12, fontWeight: FontWeight.bold)),
+                      onPressed: () {
+                        _state.resetHabitProgress(habit.id);
+                        CelebrationToast.show(
+                          context,
+                          title: '상태 되돌림 🌿',
+                          message: '\'${habit.title}\' 실천 상태를 대기로 편안하게 되돌렸어요.',
+                        );
+                      },
+                    ),
                 ],
               ),
             ),

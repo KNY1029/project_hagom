@@ -137,10 +137,26 @@ class _MainNavigationShellState extends State<MainNavigationShell> {
       ),
       body: Stack(
         children: [
-          // 탭 화면 본문 (화면 클릭 및 모든 인터랙션 100% 정상 작동)
+          // 각 탭마다 독립된 Navigator를 부여하여 모달이 탭 내부에서 열리고, 하단 탭 바는 가려지지 않고 항상 최상단에 고정!
           IndexedStack(
             index: _currentIndex,
-            children: _tabs,
+            children: [
+              Navigator(
+                onGenerateRoute: (settings) => MaterialPageRoute(
+                  builder: (context) => const MedsTabView(),
+                ),
+              ),
+              Navigator(
+                onGenerateRoute: (settings) => MaterialPageRoute(
+                  builder: (context) => const HabitsTabView(),
+                ),
+              ),
+              Navigator(
+                onGenerateRoute: (settings) => MaterialPageRoute(
+                  builder: (context) => const CalendarTabView(),
+                ),
+              ),
+            ],
           ),
 
           // 💬 헤더 하곰이 바로 아래에 뜨는 미니 콤팩트 말풍선
@@ -198,20 +214,27 @@ class _MainNavigationShellState extends State<MainNavigationShell> {
             ),
         ],
       ),
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: _currentIndex,
-        onTap: (index) {
-          setState(() {
-            _currentIndex = index;
-          });
-        },
-        selectedItemColor: AppColors.primaryPurple,
-        unselectedItemColor: AppColors.textMuted,
-        backgroundColor: Colors.white,
-        elevation: 8,
-        selectedLabelStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
-        unselectedLabelStyle: const TextStyle(fontWeight: FontWeight.normal, fontSize: 12),
-        items: const [
+      bottomNavigationBar: Theme(
+        data: Theme.of(context).copyWith(
+          splashColor: Colors.transparent, // 터치 시 물결 번짐 제거
+          highlightColor: Colors.transparent, // 터치 시 배경 하이라이트 번짐 제거
+        ),
+        child: BottomNavigationBar(
+          currentIndex: _currentIndex,
+          onTap: (index) {
+            setState(() {
+              _currentIndex = index;
+            });
+          },
+          type: BottomNavigationBarType.fixed,
+          enableFeedback: false,
+          selectedItemColor: AppColors.primaryPurple,
+          unselectedItemColor: AppColors.textMuted,
+          backgroundColor: Colors.white,
+          elevation: 8,
+          selectedLabelStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
+          unselectedLabelStyle: const TextStyle(fontWeight: FontWeight.normal, fontSize: 12),
+          items: const [
           BottomNavigationBarItem(
             icon: Icon(Icons.medication_outlined),
             activeIcon: Icon(Icons.medication),
@@ -229,6 +252,7 @@ class _MainNavigationShellState extends State<MainNavigationShell> {
           ),
         ],
       ),
-    );
-  }
+    ),
+  );
+}
 }

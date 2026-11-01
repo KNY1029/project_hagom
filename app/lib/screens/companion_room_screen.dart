@@ -122,11 +122,11 @@ class _CompanionRoomScreenState extends State<CompanionRoomScreen> {
                 ),
               ),
               const SizedBox(height: 20),
-              // 응원 말풍선 카드 (고정 높이로 위아래 덜컹거림 및 겹침 제거)
+              // 응원 말풍선 카드 (단어 단위 자동 줄바꿈 & 넉넉한 높이)
               Container(
-                height: 94,
+                constraints: const BoxConstraints(minHeight: 88),
                 width: double.infinity,
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
                 decoration: BoxDecoration(
                   color: Colors.white,
                   borderRadius: BorderRadius.circular(16),
@@ -139,19 +139,33 @@ class _CompanionRoomScreenState extends State<CompanionRoomScreen> {
                     ),
                   ],
                 ),
-                child: Center(
-                  child: Text(
-                    _currentQuote,
-                    textAlign: TextAlign.center,
-                    maxLines: 3,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
-                      fontSize: _currentQuote.length > 45 ? 13.5 : 15.0,
-                      color: AppColors.textPrimary,
-                      height: 1.45,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: _currentQuote.split('\n').map((paragraph) {
+                    return Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 3.0),
+                      child: Wrap(
+                        alignment: WrapAlignment.center,
+                        crossAxisAlignment: WrapCrossAlignment.center,
+                        children: paragraph.split(' ').map((word) {
+                          return Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 2.0, vertical: 1.5),
+                            child: Text(
+                              word,
+                              style: TextStyle(
+                                fontSize: _currentQuote.length > 45 ? 13.5 : 15.0,
+                                color: AppColors.textPrimary,
+                                height: 1.35,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          );
+                        }).toList(),
+                      ),
+                    );
+                  }).toList(),
                 ),
               ),
               const SizedBox(height: 28),

@@ -42,6 +42,8 @@ class AppStateManager extends ChangeNotifier {
   // key: 'YYYY-MM-DD'
   // value: { 'slots': Map<String, bool> }  (key: 'medId_slotIdx', value: isCompleted)
   final Map<String, Map<String, bool>> _pastSlotRecords = {};
+  // value: { 'habitId': score } (0.0=미실천, 0.5=조금실천, 1.0=완료)
+  final Map<String, Map<String, double>> _pastHabitRecords = {};
 
   String _dateKey(DateTime dt) =>
       '${dt.year}-${dt.month.toString().padLeft(2, '0')}-${dt.day.toString().padLeft(2, '0')}';
@@ -125,6 +127,92 @@ class AppStateManager extends ChangeNotifier {
 
     if (total == 0) return 1.0;
     return completed / total;
+  }
+
+  // --- 🌱 날짜별 습관 달성률 및 개별 상태 조회/수정 ---
+
+  // 특정 날짜의 특정 습관 점수 (0.0=대기, 0.5=조금실천, 1.0=완료)
+  double getHabitScoreForDay(DateTime day, String habitId) {
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final target = DateTime(day.year, day.month, day.day);
+
+    if (target.isAtSameMomentAs(today)) {
+      final habit = _habits.firstWhere((h) => h.id == habitId, orElse: () => _habits.first);
+      return habit.score;
+    }
+
+    final key = _dateKey(day);
+    if (_pastHabitRecords.containsKey(key) && _pastHabitRecords[key]!.containsKey(habitId)) {
+      return _pastHabitRecords[key]![habitId]!;
+    }
+
+    // 기본 시뮬레이션: 짝수일은 1.0 완료, 홀수일은 0.5 조금 실천
+    if (day.day % 3 == 0) return 0.5;
+    if (day.day % 2 == 0) return 1.0;
+    return 0.0;
+  }
+
+  // 특정 날짜의 전체 습관 평균 달성률 (0.0 ~ 1.0)
+  double? getHabitRateForDay(DateTime day) {
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final target = DateTime(day.year, day.month, day.day);
+
+    if (target.isAfter(today)) return null;
+    if (_habits.isEmpty) return 1.0;
+
+    double sum = 0.0;
+    for (final h in _habits) {
+      sum += getHabitScoreForDay(day, h.id);
+    }
+    return sum / _habits.length;
+  }
+
+  // 과거 날짜의 습관 상태 소급 변경 (0.0 -> 0.5 -> 1.0 -> 1.0 유지)
+  double advancePastHabitProgress(DateTime day, String habitId) {
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final target = DateTime(day.year, day.month, day.day);
+
+    if (target.isAtSameMomentAs(today)) {
+      advanceHabitProgress(habitId);
+      final habit = _habits.firstWhere((h) => h.id == habitId);
+      return habit.score;
+    }
+
+    final key = _dateKey(day);
+    final current = getHabitScoreForDay(day, habitId);
+    double nextVal = current;
+
+    if (current < 0.5) {
+      nextVal = 0.5;
+    } else if (current < 1.0) {
+      nextVal = 1.0;
+    }
+
+    _pastHabitRecords.putIfAbsent(key, () => {})[habitId] = nextVal;
+    if (nextVal > current) {
+      gentleAttempts++;
+    }
+    notifyListeners();
+    return nextVal;
+  }
+
+  // 과거 날짜의 습관 상태 되돌리기
+  void resetPastHabitProgress(DateTime day, String habitId) {
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final target = DateTime(day.year, day.month, day.day);
+
+    if (target.isAtSameMomentAs(today)) {
+      resetHabitProgress(habitId);
+      return;
+    }
+
+    final key = _dateKey(day);
+    _pastHabitRecords.putIfAbsent(key, () => {})[habitId] = 0.0;
+    notifyListeners();
   }
   int returnedCount = 7;     // 다시 돌아온 횟수
   int gentleAttempts = 5;    // 부드럽게 시도한 횟수
@@ -356,6 +444,9 @@ class AppStateManager extends ChangeNotifier {
     }
     notifyListeners();
   }
+
+  // cancelLastCompletedSlot 별칭
+  void cancelLastCompletedSlot(String id) => revertMedication(id);
   // 🌿 특정 회차만 건너뛰기 처리 (다음 대기 회차 슬롯 건너뜀)
   void skipNextSlot(String id) {
     final med = _medications.firstWhere((m) => m.id == id);
@@ -442,10 +533,19 @@ class AppStateManager extends ChangeNotifier {
 
   // --- 🌱 습관 액션 메서드 ---
 
-  void cycleHabitProgress(String id) {
+  bool advanceHabitProgress(String id) {
     final habit = _habits.firstWhere((h) => h.id == id);
-    habit.cycleNext();
-    gentleAttempts++;
+    final advanced = habit.advanceProgress();
+    if (advanced) {
+      gentleAttempts++;
+      notifyListeners();
+    }
+    return advanced;
+  }
+
+  void resetHabitProgress(String id) {
+    final habit = _habits.firstWhere((h) => h.id == id);
+    habit.resetProgress();
     notifyListeners();
   }
 

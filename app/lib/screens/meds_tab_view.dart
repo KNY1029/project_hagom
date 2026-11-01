@@ -77,21 +77,26 @@ class _MedsTabViewState extends State<MedsTabView> {
 
     showModalBottomSheet(
       context: context,
+      useRootNavigator: false, // 하단 탭 바가 항상 최상단에 안정적으로 유지되도록 설정!
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (ctx) {
         return StatefulBuilder(
           builder: (context, setModalState) {
             return Container(
+              margin: const EdgeInsets.only(bottom: 8, left: 12, right: 12), // 하단 탭 바 바로 위로 단정하게 뜸!
               padding: EdgeInsets.only(
                 top: 20,
                 left: 20,
                 right: 20,
                 bottom: MediaQuery.of(ctx).viewInsets.bottom + 20,
               ),
-              decoration: const BoxDecoration(
+              decoration: BoxDecoration(
                 color: Colors.white,
-                borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+                borderRadius: BorderRadius.circular(20),
+                boxShadow: [
+                  BoxShadow(color: Colors.black.withOpacity(0.12), blurRadius: 16, offset: const Offset(0, -4)),
+                ],
               ),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
@@ -748,13 +753,18 @@ class _MedsTabViewState extends State<MedsTabView> {
   void _showSlotActionSheet(MedicationItem med, int slotIndex, DoseSlot slot) {
     showModalBottomSheet(
       context: context,
+      useRootNavigator: false,
       backgroundColor: Colors.transparent,
       builder: (ctx) {
         return Container(
+          margin: const EdgeInsets.only(bottom: 36, left: 12, right: 12),
           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 22),
-          decoration: const BoxDecoration(
+          decoration: BoxDecoration(
             color: Colors.white,
-            borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+            borderRadius: BorderRadius.circular(20),
+            boxShadow: [
+              BoxShadow(color: Colors.black.withOpacity(0.12), blurRadius: 16, offset: const Offset(0, -4)),
+            ],
           ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
@@ -961,7 +971,7 @@ class _MedsTabViewState extends State<MedsTabView> {
           child: OutlinedButton.icon(
             icon: const Icon(Icons.add, color: AppColors.primaryPurple, size: 18),
             label: const Text(
-              '+ 새 복약 추가',
+              '새 복약 추가',
               style: TextStyle(
                 color: AppColors.primaryPurple,
                 fontWeight: FontWeight.bold,
@@ -1201,7 +1211,9 @@ class _MedsTabViewState extends State<MedsTabView> {
                                   child: Text(
                                     slot.isSkipped
                                         ? '${slot.label} 건너뜀'
-                                        : '${slot.label} ${slot.scheduledTime?.split(' ').last ?? ''}'.trim(),
+                                        : (slot.isCompleted
+                                            ? '${slot.label} ${slot.takenTime?.split(' ').last ?? slot.scheduledTime?.split(' ').last ?? '완료'} ✓'.trim()
+                                            : '${slot.label} ${slot.scheduledTime?.split(' ').last ?? ''}'.trim()),
                                     textAlign: TextAlign.center,
                                     style: TextStyle(
                                       fontSize: 11.0,
@@ -1233,6 +1245,22 @@ class _MedsTabViewState extends State<MedsTabView> {
                           context,
                           title: toast['title']!,
                           message: toast['message']!,
+                        );
+                      } else {
+                        // 이미 모든 회차가 완료된 상태에서 탭했을 때 토스트에서 바로 마지막 회차 되돌리기 지원!
+                        CelebrationToast.show(
+                          context,
+                          title: '오늘 복용을 모두 마쳤어요 ✨',
+                          message: '${med.name} 약을 이미 잘 챙겨 드셨어요.',
+                          actionLabel: '되돌리기',
+                          onAction: () {
+                            _state.cancelLastCompletedSlot(med.id);
+                            CelebrationToast.show(
+                              context,
+                              title: '복약 되돌림 🌿',
+                              message: '${med.name} 마지막 회차 복약을 되돌렸어요.',
+                            );
+                          },
                         );
                       }
                     },
