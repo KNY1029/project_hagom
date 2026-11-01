@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import '../constants/app_colors.dart';
+import '../models/medication_item.dart';
+import '../models/habit_item.dart';
 import '../models/task_item.dart';
 import '../state/app_state_manager.dart';
 import '../widgets/celebration_toast.dart';
-
+import '../widgets/app_time_picker.dart';
 /// 📅 [달력 & 할일 탭: PRD 5.3절 신규 6안 공식 규격]
 /// 
 /// 1. 6안 날짜 셀 컬러링 알고리즘:
@@ -67,12 +69,25 @@ class _CalendarTabViewState extends State<CalendarTabView> {
     });
   }
 
-  // 할일 추가 모달
-  void _showAddTaskModal() {
-    final titleCtrl = TextEditingController();
-    String selectedTime = '오후 6:00';
-    String reminder = '30분 전';
-    bool isRepeated = false;
+  // 할일/한일 추가 및 수정 모달
+  void _showTaskModal({TaskItem? task}) {
+    final titleCtrl = TextEditingController(text: task?.title ?? '');
+    String selectedTime = task?.time ?? '오후 6:00';
+    // 다중 선택 알림 목록
+    final List<String> selectedReminders = List<String>.from(task?.reminders ?? ['30분 전']);
+    bool isRepeated = task?.isRepeated ?? false;
+    String repeatCycle = task?.repeatCycle ?? '매주 특정 요일';
+    final List<String> selectedRepeatDays = List<String>.from(task?.repeatDays ?? ['월']);
+
+    final availableReminders = [
+      '정시', '30분 전', '1시간 전', '하루 전'
+    ];
+    final weekDayLabels = ['월', '화', '수', '목', '금', '토', '일'];
+
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final isPast = _selectedDate.isBefore(today);
+    final modalActionName = task != null ? '일정 수정' : (isPast ? '한일 추가' : '할일 추가');
 
     showModalBottomSheet(
       context: context,
@@ -95,51 +110,53 @@ class _CalendarTabViewState extends State<CalendarTabView> {
             top: 20,
             bottom: MediaQuery.of(ctx).viewInsets.bottom + 20,
           ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    '${_selectedDate.month}월 ${_selectedDate.day}일 할일 추가',
-                    style: const TextStyle(fontSize: 17, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
-                  ),
-                  IconButton(
-                    icon: const Icon(Icons.close, color: AppColors.textSecondary),
-                    onPressed: () => Navigator.of(ctx).pop(),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 12),
-              TextField(
-                controller: titleCtrl,
-                autofocus: true,
-                decoration: InputDecoration(
-                  hintText: '할일 제목을 입력하세요 (예: 병원 상담, 과제)',
-                  hintStyle: const TextStyle(color: AppColors.textMuted, fontSize: 14),
-                  filled: true,
-                  fillColor: const Color(0xFFF9FAFB),
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: const BorderSide(color: AppColors.divider)),
-                  focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: const BorderSide(color: AppColors.primaryPurple)),
-                  contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      '${_selectedDate.month}월 ${_selectedDate.day}일 $modalActionName',
+                      style: const TextStyle(fontSize: 17, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.close, color: AppColors.textSecondary),
+                      onPressed: () => Navigator.of(ctx).pop(),
+                    ),
+                  ],
                 ),
-              ),
-              const SizedBox(height: 14),
-              // 시간 및 알림 선택 바
-              Row(
-                children: [
-                  Expanded(
-                    child: OutlinedButton.icon(
-                      icon: const Icon(Icons.access_time, size: 16, color: AppColors.primaryPurple),
-                      label: Text(selectedTime, style: const TextStyle(color: AppColors.textPrimary, fontSize: 13)),
+                const SizedBox(height: 12),
+                TextField(
+                  controller: titleCtrl,
+                  autofocus: task == null,
+                  decoration: InputDecoration(
+                    hintText: '할일/한일 제목을 입력하세요 (예: 병원 상담, 과제)',
+                    hintStyle: const TextStyle(color: AppColors.textMuted, fontSize: 14),
+                    filled: true,
+                    fillColor: const Color(0xFFF9FAFB),
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: const BorderSide(color: AppColors.divider)),
+                    focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: const BorderSide(color: AppColors.primaryPurple)),
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                  ),
+                ),
+                const SizedBox(height: 14),
+
+                // 시간 선택 버튼
+                Row(
+                  children: [
+                    const Text('예정 시각', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.textPrimary)),
+                    const Spacer(),
+                    OutlinedButton(
                       style: OutlinedButton.styleFrom(
                         side: const BorderSide(color: AppColors.divider),
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                       ),
                       onPressed: () async {
-                        final t = await showTimePicker(context: context, initialTime: TimeOfDay.now());
+                        final t = await AppTimePicker.show(context, initialTime: TimeOfDay.now(), title: '예정 시각 설정');
                         if (t != null) {
                           setMState(() {
                             final p = t.period == DayPeriod.am ? '오전' : '오후';
@@ -149,67 +166,529 @@ class _CalendarTabViewState extends State<CalendarTabView> {
                           });
                         }
                       },
+                      child: Text(selectedTime, style: const TextStyle(color: AppColors.primaryPurple, fontWeight: FontWeight.bold, fontSize: 13)),
                     ),
-                  ),
-                  const SizedBox(width: 8),
-                  DropdownButton<String>(
-                    value: reminder,
-                    underline: const SizedBox(),
-                    items: const [
-                      DropdownMenuItem(value: '정시', child: Text('정시 알림', style: TextStyle(fontSize: 13))),
-                      DropdownMenuItem(value: '30분 전', child: Text('30분 전 알림', style: TextStyle(fontSize: 13))),
-                      DropdownMenuItem(value: '1시간 전', child: Text('1시간 전 알림', style: TextStyle(fontSize: 13))),
-                    ],
-                    onChanged: (v) {
-                      if (v != null) setMState(() => reminder = v);
-                    },
-                  ),
-                ],
-              ),
-              const SizedBox(height: 8),
-              // 반복 여부 스위치
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  const Text('매주 반복', style: TextStyle(fontSize: 13, color: AppColors.textSecondary)),
-                  Switch(
-                    value: isRepeated,
-                    activeColor: AppColors.primaryPurple,
-                    onChanged: (val) => setMState(() => isRepeated = val),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 16),
-              SizedBox(
-                width: double.infinity,
-                height: 46,
-                child: ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.primaryPurple,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                  ),
-                  onPressed: () {
-                    if (titleCtrl.text.trim().isEmpty) return;
-                    _state.addTask(
-                      title: titleCtrl.text.trim(),
-                      date: _selectedDate,
-                      time: selectedTime,
-                      reminder: reminder,
-                      isRepeated: isRepeated,
-                    );
-                    Navigator.of(ctx).pop();
-                    CelebrationToast.show(
-                      context,
-                      title: '새 일정 등록 완료 🗓️',
-                      message: '\'${titleCtrl.text.trim()}\' 일정이 달력에 등록되었어요!',
-                    );
-                  },
-                  child: const Text('일정 저장', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 15)),
+                  ],
                 ),
-              ),
-            ],
+                const SizedBox(height: 14),
+
+                // 🔔 다중 알림 선택 섹션 (복수 선택 가능 & 직접 N일/시간/분 추가 지원!)
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Text('알림 설정 (중복 선택 가능)', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.textPrimary)),
+                    TextButton(
+                      style: TextButton.styleFrom(padding: EdgeInsets.zero, minimumSize: Size.zero),
+                      onPressed: () {
+                        // 🌟 복합 시간(N시간 N분 전) 및 N일 전 직접 추가 다이얼로그
+                        String mode = '시간/분'; // '시간/분' 또는 '일'
+                        int? hours;
+                        int? minutes;
+                        int days = 1;
+                        showDialog(
+                          context: context,
+                          builder: (dCtx) => StatefulBuilder(
+                            builder: (ctx, setDState) => AlertDialog(
+                              title: const Text('직접 알림 추가', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                              content: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  // 모드 선택 탭
+                                  Row(
+                                    children: [
+                                      ChoiceChip(
+                                        label: const Text('시간 / 분 전'),
+                                        selected: mode == '시간/분',
+                                        showCheckmark: false,
+                                        selectedColor: AppColors.lightLavender,
+                                        onSelected: (_) => setDState(() => mode = '시간/분'),
+                                      ),
+                                      const SizedBox(width: 8),
+                                      ChoiceChip(
+                                        label: const Text('며칠 전'),
+                                        selected: mode == '일',
+                                        showCheckmark: false,
+                                        selectedColor: AppColors.lightLavender,
+                                        onSelected: (_) => setDState(() => mode = '일'),
+                                      ),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 14),
+
+                                  if (mode == '시간/분')
+                                    Row(
+                                      mainAxisAlignment: MainAxisAlignment.center,
+                                      children: [
+                                        SizedBox(
+                                          width: 50,
+                                          child: TextField(
+                                            keyboardType: TextInputType.number,
+                                            decoration: const InputDecoration(
+                                              hintText: '',
+                                              contentPadding: EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+                                              border: OutlineInputBorder(borderRadius: BorderRadius.all(Radius.circular(8))),
+                                            ),
+                                            onChanged: (v) => hours = int.tryParse(v),
+                                          ),
+                                        ),
+                                        const SizedBox(width: 4),
+                                        const Text('시간', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
+                                        const SizedBox(width: 10),
+                                        SizedBox(
+                                          width: 50,
+                                          child: TextField(
+                                            keyboardType: TextInputType.number,
+                                            decoration: const InputDecoration(
+                                              hintText: '',
+                                              contentPadding: EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+                                              border: OutlineInputBorder(borderRadius: BorderRadius.all(Radius.circular(8))),
+                                            ),
+                                            onChanged: (v) => minutes = int.tryParse(v),
+                                          ),
+                                        ),
+                                        const SizedBox(width: 4),
+                                        const Text('분 전', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
+                                      ],
+                                    )
+                                  else
+                                    Row(
+                                      mainAxisAlignment: MainAxisAlignment.center,
+                                      children: [
+                                        SizedBox(
+                                          width: 60,
+                                          child: TextField(
+                                            keyboardType: TextInputType.number,
+                                            autofocus: true,
+                                            decoration: InputDecoration(
+                                              hintText: '1',
+                                              contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+                                              border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                                            ),
+                                            onChanged: (v) => days = int.tryParse(v) ?? 1,
+                                          ),
+                                        ),
+                                        const SizedBox(width: 6),
+                                        const Text('일 전', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
+                                      ],
+                                    ),
+                                ],
+                              ),
+                              actions: [
+                                TextButton(
+                                  onPressed: () => Navigator.of(dCtx).pop(),
+                                  child: const Text('취소', style: TextStyle(color: AppColors.textSecondary)),
+                                ),
+                                ElevatedButton(
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: AppColors.primaryPurple,
+                                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                                  ),
+                                  onPressed: () {
+                                    String customRem = '';
+                                    final h = hours ?? 0;
+                                    final m = minutes ?? 0;
+                                    if (mode == '시간/분') {
+                                      if (h > 0 && m > 0) {
+                                        customRem = '$h시간 $m분 전';
+                                      } else if (h > 0) {
+                                        customRem = '$h시간 전';
+                                      } else if (m > 0) {
+                                        customRem = '$m분 전';
+                                      } else {
+                                        customRem = '정시';
+                                      }
+                                    } else {
+                                      customRem = '$days일 전';
+                                    }
+
+                                    if (!availableReminders.contains(customRem)) {
+                                      availableReminders.add(customRem);
+                                    }
+                                    if (!selectedReminders.contains(customRem)) {
+                                      selectedReminders.add(customRem);
+                                    }
+                                    setMState(() {});
+                                    Navigator.of(dCtx).pop();
+                                  },
+                                  child: const Text('추가', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                                ),
+                              ],
+                            ),
+                          ),
+                        );
+                      },
+                      child: const Text('직접 추가', style: TextStyle(fontSize: 12, color: AppColors.primaryPurple, fontWeight: FontWeight.bold)),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 6),
+                Wrap(
+                  spacing: 6,
+                  runSpacing: 6,
+                  children: availableReminders.map((rem) {
+                    final isChecked = selectedReminders.contains(rem);
+                    return ChoiceChip(
+                      label: Text(rem),
+                      selected: isChecked,
+                      showCheckmark: false,
+                      labelStyle: TextStyle(
+                        fontSize: 12,
+                        fontWeight: isChecked ? FontWeight.bold : FontWeight.w500,
+                        color: isChecked ? AppColors.primaryPurple : AppColors.textSecondary,
+                      ),
+                      selectedColor: AppColors.lightLavender,
+                      backgroundColor: const Color(0xFFF9FAFB),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                        side: BorderSide(
+                          color: isChecked ? AppColors.primaryPurple.withOpacity(0.5) : AppColors.divider,
+                        ),
+                      ),
+                      onSelected: (val) {
+                        setMState(() {
+                          if (val) {
+                            selectedReminders.add(rem);
+                          } else {
+                            selectedReminders.remove(rem);
+                          }
+                        });
+                      },
+                    );
+                  }).toList(),
+                ),
+                const SizedBox(height: 14),
+
+                // 🔁 반복 설정 섹션
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Text('반복 설정', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.textPrimary)),
+                    Switch(
+                      value: isRepeated,
+                      activeColor: AppColors.primaryPurple,
+                      onChanged: (val) => setMState(() => isRepeated = val),
+                    ),
+                  ],
+                ),
+                if (isRepeated) ...[
+                  const SizedBox(height: 6),
+                  // 반복 주기 라디오/칩 (매일, 특정 요일, 매달 이 날)
+                  Wrap(
+                    spacing: 8,
+                    children: ['매일', '매주 특정 요일', '매달 이 날'].map((cycle) {
+                      final isSel = repeatCycle == cycle;
+                      return ChoiceChip(
+                        label: Text(cycle),
+                        selected: isSel,
+                        showCheckmark: false,
+                        labelStyle: TextStyle(
+                          fontSize: 12,
+                          fontWeight: isSel ? FontWeight.bold : FontWeight.w500,
+                          color: isSel ? AppColors.primaryPurple : AppColors.textSecondary,
+                        ),
+                        selectedColor: AppColors.lightLavender,
+                        backgroundColor: const Color(0xFFF9FAFB),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                          side: BorderSide(color: isSel ? AppColors.primaryPurple.withOpacity(0.5) : AppColors.divider),
+                        ),
+                        onSelected: (val) {
+                          if (val) setMState(() => repeatCycle = cycle);
+                        },
+                      );
+                    }).toList(),
+                  ),
+                  if (repeatCycle == '매주 특정 요일') ...[
+                    const SizedBox(height: 8),
+                    // 요일 다중 선택 칩
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: weekDayLabels.map((day) {
+                        final isDaySel = selectedRepeatDays.contains(day);
+                        return InkWell(
+                          borderRadius: BorderRadius.circular(6),
+                          onTap: () {
+                            setMState(() {
+                              if (isDaySel) {
+                                selectedRepeatDays.remove(day);
+                              } else {
+                                selectedRepeatDays.add(day);
+                              }
+                            });
+                          },
+                          child: Container(
+                            width: 36,
+                            height: 32,
+                            alignment: Alignment.center,
+                            decoration: BoxDecoration(
+                              color: isDaySel ? AppColors.lightLavender : const Color(0xFFF9FAFB),
+                              borderRadius: BorderRadius.circular(6),
+                              border: Border.all(
+                                color: isDaySel ? AppColors.primaryPurple : AppColors.divider,
+                              ),
+                            ),
+                            child: Text(
+                              day,
+                              style: TextStyle(
+                                fontSize: 12.5,
+                                fontWeight: isDaySel ? FontWeight.bold : FontWeight.w500,
+                                color: isDaySel ? AppColors.primaryPurple : AppColors.textSecondary,
+                              ),
+                            ),
+                          ),
+                        );
+                      }).toList(),
+                    ),
+                  ],
+                ],
+                const SizedBox(height: 18),
+
+                SizedBox(
+                  width: double.infinity,
+                  height: 46,
+                  child: ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.primaryPurple,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                    ),
+                    onPressed: () {
+                      if (titleCtrl.text.trim().isEmpty) return;
+                      if (task != null) {
+                        _state.updateTask(
+                          id: task.id,
+                          title: titleCtrl.text.trim(),
+                          time: selectedTime,
+                          reminders: selectedReminders,
+                          isRepeated: isRepeated,
+                          repeatCycle: repeatCycle,
+                          repeatDays: selectedRepeatDays,
+                        );
+                        Navigator.of(ctx).pop();
+                        CelebrationToast.show(
+                          context,
+                          title: '일정 수정 완료 ✏️',
+                          message: '\'${titleCtrl.text.trim()}\' 내용이 수정되었어요.',
+                        );
+                      } else {
+                        _state.addTask(
+                          title: titleCtrl.text.trim(),
+                          date: _selectedDate,
+                          time: selectedTime,
+                          reminders: selectedReminders,
+                          isRepeated: isRepeated,
+                          repeatCycle: repeatCycle,
+                          repeatDays: selectedRepeatDays,
+                        );
+                        Navigator.of(ctx).pop();
+                        CelebrationToast.show(
+                          context,
+                          title: isPast ? '한일 등록 완료 👏' : '새 일정 등록 완료 🗓️',
+                          message: '\'${titleCtrl.text.trim()}\' 일정이 기록되었어요!',
+                        );
+                      }
+                    },
+                    child: Text(task != null ? '수정 완료' : '일정 저장', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 15)),
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
+      ),
+    );
+  }
+  // 🌟 과거 복약 완료 기록 시 복용 시간 묻는 다이얼로그 (모름/기억 안 남 포함!)
+  void _showPastMedTimeDialog(MedicationItem med, int slotIdx, DoseSlot slot) {
+    showDialog(
+      context: context,
+      builder: (dCtx) => AlertDialog(
+        title: Text('${med.name} ${slot.label} 복용 시간', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('${_selectedDate.month}월 ${_selectedDate.day}일에 이 약을 언제 복용하셨나요?'),
+            const SizedBox(height: 8),
+            const Text(
+              '정확한 시간이 기억나지 않아도 괜찮아요.\n알고 계신 만큼만 기록해도 충분해요 🌿',
+              style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
+            ),
+          ],
+        ),
+        actions: [
+          // 1) 잘 모르겠음 / 기억 안 남 버튼
+          TextButton(
+            onPressed: () {
+              Navigator.of(dCtx).pop();
+              _state.togglePastSlotCompleted(_selectedDate, med.id, slotIdx);
+              CelebrationToast.show(
+                context,
+                title: '소중한 기록 완료! 👏',
+                message: '${med.name} ${slot.label} 복용을 기록했어요 (복용 시간 미지정).',
+              );
+            },
+            child: const Text('기억 안 남 (모름)', style: TextStyle(color: AppColors.textSecondary)),
+          ),
+          // 2) 예정 시각 그대로 복용 버튼
+          TextButton(
+            onPressed: () {
+              Navigator.of(dCtx).pop();
+              _state.togglePastSlotCompleted(_selectedDate, med.id, slotIdx);
+              CelebrationToast.show(
+                context,
+                title: '소중한 기록 완료! 👏',
+                message: '${med.name} ${slot.label} 예정 시각에 잘 챙겨 드셨어요!',
+              );
+            },
+            child: Text('${slot.scheduledTime ?? '예정 시각'}에 복용', style: const TextStyle(color: AppColors.primaryPurple, fontWeight: FontWeight.bold)),
+          ),
+          // 3) 직접 시간 선택 버튼
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.primaryPurple,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+            ),
+            onPressed: () async {
+              Navigator.of(dCtx).pop();
+              final t = await AppTimePicker.show(context, initialTime: TimeOfDay.now(), title: '${med.name} 복용 시각');
+              _state.togglePastSlotCompleted(_selectedDate, med.id, slotIdx);
+              final timeStr = t != null
+                  ? '${t.period == DayPeriod.am ? '오전' : '오후'} ${t.hourOfPeriod == 0 ? 12 : t.hourOfPeriod}:${t.minute.toString().padLeft(2, '0')}'
+                  : '복용 완료';
+              CelebrationToast.show(
+                context,
+                title: '소중한 기록 완료! 👏',
+                message: '${med.name} $timeStr에 복약한 기록을 남겼어요.',
+              );
+            },
+            child: const Text('직접 시간 입력', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // 과거 복약 되돌리기 확인 다이얼로그
+  void _showPastMedRevertDialog(MedicationItem med, int slotIdx, DoseSlot slot) {
+    showDialog(
+      context: context,
+      builder: (dCtx) => AlertDialog(
+        title: const Text('복약 상태 되돌리기', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+        content: Text('${_selectedDate.month}월 ${_selectedDate.day}일 \'${med.name} ${slot.label}\' 복약 완료 기록을 미완료(대기)로 되돌릴까요?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dCtx).pop(),
+            child: const Text('취소', style: TextStyle(color: AppColors.textSecondary)),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.warmBrown,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+            ),
+            onPressed: () {
+              Navigator.of(dCtx).pop();
+              _state.togglePastSlotCompleted(_selectedDate, med.id, slotIdx);
+              CelebrationToast.show(
+                context,
+                title: '되돌리기 완료 🌿',
+                message: '${med.name} ${slot.label} 상태를 미완료로 되돌렸어요.',
+              );
+            },
+            child: const Text('되돌리기 확정', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // 과거 습관 되돌리기 확인 다이얼로그
+  void _showPastHabitRevertDialog(HabitItem habit) {
+    showDialog(
+      context: context,
+      builder: (dCtx) => AlertDialog(
+        title: const Text('습관 상태 되돌리기', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+        content: Text('${_selectedDate.month}월 ${_selectedDate.day}일 \'${habit.title}\' 실천 상태를 대기로 되돌릴까요?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dCtx).pop(),
+            child: const Text('취소', style: TextStyle(color: AppColors.textSecondary)),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.warmBrown,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+            ),
+            onPressed: () {
+              Navigator.of(dCtx).pop();
+              _state.resetPastHabitProgress(_selectedDate, habit.id);
+              CelebrationToast.show(
+                context,
+                title: '되돌리기 완료 🌿',
+                message: '\'${habit.title}\' 실천 상태를 대기로 되돌렸어요.',
+              );
+            },
+            child: const Text('되돌리기 확정', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+          ),
+        ],
+      ),
+    );
+  }
+  // 🌟 과거 습관 수정 시 바로 바뀌지 않고 상태를 신중히 선택하는 다이얼로그
+  void _showPastHabitChoiceDialog(HabitItem habit, bool isFull, bool isPart) {
+    showDialog(
+      context: context,
+      builder: (dCtx) => AlertDialog(
+        title: Text('\'${habit.title}\' 실천 기록', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+        content: Text('${_selectedDate.month}월 ${_selectedDate.day}일에 이 습관을 어떻게 실천하셨나요?'),
+        actions: [
+          // 1) 대기로 되돌리기
+          TextButton(
+            onPressed: () {
+              Navigator.of(dCtx).pop();
+              _state.resetPastHabitProgress(_selectedDate, habit.id);
+              CelebrationToast.show(
+                context,
+                title: '대기 상태로 변경',
+                message: '\'${habit.title}\'을(를) 대기로 변경했어요.',
+              );
+            },
+            child: const Text('대기 (미실천)', style: TextStyle(color: AppColors.textSecondary)),
+          ),
+          // 2) 조금 실천
+          TextButton(
+            onPressed: () {
+              Navigator.of(dCtx).pop();
+              _state.resetPastHabitProgress(_selectedDate, habit.id);
+              _state.advancePastHabitProgress(_selectedDate, habit.id);
+              CelebrationToast.show(
+                context,
+                title: '작은 발걸음 기록 🐾',
+                message: '조금이라도 실천한 것이 정말 큰 의미가 있어요 :)',
+              );
+            },
+            child: const Text('조금 실천', style: TextStyle(color: AppColors.partialText, fontWeight: FontWeight.bold)),
+          ),
+          // 3) 완료
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.primaryPurple,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+            ),
+            onPressed: () {
+              Navigator.of(dCtx).pop();
+              _state.resetPastHabitProgress(_selectedDate, habit.id);
+              _state.advancePastHabitProgress(_selectedDate, habit.id);
+              _state.advancePastHabitProgress(_selectedDate, habit.id);
+              CelebrationToast.show(
+                context,
+                title: '습관 실천 완료! 👏',
+                message: '\'${habit.title}\' 목표를 달성했어요! 언제든 멋져요 ✨',
+              );
+            },
+            child: const Text('완료', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+          ),
+        ],
       ),
     );
   }
@@ -317,14 +796,19 @@ class _CalendarTabViewState extends State<CalendarTabView> {
                   final isToday = cellDate.isAtSameMomentAs(today);
                   final isSelected = cellDate.isAtSameMomentAs(_selectedDate);
                   final medRate = _state.getMedRateForDay(cellDate);
+                  final habitRate = _state.getHabitRateForDay(cellDate);
                   final hasTasks = _state.getTasksForDay(cellDate).isNotEmpty;
+                  final hasMissedPrescription = _state.hasMissedPrescriptionForDay(cellDate);
 
-                  // 6안 시각화 상태:
-                  // 100% 완료: 연초록 통 채움 (#E6F8F0)
-                  final is100Done = medRate != null && medRate >= 1.0;
+                  final isFuture = cellDate.isAfter(today);
+
+                  // 🌟 [통 연초록 틴트 규격]: "약과 습관 둘 다 100% 완료했을 때만" 통으로 연초록! (미래 날짜는 완전 순백색 초기화)
+                  final isMed100 = medRate != null && medRate >= 1.0;
+                  final isHabit100 = habitRate != null && habitRate >= 1.0;
+                  final isAll100Done = !isFuture && isMed100 && isHabit100;
+
                   final isPartial = medRate != null && medRate > 0.0 && medRate < 1.0;
                   final isZero = medRate != null && medRate == 0.0;
-
                   return GestureDetector(
                     onTap: () {
                       setState(() {
@@ -333,7 +817,7 @@ class _CalendarTabViewState extends State<CalendarTabView> {
                     },
                     child: Container(
                       decoration: BoxDecoration(
-                        color: is100Done ? AppColors.successBg : Colors.white,
+                        color: isAll100Done ? AppColors.successBg : Colors.white,
                         borderRadius: BorderRadius.circular(8),
                         border: Border.all(
                           color: isSelected
@@ -366,42 +850,47 @@ class _CalendarTabViewState extends State<CalendarTabView> {
                               style: TextStyle(
                                 fontSize: 13,
                                 fontWeight: (isToday || isSelected) ? FontWeight.bold : FontWeight.w500,
-                                color: is100Done
-                                    ? AppColors.successGreen
-                                    : (cellDate.weekday == DateTime.sunday
-                                        ? AppColors.missedRed
-                                        : AppColors.textPrimary),
+                                // 전체 완료한 날이라도 일요일이면 빨간색 유지! 평일은 기본 텍스트 색 유지!
+                                color: cellDate.weekday == DateTime.sunday
+                                    ? AppColors.missedRed
+                                    : AppColors.textPrimary,
                               ),
                             ),
                           ),
 
-                          // 🌟 하단 캡슐 바 (부분 달성: 오렌지 / 0% 미복용: 비처벌적 소프트 그레이 바)
-                          if (isPartial)
-                            Positioned(
-                              bottom: 4,
-                              left: 6,
-                              right: 6,
-                              child: Container(
-                                height: 3.5,
-                                decoration: BoxDecoration(
-                                  color: AppColors.partialOrange,
-                                  borderRadius: BorderRadius.circular(2),
+                          // 🌟 사용자 제안 3단계 극단적 단순화 규격:
+                          // 1) 전부 다 한 날: 통 연초록 틴트 (#E6F8F0) + 하단 바 없음!
+                          // 2) 처방약 안 먹은 날: 흰색 셀 + 🚨 빨간색 바 (#EF4444)
+                          // 3) 뭔가 덜 한 날: 흰색 셀 + 🟤 웜브라운 바 (#8B5E3C)
+                          // 4) 아직 오지 않은 날짜(미래): 바 일체 없이 완전 깨끗한 순백색 초기화!
+                          if (!isFuture && !isAll100Done) ...[
+                            if (hasMissedPrescription)
+                              Positioned(
+                                bottom: 4,
+                                left: 8,
+                                right: 8,
+                                child: Container(
+                                  height: 2.5,
+                                  decoration: BoxDecoration(
+                                    color: AppColors.missedRed, // 선명한 처방약 미복용 경고 레드 바
+                                    borderRadius: BorderRadius.circular(2),
+                                  ),
+                                ),
+                              )
+                            else
+                              Positioned(
+                                bottom: 4,
+                                left: 8,
+                                right: 8,
+                                child: Container(
+                                  height: 2.5,
+                                  decoration: BoxDecoration(
+                                    color: AppColors.warmBrown.withOpacity(0.6), // 일반약이든 습관이든 뭔가 덜 한 날 웜브라운 바
+                                    borderRadius: BorderRadius.circular(2),
+                                  ),
                                 ),
                               ),
-                            ),
-                          if (isZero)
-                            Positioned(
-                              bottom: 4,
-                              left: 6,
-                              right: 6,
-                              child: Container(
-                                height: 3.5,
-                                decoration: BoxDecoration(
-                                  color: const Color(0xFFD1D5DB), // 비처벌적 안심 슬레이트 그레이 바
-                                  borderRadius: BorderRadius.circular(2),
-                                ),
-                              ),
-                            ),
+                          ],
                         ],
                       ),
                     ),
@@ -457,15 +946,18 @@ class _CalendarTabViewState extends State<CalendarTabView> {
                   ),
                   // 일정 추가 버튼
                   InkWell(
-                    onTap: _showAddTaskModal,
+                    onTap: () => _showTaskModal(),
                     borderRadius: BorderRadius.circular(6),
-                    child: const Padding(
-                      padding: EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
                       child: Row(
                         children: [
-                          Icon(Icons.add, size: 16, color: AppColors.primaryPurple),
-                          SizedBox(width: 2),
-                          Text('할일 추가', style: TextStyle(fontSize: 12.5, color: AppColors.primaryPurple, fontWeight: FontWeight.bold)),
+                          const Icon(Icons.add, size: 16, color: AppColors.primaryPurple),
+                          const SizedBox(width: 2),
+                          Text(
+                            isSelectedDatePast ? '한일 추가' : '할일 추가',
+                            style: const TextStyle(fontSize: 12.5, color: AppColors.primaryPurple, fontWeight: FontWeight.bold),
+                          ),
                         ],
                       ),
                     ),
@@ -513,73 +1005,145 @@ class _CalendarTabViewState extends State<CalendarTabView> {
                   children: selectedDayTasks.map((t) {
                     return Container(
                       margin: const EdgeInsets.only(bottom: 6),
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                       decoration: BoxDecoration(
                         color: const Color(0xFFF9FAFB),
-                        borderRadius: BorderRadius.circular(8),
+                        borderRadius: BorderRadius.circular(10),
+                        border: Border.all(
+                          color: t.isExpanded ? AppColors.primaryPurple.withOpacity(0.3) : AppColors.divider.withOpacity(0.5),
+                        ),
                       ),
-                      child: Row(
+                      child: Column(
                         children: [
-                          Checkbox(
-                            value: t.isCompleted,
-                            activeColor: AppColors.primaryPurple,
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
-                            onChanged: (_) {
-                              _state.toggleTaskCompleted(t.id);
-                              if (!t.isCompleted) {
-                                CelebrationToast.show(
-                                  context,
-                                  title: '할일 완료! 🌸',
-                                  message: '\'${t.title}\'을(를) 잘 마쳤어요. 훌륭해요!',
-                                );
-                              }
+                          InkWell(
+                            borderRadius: BorderRadius.circular(10),
+                            onTap: () {
+                              setState(() {
+                                t.isExpanded = !t.isExpanded;
+                              });
                             },
-                          ),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  t.title,
-                                  style: TextStyle(
-                                    fontSize: 13,
-                                    fontWeight: FontWeight.w600,
-                                    decoration: t.isCompleted ? TextDecoration.lineThrough : null,
-                                    color: t.isCompleted ? AppColors.textMuted : AppColors.textPrimary,
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                              child: Row(
+                                children: [
+                                  Checkbox(
+                                    value: t.isCompleted,
+                                    activeColor: AppColors.primaryPurple,
+                                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
+                                    onChanged: (_) {
+                                      _state.toggleTaskCompleted(t.id);
+                                      if (!t.isCompleted) {
+                                        CelebrationToast.show(
+                                          context,
+                                          title: '일정 완료! 🌸',
+                                          message: '\'${t.title}\'을(를) 잘 마쳤어요.',
+                                        );
+                                      }
+                                    },
                                   ),
-                                ),
-                                if (t.time != null)
-                                  Text(
-                                    '${t.time} · ${t.reminder}',
-                                    style: const TextStyle(fontSize: 11, color: AppColors.textSecondary),
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          t.title,
+                                          style: TextStyle(
+                                            fontSize: 13,
+                                            fontWeight: FontWeight.w600,
+                                            decoration: t.isCompleted ? TextDecoration.lineThrough : null,
+                                            color: t.isCompleted ? AppColors.textMuted : AppColors.textPrimary,
+                                          ),
+                                        ),
+                                        if (t.time != null || t.reminders.isNotEmpty || t.isRepeated)
+                                          Text(
+                                            [
+                                              if (t.time != null) t.time!,
+                                              if (t.reminders.isNotEmpty) t.reminderSummary,
+                                              if (t.isRepeated) t.repeatSummary,
+                                            ].join(' · '),
+                                            style: const TextStyle(fontSize: 11, color: AppColors.textSecondary),
+                                          ),
+                                      ],
+                                    ),
                                   ),
-                              ],
+                                ],
+                              ),
                             ),
                           ),
-                          IconButton(
-                            icon: const Icon(Icons.close, size: 16, color: AppColors.textMuted),
-                            padding: EdgeInsets.zero,
-                            constraints: const BoxConstraints(),
-                            onPressed: () => _state.deleteTask(t.id),
-                          ),
+
+                          // 🌟 카드를 톡 눌렀을 때만 아래로 펼쳐지는 복약/습관 스타일의 아코디언 메뉴!
+                          if (t.isExpanded) ...[
+                            const Divider(height: 1, color: Color(0xFFE5E7EB)),
+                            Padding(
+                              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                              child: Row(
+                                children: [
+                                  TextButton(
+                                    style: TextButton.styleFrom(
+                                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+                                      minimumSize: Size.zero,
+                                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                                    ),
+                                    onPressed: () => _showTaskModal(task: t),
+                                    child: const Text('정보 수정', style: TextStyle(color: AppColors.primaryPurple, fontSize: 12, fontWeight: FontWeight.w600)),
+                                  ),
+                                  const SizedBox(width: 8),
+                                  if (t.isCompleted)
+                                    TextButton(
+                                      style: TextButton.styleFrom(
+                                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+                                        minimumSize: Size.zero,
+                                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                                      ),
+                                      onPressed: () {
+                                        _state.toggleTaskCompleted(t.id);
+                                        CelebrationToast.show(
+                                          context,
+                                          title: '되돌리기 완료',
+                                          message: '\'${t.title}\' 일정을 미완료 상태로 되돌렸어요.',
+                                        );
+                                      },
+                                      child: const Text('되돌리기', style: TextStyle(color: AppColors.warmBrown, fontSize: 12, fontWeight: FontWeight.w600)),
+                                    ),
+                                  const Spacer(),
+                                  TextButton(
+                                    style: TextButton.styleFrom(
+                                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+                                      minimumSize: Size.zero,
+                                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                                    ),
+                                    onPressed: () {
+                                      _state.deleteTask(t.id);
+                                      CelebrationToast.show(
+                                        context,
+                                        title: '삭제 완료',
+                                        message: '\'${t.title}\' 일정을 삭제했어요.',
+                                      );
+                                    },
+                                    child: const Text('삭제', style: TextStyle(color: AppColors.neutralDark, fontSize: 12, fontWeight: FontWeight.w600)),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
                         ],
                       ),
                     );
                   }).toList(),
                 ),
-
               const SizedBox(height: 12),
               const Divider(height: 1),
               const SizedBox(height: 12),
 
-              // 2. 💊 [복약 상태 요약 및 펼침 아코디언] - 하단 배치!
+              // 2. 💊 [복약 상태 요약 및 과거 기록 수정 아코디언]
               InkWell(
                 borderRadius: BorderRadius.circular(8),
-                onTap: () {
-                  setState(() {
-                    _isMedDetailsExpanded = !_isMedDetailsExpanded;
-                  });
-                },
+                onTap: isSelectedDatePast
+                    ? () {
+                        setState(() {
+                          _isMedDetailsExpanded = !_isMedDetailsExpanded;
+                        });
+                      }
+                    : null, // 오늘/미래 날짜는 탭 비활성화 (조회 전용)
                 child: Padding(
                   padding: const EdgeInsets.symmetric(vertical: 4),
                   child: Row(
@@ -587,18 +1151,19 @@ class _CalendarTabViewState extends State<CalendarTabView> {
                     children: [
                       Row(
                         children: [
-                          const Text('💊 복약 현황', style: TextStyle(fontSize: 13.5, fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
+                          const Text('복약 현황', style: TextStyle(fontSize: 13.5, fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
                           const SizedBox(width: 8),
                           // 전체 완료 여부 뱃지
                           Container(
                             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                             decoration: BoxDecoration(
                               color: selectedMedRate != null && selectedMedRate >= 1.0
-                                  ? AppColors.successBg
+                                  ? AppColors.completedBg
                                   : (selectedMedRate != null && selectedMedRate > 0.0
                                       ? AppColors.partialOrange.withOpacity(0.12)
                                       : const Color(0xFFF3F4F6)),
                               borderRadius: BorderRadius.circular(5),
+                              border: selectedMedRate != null && selectedMedRate >= 1.0 ? Border.all(color: AppColors.completedBorder) : null,
                             ),
                             child: Text(
                               selectedMedRate == null
@@ -608,31 +1173,23 @@ class _CalendarTabViewState extends State<CalendarTabView> {
                                 fontSize: 11.5,
                                 fontWeight: FontWeight.bold,
                                 color: selectedMedRate != null && selectedMedRate >= 1.0
-                                    ? AppColors.successGreen
+                                    ? AppColors.completedText
                                     : (selectedMedRate != null && selectedMedRate > 0.0 ? AppColors.partialOrange : AppColors.textSecondary),
                               ),
                             ),
                           ),
                         ],
                       ),
-                      Row(
-                        children: [
-                          Text(
-                            _isMedDetailsExpanded ? '접기' : '자세히 보기',
-                            style: const TextStyle(fontSize: 12, color: AppColors.primaryPurple, fontWeight: FontWeight.bold),
-                          ),
-                          Icon(
-                            _isMedDetailsExpanded ? Icons.keyboard_arrow_up : Icons.keyboard_arrow_down,
-                            size: 18,
-                            color: AppColors.primaryPurple,
-                          ),
-                        ],
-                      ),
+                      // 🌟 과거 날짜일 때만 [수정하기/접기] 버튼 노출! 오늘은 버튼 없이 조회만 가능!
+                      if (isSelectedDatePast)
+                        Text(
+                          _isMedDetailsExpanded ? '접기' : '수정하기',
+                          style: const TextStyle(fontSize: 12, color: AppColors.primaryPurple, fontWeight: FontWeight.bold),
+                        ),
                     ],
                   ),
                 ),
               ),
-
               // 펼쳤을 때만 나오는 상세 약별 / 회차별 핀셋 수정 카드
               if (_isMedDetailsExpanded) ...[
                 const SizedBox(height: 10),
@@ -674,19 +1231,12 @@ class _CalendarTabViewState extends State<CalendarTabView> {
                               return InkWell(
                                 borderRadius: BorderRadius.circular(6),
                                 onTap: () {
-                                  final nowCompleted = _state.togglePastSlotCompleted(_selectedDate, med.id, slotIdx);
-                                  if (nowCompleted) {
-                                    CelebrationToast.show(
-                                      context,
-                                      title: '소중한 기록 완료! 👏',
-                                      message: '${med.name} ${slot.label} 약을 챙겨 먹었다고 알려줘서 고마워요. 하곰이가 칭찬해요 ✨',
-                                    );
+                                  if (!isDone) {
+                                    // 🌟 복약 완료로 기록할 때: 언제 복용했는지 묻는 다이얼로그 (모름/기억 안 남 포함!)
+                                    _showPastMedTimeDialog(med, slotIdx, slot);
                                   } else {
-                                    CelebrationToast.show(
-                                      context,
-                                      title: '복약 대기로 변경 🌿',
-                                      message: '${med.name} ${slot.label} 상태를 다시 미완료로 편안하게 되돌렸어요.',
-                                    );
+                                    // 이미 완료된 슬롯: 되돌리기 다이얼로그
+                                    _showPastMedRevertDialog(med, slotIdx, slot);
                                   }
                                 },
                                 child: Container(
@@ -735,11 +1285,13 @@ class _CalendarTabViewState extends State<CalendarTabView> {
               // 3. 🌱 [습관 현황 요약 및 펼침 아코디언]
               InkWell(
                 borderRadius: BorderRadius.circular(8),
-                onTap: () {
-                  setState(() {
-                    _isHabitDetailsExpanded = !_isHabitDetailsExpanded;
-                  });
-                },
+                onTap: isSelectedDatePast
+                    ? () {
+                        setState(() {
+                          _isHabitDetailsExpanded = !_isHabitDetailsExpanded;
+                        });
+                      }
+                    : null, // 오늘은 비활성화 (조회 전용)
                 child: Padding(
                   padding: const EdgeInsets.symmetric(vertical: 4),
                   child: Row(
@@ -754,11 +1306,12 @@ class _CalendarTabViewState extends State<CalendarTabView> {
                             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                             decoration: BoxDecoration(
                               color: selectedHabitRate != null && selectedHabitRate >= 1.0
-                                  ? AppColors.successBg
+                                  ? AppColors.completedBg
                                   : (selectedHabitRate != null && selectedHabitRate > 0.0
                                       ? AppColors.partialOrange.withOpacity(0.12)
                                       : const Color(0xFFF3F4F6)),
                               borderRadius: BorderRadius.circular(5),
+                              border: selectedHabitRate != null && selectedHabitRate >= 1.0 ? Border.all(color: AppColors.completedBorder) : null,
                             ),
                             child: Text(
                               selectedHabitRate == null
@@ -772,26 +1325,19 @@ class _CalendarTabViewState extends State<CalendarTabView> {
                                 fontSize: 11.5,
                                 fontWeight: FontWeight.bold,
                                 color: selectedHabitRate != null && selectedHabitRate >= 1.0
-                                    ? AppColors.successGreen
+                                    ? AppColors.completedText
                                     : (selectedHabitRate != null && selectedHabitRate > 0.0 ? AppColors.partialOrange : AppColors.textSecondary),
                               ),
                             ),
                           ),
                         ],
                       ),
-                      Row(
-                        children: [
-                          Text(
-                            _isHabitDetailsExpanded ? '접기' : '자세히 보기',
-                            style: const TextStyle(fontSize: 12, color: AppColors.primaryPurple, fontWeight: FontWeight.bold),
-                          ),
-                          Icon(
-                            _isHabitDetailsExpanded ? Icons.keyboard_arrow_up : Icons.keyboard_arrow_down,
-                            size: 18,
-                            color: AppColors.primaryPurple,
-                          ),
-                        ],
-                      ),
+                      // 🌟 과거 날짜일 때만 [수정하기/접기] 버튼 노출! 오늘은 버튼 없이 조회만 가능!
+                      if (isSelectedDatePast)
+                        Text(
+                          _isHabitDetailsExpanded ? '접기' : '수정하기',
+                          style: const TextStyle(fontSize: 12, color: AppColors.primaryPurple, fontWeight: FontWeight.bold),
+                        ),
                     ],
                   ),
                 ),
@@ -805,24 +1351,22 @@ class _CalendarTabViewState extends State<CalendarTabView> {
                     final hScore = _state.getHabitScoreForDay(_selectedDate, habit.id);
                     final isFull = hScore >= 1.0;
                     final isPart = hScore > 0.0 && hScore < 1.0;
-
-                    String label = '○ 대기';
+                    String label = '대기';
                     Color bg = Colors.white;
                     Color border = AppColors.divider;
                     Color textCol = AppColors.textSecondary;
 
                     if (isFull) {
-                      label = '● 완료';
-                      bg = AppColors.successBg;
-                      border = AppColors.successGreen.withOpacity(0.4);
-                      textCol = AppColors.successGreen;
+                      label = '완료';
+                      bg = AppColors.completedBg;
+                      border = AppColors.completedBorder;
+                      textCol = AppColors.completedText;
                     } else if (isPart) {
-                      label = '◐ 조금 실천';
-                      bg = AppColors.partialOrange.withOpacity(0.1);
-                      border = AppColors.partialOrange.withOpacity(0.4);
-                      textCol = AppColors.partialOrange;
+                      label = '조금 실천';
+                      bg = AppColors.partialBg;
+                      border = AppColors.partialBorder;
+                      textCol = AppColors.partialText;
                     }
-
                     return Container(
                       margin: const EdgeInsets.only(bottom: 4),
                       padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
@@ -849,31 +1393,10 @@ class _CalendarTabViewState extends State<CalendarTabView> {
                           ),
                           const SizedBox(width: 8),
 
-                          // 습관 실천 소급 순환 버튼
+                          // 습관 실천 소급 상태 선택 버튼 (클릭 시 확인 다이얼로그 팝업)
                           InkWell(
                             borderRadius: BorderRadius.circular(6),
-                            onTap: () {
-                              final newScore = _state.advancePastHabitProgress(_selectedDate, habit.id);
-                              if (newScore >= 1.0) {
-                                CelebrationToast.show(
-                                  context,
-                                  title: '습관 실천 완료! 👏',
-                                  message: '\'${habit.title}\' 목표를 달성했어요! 언제든 멋져요 ✨',
-                                );
-                              } else if (newScore > 0.0) {
-                                CelebrationToast.show(
-                                  context,
-                                  title: '작은 발걸음 기록 🐾',
-                                  message: '조금이라도 실천한 것이 정말 큰 의미가 있어요 :)',
-                                );
-                              } else {
-                                CelebrationToast.show(
-                                  context,
-                                  title: '이미 완료한 습관이에요 ✨',
-                                  message: '오늘 목표를 이미 멋지게 달성하셨어요!',
-                                );
-                              }
-                            },
+                            onTap: () => _showPastHabitChoiceDialog(habit, isFull, isPart),
                             child: Container(
                               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                               decoration: BoxDecoration(

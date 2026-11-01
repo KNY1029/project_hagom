@@ -4,7 +4,7 @@ import '../models/medication_item.dart';
 import '../state/app_state_manager.dart';
 import '../constants/hagom_dialogue.dart';
 import '../widgets/celebration_toast.dart';
-/// 💊 [복약 탭: 2단계 스텝 모달 완성본]
+import '../widgets/app_time_picker.dart';
 /// 
 /// 1. 한눈에 쏙 들어오는 2단계 마법사 UX:
 ///    - 1단계 (기본 정보): 약 이름 + 용량/복용법 + 처방 여부
@@ -47,15 +47,26 @@ class _MedsTabViewState extends State<MedsTabView> {
     final dosageCtrl = TextEditingController(text: isEditing ? med.dosage : '');
 
     String recurrenceType = isEditing ? med.recurrenceSummary : '매일';
-    if (recurrenceType.contains('간격')) recurrenceType = 'N일마다';
-
+    if (recurrenceType.contains('시간')) {
+      recurrenceType = '시간 간격';
+    } else if (recurrenceType.contains('간격')) {
+      recurrenceType = '며칠 간격';
+    }
     final intervalCtrl = TextEditingController(
       text: isEditing && med.recurrenceSummary.contains('일 간격')
           ? med.recurrenceSummary.replaceAll(RegExp(r'[^0-9]'), '')
-          : '2',
+          : '',
     );
-    final hourIntervalCtrl = TextEditingController(text: '4');
-    final minIntervalCtrl = TextEditingController(text: '0');
+    final hourIntervalCtrl = TextEditingController(
+      text: isEditing && med.recurrenceSummary.contains('시간')
+          ? (RegExp(r'(\d+)시간').firstMatch(med.recurrenceSummary)?.group(1) ?? '')
+          : '',
+    );
+    final minIntervalCtrl = TextEditingController(
+      text: isEditing && med.recurrenceSummary.contains('분')
+          ? (RegExp(r'(\d+)분').firstMatch(med.recurrenceSummary)?.group(1) ?? '')
+          : '',
+    );
 
     List<DoseSlot> currentSlots = isEditing
         ? med.doseSlots.map((s) => DoseSlot(
@@ -70,11 +81,10 @@ class _MedsTabViewState extends State<MedsTabView> {
     final durationDaysCtrl = TextEditingController(
       text: isEditing && med.durationSummary.contains('일간')
           ? med.durationSummary.replaceAll(RegExp(r'[^0-9]'), '')
-          : '7',
+          : '',
     );
-
+    final List<String> selectedRepeatDays = isEditing ? List.from(med.repeatDays) : ['일'];
     bool isPrescription = isEditing ? med.isPrescription : false;
-
     showModalBottomSheet(
       context: context,
       useRootNavigator: false, // 하단 탭 바가 항상 최상단에 안정적으로 유지되도록 설정!
@@ -84,7 +94,7 @@ class _MedsTabViewState extends State<MedsTabView> {
         return StatefulBuilder(
           builder: (context, setModalState) {
             return Container(
-              margin: const EdgeInsets.only(bottom: 8, left: 12, right: 12), // 하단 탭 바 바로 위로 단정하게 뜸!
+              margin: const EdgeInsets.only(bottom: 8, left: 12, right: 12),
               padding: EdgeInsets.only(
                 top: 20,
                 left: 20,
@@ -98,11 +108,12 @@ class _MedsTabViewState extends State<MedsTabView> {
                   BoxShadow(color: Colors.black.withOpacity(0.12), blurRadius: 16, offset: const Offset(0, -4)),
                 ],
               ),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // 상단 헤더: 타이틀 + 단계 표시 + 닫기
+              child: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // 상단 헤더: 타이틀 + 단계 표시 + 닫기
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
@@ -231,9 +242,10 @@ class _MedsTabViewState extends State<MedsTabView> {
                     const SizedBox(height: 6),
                     Wrap(
                       spacing: 6,
-                      children: ['매일', '오늘만', 'N일마다', 'N시간마다', '필요 시'].map((type) {
+                      children: ['매일', '특정 요일', '며칠 간격', '시간 간격', '오늘만', '필요 시'].map((type) {
                         final isSel = recurrenceType == type;
                         return ChoiceChip(
+                          showCheckmark: false,
                           label: Text(type),
                           selected: isSel,
                           selectedColor: AppColors.lightLavender,
@@ -246,9 +258,7 @@ class _MedsTabViewState extends State<MedsTabView> {
                             if (selected) {
                               setModalState(() {
                                 recurrenceType = type;
-                                if (type == 'N시간마다') {
-                                  // 귀찮은 첫 복용 시각 질문을 싹 없애고!
-                                  // 1회차는 "복용 대기" 상태로 바로 두고, 사용자가 실제로 먹을 때 누르면 그때부터 N시간 뒤로 자동 계산!
+                                if (type == '시간 간격') {
                                   final intervalH = int.tryParse(hourIntervalCtrl.text) ?? 8;
                                   final totalDoses = (24 / intervalH).floor();
                                   currentSlots = List.generate(totalDoses, (i) {
@@ -270,7 +280,48 @@ class _MedsTabViewState extends State<MedsTabView> {
                         );
                       }).toList(),
                     ),
-                    if (recurrenceType == 'N일마다') ...[
+                    if (recurrenceType == '특정 요일') ...[
+                      const SizedBox(height: 8),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: ['월', '화', '수', '목', '금', '토', '일'].map((day) {
+                          final isDaySel = selectedRepeatDays.contains(day);
+                          return InkWell(
+                            borderRadius: BorderRadius.circular(6),
+                            onTap: () {
+                              setModalState(() {
+                                if (isDaySel) {
+                                  selectedRepeatDays.remove(day);
+                                } else {
+                                  selectedRepeatDays.add(day);
+                                }
+                              });
+                            },
+                            child: Container(
+                              width: 36,
+                              height: 32,
+                              alignment: Alignment.center,
+                              decoration: BoxDecoration(
+                                color: isDaySel ? AppColors.lightLavender : const Color(0xFFF9FAFB),
+                                borderRadius: BorderRadius.circular(6),
+                                border: Border.all(
+                                  color: isDaySel ? AppColors.primaryPurple : AppColors.divider,
+                                ),
+                              ),
+                              child: Text(
+                                day,
+                                style: TextStyle(
+                                  fontSize: 12.5,
+                                  fontWeight: isDaySel ? FontWeight.bold : FontWeight.w500,
+                                  color: isDaySel ? AppColors.primaryPurple : AppColors.textSecondary,
+                                ),
+                              ),
+                            ),
+                          );
+                        }).toList(),
+                      ),
+                    ],
+                    if (recurrenceType == '며칠 간격') ...[
                       const SizedBox(height: 6),
                       Row(
                         children: [
@@ -292,8 +343,9 @@ class _MedsTabViewState extends State<MedsTabView> {
                         ],
                       ),
                     ],
-                    if (recurrenceType == 'N시간마다') ...[
+                    if (recurrenceType == '시간 간격') ...[
                       const SizedBox(height: 6),
+                      // 🌟 기본 칩 없이 바로 숫자 직접 입력받기!
                       Row(
                         children: [
                           SizedBox(
@@ -302,15 +354,16 @@ class _MedsTabViewState extends State<MedsTabView> {
                               controller: hourIntervalCtrl,
                               keyboardType: TextInputType.number,
                               textAlign: TextAlign.center,
-                              decoration: InputDecoration(
+                              decoration: const InputDecoration(
                                 isDense: true,
-                                border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
-                                contentPadding: const EdgeInsets.symmetric(horizontal: 4, vertical: 6),
+                                hintText: '',
+                                contentPadding: EdgeInsets.symmetric(horizontal: 6, vertical: 8),
+                                border: OutlineInputBorder(borderRadius: BorderRadius.all(Radius.circular(8))),
                               ),
                             ),
                           ),
                           const SizedBox(width: 4),
-                          const Text('시간', style: TextStyle(fontSize: 12)),
+                          const Text('시간', style: TextStyle(fontSize: 12.5, fontWeight: FontWeight.w600)),
                           const SizedBox(width: 8),
                           SizedBox(
                             width: 50,
@@ -318,23 +371,64 @@ class _MedsTabViewState extends State<MedsTabView> {
                               controller: minIntervalCtrl,
                               keyboardType: TextInputType.number,
                               textAlign: TextAlign.center,
-                              decoration: InputDecoration(
+                              decoration: const InputDecoration(
                                 isDense: true,
-                                border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
-                                contentPadding: const EdgeInsets.symmetric(horizontal: 4, vertical: 6),
+                                hintText: '',
+                                contentPadding: EdgeInsets.symmetric(horizontal: 6, vertical: 8),
+                                border: OutlineInputBorder(borderRadius: BorderRadius.all(Radius.circular(8))),
                               ),
                             ),
                           ),
                           const SizedBox(width: 4),
-                          const Text('분마다 (복약 시 자동 계산)', style: TextStyle(fontSize: 12, color: AppColors.textPrimary)),
+                          const Text('분마다 복용', style: TextStyle(fontSize: 12.5, fontWeight: FontWeight.w600)),
+                        ],
+                      ),
+                      const SizedBox(height: 12),
+
+                      // 🌟 첫 복용 예정 시간만 설정받기 (나머지 회차는 복용 시점에 동적 계산!)
+                      Row(
+                        children: [
+                          const Text('첫 복용 예정 시각', style: TextStyle(fontSize: 12.5, fontWeight: FontWeight.bold, color: AppColors.textSecondary)),
+                          const Spacer(),
+                          OutlinedButton(
+                            style: OutlinedButton.styleFrom(
+                              side: const BorderSide(color: AppColors.divider),
+                              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                            ),
+                            onPressed: () async {
+                              final time = await AppTimePicker.show(
+                                context,
+                                initialTime: const TimeOfDay(hour: 8, minute: 0),
+                                title: '첫 복용 예정 시각',
+                              );
+                              if (time != null) {
+                                final period = time.period == DayPeriod.am ? '오전' : '오후';
+                                final hour = time.hourOfPeriod == 0 ? 12 : time.hourOfPeriod;
+                                final min = time.minute.toString().padLeft(2, '0');
+                                final timeStr = '$period $hour:$min';
+                                setModalState(() {
+                                  if (currentSlots.isNotEmpty) {
+                                    currentSlots[0].scheduledTime = timeStr;
+                                  } else {
+                                    currentSlots.add(DoseSlot(label: '1회차', scheduledTime: timeStr));
+                                  }
+                                });
+                              }
+                            },
+                            child: Text(
+                              currentSlots.isNotEmpty ? (currentSlots[0].scheduledTime ?? '오전 8:00') : '오전 8:00',
+                              style: const TextStyle(color: AppColors.primaryPurple, fontWeight: FontWeight.bold, fontSize: 13),
+                            ),
+                          ),
                         ],
                       ),
                     ],
 
                     const SizedBox(height: 12),
 
-                    // 2. 복용 시간대 슬롯 선택
-                    if (recurrenceType != '필요 시') ...[
+                    // 2. 일반 복용 시간대 슬롯 선택 (시간 간격일 때는 숨김!)
+                    if (recurrenceType != '필요 시' && recurrenceType != '시간 간격') ...[
                       const Text('복용 시간대 선택', style: TextStyle(fontSize: 12.5, fontWeight: FontWeight.bold, color: AppColors.textSecondary)),
                       const SizedBox(height: 6),
                       Wrap(
@@ -356,10 +450,10 @@ class _MedsTabViewState extends State<MedsTabView> {
                               ),
                               onSelected: (sel) async {
                                 if (sel) {
-                                  final time = await showTimePicker(
-                                    context: context,
+                                  final time = await AppTimePicker.show(
+                                    context,
                                     initialTime: const TimeOfDay(hour: 8, minute: 0),
-                                    helpText: '$label 알림 시각 설정',
+                                    title: '$label 알림 시각 설정',
                                   );
                                   String finalTime = _state.routineTimes[label] ?? '오전 8:00';
                                   if (time != null) {
@@ -399,10 +493,10 @@ class _MedsTabViewState extends State<MedsTabView> {
                                   GestureDetector(
                                     onTap: () async {
                                       if (!isSel) {
-                                        final time = await showTimePicker(
-                                          context: context,
+                                        final time = await AppTimePicker.show(
+                                          context,
                                           initialTime: const TimeOfDay(hour: 8, minute: 0),
-                                          helpText: '$customLabel 알림 시각 설정',
+                                          title: '$customLabel 알림 시각 설정',
                                         );
                                         String? finalTime;
                                         if (time != null) {
@@ -477,10 +571,10 @@ class _MedsTabViewState extends State<MedsTabView> {
                               );
                               if (name != null && name.isNotEmpty) {
                                 _state.addCustomTimeSlot(name);
-                                final time = await showTimePicker(
-                                  context: context,
+                                final time = await AppTimePicker.show(
+                                  context,
                                   initialTime: const TimeOfDay(hour: 8, minute: 0),
-                                  helpText: '$name 알림 시각 설정',
+                                  title: '$name 알림 시각 설정',
                                 );
                                 String? finalTime;
                                 if (time != null) {
@@ -500,8 +594,8 @@ class _MedsTabViewState extends State<MedsTabView> {
                       ),
                       const SizedBox(height: 8),
 
-                      // 등록된 회차 목록 표시
-                      if (currentSlots.isNotEmpty)
+                      // 등록된 회차 목록 표시 (시간 간격 약물은 첫 복용 시각만 위에 표시하므로 숨김!)
+                      if (currentSlots.isNotEmpty && recurrenceType != '시간 간격')
                         Container(
                           width: double.infinity,
                           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
@@ -525,10 +619,10 @@ class _MedsTabViewState extends State<MedsTabView> {
                                     TextButton(
                                       style: TextButton.styleFrom(padding: EdgeInsets.zero, minimumSize: Size.zero),
                                       onPressed: () async {
-                                        final time = await showTimePicker(
-                                          context: context,
+                                        final time = await AppTimePicker.show(
+                                          context,
                                           initialTime: TimeOfDay.now(),
-                                          helpText: '${slot.label} 알림 예정 시각 변경',
+                                          title: '${slot.label} 알림 예정 시각 변경',
                                         );
                                         if (time != null) {
                                           final period = time.period == DayPeriod.am ? '오전' : '오후';
@@ -566,6 +660,7 @@ class _MedsTabViewState extends State<MedsTabView> {
                       Row(
                         children: [
                           ChoiceChip(
+                            showCheckmark: false,
                             label: const Text('계속 꾸준히'),
                             selected: isOngoing,
                             selectedColor: AppColors.lightLavender,
@@ -582,6 +677,7 @@ class _MedsTabViewState extends State<MedsTabView> {
                           ),
                           const SizedBox(width: 6),
                           ChoiceChip(
+                            showCheckmark: false,
                             label: const Text('투약 일수 입력'),
                             selected: !isOngoing,
                             selectedColor: AppColors.lightLavender,
@@ -670,12 +766,14 @@ class _MedsTabViewState extends State<MedsTabView> {
                                 String recurrenceSummary = '매일';
                                 if (recurrenceType == '오늘만') {
                                   recurrenceSummary = '오늘만';
-                                } else if (recurrenceType == 'N일마다') {
+                                } else if (recurrenceType == '특정 요일') {
+                                  recurrenceSummary = selectedRepeatDays.isEmpty ? '매일' : '매주 ${selectedRepeatDays.join(",")}요일';
+                                } else if (recurrenceType == '며칠 간격') {
                                   final n = intervalCtrl.text.trim().isEmpty ? '2' : intervalCtrl.text.trim();
                                   recurrenceSummary = '$n일 간격';
                                 } else if (recurrenceType == '필요 시') {
                                   recurrenceSummary = '필요 시';
-                                } else if (recurrenceType == 'N시간마다') {
+                                } else if (recurrenceType == '시간 간격') {
                                   final h = int.tryParse(hourIntervalCtrl.text.trim()) ?? 0;
                                   final m = int.tryParse(minIntervalCtrl.text.trim()) ?? 0;
                                   if (h > 0 && m > 0) {
@@ -699,11 +797,15 @@ class _MedsTabViewState extends State<MedsTabView> {
                                   durationSummary = '$days일간';
                                 }
 
-                                if (currentSlots.isEmpty) {
-                                  // 시간대를 선택하지 않은 경우 강제로 12:30을 박지 않고 "미지정"으로 단정하게 등록!
+                                if (recurrenceType == '시간 간격') {
+                                  // 🌟 시간 간격 약물: 처음에 여러 회차를 미리 만들지 않고, 1회차(첫 복용 예정 시각)만 생성!
+                                  final firstTime = currentSlots.isNotEmpty ? currentSlots[0].scheduledTime : '오전 8:00';
+                                  currentSlots = [
+                                    DoseSlot(label: '1회차', scheduledTime: firstTime),
+                                  ];
+                                } else if (currentSlots.isEmpty) {
                                   currentSlots.add(DoseSlot(label: '복용', scheduledTime: null));
                                 }
-
                                 if (isEditing) {
                                   _state.updateMedication(
                                     id: med.id,
@@ -713,6 +815,7 @@ class _MedsTabViewState extends State<MedsTabView> {
                                     recurrenceSummary: recurrenceSummary,
                                     durationSummary: durationSummary,
                                     isPrescription: isPrescription,
+                                    repeatDays: recurrenceType == '특정 요일' ? selectedRepeatDays : [],
                                   );
                                 } else {
                                   _state.addMedication(
@@ -722,6 +825,7 @@ class _MedsTabViewState extends State<MedsTabView> {
                                     recurrenceSummary: recurrenceSummary,
                                     durationSummary: durationSummary,
                                     isPrescription: isPrescription,
+                                    repeatDays: recurrenceType == '특정 요일' ? selectedRepeatDays : [],
                                   );
                                 }
                                 Navigator.of(ctx).pop();
@@ -742,7 +846,8 @@ class _MedsTabViewState extends State<MedsTabView> {
                   ],
                 ],
               ),
-            );
+            ),
+          );
           },
         );
       },
@@ -813,10 +918,10 @@ class _MedsTabViewState extends State<MedsTabView> {
                 trailing: const Icon(Icons.chevron_right, size: 18, color: AppColors.textMuted),
                 onTap: () async {
                   Navigator.of(ctx).pop();
-                  final time = await showTimePicker(
-                    context: context,
+                  final time = await AppTimePicker.show(
+                    context,
                     initialTime: TimeOfDay.now(),
-                    helpText: '${slot.label} 실제 복용 시각 변경',
+                    title: '${slot.label} 실제 복용 시각 변경',
                   );
                   if (time != null) {
                     final period = time.period == DayPeriod.am ? '오전' : '오후';
@@ -931,20 +1036,31 @@ class _MedsTabViewState extends State<MedsTabView> {
 
   @override
   Widget build(BuildContext context) {
+    // 🌟 오늘 복용해야 하는 약 vs 오늘은 아닌 약(주 1회, 격일 등) 분리!
+    final todayMeds = _state.medications.where((m) => m.isDueToday).toList();
+    final otherMeds = _state.medications.where((m) => !m.isDueToday).toList();
+
     return ListView(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       children: [
         _buildSlimProgressHeader(),
         const SizedBox(height: 12),
-        ..._state.medications.map((med) => _buildMedCard(med)),
 
-        const SizedBox(height: 12),
+        // 1. 오늘의 복약 카드들
+        ...todayMeds.map((med) => _buildMedCard(med)),
+
+        // 2. 오늘은 아니지만 관리 중인 약 (구차한 제목 없이 얇고 조용한 1줄 아이템만 바로 노출!)
+        if (otherMeds.isNotEmpty) ...[
+          const SizedBox(height: 12),
+          ...otherMeds.map((med) => _buildCompactOtherMedCard(med)),
+        ],
+
+        const SizedBox(height: 14),
         SizedBox(
           width: double.infinity,
           height: 42,
-          child: OutlinedButton.icon(
-            icon: const Icon(Icons.add, color: AppColors.primaryPurple, size: 18),
-            label: const Text(
+          child: OutlinedButton(
+            child: const Text(
               '새 복약 추가',
               style: TextStyle(
                 color: AppColors.primaryPurple,
@@ -962,6 +1078,46 @@ class _MedsTabViewState extends State<MedsTabView> {
         ),
         const SizedBox(height: 24),
       ],
+    );
+  }
+
+  // 🌟 오늘은 아닌 약들을 위한 극도로 슬림하고 절제된 1줄 미니멀 표시
+  Widget _buildCompactOtherMedCard(MedicationItem med) {
+    return InkWell(
+      borderRadius: BorderRadius.circular(8),
+      onTap: () => _showMedEditModal(med: med),
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 6),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        decoration: BoxDecoration(
+          color: const Color(0xFFF9FAFB),
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(color: const Color(0xFFEEEEEE)),
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: 5,
+              height: 5,
+              decoration: const BoxDecoration(
+                color: AppColors.textMuted,
+                shape: BoxShape.circle,
+              ),
+            ),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Text(
+                '${med.name} (${med.recurrenceSummary})',
+                style: const TextStyle(fontSize: 12, color: AppColors.textSecondary, fontWeight: FontWeight.w500),
+              ),
+            ),
+            Text(
+              med.dosage,
+              style: const TextStyle(fontSize: 11, color: AppColors.textMuted),
+            ),
+          ],
+        ),
+      ),
     );
   }
 

@@ -122,11 +122,11 @@ class _CompanionRoomScreenState extends State<CompanionRoomScreen> {
                 ),
               ),
               const SizedBox(height: 20),
-              // 응원 말풍선 카드 (단어 단위 자동 줄바꿈 & 넉넉한 높이)
+              // 응원 말풍선 카드 (가장 긴 '안녕! 오늘도 찾아와줘서...' 크기로 고정하여 들썩임 방지)
               Container(
-                constraints: const BoxConstraints(minHeight: 88),
+                height: 110,
                 width: double.infinity,
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
                 decoration: BoxDecoration(
                   color: Colors.white,
                   borderRadius: BorderRadius.circular(16),

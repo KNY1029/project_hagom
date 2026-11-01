@@ -21,13 +21,16 @@ class AppColors {
   static const Color textSecondary = Color(0xFF6B7280);  // 부가 설명 글자색 (중간 회색)
   static const Color textMuted = Color(0xFF9CA3AF);      // 비활성/보조 글자색
 
-  // 4. 상태 및 피드백 컬러 (신규 6안 달력 틴트 & 브랜드 일체형 완료 컬러)
-  static const Color completedBg = Color(0xFFF1EDF7);    // 브랜드 일체형 완료 소프트 라벤더 틴트
-  static const Color completedText = Color(0xFF654E8C);  // 브랜드 일체형 완료 차분한 딥 라벤더
-  static const Color completedBorder = Color(0xFFD6CCE6); // 완료 테두리
+  // 4. 상태 및 피드백 컬러 (신규 6안 달력 틴트 & 클래식 초록색 완료 피드백)
+  static const Color completedBg = Color(0xFFEAF8F1);    // 산뜻하고 화사한 소프트 민트초록 틴트
+  static const Color completedText = Color(0xFF1B6B46);  // 선명하고 또렷한 딥 그린 텍스트
+  static const Color completedBorder = Color(0xFFA3DBC0); // 깔끔한 민트초록 테두리
+  static const Color partialBg = Color(0xFFF7F3EE);      // 부분 실천(조금 실천) 소프트 웜 크림 베이지
+  static const Color partialText = Color(0xFF8B5E3C);    // 부분 실천 웜브라운 텍스트
+  static const Color partialBorder = Color(0xFFE5DDD0);  // 부분 실천 테두리
   static const Color successGreen = Color(0xFF065F46);   // 달력 100% 달성 텍스트
   static const Color successBg = Color(0xFFE6F8F0);      // 달력 100% 달성 연초록 틴트
-  static const Color partialOrange = Color(0xFFF59E0B);  // 부분 달성 캡슐 바 오렌지
+  static const Color partialOrange = Color(0xFF8B5E3C);  // 부분 달성 캡슐 바 / 뱃지 (따뜻한 웜브라운)
   static const Color neutralDark = Color(0xFF4B5563);    // 비처벌적 차분한 삭제/취소 색상 (그레이)
   static const Color missedRed = Color(0xFFEF4444);      // 약 미복용 경고 레드 (달력 일요일 등)
 }

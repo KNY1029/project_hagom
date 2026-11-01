@@ -3,7 +3,7 @@ import '../constants/app_colors.dart';
 import '../models/habit_item.dart';
 import '../state/app_state_manager.dart';
 import '../widgets/celebration_toast.dart';
-/// 🌱 [습관 탭: 복수 알림 시간, 정렬된 저장 버튼, 간편 삭제 기능 완성본]
+import '../widgets/app_time_picker.dart';
 /// 
 /// 1. 다중 알림 시각 지원:
 ///    - 하루 여러 번 하는 습관에 맞춰 [+ 시각 추가]로 여러 알림 시각을 등록 및 삭제 가능!
@@ -72,7 +72,7 @@ class _HabitsTabViewState extends State<HabitsTabView> {
     String recurrenceType = isEditing
         ? (habit.recurrenceSummary.startsWith('매주')
             ? '요일 선택'
-            : (habit.recurrenceSummary.contains('주') ? '주 N회' : (habit.recurrenceSummary == '오늘만' ? '오늘만' : '매일')))
+            : (habit.recurrenceSummary.contains('주') ? '주간 횟수' : (habit.recurrenceSummary == '오늘만' ? '오늘만' : '매일')))
         : '매일';
 
     List<String> selectedDays = isEditing ? List.from(habit.repeatDays) : [];
@@ -187,9 +187,10 @@ class _HabitsTabViewState extends State<HabitsTabView> {
                   const SizedBox(height: 6),
                   Wrap(
                     spacing: 6,
-                    children: ['매일', '요일 선택', '주 N회', '오늘만'].map((type) {
+                    children: ['매일', '요일 선택', '주간 횟수', '오늘만'].map((type) {
                       final isSel = recurrenceType == type;
                       return ChoiceChip(
+                        showCheckmark: false,
                         label: Text(type),
                         selected: isSel,
                         selectedColor: AppColors.lightLavender,
@@ -252,8 +253,8 @@ class _HabitsTabViewState extends State<HabitsTabView> {
                     ),
                   ],
 
-                  // 주 N회 직접 입력 (디자인 통일)
-                  if (recurrenceType == '주 N회') ...[
+                  // 주간 횟수 직접 입력 (디자인 통일)
+                  if (recurrenceType == '주간 횟수') ...[
                     const SizedBox(height: 8),
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
@@ -298,10 +299,10 @@ class _HabitsTabViewState extends State<HabitsTabView> {
                         icon: const Icon(Icons.add, size: 14, color: AppColors.primaryPurple),
                         label: const Text('시각 추가', style: TextStyle(fontSize: 12, color: AppColors.primaryPurple, fontWeight: FontWeight.bold)),
                         onPressed: () async {
-                          final time = await showTimePicker(
-                            context: context,
+                          final time = await AppTimePicker.show(
+                            context,
                             initialTime: TimeOfDay.now(),
-                            helpText: '새로운 알림 시각 추가',
+                            title: '새로운 알림 시각 추가',
                           );
                           if (time != null) {
                             final period = time.period == DayPeriod.am ? '오전' : '오후';
@@ -388,7 +389,7 @@ class _HabitsTabViewState extends State<HabitsTabView> {
                               String recSummary = '매일';
                               if (recurrenceType == '요일 선택') {
                                 recSummary = selectedDays.isEmpty ? '매일' : '매주 ${selectedDays.join(",")}';
-                              } else if (recurrenceType == '주 N회') {
+                              } else if (recurrenceType == '주간 횟수') {
                                 final n = weeklyTimesCtrl.text.trim().isEmpty ? '3' : weeklyTimesCtrl.text.trim();
                                 recSummary = '주 $n회';
                               } else if (recurrenceType == '오늘만') {
@@ -443,19 +444,31 @@ class _HabitsTabViewState extends State<HabitsTabView> {
 
   @override
   Widget build(BuildContext context) {
+    // 🌟 오늘 실천해야 하는 습관 vs 이미 이번 주에 완료되어 오늘은 쉴 수 있는 습관 분리!
+    final todayHabits = _state.habits.where((h) => h.isDueToday).toList();
+    final otherHabits = _state.habits.where((h) => !h.isDueToday).toList();
+
     return ListView(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       children: [
         _buildSlimProgressHeader(),
         const SizedBox(height: 12),
-        ..._state.habits.map((habit) => _buildHabitCard(habit)),
-        const SizedBox(height: 12),
+
+        // 1. 오늘의 습관 카드들
+        ...todayHabits.map((habit) => _buildHabitCard(habit)),
+
+        // 2. 오늘은 아니지만 관리 중인 습관 (하단에 아주 얇고 조용한 1줄로 표시!)
+        if (otherHabits.isNotEmpty) ...[
+          const SizedBox(height: 12),
+          ...otherHabits.map((habit) => _buildCompactOtherHabitCard(habit)),
+        ],
+
+        const SizedBox(height: 14),
         SizedBox(
           width: double.infinity,
           height: 42,
-          child: OutlinedButton.icon(
-            icon: const Icon(Icons.add, color: AppColors.primaryPurple, size: 18),
-            label: const Text(
+          child: OutlinedButton(
+            child: const Text(
               '작은 습관 추가',
               style: TextStyle(
                 color: AppColors.primaryPurple,
@@ -476,19 +489,61 @@ class _HabitsTabViewState extends State<HabitsTabView> {
     );
   }
 
+  // 🌟 오늘은 아니거나 이미 완료된 습관을 위한 극도로 슬림하고 단정한 1줄 미니멀 표시
+  Widget _buildCompactOtherHabitCard(HabitItem habit) {
+    return InkWell(
+      borderRadius: BorderRadius.circular(8),
+      onTap: () => _showHabitEditModal(habit: habit),
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 6),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        decoration: BoxDecoration(
+          color: const Color(0xFFF9FAFB),
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(color: const Color(0xFFEEEEEE)),
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: 5,
+              height: 5,
+              decoration: const BoxDecoration(
+                color: AppColors.successGreen, // 이미 완료되었음을 나타내는 단정한 그린 닷
+                shape: BoxShape.circle,
+              ),
+            ),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Text(
+                '${habit.title} (${habit.recurrenceSummary})',
+                style: const TextStyle(fontSize: 12, color: AppColors.textSecondary, fontWeight: FontWeight.w500),
+              ),
+            ),
+            const Text(
+              '이번 주 달성 완료',
+              style: TextStyle(fontSize: 11, color: AppColors.successGreen, fontWeight: FontWeight.bold),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   Widget _buildSlimProgressHeader() {
-    final total = _state.habits.length;
-    final score = _state.habitTotalScore;
-    final rate = _state.habitCompletionRate;
+    // 🌟 오늘 실천 대상 습관들만 기준으로 정확한 점수 및 달성률 계산!
+    final todayHabits = _state.habits.where((h) => h.isDueToday).toList();
+    final total = todayHabits.length;
+    final score = todayHabits.fold(0.0, (sum, item) => sum + item.score);
+    final rate = total == 0 ? 0.0 : (score / total);
 
     String formatScore(double s) {
       if (s == s.roundToDouble()) {
         return '${s.toInt()}';
       } else {
-        return '${s.toInt()}½';
+        // 정확한 실천 수치(소수점 1자리)를 친절하게 표시!
+        return s.toStringAsFixed(1);
       }
     }
-
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       decoration: BoxDecoration(
@@ -558,14 +613,14 @@ class _HabitsTabViewState extends State<HabitsTabView> {
     Color getStatusColor() {
       final s = habit.score;
       if (s >= 1.0) return AppColors.completedText;
-      if (s > 0.0) return AppColors.partialOrange;
+      if (s > 0.0) return AppColors.partialText;
       return AppColors.textSecondary;
     }
 
     Color getStatusBg() {
       final s = habit.score;
       if (s >= 1.0) return AppColors.completedBg;
-      if (s > 0.0) return const Color(0xFFFFFBEB);
+      if (s > 0.0) return AppColors.partialBg;
       return const Color(0xFFF3F4F6);
     }
 
@@ -710,7 +765,7 @@ class _HabitsTabViewState extends State<HabitsTabView> {
                           border: Border.all(
                             color: habit.score >= 1.0
                                 ? AppColors.completedBorder
-                                : (habit.score > 0.0 ? AppColors.partialOrange.withOpacity(0.4) : AppColors.divider),
+                                : (habit.score > 0.0 ? AppColors.partialBorder : AppColors.divider),
                           ),
                         ),
                         child: Text(
