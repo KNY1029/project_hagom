@@ -172,20 +172,31 @@ class _MedsTabViewState extends State<MedsTabView> {
                       ),
                     ),
                     const SizedBox(height: 16),
-                    Row(
-                      children: [
-                        Checkbox(
-                          value: isPrescription,
-                          activeColor: AppColors.warmBrown,
-                          visualDensity: VisualDensity.compact,
-                          onChanged: (val) {
-                            setModalState(() {
-                              isPrescription = val ?? false;
-                            });
-                          },
+                    InkWell(
+                      borderRadius: BorderRadius.circular(8),
+                      onTap: () {
+                        setModalState(() {
+                          isPrescription = !isPrescription;
+                        });
+                      },
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 4),
+                        child: Row(
+                          children: [
+                            Checkbox(
+                              value: isPrescription,
+                              activeColor: AppColors.warmBrown,
+                              visualDensity: VisualDensity.compact,
+                              onChanged: (val) {
+                                setModalState(() {
+                                  isPrescription = val ?? false;
+                                });
+                              },
+                            ),
+                            const Text('의사 처방 필수 약물 (알림 상시 작동)', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w500)),
+                          ],
                         ),
-                        const Text('의사 처방 필수 약물 (알림 상시 작동)', style: TextStyle(fontSize: 13)),
-                      ],
+                      ),
                     ),
                     const SizedBox(height: 24),
                     Row(
@@ -1364,7 +1375,7 @@ class _MedsTabViewState extends State<MedsTabView> {
                                       color: slot.isCompleted
                                           ? AppColors.completedText
                                           : (slot.isSkipped ? AppColors.textMuted.withOpacity(0.6) : AppColors.textPrimary),
-                                      decoration: slot.isSkipped ? TextDecoration.lineThrough : null, // 🌿 건너뛴 회차는 취소선 + 흐린 텍스트로 덜 눈에 띄게!
+                                      decoration: slot.isSkipped ? TextDecoration.lineThrough : null,
                                     ),
                                   ),
                                 ),
@@ -1441,7 +1452,7 @@ class _MedsTabViewState extends State<MedsTabView> {
           if (med.isExpanded) ...[
             const Divider(height: 1),
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
               child: Row(
                 children: [
                   TextButton(
@@ -1454,15 +1465,16 @@ class _MedsTabViewState extends State<MedsTabView> {
                     child: const Text('정보 수정', style: TextStyle(color: AppColors.primaryPurple, fontSize: 12, fontWeight: FontWeight.w600)),
                   ),
                   const Spacer(),
-                  if (med.completedSlotsCount > 0)
+                  // 🌟 [건너뛰기] 버튼 복원 (남은 다음 회차 핀셋 건너뜀)
+                  if (!isAllDone && med.nextPendingSlot != null)
                     TextButton(
                       style: TextButton.styleFrom(
                         padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
                         minimumSize: Size.zero,
                         tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                       ),
-                      onPressed: () => _state.revertMedication(med.id),
-                      child: const Text('되돌리기', style: TextStyle(color: AppColors.warmBrown, fontSize: 12, fontWeight: FontWeight.w600)),
+                      onPressed: () => _showSkipConfirmDialog(med),
+                      child: Text('${med.nextPendingSlot!.label} 건너뛰기', style: const TextStyle(color: AppColors.textSecondary, fontSize: 12, fontWeight: FontWeight.w500)),
                     ),
                 ],
               ),

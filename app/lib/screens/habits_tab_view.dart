@@ -661,7 +661,7 @@ class _HabitsTabViewState extends State<HabitsTabView> {
                             Text(
                               habit.title,
                               style: TextStyle(
-                                fontSize: 14.5,
+                                fontSize: 15.5,
                                 fontWeight: FontWeight.bold,
                                 color: habit.score >= 1.0
                                     ? AppColors.successGreen
@@ -669,37 +669,37 @@ class _HabitsTabViewState extends State<HabitsTabView> {
                               ),
                             ),
                             Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
+                              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                               decoration: BoxDecoration(
                                 color: AppColors.lightLavender,
-                                borderRadius: BorderRadius.circular(3),
+                                borderRadius: BorderRadius.circular(4),
                               ),
                               child: Text(
                                 habit.recurrenceSummary,
-                                style: const TextStyle(fontSize: 9.5, color: AppColors.primaryPurple, fontWeight: FontWeight.bold),
+                                style: const TextStyle(fontSize: 10.5, color: AppColors.primaryPurple, fontWeight: FontWeight.bold),
                               ),
                             ),
                             if (habit.targetPerDay > 1)
                               Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
+                                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                                 decoration: BoxDecoration(
                                   color: AppColors.warmBrown.withOpacity(0.12),
-                                  borderRadius: BorderRadius.circular(3),
+                                  borderRadius: BorderRadius.circular(4),
                                 ),
                                 child: Text(
                                   '하루 ${habit.targetPerDay}회',
-                                  style: const TextStyle(fontSize: 9.5, color: AppColors.warmBrown, fontWeight: FontWeight.bold),
+                                  style: const TextStyle(fontSize: 10.5, color: AppColors.warmBrown, fontWeight: FontWeight.bold),
                                 ),
                               ),
                             ...habit.scheduledTimes.map((t) => Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
+                                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                                   decoration: BoxDecoration(
                                     color: const Color(0xFFF3F4F6),
-                                    borderRadius: BorderRadius.circular(3),
+                                    borderRadius: BorderRadius.circular(4),
                                   ),
                                   child: Text(
                                     t,
-                                    style: const TextStyle(fontSize: 9.5, color: AppColors.textSecondary, fontWeight: FontWeight.w600),
+                                    style: const TextStyle(fontSize: 10.5, color: AppColors.textSecondary, fontWeight: FontWeight.w600),
                                   ),
                                 )),
                           ],
@@ -708,7 +708,7 @@ class _HabitsTabViewState extends State<HabitsTabView> {
                         Text(
                           habit.subtitle,
                           style: const TextStyle(
-                            fontSize: 12,
+                            fontSize: 12.5,
                             color: AppColors.textSecondary,
                           ),
                         ),
@@ -726,28 +726,28 @@ class _HabitsTabViewState extends State<HabitsTabView> {
                         if (habit.score >= 1.0) {
                           CelebrationToast.show(
                             context,
-                            title: '습관 실천 완료 🌱',
-                            message: '\'${habit.title}\' 목표를 달성했어요! 훌륭해요 👏',
+                            title: '습관 실천 완료',
+                            message: '\'${habit.title}\' 목표를 달성했어요. 훌륭해요.',
                           );
                         } else if (habit.score > 0.0) {
                           CelebrationToast.show(
                             context,
-                            title: '작은 발걸음 성공 🐾',
-                            message: '조금이라도 실천한 것이 정말 큰 의미가 있어요 :)',
+                            title: '작은 발걸음 성공',
+                            message: '조금이라도 실천한 것이 정말 큰 의미가 있어요.',
                           );
                         }
                       } else {
                         // 이미 완료된 상태에서 다시 눌렀을 때 토스트 안에서 바로 1초 되돌리기 지원!
                         CelebrationToast.show(
                           context,
-                          title: '이미 완료한 습관이에요 ✨',
+                          title: '이미 완료한 습관이에요',
                           message: '\'${habit.title}\' 목표를 달성한 상태예요.',
                           actionLabel: '되돌리기',
                           onAction: () {
                             _state.resetHabitProgress(habit.id);
                             CelebrationToast.show(
                               context,
-                              title: '되돌리기 완료 🌿',
+                              title: '되돌리기 완료',
                               message: '\'${habit.title}\' 상태를 대기로 되돌렸어요.',
                             );
                           },

@@ -481,8 +481,8 @@ class _CalendarTabViewState extends State<CalendarTabView> {
                         Navigator.of(ctx).pop();
                         CelebrationToast.show(
                           context,
-                          title: isPast ? '한일 등록 완료 👏' : '새 일정 등록 완료 🗓️',
-                          message: '\'${titleCtrl.text.trim()}\' 일정이 기록되었어요!',
+                          title: isPast ? '한일 등록 완료' : '새 일정 등록 완료',
+                          message: '\'${titleCtrl.text.trim()}\' 일정이 기록되었어요.',
                         );
                       }
                     },
@@ -509,20 +509,20 @@ class _CalendarTabViewState extends State<CalendarTabView> {
             Text('${_selectedDate.month}월 ${_selectedDate.day}일에 이 약을 언제 복용하셨나요?'),
             const SizedBox(height: 8),
             const Text(
-              '정확한 시간이 기억나지 않아도 괜찮아요.\n알고 계신 만큼만 기록해도 충분해요 🌿',
+              '정확한 시간이 기억나지 않아도 괜찮아요.\n알고 계신 만큼만 기록해도 충분해요.',
               style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
             ),
           ],
         ),
         actions: [
-          // 1) 잘 모르겠음 / 기억 안 남 버튼
+          // 1) 기억 안 남 버튼
           TextButton(
             onPressed: () {
               Navigator.of(dCtx).pop();
               _state.togglePastSlotCompleted(_selectedDate, med.id, slotIdx);
               CelebrationToast.show(
                 context,
-                title: '소중한 기록 완료! 👏',
+                title: '소중한 기록 완료',
                 message: '${med.name} ${slot.label} 복용을 기록했어요 (복용 시간 미지정).',
               );
             },
@@ -535,8 +535,8 @@ class _CalendarTabViewState extends State<CalendarTabView> {
               _state.togglePastSlotCompleted(_selectedDate, med.id, slotIdx);
               CelebrationToast.show(
                 context,
-                title: '소중한 기록 완료! 👏',
-                message: '${med.name} ${slot.label} 예정 시각에 잘 챙겨 드셨어요!',
+                title: '소중한 기록 완료',
+                message: '${med.name} ${slot.label} 예정 시각에 잘 챙겨 드셨어요.',
               );
             },
             child: Text('${slot.scheduledTime ?? '예정 시각'}에 복용', style: const TextStyle(color: AppColors.primaryPurple, fontWeight: FontWeight.bold)),
@@ -556,7 +556,7 @@ class _CalendarTabViewState extends State<CalendarTabView> {
                   : '복용 완료';
               CelebrationToast.show(
                 context,
-                title: '소중한 기록 완료! 👏',
+                title: '소중한 기록 완료',
                 message: '${med.name} $timeStr에 복약한 기록을 남겼어요.',
               );
             },
@@ -589,7 +589,7 @@ class _CalendarTabViewState extends State<CalendarTabView> {
               _state.togglePastSlotCompleted(_selectedDate, med.id, slotIdx);
               CelebrationToast.show(
                 context,
-                title: '되돌리기 완료 🌿',
+                title: '되돌리기 완료',
                 message: '${med.name} ${slot.label} 상태를 미완료로 되돌렸어요.',
               );
             },
@@ -622,7 +622,7 @@ class _CalendarTabViewState extends State<CalendarTabView> {
               _state.resetPastHabitProgress(_selectedDate, habit.id);
               CelebrationToast.show(
                 context,
-                title: '되돌리기 완료 🌿',
+                title: '되돌리기 완료',
                 message: '\'${habit.title}\' 실천 상태를 대기로 되돌렸어요.',
               );
             },
@@ -661,8 +661,8 @@ class _CalendarTabViewState extends State<CalendarTabView> {
               _state.advancePastHabitProgress(_selectedDate, habit.id);
               CelebrationToast.show(
                 context,
-                title: '작은 발걸음 기록 🐾',
-                message: '조금이라도 실천한 것이 정말 큰 의미가 있어요 :)',
+                title: '작은 발걸음 기록',
+                message: '조금이라도 실천한 것이 정말 큰 의미가 있어요.',
               );
             },
             child: const Text('조금 실천', style: TextStyle(color: AppColors.partialText, fontWeight: FontWeight.bold)),
@@ -680,8 +680,8 @@ class _CalendarTabViewState extends State<CalendarTabView> {
               _state.advancePastHabitProgress(_selectedDate, habit.id);
               CelebrationToast.show(
                 context,
-                title: '습관 실천 완료! 👏',
-                message: '\'${habit.title}\' 목표를 달성했어요! 언제든 멋져요 ✨',
+                title: '습관 실천 완료',
+                message: '\'${habit.title}\' 목표를 달성했어요. 언제든 멋져요.',
               );
             },
             child: const Text('완료', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
@@ -993,9 +993,9 @@ class _CalendarTabViewState extends State<CalendarTabView> {
               if (selectedDayTasks.isEmpty)
                 Container(
                   width: double.infinity,
-                  padding: const EdgeInsets.symmetric(vertical: 12),
+                  padding: const EdgeInsets.symmetric(vertical: 14),
                   child: const Center(
-                    child: Text('등록된 일정이 없어요. [+ 할일 추가]로 일정을 기록해보세요 🌱', style: TextStyle(fontSize: 12, color: AppColors.textMuted)),
+                    child: Text('등록된 일정이 없어요.', style: TextStyle(fontSize: 12.5, color: AppColors.textMuted)),
                   ),
                 )
               else
