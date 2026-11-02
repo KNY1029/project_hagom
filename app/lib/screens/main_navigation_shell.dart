@@ -53,9 +53,6 @@ class _MainNavigationShellState extends State<MainNavigationShell> {
               Navigator.of(dCtx).pop();
               // 개발자 모드: 모든 예시 데이터가 100% 살아나도록 복구 보장!
               await AppStateManager().restoreDevFullSimulationData();
-              if (mounted && AppStateManager().shouldShowDailyGreeting()) {
-                await DailyGreetingModal.show(context);
-              }
             },
             child: const Text('개발자 모드 (전체 예시 복원)', style: TextStyle(color: AppColors.textSecondary, fontWeight: FontWeight.bold)),
           ),
@@ -72,9 +69,6 @@ class _MainNavigationShellState extends State<MainNavigationShell> {
                 _isTutorialActive = true;
                 _currentIndex = 0; // 복약 탭부터 시작
               });
-              if (mounted && AppStateManager().shouldShowDailyGreeting()) {
-                await DailyGreetingModal.show(context);
-              }
             },
             child: const Text('온보딩 튜토리얼 시작', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
           ),

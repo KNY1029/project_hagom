@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../constants/app_colors.dart';
 import '../constants/app_assets.dart';
 import '../state/app_state_manager.dart';
+import 'splash_screen.dart';
 import 'widget_simulator_screen.dart';
 import '../widgets/daily_greeting_modal.dart';
 import '../widgets/celebration_toast.dart';
@@ -180,7 +181,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     ),
                     SizedBox(height: 3),
                     Text(
-                      '정신약학 비처벌 복약 솔루션 · v0.23.83',
+                      '정신약학 비처벌 복약 솔루션 · v0.24.84',
                       style: TextStyle(
                         fontSize: 12,
                         color: AppColors.textSecondary,
@@ -506,10 +507,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
                   leading: const Icon(Icons.celebration_outlined, color: AppColors.primaryPurple),
                   title: const Text('일일 첫 접속 환영 애니메이션 다시 보기', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: AppColors.textPrimary)),
-                  subtitle: const Text('하곰이 출석 지지 환영 GIF 모달 체험', style: TextStyle(fontSize: 11.5, color: AppColors.textSecondary)),
+                  subtitle: const Text('하곰이 출석 지지 환영 GIF 전체 화면 체험', style: TextStyle(fontSize: 11.5, color: AppColors.textSecondary)),
                   trailing: const Icon(Icons.arrow_forward_ios, size: 14, color: AppColors.textMuted),
                   onTap: () {
-                    DailyGreetingModal.show(context);
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (ctx) => const SplashScreen(forceGreetingPreview: true),
+                      ),
+                    );
                   },
                 ),
                 const Divider(height: 1, color: Color(0xFFF3F4F6)),
