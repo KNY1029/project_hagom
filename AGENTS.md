@@ -127,15 +127,36 @@ project_hagom/app/lib/
 
 ## 7. 📖 상황별 필수 참고 문서 & 스킬 가이드 (뭘 할 때 뭘 봐야 하는가?)
 
-개발 작업 시 의문이 생기거나 새로운 기능을 추가할 때는 **반드시 아래 가이드에 따라 지정된 문서를 먼저 확인한 후 코딩**에 들어간다.
+개발 작업 시 의문이 생기거나 새로운 기능을 추가할 때는 **반드시 아래 가이드에 따라 지정된 문서 및 스킬을 먼저 확인한 후 코딩**에 들어간다.
 
-| 개발 상황 / 의문점 | 🔍 반드시 먼저 읽어야 할 문서 / 스킬 | 핵심 확인 내용 |
+### ① 프로젝트 내부 문서 매핑
+| 개발 상황 / 의문점 | 🔍 반드시 먼저 읽어야 할 문서 | 핵심 확인 내용 |
 | :--- | :--- | :--- |
 | **새 화면/기능 추가 및 세부 사양 확인** | **`docs/PRD_기획명세서.md`** | 화면별 상세 스펙, 모달 1버튼 1리액션 원칙, 회차 슬롯 로직, 5대 알림 매트릭스 규격 |
-| **UI 디자인/스타일/여백 다듬기** | **`.gjc/skills/hallmark/`**<br>**`.agents/skills/taste-skill/`** | - **AI 템플릿 찌꺼기 방지**: Card-in-Card 중첩 금지, 무의미한 유니코드 이모티콘 금지<br>- **3대 잠금(Lock)**: 모서리 12dp 통일, 브랜드 고유색(라벤더/웜브라운) 준수 |
-| **대사, 안내문, 보고서 텍스트 작성** | **`.agents/skills/humanizer/`** | - AI 특유의 과장된 홍보 문체(Hype) 및 3단 강조(Triads) 배제<br>- 진정성 있고 다정한 사람의 차분한 말투 유지 |
 | **의학적/임상적 타당성 및 배경 확인** | **`docs/보고서_기획서_보건약학적_배경.md`** | ADHD/우울증 환자의 인지 특성, TDM(혈중약물농도) 모니터링 원리, 비처벌적 UX의 의학적 당위성 |
 | **개발 히스토리 및 이전 결정사항 확인** | **`docs/PROGRESS.md`** | 지금까지 완료된 마일스톤 및 주요 기능별 결정 배경 |
+
+---
+
+### ② 협업 AI 필수 탑재 스킬 목록 및 설치 가이드 (Skills Registry)
+
+이 프로젝트는 AI 특유의 촌티(AI Slop)를 방지하고 Flutter 전문 아키텍처를 유지하기 위해 아래 스킬들을 공식 표준으로 사용한다.  
+**새로운 팀원의 AI는 작업을 시작하기 전 반드시 `.agents/skills/` 폴더에 아래 스킬들이 존재하는지 확인하고, 누락된 스킬이 있다면 제공된 링크/명령어로 즉시 설치해야 한다.**
+
+| 스킬명 | 역할 및 적용 시점 | 저장소 경로 및 공식 링크 | 설치 명령어 (미설치 시 실행) |
+| :--- | :--- | :--- | :--- |
+| **`taste-skill`** | **UI/UX 안티-슬롭 헌법**<br>- 3대 잠금(모서리 12dp 통일, 브랜드색 일체화)<br>- 컴포넌트 여백, 폰트 위계, 밀도(Density) 규격 | [Leonxlnx/taste-skill](https://github.com/Leonxlnx/taste-skill)<br>`https://tasteskill.dev` | `npx skills add Leonxlnx/taste-skill` |
+| **`hallmark`** | **AI 템플릿 찌꺼기 엄격 차단**<br>- Card-in-Card 중첩 금지<br>- 무의미한 유니코드 이모티콘(`🩺`, `🌱`, `✨` 등) 배제 | [Nutlope/hallmark](https://github.com/Nutlope/hallmark) | `npx skills add Nutlope/hallmark` |
+| **`humanizer`** | **대사, 안내문, 보고서 텍스트 정제**<br>- 과장된 홍보 문체(Hype) 및 기계적 3단 강조 배제<br>- 진정성 있고 다정한 사람의 차분한 문체 유지 | [blader/humanizer](https://github.com/blader/humanizer) | `npx skills add blader/humanizer` |
+| **`flutter-best-practices`** | **Flutter 클린 코드 및 아키텍처 가이드**<br>- 상태 관리 분리, 위젯 재빌드 최적화, 패키지 경계 | [zakariaf/Flutter-Skills](https://github.com/zakariaf/Flutter-Skills) | `npx skills add zakariaf/Flutter-Skills` |
+| **`figma-to-flutter`** | **피그마 시안 ➔ Flutter 위젯 1:1 전환**<br>- 피그마 디자인 시스템 토큰 매핑, 컴포넌트 규격 | [edicardenas/figma-to-flutter-skill](https://github.com/edicardenas/figma-to-flutter-skill) | `npx skills add edicardenas/figma-to-flutter-skill` |
+| **`accessibility-as-code`**| **의료 접근성(A11y) 검증**<br>- 폰트 명도 대비(4.5:1), 스크린리더 라벨, 최소 터치 타겟(48dp) | [accessibility-as-code](https://github.com/agents-skills/accessibility-as-code) | `npx skills add accessibility-as-code` |
+| **`flutter-testing`** | **위젯 및 유닛 테스트 표준**<br>- 상태 관리 테스트 및 목(Mock) 데이터 패턴 | [zakariaf/Flutter-Skills](https://github.com/zakariaf/Flutter-Skills) | `npx skills add zakariaf/Flutter-Skills` |
+
+> 🤖 **팀원 AI 에이전트 자가 진단 지침 (Self-Check Instruction)**:
+> 1. 작업 시작 전 프로젝트의 `.agents/skills/` 디렉토리를 검사한다.
+> 2. `taste-skill`, `hallmark`, `humanizer`, `flutter-best-practices`가 로드되어 있는지 확인한다.
+> 3. 만약 위 스킬 폴더가 보이지 않는다면, 위의 공식 GitHub 링크를 참조하거나 `npx skills add <repository>` 명령어로 스킬을 먼저 동기화한 뒤 코딩을 시작하라.
 
 ---
 
