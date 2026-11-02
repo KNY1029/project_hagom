@@ -174,7 +174,8 @@ class AppStateManager extends ChangeNotifier {
 
     if (target.isAfter(today)) return null; // 미래 날짜는 깨끗하게 비움
 
-    if (totalDoseSlots == 0) return 1.0;
+    // 등록된 약이 하나도 없으면 달력에서 완료(1.0)로 오판하지 않도록 0.0 처리!
+    if (totalDoseSlots == 0) return 0.0;
 
     int total = 0;
     int completed = 0;
@@ -188,10 +189,9 @@ class AppStateManager extends ChangeNotifier {
       }
     }
 
-    if (total == 0) return 1.0;
+    if (total == 0) return 0.0;
     return completed / total;
   }
-
   // 특정 날짜에 '처방 필수 약물' 중 하나라도 놓친 것이 있는지 여부 (보건약학 임상 안전 관리)
   bool hasMissedPrescriptionForDay(DateTime day) {
     final now = DateTime.now();

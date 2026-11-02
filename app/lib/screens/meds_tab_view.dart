@@ -1168,21 +1168,21 @@ class _MedsTabViewState extends State<MedsTabView> {
                   ),
                   const SizedBox(width: 6),
                   Text(
-                    '$total회 중 $completed회',
-                    style: const TextStyle(
+                    total == 0 ? '등록된 약이 없어요' : '$total회 중 $completed회',
+                    style: TextStyle(
                       fontSize: 13.5,
                       fontWeight: FontWeight.w600,
-                      color: AppColors.primaryPurple,
+                      color: total == 0 ? AppColors.textSecondary : AppColors.primaryPurple,
                     ),
                   ),
                 ],
               ),
               Text(
-                '${(rate * 100).toInt()}%',
-                style: const TextStyle(
+                total == 0 ? '0%' : '${(rate * 100).toInt()}%',
+                style: TextStyle(
                   fontSize: 13,
                   fontWeight: FontWeight.bold,
-                  color: AppColors.primaryPurple,
+                  color: total == 0 ? AppColors.textSecondary : AppColors.primaryPurple,
                 ),
               ),
             ],
