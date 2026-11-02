@@ -198,90 +198,44 @@ class _SplashScreenState extends State<SplashScreen> {
     return _buildStandardSplashScreen();
   }
 
-  /// 🌟 [그날 첫 실행 시 100% 전체 화면에 뜨는 하곰이 환영 인트로 뷰]
+  /// 🌟 [그날 첫 실행 시 화면 중앙에 크게 집중되는 하곰이 환영 뷰]
   Widget _buildDailyGreetingFullScreen() {
-    final resetHourStr = '${_state.dailyResetHour.toString().padLeft(2, '0')}:00';
-
     return Scaffold(
       backgroundColor: AppColors.background,
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
           child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
             children: [
               const Spacer(flex: 1),
 
-              // 🐻 1. 화면 한가운데에 큼직하게 움직이는 하곰이 환영 애니메이션 GIF
-              Container(
-                width: 240,
-                height: 240,
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(32),
-                  boxShadow: [
-                    BoxShadow(
-                      color: AppColors.primaryPurple.withOpacity(0.08),
-                      blurRadius: 24,
-                      offset: const Offset(0, 8),
-                    ),
-                  ],
-                ),
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(32),
+              // 🐻 1. 화면 중앙에 훨씬 더 크고 또렷하게 움직이는 하곰이 GIF
+              Center(
+                child: SizedBox(
+                  width: 300,
+                  height: 300,
                   child: Image.asset(
                     AppAssets.dailyGreetingGif,
                     fit: BoxFit.contain,
                   ),
                 ),
               ),
-              const SizedBox(height: 32),
+              const SizedBox(height: 20),
 
-              // 🌟 2. 접속 환영 타이틀
+              // 🌟 2. 군더더기 없는 미니멀하고 따뜻한 한 줄 인사
               const Text(
                 '오늘도 와줘서 고마워!',
                 style: TextStyle(
-                  fontSize: 24,
+                  fontSize: 22,
                   fontWeight: FontWeight.bold,
                   color: AppColors.textPrimary,
                   letterSpacing: -0.5,
                 ),
               ),
-              const SizedBox(height: 12),
 
-              // 💬 3. 따뜻한 지지 멘트
-              const Text(
-                '앱을 켜고 나를 마주한 것만으로도\n오늘 치료를 위한 큰 한 걸음을 내딛은 거예요.',
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: 14.5,
-                  height: 1.5,
-                  color: AppColors.textSecondary,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-              const SizedBox(height: 16),
+              const Spacer(flex: 1),
 
-              // ⏰ 4. 갱신 기준 시각 칩 안내
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
-                decoration: BoxDecoration(
-                  color: AppColors.lightLavender,
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Text(
-                  '매일 오전 $resetHourStr 기준 새 하루가 시작돼요',
-                  style: const TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w600,
-                    color: AppColors.primaryPurple,
-                  ),
-                ),
-              ),
-
-              const Spacer(flex: 2),
-
-              // 🚀 5. 하단 [오늘 하루도 편안하게 시작하기] 버튼
+              // 🚀 3. 깔끔한 시작 버튼
               SizedBox(
                 width: double.infinity,
                 height: 52,
@@ -293,7 +247,7 @@ class _SplashScreenState extends State<SplashScreen> {
                   ),
                   onPressed: _proceedToMain,
                   child: const Text(
-                    '오늘 하루도 편안하게 시작하기',
+                    '시작하기',
                     style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
@@ -302,7 +256,7 @@ class _SplashScreenState extends State<SplashScreen> {
                   ),
                 ),
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: 16),
             ],
           ),
         ),
