@@ -139,7 +139,7 @@ class _HabitsTabViewState extends State<HabitsTabView> {
                     decoration: InputDecoration(
                       isDense: true,
                       labelText: '습관 이름',
-                      hintText: '물 마시기, 가벼운 산책 등',
+                      hintText: '',
                       border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
                       contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 11),
                     ),
@@ -156,7 +156,7 @@ class _HabitsTabViewState extends State<HabitsTabView> {
                           decoration: InputDecoration(
                             isDense: true,
                             labelText: '작은 목표 설명',
-                            hintText: '하루 4잔 시원하게 등',
+                            hintText: '',
                             border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
                             contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 11),
                           ),
@@ -272,11 +272,11 @@ class _HabitsTabViewState extends State<HabitsTabView> {
                               controller: weeklyTimesCtrl,
                               keyboardType: TextInputType.number,
                               textAlign: TextAlign.center,
-                              decoration: InputDecoration(
+                              decoration: const InputDecoration(
                                 isDense: true,
-                                hintText: '숫자',
-                                border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
-                                contentPadding: const EdgeInsets.symmetric(horizontal: 4, vertical: 6),
+                                hintText: '',
+                                border: OutlineInputBorder(borderRadius: BorderRadius.all(Radius.circular(8))),
+                                contentPadding: EdgeInsets.symmetric(horizontal: 4, vertical: 6),
                               ),
                             ),
                           ),

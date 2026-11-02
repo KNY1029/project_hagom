@@ -77,8 +77,7 @@ class _CalendarTabViewState extends State<CalendarTabView> {
     final List<String> selectedReminders = List<String>.from(task?.reminders ?? ['30분 전']);
     bool isRepeated = task?.isRepeated ?? false;
     String repeatCycle = task?.repeatCycle ?? '매주 특정 요일';
-    final List<String> selectedRepeatDays = List<String>.from(task?.repeatDays ?? ['월']);
-
+    final List<String> selectedRepeatDays = List<String>.from(task?.repeatDays ?? []);
     final availableReminders = [
       '정시', '30분 전', '1시간 전', '하루 전'
     ];
@@ -133,8 +132,7 @@ class _CalendarTabViewState extends State<CalendarTabView> {
                   controller: titleCtrl,
                   autofocus: task == null,
                   decoration: InputDecoration(
-                    hintText: '할일/한일 제목을 입력하세요 (예: 병원 상담, 과제)',
-                    hintStyle: const TextStyle(color: AppColors.textMuted, fontSize: 14),
+                    hintText: '',
                     filled: true,
                     fillColor: const Color(0xFFF9FAFB),
                     border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: const BorderSide(color: AppColors.divider)),
@@ -260,10 +258,10 @@ class _CalendarTabViewState extends State<CalendarTabView> {
                                           child: TextField(
                                             keyboardType: TextInputType.number,
                                             autofocus: true,
-                                            decoration: InputDecoration(
-                                              hintText: '1',
-                                              contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
-                                              border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                                            decoration: const InputDecoration(
+                                              hintText: '',
+                                              contentPadding: EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+                                              border: OutlineInputBorder(borderRadius: BorderRadius.all(Radius.circular(8))),
                                             ),
                                             onChanged: (v) => days = int.tryParse(v) ?? 1,
                                           ),

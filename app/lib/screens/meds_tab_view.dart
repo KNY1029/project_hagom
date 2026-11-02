@@ -83,7 +83,7 @@ class _MedsTabViewState extends State<MedsTabView> {
           ? med.durationSummary.replaceAll(RegExp(r'[^0-9]'), '')
           : '',
     );
-    final List<String> selectedRepeatDays = isEditing ? List.from(med.repeatDays) : ['일'];
+    final List<String> selectedRepeatDays = isEditing ? List.from(med.repeatDays) : [];
     bool isPrescription = isEditing ? med.isPrescription : false;
     showModalBottomSheet(
       context: context,
@@ -155,7 +155,7 @@ class _MedsTabViewState extends State<MedsTabView> {
                       decoration: InputDecoration(
                         isDense: true,
                         labelText: '약 이름',
-                        hintText: '약 이름을 입력해 주세요',
+                        hintText: '',
                         border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
                         contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
                       ),
@@ -166,7 +166,7 @@ class _MedsTabViewState extends State<MedsTabView> {
                       decoration: InputDecoration(
                         isDense: true,
                         labelText: '용량 및 복용법',
-                        hintText: '식후 30분, 1정 등',
+                        hintText: '',
                         border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
                         contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
                       ),
@@ -560,7 +560,7 @@ class _MedsTabViewState extends State<MedsTabView> {
                                     content: TextField(
                                       controller: textCtrl,
                                       autofocus: true,
-                                      decoration: const InputDecoration(hintText: '식전 30분, 운동 직후 등'),
+                                      decoration: const InputDecoration(hintText: ''),
                                     ),
                                     actions: [
                                       TextButton(onPressed: () => Navigator.of(dCtx).pop(), child: const Text('취소')),
@@ -1453,18 +1453,6 @@ class _MedsTabViewState extends State<MedsTabView> {
                     onPressed: () => _showMedEditModal(med: med),
                     child: const Text('정보 수정', style: TextStyle(color: AppColors.primaryPurple, fontSize: 12, fontWeight: FontWeight.w600)),
                   ),
-                  const SizedBox(width: 8),
-                  // 🌟 PRD 5.1절 [건너뛰기] 버튼 (남은 다음 회차만 핀셋 건너뜀)
-                  if (!isAllDone && med.nextPendingSlot != null)
-                    TextButton(
-                      style: TextButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
-                        minimumSize: Size.zero,
-                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                      ),
-                      onPressed: () => _showSkipConfirmDialog(med),
-                      child: Text('${med.nextPendingSlot!.label} 건너뛰기', style: const TextStyle(color: AppColors.textSecondary, fontSize: 12, fontWeight: FontWeight.w500)),
-                    ),
                   const Spacer(),
                   if (med.completedSlotsCount > 0)
                     TextButton(
