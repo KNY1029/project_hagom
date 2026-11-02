@@ -286,7 +286,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         builder: (ctx) => AlertDialog(
                           title: const Text('복약 알림 안내', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
                           content: const Text(
-                            '영양제 등 일반 복약 알림은 꺼집니다.\n\n단, 의사의 처방을 받은 필수 약물은 안전한 치료 농도 유지를 위해 알림이 계속 작동해요.',
+                            '일반약 알림만 꺼지며, 의사 처방약은 안전을 위해 켜짐이 유지돼요.',
                             style: TextStyle(fontSize: 13, height: 1.4),
                           ),
                           actions: [
