@@ -37,7 +37,7 @@ class _MainNavigationShellState extends State<MainNavigationShell> {
     '기록 달력',
   ];
 
-  String _currentBubbleMessage = '한 가지만 해도 충분해! 🐻✨';
+  String _currentBubbleMessage = '한 가지만 해도 충분해';
 
   // 논블로킹 말풍선 표시 여부 및 자동 숨김 타이머
   bool _isBubbleVisible = false;

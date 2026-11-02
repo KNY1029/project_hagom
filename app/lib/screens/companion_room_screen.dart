@@ -111,7 +111,7 @@ class _CompanionRoomScreenState extends State<CompanionRoomScreen> {
                     ),
                     const SizedBox(height: 8),
                     const Text(
-                      '👆 하곰이를 톡톡 터치해 보세요!',
+                      '하곰이를 톡톡 터치해 보세요',
                       style: TextStyle(
                         fontSize: 12,
                         color: AppColors.textSecondary,

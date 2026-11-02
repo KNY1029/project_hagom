@@ -74,8 +74,6 @@ class CelebrationToast {
                             color: AppColors.primaryPurple,
                           ),
                         ),
-                        const SizedBox(width: 4),
-                        const Text('✨', style: TextStyle(fontSize: 12)),
                       ],
                     ),
                     const SizedBox(height: 2),

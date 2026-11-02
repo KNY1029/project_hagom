@@ -178,7 +178,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     ),
                     SizedBox(height: 3),
                     Text(
-                      '정신약학 비처벌 복약 솔루션 · v0.19.73',
+                      '정신약학 비처벌 복약 솔루션 · v0.20.76',
                       style: TextStyle(
                         fontSize: 12,
                         color: AppColors.textSecondary,
@@ -286,7 +286,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         builder: (ctx) => AlertDialog(
                           title: const Text('복약 알림 안내', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
                           content: const Text(
-                            '영양제 등 일반 복약 알림은 꺼집니다.\n\n단, 의사의 처방을 받은 필수 약물은 안전한 치료 농도 유지를 위해 알림이 계속 작동해요 🌿',
+                            '영양제 등 일반 복약 알림은 꺼집니다.\n\n단, 의사의 처방을 받은 필수 약물은 안전한 치료 농도 유지를 위해 알림이 계속 작동해요.',
                             style: TextStyle(fontSize: 13, height: 1.4),
                           ),
                           actions: [

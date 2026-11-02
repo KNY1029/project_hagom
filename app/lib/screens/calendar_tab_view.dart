@@ -465,7 +465,7 @@ class _CalendarTabViewState extends State<CalendarTabView> {
                         Navigator.of(ctx).pop();
                         CelebrationToast.show(
                           context,
-                          title: '일정 수정 완료 ✏️',
+                          title: '일정 수정 완료',
                           message: '\'${titleCtrl.text.trim()}\' 내용이 수정되었어요.',
                         );
                       } else {
@@ -972,7 +972,7 @@ class _CalendarTabViewState extends State<CalendarTabView> {
                 children: [
                   Row(
                     children: [
-                      const Text('🗓️ 그날의 할일', style: TextStyle(fontSize: 13.5, fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
+                      const Text('그날의 할일', style: TextStyle(fontSize: 13.5, fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
                       const SizedBox(width: 6),
                       Text(
                         '(${selectedDayTasks.length}건)',
@@ -1032,7 +1032,7 @@ class _CalendarTabViewState extends State<CalendarTabView> {
                                       if (!t.isCompleted) {
                                         CelebrationToast.show(
                                           context,
-                                          title: '일정 완료! 🌸',
+                                          title: '일정 완료',
                                           message: '\'${t.title}\'을(를) 잘 마쳤어요.',
                                         );
                                       }
@@ -1084,24 +1084,6 @@ class _CalendarTabViewState extends State<CalendarTabView> {
                                     onPressed: () => _showTaskModal(task: t),
                                     child: const Text('정보 수정', style: TextStyle(color: AppColors.primaryPurple, fontSize: 12, fontWeight: FontWeight.w600)),
                                   ),
-                                  const SizedBox(width: 8),
-                                  if (t.isCompleted)
-                                    TextButton(
-                                      style: TextButton.styleFrom(
-                                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
-                                        minimumSize: Size.zero,
-                                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                                      ),
-                                      onPressed: () {
-                                        _state.toggleTaskCompleted(t.id);
-                                        CelebrationToast.show(
-                                          context,
-                                          title: '되돌리기 완료',
-                                          message: '\'${t.title}\' 일정을 미완료 상태로 되돌렸어요.',
-                                        );
-                                      },
-                                      child: const Text('되돌리기', style: TextStyle(color: AppColors.warmBrown, fontSize: 12, fontWeight: FontWeight.w600)),
-                                    ),
                                   const Spacer(),
                                   TextButton(
                                     style: TextButton.styleFrom(
@@ -1247,24 +1229,13 @@ class _CalendarTabViewState extends State<CalendarTabView> {
                                       width: isDone ? 1.2 : 1.0,
                                     ),
                                   ),
-                                  child: Row(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      Icon(
-                                        isDone ? Icons.check_circle : Icons.radio_button_unchecked,
-                                        size: 13,
-                                        color: isDone ? AppColors.successGreen : AppColors.textMuted,
-                                      ),
-                                      const SizedBox(width: 4),
-                                      Text(
-                                        '${slot.label} ${isDone ? "복용 완료" : "미복용"}',
-                                        style: TextStyle(
-                                          fontSize: 11,
-                                          fontWeight: isDone ? FontWeight.bold : FontWeight.w500,
-                                          color: isDone ? AppColors.successGreen : AppColors.textSecondary,
-                                        ),
-                                      ),
-                                    ],
+                                  child: Text(
+                                    '${slot.label} ${isDone ? "복용 완료" : "미복용"}',
+                                    style: TextStyle(
+                                      fontSize: 11,
+                                      fontWeight: isDone ? FontWeight.bold : FontWeight.w500,
+                                      color: isDone ? AppColors.completedText : AppColors.textSecondary,
+                                    ),
                                   ),
                                 ),
                               );

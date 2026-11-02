@@ -998,7 +998,7 @@ class _MedsTabViewState extends State<MedsTabView> {
       context: context,
       builder: (dCtx) => AlertDialog(
         title: Text('$slotName 복약 건너뛰기', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-        content: Text('\'${med.name} ($slotName)\' 복용을 건너뛸까요?\n\n건너뛴 복용은 실패가 아니에요. 무리하지 않고 다음 복용에 집중하면 충분해요 🌿'),
+        content: Text('\'${med.name} ($slotName)\' 복용을 건너뛸까요?\n\n건너뛴 복용은 실패가 아니에요. 무리하지 않고 다음 복용에 집중하면 충분해요.'),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(dCtx).pop(),
@@ -1011,7 +1011,7 @@ class _MedsTabViewState extends State<MedsTabView> {
               _state.skipNextSlot(med.id);
               CelebrationToast.show(
                 context,
-                title: '이번 복용을 건너뛰었어요 🌿',
+                title: '이번 복용을 건너뛰었어요',
                 message: '자책하지 마세요. 다음 복용에 편안하게 집중하면 충분해요 :)',
               );
             },
@@ -1298,17 +1298,18 @@ class _MedsTabViewState extends State<MedsTabView> {
                                 style: const TextStyle(fontSize: 9.5, color: AppColors.primaryPurple, fontWeight: FontWeight.bold),
                               ),
                             ),
-                            Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
-                              decoration: BoxDecoration(
-                                color: const Color(0xFFF3F4F6),
-                                borderRadius: BorderRadius.circular(3),
+                            if (med.durationSummary != med.recurrenceSummary && med.recurrenceSummary != '오늘만')
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFFF3F4F6),
+                                  borderRadius: BorderRadius.circular(3),
+                                ),
+                                child: Text(
+                                  med.durationSummary,
+                                  style: const TextStyle(fontSize: 9.5, color: AppColors.textSecondary, fontWeight: FontWeight.w600),
+                                ),
                               ),
-                              child: Text(
-                                med.durationSummary,
-                                style: const TextStyle(fontSize: 9.5, color: AppColors.textSecondary, fontWeight: FontWeight.w600),
-                              ),
-                            ),
                             if (med.isPrescription)
                               Container(
                                 padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
@@ -1404,14 +1405,14 @@ class _MedsTabViewState extends State<MedsTabView> {
                         // 이미 모든 회차가 완료된 상태에서 탭했을 때 토스트에서 바로 마지막 회차 되돌리기 지원!
                         CelebrationToast.show(
                           context,
-                          title: '오늘 복용을 모두 마쳤어요 ✨',
+                          title: '오늘 복용을 모두 마쳤어요',
                           message: '${med.name} 약을 이미 잘 챙겨 드셨어요.',
                           actionLabel: '되돌리기',
                           onAction: () {
                             _state.cancelLastCompletedSlot(med.id);
                             CelebrationToast.show(
                               context,
-                              title: '복약 되돌림 🌿',
+                              title: '복약 되돌림',
                               message: '${med.name} 마지막 회차 복약을 되돌렸어요.',
                             );
                           },
