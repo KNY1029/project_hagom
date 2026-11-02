@@ -37,40 +37,99 @@ class _MainNavigationShellState extends State<MainNavigationShell> {
   }
 
   void _checkModeSelection() {
+    final state = AppStateManager();
+    // 🌟 이미 이전에 모드를 선택한 적이 있다면 다시 묻지 않고 조용히 패스!
+    if (state.isInitialModeSelected) {
+      return;
+    }
+
     showDialog(
       context: context,
       barrierDismissible: false,
       builder: (dCtx) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: const Text('시작 모드 선택', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
-        content: const Text(
-          '하곰이 앱을 어떻게 시작할까요?\n\n• 온보딩 튜토리얼: 각 탭을 둘러보고 설명을 들은 뒤, 예시를 지우고 내 기록을 시작해요.\n• 개발자/전체 모드: 튜토리얼 없이 현재 구현된 모든 예시 데이터와 기능을 바로 검증해요.',
-          style: TextStyle(fontSize: 13, height: 1.5, color: AppColors.textPrimary),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: const Row(
+          children: [
+            Icon(Icons.start, color: AppColors.primaryPurple, size: 24),
+            SizedBox(width: 8),
+            Text('시작 모드 선택', style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
+          ],
         ),
-        actions: [
-          TextButton(
-            onPressed: () async {
-              Navigator.of(dCtx).pop();
-              // 개발자 모드: 모든 예시 데이터가 100% 살아나도록 복구 보장!
-              await AppStateManager().restoreDevFullSimulationData();
-            },
-            child: const Text('개발자 모드 (전체 예시 복원)', style: TextStyle(color: AppColors.textSecondary, fontWeight: FontWeight.bold)),
-          ),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.primaryPurple,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+        content: const Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              '하곰이 앱을 어떻게 시작할까요?',
+              style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
             ),
-            onPressed: () async {
-              Navigator.of(dCtx).pop();
-              // 튜토리얼 모드: 버튼을 눌러볼 수 있도록 체험 데이터 세팅 후 튜토리얼 활성화
-              await AppStateManager().setupTutorialDemoData();
-              setState(() {
-                _isTutorialActive = true;
-                _currentIndex = 0; // 복약 탭부터 시작
-              });
-            },
-            child: const Text('온보딩 튜토리얼 시작', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+            SizedBox(height: 8),
+            Text(
+              '• 바로 시작: 튜토리얼이나 복잡한 설정 없이 내 기본 일과로 바로 진입해요.\n• 온보딩 튜토리얼: 핵심 기능(복약·습관·달력·방)을 직접 누르며 체험해요.\n• 개발자 모드: 전체 가상 복약·과거 달력 기록을 복원하여 앱 전체를 검증해요.',
+              style: TextStyle(fontSize: 12.5, height: 1.5, color: AppColors.textSecondary),
+            ),
+          ],
+        ),
+        actionsPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        actions: [
+          // 1) ⚡ 바로 시작 (개발자도 튜토리얼도 아닌 심플 클린 스타트)
+          SizedBox(
+            width: double.infinity,
+            child: OutlinedButton(
+              style: OutlinedButton.styleFrom(
+                foregroundColor: AppColors.textPrimary,
+                side: const BorderSide(color: AppColors.divider),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                padding: const EdgeInsets.symmetric(vertical: 11),
+              ),
+              onPressed: () async {
+                Navigator.of(dCtx).pop();
+                await state.markInitialModeSelected();
+              },
+              child: const Text('바로 시작하기 (기본 클린 상태)', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13.5)),
+            ),
+          ),
+          const SizedBox(height: 8),
+
+          // 2) 🎓 온보딩 튜토리얼 시작
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.primaryPurple,
+                elevation: 0,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                padding: const EdgeInsets.symmetric(vertical: 11),
+              ),
+              onPressed: () async {
+                Navigator.of(dCtx).pop();
+                await state.markInitialModeSelected();
+                await state.setupTutorialDemoData();
+                setState(() {
+                  _isTutorialActive = true;
+                  _currentIndex = 0; // 복약 탭부터 시작
+                });
+              },
+              child: const Text('온보딩 튜토리얼 시작 (체험형 가이드)', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13.5)),
+            ),
+          ),
+          const SizedBox(height: 8),
+
+          // 3) 🛠️ 개발자 모드 (전체 예시 복원)
+          SizedBox(
+            width: double.infinity,
+            child: TextButton(
+              style: TextButton.styleFrom(
+                foregroundColor: AppColors.textSecondary,
+                padding: const EdgeInsets.symmetric(vertical: 8),
+              ),
+              onPressed: () async {
+                Navigator.of(dCtx).pop();
+                await state.markInitialModeSelected();
+                await state.restoreDevFullSimulationData();
+              },
+              child: const Text('개발자 모드 (전체 예시 데이터 복원)', style: TextStyle(fontSize: 12.5, fontWeight: FontWeight.w600)),
+            ),
           ),
         ],
       ),

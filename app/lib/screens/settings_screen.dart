@@ -181,7 +181,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     ),
                     SizedBox(height: 3),
                     Text(
-                      '정신약학 비처벌 복약 솔루션 · v0.24.84',
+                      '정신약학 비처벌 복약 솔루션 · v0.25.85',
                       style: TextStyle(
                         fontSize: 12,
                         color: AppColors.textSecondary,
@@ -525,6 +525,22 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   subtitle: const Text('의료진 진료 상담용 스프레드시트 파일 저장', style: TextStyle(fontSize: 11.5, color: AppColors.textSecondary)),
                   trailing: const Icon(Icons.arrow_forward_ios, size: 14, color: AppColors.textMuted),
                   onTap: _exportMedicalCsv,
+                ),
+                const Divider(height: 1, color: Color(0xFFF3F4F6)),
+                ListTile(
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                  leading: const Icon(Icons.restart_alt_outlined, color: AppColors.primaryPurple),
+                  title: const Text('시작 모드 선택 초기화', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: AppColors.textPrimary)),
+                  subtitle: const Text('앱을 다시 열었을 때 시작 모드(바로 시작/온보딩/개발자) 선택창 다시 띄우기', style: TextStyle(fontSize: 11.5, color: AppColors.textSecondary)),
+                  trailing: const Icon(Icons.arrow_forward_ios, size: 14, color: AppColors.textMuted),
+                  onTap: () async {
+                    await _state.resetInitialModeSelection();
+                    CelebrationToast.show(
+                      context,
+                      title: '모드 선택 초기화 완료',
+                      message: '다음 앱 실행 시 시작 모드 선택창이 다시 표시돼요.',
+                    );
+                  },
                 ),
                 const Divider(height: 1, color: Color(0xFFF3F4F6)),
                 ListTile(

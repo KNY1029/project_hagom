@@ -106,6 +106,26 @@ class AppStateManager extends ChangeNotifier {
     }
     notifyListeners();
   }
+  // --- 🚀 앱 최초 실행 시 모드 선택 완료 여부 (온보딩 / 개발자 / 바로 시작) ---
+  bool isInitialModeSelected = false;
+
+  /// 모드 선택 완료로 저장
+  Future<void> markInitialModeSelected() async {
+    isInitialModeSelected = true;
+    if (_prefs != null) {
+      await _prefs!.setBool('hagom_initial_mode_selected', true);
+    }
+    notifyListeners();
+  }
+
+  /// 설정에서 '시작 모드 초기화' 시 호출 (다음 앱 실행 시 다시 선택창 뜸)
+  Future<void> resetInitialModeSelection() async {
+    isInitialModeSelected = false;
+    if (_prefs != null) {
+      await _prefs!.setBool('hagom_initial_mode_selected', false);
+    }
+    notifyListeners();
+  }
   // --- 🐻 하곰이 통계 (누적 발걸음) ---
   // --- 🗓️ 할일 및 일정 데이터 ---
   final List<TaskItem> _tasks = [];
@@ -415,6 +435,7 @@ class AppStateManager extends ChangeNotifier {
       if (_lastGreetingDayKey != null) {
         await _prefs!.setString('hagom_last_greeting_day', _lastGreetingDayKey!);
       }
+      await _prefs!.setBool('hagom_initial_mode_selected', isInitialModeSelected);
     } catch (_) {}
   }
 
@@ -489,6 +510,7 @@ class AppStateManager extends ChangeNotifier {
       notificationFrequency = _prefs!.getString('hagom_noti_freq') ?? '기본';
       dailyResetHour = _prefs!.getInt('hagom_daily_reset_hour') ?? 8;
       _lastGreetingDayKey = _prefs!.getString('hagom_last_greeting_day');
+      isInitialModeSelected = _prefs!.getBool('hagom_initial_mode_selected') ?? false;
       notifyListeners();
     } catch (_) {}
   }
