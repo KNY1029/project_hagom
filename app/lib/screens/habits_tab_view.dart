@@ -301,7 +301,7 @@ class _HabitsTabViewState extends State<HabitsTabView> {
                         onPressed: () async {
                           final time = await AppTimePicker.show(
                             context,
-                            initialTime: TimeOfDay.now(),
+                            initialTime: null,
                             title: '새로운 알림 시각 추가',
                           );
                           if (time != null) {

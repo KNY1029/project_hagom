@@ -6,6 +6,7 @@ import '../state/app_state_manager.dart';
 import 'splash_screen.dart';
 import 'widget_simulator_screen.dart';
 import '../widgets/daily_greeting_modal.dart';
+import '../widgets/app_time_picker.dart';
 import '../widgets/celebration_toast.dart';
 
 /// ⚙️ 실제 작동하는 하곰이 설정 화면 (PRD 5.4절 준수)
@@ -181,7 +182,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     ),
                     SizedBox(height: 3),
                     Text(
-                      '정신약학 비처벌 복약 솔루션 · v0.26.86',
+                      '정신약학 비처벌 복약 솔루션 · v0.27.87',
                       style: TextStyle(
                         fontSize: 12,
                         color: AppColors.textSecondary,
@@ -353,7 +354,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   leading: const Icon(Icons.wb_sunny_outlined, color: AppColors.primaryPurple),
                   title: const Text('하루 갱신 기준 시각', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: AppColors.textPrimary)),
                   subtitle: Text(
-                    '매일 오전 ${_state.dailyResetHour}시 기준 새 하루가 시작돼요 (현재: ${_state.dailyResetHour}:00)',
+                    '매일 ${_state.dailyResetTimeString} 기준 새 하루가 시작돼요',
                     style: const TextStyle(fontSize: 11.5, color: AppColors.textSecondary),
                   ),
                   trailing: Container(
@@ -363,64 +364,25 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Text(
-                      '${_state.dailyResetHour.toString().padLeft(2, '0')}:00',
+                      _state.dailyResetTimeString,
                       style: const TextStyle(fontSize: 12.5, fontWeight: FontWeight.bold, color: AppColors.primaryPurple),
                     ),
                   ),
-                  onTap: () {
-                    showDialog(
-                      context: context,
-                      builder: (hCtx) => AlertDialog(
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                        title: const Text('하루 갱신 기준 시각 설정', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-                        content: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const Text(
-                              '새로운 하루가 시작되는 시간을 선택해 주세요.\n(기본값: 오전 8:00)',
-                              style: TextStyle(fontSize: 13, height: 1.4, color: AppColors.textSecondary),
-                            ),
-                            const SizedBox(height: 16),
-                            Wrap(
-                              spacing: 8,
-                              runSpacing: 8,
-                              children: [5, 6, 7, 8, 9, 10, 12].map((h) {
-                                final isSel = _state.dailyResetHour == h;
-                                return ChoiceChip(
-                                  label: Text('${h.toString().padLeft(2, '0')}:00'),
-                                  selected: isSel,
-                                  showCheckmark: false,
-                                  selectedColor: AppColors.lightLavender,
-                                  labelStyle: TextStyle(
-                                    fontSize: 12,
-                                    fontWeight: isSel ? FontWeight.bold : FontWeight.w500,
-                                    color: isSel ? AppColors.primaryPurple : AppColors.textSecondary,
-                                  ),
-                                  onSelected: (val) {
-                                    if (val) {
-                                      _state.setDailyResetHour(h);
-                                      Navigator.of(hCtx).pop();
-                                      CelebrationToast.show(
-                                        context,
-                                        title: '갱신 시각 변경',
-                                        message: '하루 갱신 기준 시각이 $h:00로 설정되었어요.',
-                                      );
-                                    }
-                                  },
-                                );
-                              }).toList(),
-                            ),
-                          ],
-                        ),
-                        actions: [
-                          TextButton(
-                            onPressed: () => Navigator.of(hCtx).pop(),
-                            child: const Text('닫기', style: TextStyle(color: AppColors.textSecondary)),
-                          ),
-                        ],
-                      ),
+                  onTap: () async {
+                    final currentTime = TimeOfDay(hour: _state.dailyResetHour, minute: _state.dailyResetMinute);
+                    final picked = await AppTimePicker.show(
+                      context,
+                      initialTime: currentTime,
+                      title: '하루 갱신 기준 시각 설정',
                     );
+                    if (picked != null) {
+                      _state.setDailyResetTime(picked.hour, picked.minute);
+                      CelebrationToast.show(
+                        context,
+                        title: '갱신 시각 변경',
+                        message: '하루 갱신 기준 시각이 ${_state.dailyResetTimeString}으로 설정되었어요.',
+                      );
+                    }
                   },
                 ),
               ],

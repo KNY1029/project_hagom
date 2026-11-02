@@ -2,24 +2,36 @@ import 'package:flutter/material.dart';
 import '../constants/app_colors.dart';
 
 /// ⏰ 둥근 아날로그 시계판 대신, 직관적으로 [오전/오후] [시] : [분] 숫자를 직접 치는 디지털 타임피커
+/// 
+/// [기획 및 지침 준수]:
+/// - 빈 칸 기본 원칙: 시간 및 분 입력 필드는 사용자가 헷갈리지 않도록 빈칸("")으로 시작합니다.
+///   (힌트 텍스트 "시", "분" 제공)
+/// - 미입력 기본값: 비워둔 채 [확인]을 누르면 기본값(시간은 12 또는 지정 시간, 분은 0)으로 유연하게 처리.
 class AppTimePicker {
   static Future<TimeOfDay?> show(
     BuildContext context, {
-    required TimeOfDay initialTime,
+    TimeOfDay? initialTime,
     String title = '시간 설정',
   }) async {
-    String period = initialTime.period == DayPeriod.am ? '오전' : '오후';
-    int hour12 = initialTime.hourOfPeriod == 0 ? 12 : initialTime.hourOfPeriod;
-    int minute = initialTime.minute;
+    // initialTime이 주어지면 해당 period를 쓰고, 없으면 현재 시각 기준 오전/오후
+    final now = TimeOfDay.now();
+    final baseTime = initialTime ?? now;
+    String period = baseTime.period == DayPeriod.am ? '오전' : '오후';
 
-    final hourCtrl = TextEditingController(text: hour12.toString());
-    final minCtrl = TextEditingController(text: minute.toString().padLeft(2, '0'));
+    // 🌟 사용자가 기존 시간을 수정하는 경우가 아니면 빈칸("")으로 시작!
+    final hourCtrl = TextEditingController(
+      text: initialTime != null ? (initialTime.hourOfPeriod == 0 ? '12' : initialTime.hourOfPeriod.toString()) : '',
+    );
+    final minCtrl = TextEditingController(
+      text: initialTime != null ? initialTime.minute.toString().padLeft(2, '0') : '',
+    );
 
     return showDialog<TimeOfDay>(
       context: context,
       builder: (ctx) => StatefulBuilder(
         builder: (ctx, setState) => AlertDialog(
-          title: Text(title, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          title: Text(title, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -58,18 +70,20 @@ class AppTimePicker {
               ),
               const SizedBox(height: 16),
 
-              // [ 시 ] : [ 분 ] 숫자 직접 입력
+              // [ 시 ] : [ 분 ] 숫자 직접 입력 (빈 칸 기본!)
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   SizedBox(
-                    width: 60,
+                    width: 68,
                     child: TextField(
                       controller: hourCtrl,
                       keyboardType: TextInputType.number,
                       textAlign: TextAlign.center,
-                      style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                      style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
                       decoration: InputDecoration(
+                        hintText: '시',
+                        hintStyle: const TextStyle(fontSize: 14, color: AppColors.textMuted, fontWeight: FontWeight.normal),
                         contentPadding: const EdgeInsets.symmetric(vertical: 8),
                         border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
                       ),
@@ -77,16 +91,18 @@ class AppTimePicker {
                   ),
                   const Padding(
                     padding: EdgeInsets.symmetric(horizontal: 8),
-                    child: Text(':', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+                    child: Text(':', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
                   ),
                   SizedBox(
-                    width: 60,
+                    width: 68,
                     child: TextField(
                       controller: minCtrl,
                       keyboardType: TextInputType.number,
                       textAlign: TextAlign.center,
-                      style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                      style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
                       decoration: InputDecoration(
+                        hintText: '분',
+                        hintStyle: const TextStyle(fontSize: 14, color: AppColors.textMuted, fontWeight: FontWeight.normal),
                         contentPadding: const EdgeInsets.symmetric(vertical: 8),
                         border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
                       ),
@@ -94,8 +110,11 @@ class AppTimePicker {
                   ),
                 ],
               ),
-              const SizedBox(height: 6),
-              const Text('시(1~12)와 분(0~59)을 숫자로 입력하세요', style: TextStyle(fontSize: 11, color: AppColors.textMuted)),
+              const SizedBox(height: 8),
+              const Text('시(1~12)와 분(0~59)을 숫자로 입력하세요\n(빈칸일 경우 0분으로 자동 지정돼요)',
+                textAlign: TextAlign.center,
+                style: TextStyle(fontSize: 11, color: AppColors.textMuted, height: 1.3),
+              ),
             ],
           ),
           actions: [
@@ -109,8 +128,13 @@ class AppTimePicker {
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
               ),
               onPressed: () {
-                int h = int.tryParse(hourCtrl.text.trim()) ?? 12;
-                int m = int.tryParse(minCtrl.text.trim()) ?? 0;
+                // 빈 칸일 경우 시간은 12, 분은 0으로 자동 처리
+                final hourText = hourCtrl.text.trim();
+                final minText = minCtrl.text.trim();
+
+                int h = hourText.isEmpty ? 12 : (int.tryParse(hourText) ?? 12);
+                int m = minText.isEmpty ? 0 : (int.tryParse(minText) ?? 0);
+
                 h = h.clamp(1, 12);
                 m = m.clamp(0, 59);
 

@@ -410,7 +410,7 @@ class _MedsTabViewState extends State<MedsTabView> {
                             onPressed: () async {
                               final time = await AppTimePicker.show(
                                 context,
-                                initialTime: const TimeOfDay(hour: 8, minute: 0),
+                                initialTime: null,
                                 title: '첫 복용 예정 시각',
                               );
                               if (time != null) {
@@ -463,7 +463,7 @@ class _MedsTabViewState extends State<MedsTabView> {
                                 if (sel) {
                                   final time = await AppTimePicker.show(
                                     context,
-                                    initialTime: const TimeOfDay(hour: 8, minute: 0),
+                                    initialTime: null,
                                     title: '$label 알림 시각 설정',
                                   );
                                   String finalTime = _state.routineTimes[label] ?? '오전 8:00';
@@ -506,7 +506,7 @@ class _MedsTabViewState extends State<MedsTabView> {
                                       if (!isSel) {
                                         final time = await AppTimePicker.show(
                                           context,
-                                          initialTime: const TimeOfDay(hour: 8, minute: 0),
+                                          initialTime: null,
                                           title: '$customLabel 알림 시각 설정',
                                         );
                                         String? finalTime;
@@ -584,7 +584,7 @@ class _MedsTabViewState extends State<MedsTabView> {
                                 _state.addCustomTimeSlot(name);
                                 final time = await AppTimePicker.show(
                                   context,
-                                  initialTime: const TimeOfDay(hour: 8, minute: 0),
+                                  initialTime: null,
                                   title: '$name 알림 시각 설정',
                                 );
                                 String? finalTime;
