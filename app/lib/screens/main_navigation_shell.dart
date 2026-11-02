@@ -8,6 +8,7 @@ import 'habits_tab_view.dart';
 import 'calendar_tab_view.dart';
 import 'companion_room_screen.dart';
 import 'settings_screen.dart';
+import '../state/app_state_manager.dart';
 import '../widgets/tutorial_overlay.dart';
 /// 메인 화면 셸 (Shell):
 /// - 상단 헤더: 타이틀 + 설정 버튼 + 하곰이 미니 아바타
@@ -47,19 +48,22 @@ class _MainNavigationShellState extends State<MainNavigationShell> {
         ),
         actions: [
           TextButton(
-            onPressed: () {
+            onPressed: () async {
               Navigator.of(dCtx).pop();
-              // 개발자 모드: 그대로 유지
+              // 개발자 모드: 모든 예시 데이터가 100% 살아나도록 복구 보장!
+              await AppStateManager().restoreDevFullSimulationData();
             },
-            child: const Text('개발자 모드 (전체 유지)', style: TextStyle(color: AppColors.textSecondary, fontWeight: FontWeight.bold)),
+            child: const Text('개발자 모드 (전체 예시 복원)', style: TextStyle(color: AppColors.textSecondary, fontWeight: FontWeight.bold)),
           ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(
               backgroundColor: AppColors.primaryPurple,
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
             ),
-            onPressed: () {
+            onPressed: () async {
               Navigator.of(dCtx).pop();
+              // 튜토리얼 모드: 버튼을 눌러볼 수 있도록 체험 데이터 세팅 후 튜토리얼 활성화
+              await AppStateManager().setupTutorialDemoData();
               setState(() {
                 _isTutorialActive = true;
                 _currentIndex = 0; // 복약 탭부터 시작

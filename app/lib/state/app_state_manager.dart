@@ -953,8 +953,35 @@ class AppStateManager extends ChangeNotifier {
         currentCount: 0, // 대기
       ),
     ]);
+    await _saveDataToDisk();
+    notifyListeners();
+  }
+
+  // 🌟 [개발자/전체 모드 복원]
+  // - 튜토리얼을 마친 후라도, 언제든 '개발자 모드'를 누르면 우리가 만든 모든 풍성한 예시 데이터가 100% 즉시 복구!
+  Future<void> restoreDevFullSimulationData() async {
+    _medications.clear();
+    _habits.clear();
+    _tasks.clear();
+    _pastSlotRecords.clear();
+    _pastHabitRecords.clear();
+    _initDefaultData();
 
     await _saveDataToDisk();
+    notifyListeners();
+  }
+
+  // 🌟 [온보딩 튜토리얼용 체험 데이터 세팅]
+  // - 튜토리얼 시작 시에는 버튼을 눌러볼 수 있도록 예시 약과 습관(3/4회)을 완벽히 세팅!
+  Future<void> setupTutorialDemoData() async {
+    _medications.clear();
+    _habits.clear();
+    _tasks.clear();
+    _pastSlotRecords.clear();
+    _pastHabitRecords.clear();
+
+    _initDefaultData();
+
     notifyListeners();
   }
   // 🌟 의사 진료 상담용 복약 CSV 문자열 생성 (TDM 특화)
