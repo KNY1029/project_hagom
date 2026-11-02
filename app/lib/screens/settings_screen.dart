@@ -4,6 +4,7 @@ import '../constants/app_colors.dart';
 import '../constants/app_assets.dart';
 import '../state/app_state_manager.dart';
 import 'widget_simulator_screen.dart';
+import '../widgets/daily_greeting_modal.dart';
 import '../widgets/celebration_toast.dart';
 
 /// ⚙️ 실제 작동하는 하곰이 설정 화면 (PRD 5.4절 준수)
@@ -179,7 +180,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     ),
                     SizedBox(height: 3),
                     Text(
-                      '정신약학 비처벌 복약 솔루션 · v0.22.82',
+                      '정신약학 비처벌 복약 솔루션 · v0.23.83',
                       style: TextStyle(
                         fontSize: 12,
                         color: AppColors.textSecondary,
@@ -343,6 +344,84 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   value: _state.mascotNotificationEnabled,
                   onChanged: (val) => _state.setMascotNotification(val),
                 ),
+                const Divider(height: 1, color: Color(0xFFF3F4F6)),
+
+                // 6) ☀️ 하루 갱신 기준 시각 (기본 오전 8:00)
+                ListTile(
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                  leading: const Icon(Icons.wb_sunny_outlined, color: AppColors.primaryPurple),
+                  title: const Text('하루 갱신 기준 시각', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: AppColors.textPrimary)),
+                  subtitle: Text(
+                    '매일 오전 ${_state.dailyResetHour}시 기준 새 하루가 시작돼요 (현재: ${_state.dailyResetHour}:00)',
+                    style: const TextStyle(fontSize: 11.5, color: AppColors.textSecondary),
+                  ),
+                  trailing: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: AppColors.lightLavender,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Text(
+                      '${_state.dailyResetHour.toString().padLeft(2, '0')}:00',
+                      style: const TextStyle(fontSize: 12.5, fontWeight: FontWeight.bold, color: AppColors.primaryPurple),
+                    ),
+                  ),
+                  onTap: () {
+                    showDialog(
+                      context: context,
+                      builder: (hCtx) => AlertDialog(
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                        title: const Text('하루 갱신 기준 시각 설정', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                        content: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text(
+                              '새로운 하루가 시작되는 시간을 선택해 주세요.\n(기본값: 오전 8:00)',
+                              style: TextStyle(fontSize: 13, height: 1.4, color: AppColors.textSecondary),
+                            ),
+                            const SizedBox(height: 16),
+                            Wrap(
+                              spacing: 8,
+                              runSpacing: 8,
+                              children: [5, 6, 7, 8, 9, 10, 12].map((h) {
+                                final isSel = _state.dailyResetHour == h;
+                                return ChoiceChip(
+                                  label: Text('${h.toString().padLeft(2, '0')}:00'),
+                                  selected: isSel,
+                                  showCheckmark: false,
+                                  selectedColor: AppColors.lightLavender,
+                                  labelStyle: TextStyle(
+                                    fontSize: 12,
+                                    fontWeight: isSel ? FontWeight.bold : FontWeight.w500,
+                                    color: isSel ? AppColors.primaryPurple : AppColors.textSecondary,
+                                  ),
+                                  onSelected: (val) {
+                                    if (val) {
+                                      _state.setDailyResetHour(h);
+                                      Navigator.of(hCtx).pop();
+                                      CelebrationToast.show(
+                                        context,
+                                        title: '갱신 시각 변경',
+                                        message: '하루 갱신 기준 시각이 $h:00로 설정되었어요.',
+                                      );
+                                    }
+                                  },
+                                );
+                              }).toList(),
+                            ),
+                          ],
+                        ),
+                        actions: [
+                          TextButton(
+                            onPressed: () => Navigator.of(hCtx).pop(),
+                            child: const Text('닫기', style: TextStyle(color: AppColors.textSecondary)),
+                          ),
+                        ],
+                      ),
+                    );
+                  },
+                ),
               ],
             ),
           ),
@@ -420,6 +499,17 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     Navigator.of(context).push(
                       MaterialPageRoute(builder: (ctx) => const WidgetSimulatorScreen()),
                     );
+                  },
+                ),
+                const Divider(height: 1, color: Color(0xFFF3F4F6)),
+                ListTile(
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                  leading: const Icon(Icons.celebration_outlined, color: AppColors.primaryPurple),
+                  title: const Text('일일 첫 접속 환영 애니메이션 다시 보기', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: AppColors.textPrimary)),
+                  subtitle: const Text('하곰이 출석 지지 환영 GIF 모달 체험', style: TextStyle(fontSize: 11.5, color: AppColors.textSecondary)),
+                  trailing: const Icon(Icons.arrow_forward_ios, size: 14, color: AppColors.textMuted),
+                  onTap: () {
+                    DailyGreetingModal.show(context);
                   },
                 ),
                 const Divider(height: 1, color: Color(0xFFF3F4F6)),

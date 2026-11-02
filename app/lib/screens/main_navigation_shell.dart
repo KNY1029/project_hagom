@@ -10,6 +10,7 @@ import 'companion_room_screen.dart';
 import 'settings_screen.dart';
 import '../state/app_state_manager.dart';
 import '../widgets/tutorial_overlay.dart';
+import '../widgets/daily_greeting_modal.dart';
 /// 메인 화면 셸 (Shell):
 /// - 상단 헤더: 타이틀 + 설정 버튼 + 하곰이 미니 아바타
 /// - 하단 탭 바: 복약 / 습관 / 달력
@@ -52,6 +53,9 @@ class _MainNavigationShellState extends State<MainNavigationShell> {
               Navigator.of(dCtx).pop();
               // 개발자 모드: 모든 예시 데이터가 100% 살아나도록 복구 보장!
               await AppStateManager().restoreDevFullSimulationData();
+              if (mounted && AppStateManager().shouldShowDailyGreeting()) {
+                await DailyGreetingModal.show(context);
+              }
             },
             child: const Text('개발자 모드 (전체 예시 복원)', style: TextStyle(color: AppColors.textSecondary, fontWeight: FontWeight.bold)),
           ),
@@ -68,6 +72,9 @@ class _MainNavigationShellState extends State<MainNavigationShell> {
                 _isTutorialActive = true;
                 _currentIndex = 0; // 복약 탭부터 시작
               });
+              if (mounted && AppStateManager().shouldShowDailyGreeting()) {
+                await DailyGreetingModal.show(context);
+              }
             },
             child: const Text('온보딩 튜토리얼 시작', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
           ),

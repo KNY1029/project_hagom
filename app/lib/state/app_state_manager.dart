@@ -67,6 +67,45 @@ class AppStateManager extends ChangeNotifier {
     notificationFrequency = freq;
     notifyListeners();
   }
+  // --- ☀️ 하루 시작 기준 시각 (기본 오전 8:00) & 일일 최초 접속 인사 애니메이션 ---
+  int dailyResetHour = 8; // 기본 매일 8시 갱신 (0~23)
+  String? _lastGreetingDayKey; // 'YYYY-MM-DD' 기준 마지막으로 일일 인사 본 날짜
+
+  void setDailyResetHour(int hour) {
+    dailyResetHour = hour.clamp(0, 23);
+    notifyListeners();
+  }
+
+  /// 현재 시각 기준으로 사용자의 '활동 날짜' 키 계산 (예: 8시 기준이면 오전 7시는 어제의 하루)
+  String getEffectiveDayKey([DateTime? target]) {
+    final now = target ?? DateTime.now();
+    // 만약 현재 시각의 시간이 dailyResetHour 미만이면, 하루 갱신 전이므로 전날로 간주
+    final adjusted = now.hour < dailyResetHour
+        ? now.subtract(const Duration(days: 1))
+        : now;
+    return '${adjusted.year}-${adjusted.month.toString().padLeft(2, '0')}-${adjusted.day.toString().padLeft(2, '0')}';
+  }
+
+  /// 오늘 이 '활동 하루'에 접속 인사를 본 적이 있는지 확인 (첫 실행 시 true 반환)
+  bool shouldShowDailyGreeting() {
+    final currentKey = getEffectiveDayKey();
+    if (_lastGreetingDayKey == null) {
+      if (_prefs != null) {
+        _lastGreetingDayKey = _prefs!.getString('hagom_last_greeting_day');
+      }
+    }
+    return _lastGreetingDayKey != currentKey;
+  }
+
+  /// 접속 인사를 본 것으로 기록 완료
+  Future<void> markDailyGreetingShown() async {
+    final currentKey = getEffectiveDayKey();
+    _lastGreetingDayKey = currentKey;
+    if (_prefs != null) {
+      await _prefs!.setString('hagom_last_greeting_day', currentKey);
+    }
+    notifyListeners();
+  }
   // --- 🐻 하곰이 통계 (누적 발걸음) ---
   // --- 🗓️ 할일 및 일정 데이터 ---
   final List<TaskItem> _tasks = [];
@@ -372,6 +411,10 @@ class AppStateManager extends ChangeNotifier {
       await _prefs!.setBool('hagom_tasks_noti', tasksNotificationEnabled);
       await _prefs!.setBool('hagom_mascot_noti', mascotNotificationEnabled);
       await _prefs!.setString('hagom_noti_freq', notificationFrequency);
+      await _prefs!.setInt('hagom_daily_reset_hour', dailyResetHour);
+      if (_lastGreetingDayKey != null) {
+        await _prefs!.setString('hagom_last_greeting_day', _lastGreetingDayKey!);
+      }
     } catch (_) {}
   }
 
@@ -444,6 +487,8 @@ class AppStateManager extends ChangeNotifier {
       tasksNotificationEnabled = _prefs!.getBool('hagom_tasks_noti') ?? true;
       mascotNotificationEnabled = _prefs!.getBool('hagom_mascot_noti') ?? true;
       notificationFrequency = _prefs!.getString('hagom_noti_freq') ?? '기본';
+      dailyResetHour = _prefs!.getInt('hagom_daily_reset_hour') ?? 8;
+      _lastGreetingDayKey = _prefs!.getString('hagom_last_greeting_day');
       notifyListeners();
     } catch (_) {}
   }
