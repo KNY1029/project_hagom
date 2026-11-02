@@ -178,7 +178,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     ),
                     SizedBox(height: 3),
                     Text(
-                      '정신약학 비처벌 복약 솔루션 · v0.21.78',
+                      '정신약학 비처벌 복약 솔루션 · v0.21.79',
                       style: TextStyle(
                         fontSize: 12,
                         color: AppColors.textSecondary,
@@ -286,7 +286,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         builder: (ctx) => AlertDialog(
                           title: const Text('복약 알림 안내', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
                           content: const Text(
-                            '일반약 알림만 꺼지며, 의사 처방약은 안전을 위해 켜짐이 유지돼요.',
+                            '일반약 알림만 꺼지며, 처방약은 안전을 위해 켜짐이 유지돼요.',
                             style: TextStyle(fontSize: 13, height: 1.4),
                           ),
                           actions: [
@@ -338,7 +338,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
                   activeColor: AppColors.primaryPurple,
                   title: const Text('하곰이 따뜻한 응원 알림', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: AppColors.textPrimary)),
-                  subtitle: const Text('지친 하루 끝에 건네는 비처벌적 힐링 한마디', style: TextStyle(fontSize: 11.5, color: AppColors.textSecondary)),
+                  subtitle: const Text('비처벌적 힐링과 응원의 한마디', style: TextStyle(fontSize: 11.5, color: AppColors.textSecondary)),
                   value: _state.mascotNotificationEnabled,
                   onChanged: (val) => _state.setMascotNotification(val),
                 ),
@@ -390,7 +390,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                               SizedBox(height: 12),
                               Text('📅 기록 달력', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: AppColors.primaryPurple)),
                               SizedBox(height: 4),
-                              Text('• 연초록 파스텔 셀: 복약과 습관 100% 완료.\n• 빨간 바: 의사 처방 필수약 누락 안전 경고.\n• 갈색 바: 일반약 또는 습관 부분 실천 상태.\n• 과거 날짜를 눌러 소급 체크해도 하곰이가 똑같이 축하해 드려요.', style: TextStyle(fontSize: 12, height: 1.4)),
+                              Text('• 연초록 파스텔 셀: 복약과 습관 100% 완료.\n• 빨간 바: 처방약 누락 안전 경고.\n• 갈색 바: 일반약 또는 습관 부분 실천 상태.\n• 과거 날짜를 눌러 소급 체크해도 하곰이가 똑같이 축하해 드려요.', style: TextStyle(fontSize: 12, height: 1.4)),
                             ],
                           ),
                         ),
