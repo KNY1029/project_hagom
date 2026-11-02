@@ -149,7 +149,6 @@ project_hagom/app/lib/
 | **`hallmark`** | **AI 템플릿 찌꺼기 엄격 차단**<br>- Card-in-Card 중첩 금지<br>- 무의미한 유니코드 이모티콘(`🩺`, `🌱`, `✨` 등) 배제 | [Nutlope/hallmark](https://github.com/Nutlope/hallmark) | `npx skills add Nutlope/hallmark` |
 | **`humanizer`** | **대사, 안내문, 보고서 텍스트 정제**<br>- 과장된 홍보 문체(Hype) 및 기계적 3단 강조 배제<br>- 진정성 있고 다정한 사람의 차분한 문체 유지 | [blader/humanizer](https://github.com/blader/humanizer) | `npx skills add blader/humanizer` |
 | **`flutter-best-practices`** | **Flutter 클린 코드 및 아키텍처 가이드**<br>- 상태 관리 분리, 위젯 재빌드 최적화, 패키지 경계 | [zakariaf/Flutter-Skills](https://github.com/zakariaf/Flutter-Skills) | `npx skills add zakariaf/Flutter-Skills` |
-| **`figma-to-flutter`** | **피그마 시안 ➔ Flutter 위젯 1:1 전환**<br>- 피그마 디자인 시스템 토큰 매핑, 컴포넌트 규격 | [edicardenas/figma-to-flutter-skill](https://github.com/edicardenas/figma-to-flutter-skill) | `npx skills add edicardenas/figma-to-flutter-skill` |
 | **`accessibility-as-code`**| **의료 접근성(A11y) 검증**<br>- 폰트 명도 대비(4.5:1), 스크린리더 라벨, 최소 터치 타겟(48dp) | [accessibility-as-code](https://github.com/agents-skills/accessibility-as-code) | `npx skills add accessibility-as-code` |
 | **`flutter-testing`** | **위젯 및 유닛 테스트 표준**<br>- 상태 관리 테스트 및 목(Mock) 데이터 패턴 | [zakariaf/Flutter-Skills](https://github.com/zakariaf/Flutter-Skills) | `npx skills add zakariaf/Flutter-Skills` |
 
