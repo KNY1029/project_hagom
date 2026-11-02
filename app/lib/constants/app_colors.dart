@@ -12,7 +12,7 @@ class AppColors {
   static const Color lightLavender = Color(0xFFF3EFF8); // 연한 라벤더 배경색
 
   // 2. 화면 배경 및 카드 색상
-  static const Color background = Color(0xFFFBFBFB);     // 전체 기본 배경
+  static const Color background = Color(0xFFFAF8F5);     // 은은하고 아늑한 웜 베이지 브라운 배경
   static const Color cardSurface = Colors.white;         // 카드 기본 흰색
   static const Color divider = Color(0xFFE5E7EB);         // 옅은 구분선
 

@@ -8,7 +8,7 @@ import 'habits_tab_view.dart';
 import 'calendar_tab_view.dart';
 import 'companion_room_screen.dart';
 import 'settings_screen.dart';
-
+import '../widgets/tutorial_overlay.dart';
 /// 메인 화면 셸 (Shell):
 /// - 상단 헤더: 타이틀 + 설정 버튼 + 하곰이 미니 아바타
 /// - 하단 탭 바: 복약 / 습관 / 달력
@@ -24,6 +24,53 @@ class MainNavigationShell extends StatefulWidget {
 
 class _MainNavigationShellState extends State<MainNavigationShell> {
   int _currentIndex = 0;
+  bool _isTutorialActive = false;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _checkModeSelection();
+    });
+  }
+
+  void _checkModeSelection() {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (dCtx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: const Text('시작 모드 선택', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
+        content: const Text(
+          '하곰이 앱을 어떻게 시작할까요?\n\n• 온보딩 튜토리얼: 각 탭을 둘러보고 설명을 들은 뒤, 예시를 지우고 내 기록을 시작해요.\n• 개발자/전체 모드: 튜토리얼 없이 현재 구현된 모든 예시 데이터와 기능을 바로 검증해요.',
+          style: TextStyle(fontSize: 13, height: 1.5, color: AppColors.textPrimary),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.of(dCtx).pop();
+              // 개발자 모드: 그대로 유지
+            },
+            child: const Text('개발자 모드 (전체 유지)', style: TextStyle(color: AppColors.textSecondary, fontWeight: FontWeight.bold)),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.primaryPurple,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+            ),
+            onPressed: () {
+              Navigator.of(dCtx).pop();
+              setState(() {
+                _isTutorialActive = true;
+                _currentIndex = 0; // 복약 탭부터 시작
+              });
+            },
+            child: const Text('온보딩 튜토리얼 시작', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+          ),
+        ],
+      ),
+    );
+  }
 
   final List<Widget> _tabs = const [
     MedsTabView(),
@@ -211,6 +258,19 @@ class _MainNavigationShellState extends State<MainNavigationShell> {
                   ),
                 ),
               ),
+            ),
+          if (_isTutorialActive)
+            TutorialOverlay(
+              onSwitchTab: (tabIdx) {
+                setState(() {
+                  _currentIndex = tabIdx;
+                });
+              },
+              onFinishTutorial: () {
+                setState(() {
+                  _isTutorialActive = false;
+                });
+              },
             ),
         ],
       ),

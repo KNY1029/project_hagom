@@ -178,7 +178,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     ),
                     SizedBox(height: 3),
                     Text(
-                      '정신약학 비처벌 복약 솔루션 · v0.20.76',
+                      '정신약학 비처벌 복약 솔루션 · v0.21.78',
                       style: TextStyle(
                         fontSize: 12,
                         color: AppColors.textSecondary,
@@ -363,6 +363,52 @@ class _SettingsScreenState extends State<SettingsScreen> {
             ),
             child: Column(
               children: [
+                ListTile(
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                  leading: const Icon(Icons.help_outline, color: AppColors.primaryPurple),
+                  title: const Text('앱 사용 가이드 다시 보기', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: AppColors.textPrimary)),
+                  subtitle: const Text('복약, 습관, 달력 탭의 핵심 기능 및 색상 요약', style: TextStyle(fontSize: 11.5, color: AppColors.textSecondary)),
+                  trailing: const Icon(Icons.arrow_forward_ios, size: 14, color: AppColors.textMuted),
+                  onTap: () {
+                    showDialog(
+                      context: context,
+                      builder: (gCtx) => AlertDialog(
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                        title: const Text('하곰이 헬스케어 가이드', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                        content: const SingleChildScrollView(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text('💊 복약 관리', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: AppColors.primaryPurple)),
+                              SizedBox(height: 4),
+                              Text('• [지금 복용]을 누르면 예정 시각이 실제 복약 시각으로 기록돼요.\n• 카드를 누르면 [정보 수정]이나 자책 없이 넘기는 [건너뛰기]를 할 수 있어요.', style: TextStyle(fontSize: 12, height: 1.4)),
+                              SizedBox(height: 12),
+                              Text('🌱 습관 관리', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: AppColors.primaryPurple)),
+                              SizedBox(height: 4),
+                              Text('• [대기] ➔ [조금 실천(0.5점)] ➔ [완료(1.0점)] 3단계로 유연하게 인정돼요.\n• 4잔 중 1잔만 마셔도 상단 게이지에 정확하게 실천 점수가 반영돼요.', style: TextStyle(fontSize: 12, height: 1.4)),
+                              SizedBox(height: 12),
+                              Text('📅 기록 달력', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: AppColors.primaryPurple)),
+                              SizedBox(height: 4),
+                              Text('• 연초록 파스텔 셀: 복약과 습관 100% 완료.\n• 빨간 바: 의사 처방 필수약 누락 안전 경고.\n• 갈색 바: 일반약 또는 습관 부분 실천 상태.\n• 과거 날짜를 눌러 소급 체크해도 하곰이가 똑같이 축하해 드려요.', style: TextStyle(fontSize: 12, height: 1.4)),
+                            ],
+                          ),
+                        ),
+                        actions: [
+                          ElevatedButton(
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: AppColors.primaryPurple,
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                            ),
+                            onPressed: () => Navigator.of(gCtx).pop(),
+                            child: const Text('확인', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                          ),
+                        ],
+                      ),
+                    );
+                  },
+                ),
+                const Divider(height: 1, color: Color(0xFFF3F4F6)),
                 ListTile(
                   contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
                   leading: const Icon(Icons.table_view_outlined, color: AppColors.primaryPurple),

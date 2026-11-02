@@ -920,6 +920,43 @@ class AppStateManager extends ChangeNotifier {
     notifyListeners();
   }
 
+  // 🌟 [온보딩 튜토리얼 종료 후 클린 슬레이트 전환]
+  // - 복약 및 할일: 예시 데이터 완전 삭제 (사용자가 직접 등록하도록 백지화!)
+  // - 습관 3종(계획 점검, 물 마시기, 스트레칭): 모두 '대기(0회)' 상태로 초기화되어 실사용 대기!
+  Future<void> finishTutorialCleanSlate() async {
+    _medications.clear();
+    _tasks.clear();
+    _pastSlotRecords.clear();
+    _pastHabitRecords.clear();
+
+    _habits.clear();
+    _habits.addAll([
+      HabitItem(
+        id: 'habit_plan',
+        title: '오늘 계획 가볍게 보기',
+        subtitle: '유연하게 · 1분이라도 충분해',
+        targetPerDay: 1,
+        currentCount: 0, // 대기
+      ),
+      HabitItem(
+        id: 'habit_water',
+        title: '물 마시기',
+        subtitle: '하루 4잔 시원하게',
+        targetPerDay: 4,
+        currentCount: 0, // 대기
+      ),
+      HabitItem(
+        id: 'habit_stretch',
+        title: '스트레칭 및 가볍게 걷기',
+        subtitle: '몸 깨우기 · 5~10분',
+        targetPerDay: 1,
+        currentCount: 0, // 대기
+      ),
+    ]);
+
+    await _saveDataToDisk();
+    notifyListeners();
+  }
   // 🌟 의사 진료 상담용 복약 CSV 문자열 생성 (TDM 특화)
   String generateMedicalCsvReport() {
     final buffer = StringBuffer();
