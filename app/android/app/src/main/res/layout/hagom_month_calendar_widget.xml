@@ -92,15 +92,13 @@
     <LinearLayout
         android:id="@+id/month_calendar_grid"
         android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1"
+        android:layout_height="wrap_content"
         android:orientation="vertical">
 
         <!-- 1주차 -->
         <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="0dp"
-            android:layout_weight="1"
+            android:layout_height="27dp"
             android:gravity="center_vertical"
             android:orientation="horizontal">
             <TextView android:id="@+id/c_0" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:gravity="center" android:textColor="#EF4444" android:textSize="12sp" />
@@ -115,8 +113,7 @@
         <!-- 2주차 -->
         <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="0dp"
-            android:layout_weight="1"
+            android:layout_height="27dp"
             android:gravity="center_vertical"
             android:orientation="horizontal">
             <TextView android:id="@+id/c_7" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:gravity="center" android:textColor="#EF4444" android:textSize="12sp" />
@@ -131,8 +128,7 @@
         <!-- 3주차 -->
         <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="0dp"
-            android:layout_weight="1"
+            android:layout_height="27dp"
             android:gravity="center_vertical"
             android:orientation="horizontal">
             <TextView android:id="@+id/c_14" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:gravity="center" android:textColor="#EF4444" android:textSize="12sp" />
@@ -147,8 +143,7 @@
         <!-- 4주차 -->
         <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="0dp"
-            android:layout_weight="1"
+            android:layout_height="27dp"
             android:gravity="center_vertical"
             android:orientation="horizontal">
             <TextView android:id="@+id/c_21" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:gravity="center" android:textColor="#EF4444" android:textSize="12sp" />
@@ -163,8 +158,7 @@
         <!-- 5주차 -->
         <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="0dp"
-            android:layout_weight="1"
+            android:layout_height="27dp"
             android:gravity="center_vertical"
             android:orientation="horizontal">
             <TextView android:id="@+id/c_28" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:gravity="center" android:textColor="#EF4444" android:textSize="12sp" />
@@ -179,8 +173,7 @@
         <!-- 6주차 -->
         <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="0dp"
-            android:layout_weight="1"
+            android:layout_height="27dp"
             android:gravity="center_vertical"
             android:orientation="horizontal">
             <TextView android:id="@+id/c_35" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:gravity="center" android:textColor="#EF4444" android:textSize="12sp" />
@@ -267,7 +260,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="오늘의 할일"
-                android:textColor="#B45309"
+                android:textColor="#7A5E24"
                 android:textSize="11sp"
                 android:textStyle="bold" />
 
@@ -281,7 +274,7 @@
                 android:gravity="end"
                 android:maxLines="1"
                 android:text=""
-                android:textColor="#D97706"
+                android:textColor="#9E7C38"
                 android:textSize="10.5sp"
                 android:textStyle="bold" />
         </LinearLayout>
