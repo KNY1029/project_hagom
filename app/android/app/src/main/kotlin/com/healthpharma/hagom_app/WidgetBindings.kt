@@ -1,6 +1,7 @@
 package com.healthpharma.hagom_app
 
 import android.app.PendingIntent
+import android.appwidget.AppWidgetManager
 import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
@@ -13,19 +14,12 @@ import es.antonborri.home_widget.HomeWidgetBackgroundIntent
 /**
  * 위젯 공통 바인딩 유틸.
  *
- * 설계 원칙: 네이티브는 상태를 '계산'하거나 '지어내지' 않는다.
- * 모든 문구/상태는 Flutter(AppStateManager)가 저장한 값을 그대로 렌더링만 한다.
- * 버튼 탭은 전부 Dart 백그라운드 콜백으로 넘겨서 실제 앱 데이터를 변경한다.
+ * - 2×N처럼 가로 폭이 좁아지면(minWidth < 210dp) 태그를 숨기고 컴팩트 버튼(46×34dp)으로 전환해
+ *   약/습관/할일 이름이 가려지지 않게 한다.
+ * - 세로 1칸(minHeight < 105dp)일 때는 확장 목록 전체를 숨기고, 세로 2칸 이상일 때 최대 3개까지 표시한다.
  */
 object WidgetBindings {
 
-    /**
-     * 앱 특정 탭으로 여는 PendingIntent.
-     *
-     * home_widget 기본 LaunchIntent는 액티비티 플래그가 없어서, 앱이 이미 떠 있으면
-     * 런처가 태스크만 앞으로 가져오고 onNewIntent를 호출하지 않는다(= 탭 이동 실패).
-     * NEW_TASK|SINGLE_TOP|CLEAR_TOP을 직접 지정해야 기존 인스턴스에 인텐트가 전달된다.
-     */
     fun openAppIntent(context: Context, uri: String, requestCode: Int): PendingIntent {
         val intent = Intent(context, MainActivity::class.java).apply {
             action = HOME_WIDGET_LAUNCH_ACTION
@@ -42,16 +36,26 @@ object WidgetBindings {
         )
     }
 
-    /** 버튼 탭 -> Dart 백그라운드 콜백(앱 실행 없이 실제 데이터 변경) */
     fun actionIntent(context: Context, uri: String): PendingIntent =
         HomeWidgetBackgroundIntent.getBroadcast(context, Uri.parse(uri))
 
     fun text(prefs: SharedPreferences, key: String): String = prefs.getString(key, "") ?: ""
 
-    /**
-     * 확장 영역의 한 줄을 바인딩한다.
-     * Flutter가 내려준 text가 비어 있으면 그 줄은 숨긴다(= 가짜 예시 문구가 남지 않음).
-     */
+    /** 가로 2칸 이하인지 판별 */
+    fun isNarrowWidth(appWidgetManager: AppWidgetManager, appWidgetId: Int): Boolean {
+        val opts = appWidgetManager.getAppWidgetOptions(appWidgetId)
+        val minW = opts.getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_WIDTH, 250)
+        return minW in 1..205
+    }
+
+    /** 세로 2칸 이상으로 늘렸는지 판별 */
+    fun isVerticallyExpanded(appWidgetManager: AppWidgetManager, appWidgetId: Int): Boolean {
+        val opts = appWidgetManager.getAppWidgetOptions(appWidgetId)
+        val maxH = opts.getInt(AppWidgetManager.OPTION_APPWIDGET_MAX_HEIGHT, 110)
+        val minH = opts.getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_HEIGHT, 80)
+        return maxH >= 135 || minH >= 115
+    }
+
     fun bindRow(
         views: RemoteViews,
         prefs: SharedPreferences,
@@ -60,18 +64,22 @@ object WidgetBindings {
         textId: Int,
         btnId: Int,
         textKey: String,
+        shortTextKey: String,
         doneKey: String,
         actionKey: String,
         pendingLabel: String,
-        pendingBg: Int
+        pendingBg: Int,
+        isNarrow: Boolean
     ) {
-        val rowText = text(prefs, textKey)
-        if (rowText.isEmpty()) {
+        val fullText = text(prefs, textKey)
+        val shortText = text(prefs, shortTextKey)
+        val display = if (isNarrow && shortText.isNotEmpty()) shortText else fullText
+        if (display.isEmpty()) {
             views.setViewVisibility(rowId, View.GONE)
             return
         }
         views.setViewVisibility(rowId, View.VISIBLE)
-        views.setTextViewText(textId, rowText)
+        views.setTextViewText(textId, display)
 
         val isDone = prefs.getString(doneKey, "false") == "true"
         if (isDone) {

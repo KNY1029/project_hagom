@@ -4,10 +4,23 @@ import android.appwidget.AppWidgetManager
 import android.content.Context
 import android.content.SharedPreferences
 import android.graphics.Color
+import android.os.Bundle
+import android.view.View
 import android.widget.RemoteViews
+import es.antonborri.home_widget.HomeWidgetPlugin
 import es.antonborri.home_widget.HomeWidgetProvider
 
 class HagomMedsWidgetProvider : HomeWidgetProvider() {
+
+    override fun onAppWidgetOptionsChanged(
+        context: Context,
+        appWidgetManager: AppWidgetManager,
+        appWidgetId: Int,
+        newOptions: Bundle
+    ) {
+        super.onAppWidgetOptionsChanged(context, appWidgetManager, appWidgetId, newOptions)
+        onUpdate(context, appWidgetManager, intArrayOf(appWidgetId), HomeWidgetPlugin.getData(context))
+    }
 
     override fun onUpdate(
         context: Context,
@@ -16,40 +29,52 @@ class HagomMedsWidgetProvider : HomeWidgetProvider() {
         widgetData: SharedPreferences
     ) {
         for (appWidgetId in appWidgetIds) {
+            val isNarrow = WidgetBindings.isNarrowWidth(appWidgetManager, appWidgetId)
+            val isExpanded = WidgetBindings.isVerticallyExpanded(appWidgetManager, appWidgetId)
+
             val views = RemoteViews(context.packageName, R.layout.hagom_meds_widget).apply {
+                setViewVisibility(R.id.widget_meds_tag, if (isNarrow) View.GONE else View.VISIBLE)
                 setTextViewText(R.id.widget_meds_tag, WidgetBindings.text(widgetData, "meds_tag"))
                 setTextViewText(R.id.widget_meds_progress, WidgetBindings.text(widgetData, "meds_progress"))
                 setTextViewText(R.id.widget_meds_title, WidgetBindings.text(widgetData, "meds_title"))
-                setTextViewText(R.id.widget_meds_subtitle, WidgetBindings.text(widgetData, "meds_subtitle"))
+
+                val sub = if (isNarrow) {
+                    WidgetBindings.text(widgetData, "meds_subtitle_short").ifEmpty {
+                        WidgetBindings.text(widgetData, "meds_subtitle")
+                    }
+                } else {
+                    WidgetBindings.text(widgetData, "meds_subtitle")
+                }
+                setTextViewText(R.id.widget_meds_subtitle, sub)
 
                 val btnTitle = WidgetBindings.text(widgetData, "meds_btn_title")
                 setTextViewText(R.id.widget_meds_btn_title, btnTitle)
+                setTextViewText(R.id.widget_meds_btn_compact_title, btnTitle)
+
+                setViewVisibility(R.id.widget_meds_btn, if (isNarrow) View.GONE else View.VISIBLE)
+                setViewVisibility(R.id.widget_meds_btn_compact, if (isNarrow) View.VISIBLE else View.GONE)
 
                 val allDone = widgetData.getString("meds_all_done", "false") == "true"
-                if (allDone) {
-                    setInt(R.id.widget_meds_btn, "setBackgroundResource", R.drawable.hagom_widget_green_btn_bg)
-                    setTextColor(R.id.widget_meds_btn_title, Color.parseColor("#1B6B46"))
-                } else {
-                    setInt(R.id.widget_meds_btn, "setBackgroundResource", R.drawable.hagom_widget_btn_bg)
-                    setTextColor(R.id.widget_meds_btn_title, Color.WHITE)
-                }
+                val bgRes = if (allDone) R.drawable.hagom_widget_green_btn_bg else R.drawable.hagom_widget_btn_bg
+                val txtColor = if (allDone) Color.parseColor("#1B6B46") else Color.WHITE
+                setInt(R.id.widget_meds_btn, "setBackgroundResource", bgRes)
+                setTextColor(R.id.widget_meds_btn_title, txtColor)
+                setInt(R.id.widget_meds_btn_compact, "setBackgroundResource", bgRes)
+                setTextColor(R.id.widget_meds_btn_compact_title, txtColor)
 
-                // 바탕 탭 -> 복약 탭으로 이동
-                setOnClickPendingIntent(
-                    R.id.widget_meds_container,
-                    WidgetBindings.openAppIntent(context, "hagomwidget://openmeds", 1001)
-                )
+                val openMedsIntent = WidgetBindings.openAppIntent(context, "hagomwidget://openmeds", 1001)
+                setOnClickPendingIntent(R.id.widget_meds_container, openMedsIntent)
 
-                // 대표 버튼 -> 실제 앱 데이터 변경
                 val mainAction = WidgetBindings.text(widgetData, "meds_action")
-                if (mainAction.isNotEmpty()) {
-                    setOnClickPendingIntent(R.id.widget_meds_btn, WidgetBindings.actionIntent(context, mainAction))
+                val btnPending = if (mainAction.isNotEmpty()) {
+                    WidgetBindings.actionIntent(context, mainAction)
                 } else {
-                    setOnClickPendingIntent(
-                        R.id.widget_meds_btn,
-                        WidgetBindings.openAppIntent(context, "hagomwidget://openmeds", 1001)
-                    )
+                    openMedsIntent
                 }
+                setOnClickPendingIntent(R.id.widget_meds_btn, btnPending)
+                setOnClickPendingIntent(R.id.widget_meds_btn_compact, btnPending)
+
+                setViewVisibility(R.id.meds_expanded_list, if (isExpanded) View.VISIBLE else View.GONE)
 
                 val rowIds = listOf(
                     Triple(R.id.meds_row_1, R.id.meds_row_1_text, R.id.meds_row_1_btn),
@@ -62,10 +87,12 @@ class HagomMedsWidgetProvider : HomeWidgetProvider() {
                         this, widgetData, context,
                         rowId, textId, btnId,
                         "meds_row_${n}_text",
+                        "meds_row_${n}_short",
                         "meds_row_${n}_done",
                         "meds_row_${n}_action",
                         "복용",
-                        R.drawable.hagom_widget_btn_bg
+                        R.drawable.hagom_widget_btn_bg,
+                        isNarrow
                     )
                 }
             }

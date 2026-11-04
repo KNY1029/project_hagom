@@ -801,6 +801,26 @@ class _HabitsTabViewState extends State<HabitsTabView> {
                     onPressed: () => _showHabitEditModal(habit: habit),
                     child: const Text('정보 수정', style: TextStyle(color: AppColors.primaryPurple, fontSize: 12, fontWeight: FontWeight.w600)),
                   ),
+                  const SizedBox(width: 8),
+                  TextButton(
+                    style: TextButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+                      minimumSize: Size.zero,
+                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    ),
+                    onPressed: () => _state.moveHabit(habit.id, -1),
+                    child: const Text('위로', style: TextStyle(color: AppColors.textSecondary, fontSize: 12, fontWeight: FontWeight.w600)),
+                  ),
+                  const SizedBox(width: 4),
+                  TextButton(
+                    style: TextButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+                      minimumSize: Size.zero,
+                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    ),
+                    onPressed: () => _state.moveHabit(habit.id, 1),
+                    child: const Text('아래로', style: TextStyle(color: AppColors.textSecondary, fontSize: 12, fontWeight: FontWeight.w600)),
+                  ),
                   const Spacer(),
                   if (habit.score > 0.0)
                     TextButton(

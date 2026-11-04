@@ -1048,6 +1048,17 @@ class AppStateManager extends ChangeNotifier {
     _habits.removeWhere((h) => h.id == id);
     notifyListeners();
   }
+
+  /// 습관 순서 위아래 이동 (위젯 상단 대표 항목 우선순위와 직결)
+  void moveHabit(String id, int delta) {
+    final idx = _habits.indexWhere((h) => h.id == id);
+    if (idx == -1) return;
+    final nextIdx = (idx + delta).clamp(0, _habits.length - 1);
+    if (nextIdx == idx) return;
+    final item = _habits.removeAt(idx);
+    _habits.insert(nextIdx, item);
+    notifyListeners();
+  }
   // --- 🗓️ 할일 CRUD 액션 메서드 ---
 
   void addTask({
@@ -1083,6 +1094,25 @@ class AppStateManager extends ChangeNotifier {
   void toggleTaskExpanded(String id) {
     final task = _tasks.firstWhere((t) => t.id == id);
     task.isExpanded = !task.isExpanded;
+    notifyListeners();
+  }
+
+  /// 해당 날짜 할일 목록 안에서 순서 위아래 이동
+  void moveTask(String id, int delta, DateTime day) {
+    final dayTasks = getTasksForDay(day);
+    final localIdx = dayTasks.indexWhere((t) => t.id == id);
+    if (localIdx == -1) return;
+    final targetLocalIdx = (localIdx + delta).clamp(0, dayTasks.length - 1);
+    if (targetLocalIdx == localIdx) return;
+
+    final movingTask = dayTasks[localIdx];
+    final anchorTask = dayTasks[targetLocalIdx];
+    final fromGlobal = _tasks.indexWhere((t) => t.id == movingTask.id);
+    final toGlobal = _tasks.indexWhere((t) => t.id == anchorTask.id);
+    if (fromGlobal == -1 || toGlobal == -1) return;
+
+    final item = _tasks.removeAt(fromGlobal);
+    _tasks.insert(toGlobal, item);
     notifyListeners();
   }
 

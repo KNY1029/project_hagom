@@ -5,8 +5,8 @@ import '../state/app_state_manager.dart';
 
 /// 안드로이드 홈 화면 위젯과 앱 데이터를 1:1로 동기화하는 서비스.
 ///
-/// 모든 표시 문구와 버튼 액션 URI를 여기서 생성해 내려보내고,
-/// 네이티브 위젯 프로바이더는 계산 없이 그대로 그리기만 한다.
+/// 상단 대표 카드에 이미 표시된 항목은 아래 확장 목록(row_1~row_3)에서 제외하여
+/// 중복 표시를 막고, 가로 폭이 좁을 때(2xN) 쓸 짧은 텍스트(_short)도 함께 내려보낸다.
 class HagomNativeWidgetSync {
   static const String mascotProvider = 'HagomMascotWidgetProvider';
   static const String medsProvider = 'HagomMedsWidgetProvider';
@@ -50,7 +50,7 @@ class HagomNativeWidgetSync {
       await HomeWidget.updateWidget(name: mascotProvider, androidName: mascotProvider);
 
       // -------------------------------------------------------------
-      // 2) 복약 관리 위젯 (오늘 복용 대상의 모든 회차를 순서대로 바인딩)
+      // 2) 복약 관리 위젯
       // -------------------------------------------------------------
       final List<_MedSlotEntry> todaySlots = [];
       for (final med in state.medications) {
@@ -60,7 +60,6 @@ class HagomNativeWidgetSync {
         }
       }
 
-      // 미완료 회차 중 가장 앞선 것을 상단 대표 카드로 선정
       _MedSlotEntry? primaryMed;
       for (final entry in todaySlots) {
         if (!entry.slot.isCompleted && !entry.slot.isSkipped) {
@@ -68,36 +67,44 @@ class HagomNativeWidgetSync {
           break;
         }
       }
+      // 전부 완료된 경우 첫 회차를 대표로 두어 상단/하단 중복 기준을 명확히 함
+      primaryMed ??= todaySlots.isNotEmpty ? todaySlots.first : null;
 
       String medsTag = '다음 복약';
       String medsProgress = '$compMeds/$totalMeds 완료';
       String medsTitle;
       String medsSubtitle;
+      String medsSubtitleShort;
       String medsBtnTitle;
       String medsAllDone;
       String medsAction;
 
+      final allMedsCompleted = todaySlots.isNotEmpty &&
+          todaySlots.every((e) => e.slot.isCompleted || e.slot.isSkipped);
+
       if (todaySlots.isEmpty) {
         medsTitle = '오늘 예정된 약 없음';
         medsSubtitle = '앱에서 복약 일정을 확인해 보세요';
+        medsSubtitleShort = '일정 없음';
         medsProgress = '0/0';
         medsBtnTitle = '열기';
         medsAllDone = 'false';
         medsAction = '';
-      } else if (primaryMed != null) {
+      } else if (!allMedsCompleted && primaryMed != null) {
         medsTitle = primaryMed.med.name;
         final timePart = primaryMed.slot.scheduledTime ?? primaryMed.slot.label;
         final howPart = primaryMed.med.dosage.isNotEmpty ? ' · ${primaryMed.med.dosage}' : '';
         medsSubtitle = '${primaryMed.slot.label} ($timePart)$howPart';
+        medsSubtitleShort = '${primaryMed.slot.label} · $timePart';
         medsBtnTitle = '복용';
         medsAllDone = 'false';
         medsAction = 'hagomwidget://checkmed?id=${Uri.encodeComponent(primaryMed.med.id)}&slot=${primaryMed.slotIndex}';
       } else {
         medsTitle = '오늘 복약 모두 완료';
         medsSubtitle = '오늘 예정된 $totalMeds회 복약을 모두 마쳤어요';
+        medsSubtitleShort = '$totalMeds회 모두 완료';
         medsBtnTitle = '완료';
         medsAllDone = 'true';
-        // 완료 상태에서는 마지막 회차를 다시 탭하면 취소 가능하도록 연결
         final last = todaySlots.last;
         medsAction = 'hagomwidget://checkmed?id=${Uri.encodeComponent(last.med.id)}&slot=${last.slotIndex}';
       }
@@ -106,14 +113,19 @@ class HagomNativeWidgetSync {
       await HomeWidget.saveWidgetData<String>('meds_progress', medsProgress);
       await HomeWidget.saveWidgetData<String>('meds_title', medsTitle);
       await HomeWidget.saveWidgetData<String>('meds_subtitle', medsSubtitle);
+      await HomeWidget.saveWidgetData<String>('meds_subtitle_short', medsSubtitleShort);
       await HomeWidget.saveWidgetData<String>('meds_btn_title', medsBtnTitle);
       await HomeWidget.saveWidgetData<String>('meds_all_done', medsAllDone);
       await HomeWidget.saveWidgetData<String>('meds_action', medsAction);
 
-      // 확장 영역 3줄: 미완료 회차를 우선 배치하고, 남으면 완료 회차를 뒤에 배치
+      // 확장 영역 최대 3줄: 상단 대표 카드(primaryMed)는 제외하여 중복 표시 방지!
+      // 단, 전부 완료 상태여서 상단이 '오늘 복약 모두 완료' 요약 문구일 때는 전체 회차를 보여줌.
+      final remainingSlots = allMedsCompleted
+          ? todaySlots
+          : todaySlots.where((e) => ! identical(e, primaryMed)).toList();
       final orderedSlots = [
-        ...todaySlots.where((e) => !e.slot.isCompleted && !e.slot.isSkipped),
-        ...todaySlots.where((e) => e.slot.isCompleted || e.slot.isSkipped),
+        ...remainingSlots.where((e) => !e.slot.isCompleted && !e.slot.isSkipped),
+        ...remainingSlots.where((e) => e.slot.isCompleted || e.slot.isSkipped),
       ];
       for (int i = 0; i < 3; i++) {
         final n = i + 1;
@@ -121,6 +133,7 @@ class HagomNativeWidgetSync {
           final e = orderedSlots[i];
           final timeStr = e.slot.scheduledTime ?? e.slot.label;
           await HomeWidget.saveWidgetData<String>('meds_row_${n}_text', '${e.med.name} · ${e.slot.label} ($timeStr)');
+          await HomeWidget.saveWidgetData<String>('meds_row_${n}_short', '${e.med.name} (${e.slot.label})');
           await HomeWidget.saveWidgetData<String>('meds_row_${n}_done', e.slot.isCompleted ? 'true' : 'false');
           await HomeWidget.saveWidgetData<String>(
             'meds_row_${n}_action',
@@ -128,6 +141,7 @@ class HagomNativeWidgetSync {
           );
         } else {
           await HomeWidget.saveWidgetData<String>('meds_row_${n}_text', '');
+          await HomeWidget.saveWidgetData<String>('meds_row_${n}_short', '');
           await HomeWidget.saveWidgetData<String>('meds_row_${n}_done', 'false');
           await HomeWidget.saveWidgetData<String>('meds_row_${n}_action', '');
         }
@@ -135,7 +149,7 @@ class HagomNativeWidgetSync {
       await HomeWidget.updateWidget(name: medsProvider, androidName: medsProvider);
 
       // -------------------------------------------------------------
-      // 3) 습관 관리 위젯 (미완료 최상위 습관을 대표 카드로)
+      // 3) 습관 관리 위젯 (상단 대표 습관은 아래 목록에서 제외)
       // -------------------------------------------------------------
       final pendingHabits = todayHabits.where((h) => h.score < 1.0).toList();
       final primaryHabit = pendingHabits.isNotEmpty
@@ -147,6 +161,7 @@ class HagomNativeWidgetSync {
       String habitsProgress = '$doneHabitCount/${todayHabits.length} 완료';
       String habitsTitle;
       String habitsSubtitle;
+      String habitsSubtitleShort;
       String habitsBtnTitle;
       String habitsState;
       String habitsAction;
@@ -154,15 +169,19 @@ class HagomNativeWidgetSync {
       if (primaryHabit == null) {
         habitsTitle = '오늘 예정된 습관 없음';
         habitsSubtitle = '앱에서 새로운 습관을 추가해 보세요';
+        habitsSubtitleShort = '습관 없음';
         habitsBtnTitle = '열기';
         habitsState = 'standby';
         habitsAction = '';
       } else {
         final countInfo = primaryHabit.targetPerDay > 1
-            ? ' (${primaryHabit.currentCount}/${primaryHabit.targetPerDay}회)'
+            ? ' (${primaryHabit.currentCount}/${primaryHabit.targetPerDay})'
             : '';
         habitsTitle = '${primaryHabit.title}$countInfo';
         habitsSubtitle = primaryHabit.subtitle;
+        habitsSubtitleShort = primaryHabit.targetPerDay > 1
+            ? '${primaryHabit.currentCount}/${primaryHabit.targetPerDay}회 실천'
+            : primaryHabit.recurrenceSummary;
         if (primaryHabit.score >= 1.0) {
           habitsBtnTitle = '완료';
           habitsState = 'done';
@@ -180,16 +199,24 @@ class HagomNativeWidgetSync {
       await HomeWidget.saveWidgetData<String>('habits_progress', habitsProgress);
       await HomeWidget.saveWidgetData<String>('habits_title', habitsTitle);
       await HomeWidget.saveWidgetData<String>('habits_subtitle', habitsSubtitle);
+      await HomeWidget.saveWidgetData<String>('habits_subtitle_short', habitsSubtitleShort);
       await HomeWidget.saveWidgetData<String>('habits_btn_title', habitsBtnTitle);
       await HomeWidget.saveWidgetData<String>('habits_state', habitsState);
       await HomeWidget.saveWidgetData<String>('habits_action', habitsAction);
 
-      for (int i = 0; i < 4; i++) {
+      // 상단 대표 습관(primaryHabit)을 제외한 나머지 습관들만 아래 최대 3줄에 표시
+      final remainingHabits = todayHabits.where((h) => h.id != primaryHabit?.id).toList();
+      final orderedHabits = [
+        ...remainingHabits.where((h) => h.score < 1.0),
+        ...remainingHabits.where((h) => h.score >= 1.0),
+      ];
+      for (int i = 0; i < 3; i++) {
         final n = i + 1;
-        if (i < todayHabits.length) {
-          final h = todayHabits[i];
+        if (i < orderedHabits.length) {
+          final h = orderedHabits[i];
           final prog = h.targetPerDay > 1 ? ' (${h.currentCount}/${h.targetPerDay})' : '';
           await HomeWidget.saveWidgetData<String>('habits_row_${n}_text', '${h.title}$prog');
+          await HomeWidget.saveWidgetData<String>('habits_row_${n}_short', h.title);
           await HomeWidget.saveWidgetData<String>('habits_row_${n}_done', h.score >= 1.0 ? 'true' : 'false');
           await HomeWidget.saveWidgetData<String>(
             'habits_row_${n}_action',
@@ -197,6 +224,7 @@ class HagomNativeWidgetSync {
           );
         } else {
           await HomeWidget.saveWidgetData<String>('habits_row_${n}_text', '');
+          await HomeWidget.saveWidgetData<String>('habits_row_${n}_short', '');
           await HomeWidget.saveWidgetData<String>('habits_row_${n}_done', 'false');
           await HomeWidget.saveWidgetData<String>('habits_row_${n}_action', '');
         }
@@ -204,7 +232,7 @@ class HagomNativeWidgetSync {
       await HomeWidget.updateWidget(name: habitsProvider, androidName: habitsProvider);
 
       // -------------------------------------------------------------
-      // 4) 할일 / 일정 위젯 (오늘 할일 중 미완료 최상위 항목을 대표 카드로)
+      // 4) 할일 / 일정 위젯 (상단 대표 할일은 아래 목록에서 제외)
       // -------------------------------------------------------------
       final now = DateTime.now();
       final todayTasks = state.getTasksForDay(now);
@@ -218,6 +246,7 @@ class HagomNativeWidgetSync {
       String calProgress = todayTasks.isEmpty ? '0/0' : '$doneTasks/${todayTasks.length} 완료';
       String calTitle;
       String calSubtitle;
+      String calSubtitleShort;
       String calBtnTitle;
       String calAllDone;
       String calAction;
@@ -225,12 +254,14 @@ class HagomNativeWidgetSync {
       if (primaryTask == null) {
         calTitle = '오늘 예정된 할일 없음';
         calSubtitle = '달력에서 오늘의 할일을 추가해 보세요';
+        calSubtitleShort = '일정 없음';
         calBtnTitle = '열기';
         calAllDone = 'false';
         calAction = '';
       } else {
         calTitle = primaryTask.title;
         calSubtitle = '${primaryTask.time ?? "시간 자유"} · ${primaryTask.repeatSummary}';
+        calSubtitleShort = primaryTask.time ?? '오늘';
         calBtnTitle = primaryTask.isCompleted ? '완료' : '체크';
         calAllDone = primaryTask.isCompleted ? 'true' : 'false';
         calAction = 'hagomwidget://checktask?id=${Uri.encodeComponent(primaryTask.id)}';
@@ -240,16 +271,23 @@ class HagomNativeWidgetSync {
       await HomeWidget.saveWidgetData<String>('calendar_progress', calProgress);
       await HomeWidget.saveWidgetData<String>('calendar_title', calTitle);
       await HomeWidget.saveWidgetData<String>('calendar_subtitle', calSubtitle);
+      await HomeWidget.saveWidgetData<String>('calendar_subtitle_short', calSubtitleShort);
       await HomeWidget.saveWidgetData<String>('calendar_btn_title', calBtnTitle);
       await HomeWidget.saveWidgetData<String>('calendar_all_done', calAllDone);
       await HomeWidget.saveWidgetData<String>('calendar_action', calAction);
 
+      final remainingTasks = todayTasks.where((t) => t.id != primaryTask?.id).toList();
+      final orderedTasks = [
+        ...remainingTasks.where((t) => !t.isCompleted),
+        ...remainingTasks.where((t) => t.isCompleted),
+      ];
       for (int i = 0; i < 3; i++) {
         final n = i + 1;
-        if (i < todayTasks.length) {
-          final t = todayTasks[i];
+        if (i < orderedTasks.length) {
+          final t = orderedTasks[i];
           final timeStr = t.time != null ? ' (${t.time})' : '';
           await HomeWidget.saveWidgetData<String>('cal_row_${n}_text', '${t.title}$timeStr');
+          await HomeWidget.saveWidgetData<String>('cal_row_${n}_short', t.title);
           await HomeWidget.saveWidgetData<String>('cal_row_${n}_done', t.isCompleted ? 'true' : 'false');
           await HomeWidget.saveWidgetData<String>(
             'cal_row_${n}_action',
@@ -257,6 +295,7 @@ class HagomNativeWidgetSync {
           );
         } else {
           await HomeWidget.saveWidgetData<String>('cal_row_${n}_text', '');
+          await HomeWidget.saveWidgetData<String>('cal_row_${n}_short', '');
           await HomeWidget.saveWidgetData<String>('cal_row_${n}_done', 'false');
           await HomeWidget.saveWidgetData<String>('cal_row_${n}_action', '');
         }

@@ -5,9 +5,10 @@
     android:layout_height="match_parent"
     android:background="@drawable/hagom_widget_bg"
     android:orientation="vertical"
-    android:padding="12dp">
+    android:paddingHorizontal="11dp"
+    android:paddingVertical="9dp">
 
-    <!-- 기본 3x1 행 -->
+    <!-- 상단 대표 행 -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -30,53 +31,54 @@
                     android:id="@+id/widget_meds_tag"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:layout_marginEnd="6dp"
                     android:background="@drawable/hagom_widget_tag_bg"
-                    android:paddingHorizontal="7dp"
-                    android:paddingVertical="2dp"
+                    android:paddingHorizontal="6dp"
+                    android:paddingVertical="1.5dp"
                     android:text="다음 복약"
                     android:textColor="#7B61A8"
-                    android:textSize="10.5sp"
+                    android:textSize="10sp"
                     android:textStyle="bold" />
 
                 <TextView
                     android:id="@+id/widget_meds_progress"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginStart="8dp"
                     android:text=""
                     android:textColor="#6B7280"
-                    android:textSize="11sp" />
+                    android:textSize="10.5sp" />
             </LinearLayout>
 
             <TextView
                 android:id="@+id/widget_meds_title"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="4dp"
+                android:layout_marginTop="2dp"
                 android:ellipsize="end"
                 android:maxLines="1"
                 android:text=""
                 android:textColor="#1F2937"
-                android:textSize="14.5sp"
+                android:textSize="13.5sp"
                 android:textStyle="bold" />
 
             <TextView
                 android:id="@+id/widget_meds_subtitle"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="2dp"
+                android:layout_marginTop="1dp"
                 android:ellipsize="end"
                 android:maxLines="1"
                 android:text=""
                 android:textColor="#4B5568"
-                android:textSize="11sp" />
+                android:textSize="10.5sp" />
         </LinearLayout>
 
+        <!-- 넓을 때(3xN 이상) 쓰는 일반 버튼 -->
         <LinearLayout
             android:id="@+id/widget_meds_btn"
-            android:layout_width="72dp"
-            android:layout_height="48dp"
-            android:layout_marginStart="10dp"
+            android:layout_width="64dp"
+            android:layout_height="42dp"
+            android:layout_marginStart="8dp"
             android:background="@drawable/hagom_widget_btn_bg"
             android:gravity="center"
             android:orientation="vertical">
@@ -87,29 +89,50 @@
                 android:layout_height="wrap_content"
                 android:text="복용"
                 android:textColor="#FFFFFF"
-                android:textSize="15sp"
+                android:textSize="13.5sp"
+                android:textStyle="bold" />
+        </LinearLayout>
+
+        <!-- 좁을 때(2xN) 약 이름을 가리지 않는 컴팩트 버튼 -->
+        <LinearLayout
+            android:id="@+id/widget_meds_btn_compact"
+            android:layout_width="46dp"
+            android:layout_height="34dp"
+            android:layout_marginStart="6dp"
+            android:background="@drawable/hagom_widget_btn_bg"
+            android:gravity="center"
+            android:orientation="vertical"
+            android:visibility="gone">
+
+            <TextView
+                android:id="@+id/widget_meds_btn_compact_title"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="복용"
+                android:textColor="#FFFFFF"
+                android:textSize="11.5sp"
                 android:textStyle="bold" />
         </LinearLayout>
     </LinearLayout>
 
-    <!-- 세로 확장 시 노출되는 남은 회차 목록 (앱 데이터와 1:1 바인딩) -->
+    <!-- 세로 확장(n×2 이상) 시 최대 3개까지 잘리지 않게 표시 -->
     <LinearLayout
         android:id="@+id/meds_expanded_list"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
+        android:layout_marginTop="5dp"
         android:orientation="vertical">
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="1dp"
-            android:layout_marginBottom="6dp"
+            android:layout_marginBottom="3dp"
             android:background="#E5E7EB" />
 
         <LinearLayout
             android:id="@+id/meds_row_1"
             android:layout_width="match_parent"
-            android:layout_height="32dp"
+            android:layout_height="26dp"
             android:gravity="center_vertical"
             android:orientation="horizontal">
 
@@ -122,24 +145,25 @@
                 android:maxLines="1"
                 android:text=""
                 android:textColor="#1F2937"
-                android:textSize="11.5sp" />
+                android:textSize="11sp" />
 
             <TextView
                 android:id="@+id/meds_row_1_btn"
-                android:layout_width="54dp"
-                android:layout_height="24dp"
+                android:layout_width="44dp"
+                android:layout_height="21dp"
+                android:layout_marginStart="6dp"
                 android:background="@drawable/hagom_widget_btn_bg"
                 android:gravity="center"
                 android:text="복용"
                 android:textColor="#FFFFFF"
-                android:textSize="10.5sp"
+                android:textSize="10sp"
                 android:textStyle="bold" />
         </LinearLayout>
 
         <LinearLayout
             android:id="@+id/meds_row_2"
             android:layout_width="match_parent"
-            android:layout_height="32dp"
+            android:layout_height="26dp"
             android:gravity="center_vertical"
             android:orientation="horizontal">
 
@@ -152,24 +176,25 @@
                 android:maxLines="1"
                 android:text=""
                 android:textColor="#1F2937"
-                android:textSize="11.5sp" />
+                android:textSize="11sp" />
 
             <TextView
                 android:id="@+id/meds_row_2_btn"
-                android:layout_width="54dp"
-                android:layout_height="24dp"
+                android:layout_width="44dp"
+                android:layout_height="21dp"
+                android:layout_marginStart="6dp"
                 android:background="@drawable/hagom_widget_btn_bg"
                 android:gravity="center"
                 android:text="복용"
                 android:textColor="#FFFFFF"
-                android:textSize="10.5sp"
+                android:textSize="10sp"
                 android:textStyle="bold" />
         </LinearLayout>
 
         <LinearLayout
             android:id="@+id/meds_row_3"
             android:layout_width="match_parent"
-            android:layout_height="32dp"
+            android:layout_height="26dp"
             android:gravity="center_vertical"
             android:orientation="horizontal">
 
@@ -182,17 +207,18 @@
                 android:maxLines="1"
                 android:text=""
                 android:textColor="#1F2937"
-                android:textSize="11.5sp" />
+                android:textSize="11sp" />
 
             <TextView
                 android:id="@+id/meds_row_3_btn"
-                android:layout_width="54dp"
-                android:layout_height="24dp"
+                android:layout_width="44dp"
+                android:layout_height="21dp"
+                android:layout_marginStart="6dp"
                 android:background="@drawable/hagom_widget_btn_bg"
                 android:gravity="center"
                 android:text="복용"
                 android:textColor="#FFFFFF"
-                android:textSize="10.5sp"
+                android:textSize="10sp"
                 android:textStyle="bold" />
         </LinearLayout>
     </LinearLayout>
