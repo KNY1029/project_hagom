@@ -795,7 +795,9 @@ class _CalendarTabViewState extends State<CalendarTabView> {
                   final isSelected = cellDate.isAtSameMomentAs(_selectedDate);
                   final medRate = _state.getMedRateForDay(cellDate);
                   final habitRate = _state.getHabitRateForDay(cellDate);
-                  final hasTasks = _state.getTasksForDay(cellDate).isNotEmpty;
+                  final dayTasks = _state.getTasksForDay(cellDate);
+                  final hasTasks = dayTasks.isNotEmpty;
+                  final isTasksAllDone = hasTasks && dayTasks.every((t) => t.isCompleted);
                   final hasMissedPrescription = _state.hasMissedPrescriptionForDay(cellDate);
                   final isFuture = cellDate.isAfter(today);
                   final isBeforeTracking = _state.isBeforeTrackingStart(cellDate);
@@ -826,7 +828,9 @@ class _CalendarTabViewState extends State<CalendarTabView> {
                       ),
                       child: Stack(
                         children: [
-                          // 🌟 PRD 5.3절 [할일 라벤더 닷 모서리 핀]: top: 4, right: 4 단독 배치
+                          // 🌟 [할일 모서리 핀]:
+                          // - 할일 전부 완료: 연초록 바탕(#E6F8F0)에서도 100% 선명하게 구분되는 딥 포레스트 그린(Deep Forest Green #044E36)
+                          // - 할일 덜 끝냄/진행 중: 은은하고 포근한 라벤더 퍼플(Lavender Purple #7B61A8)
                           if (hasTasks)
                             Positioned(
                               top: 4,
@@ -834,8 +838,10 @@ class _CalendarTabViewState extends State<CalendarTabView> {
                               child: Container(
                                 width: 5.5,
                                 height: 5.5,
-                                decoration: const BoxDecoration(
-                                  color: AppColors.primaryPurple,
+                                decoration: BoxDecoration(
+                                  color: isTasksAllDone
+                                      ? const Color(0xFF044E36) // 짙은 딥 포레스트 그린 (연초록 배경에서도 또렷하게 보임!)
+                                      : AppColors.primaryPurple, // 덜 한 것: 라벤더 보라색
                                   shape: BoxShape.circle,
                                 ),
                               ),
