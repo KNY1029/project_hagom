@@ -66,7 +66,11 @@ class MedicationItem {
 
   /// 🌟 오늘(Today) 복용해야 하는 약인지 판별하는 스마트 게터
   bool isDueOn(DateTime date) {
-    if (recurrenceSummary == '매일' || recurrenceSummary == '오늘만' || recurrenceSummary.contains('시간')) {
+    if (recurrenceSummary == '매일' ||
+        recurrenceSummary == '오늘만' ||
+        recurrenceSummary.contains('시간') ||
+        recurrenceSummary.contains('하루') ||
+        recurrenceSummary.contains('회')) {
       return true;
     }
     if (recurrenceSummary == '필요 시') {

@@ -972,26 +972,37 @@ class _CalendarTabViewState extends State<CalendarTabView> {
               const Divider(height: 1),
               const SizedBox(height: 12),
 
-              // 1. 🗓️ [할일 및 일정 영역] - 최상단 우선 배치!
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Row(
+              // 1. 🗓️ [할일 및 일정 영역] - 과거: 그날의 한일, 오늘: 오늘의 할일, 미래: 그날의 할일
+              Builder(
+                builder: (context) {
+                  final now = DateTime.now();
+                  final today = DateTime(now.year, now.month, now.day);
+                  final sel = DateTime(_selectedDate.year, _selectedDate.month, _selectedDate.day);
+                  final String taskHeaderTitle = sel.isBefore(today)
+                      ? '그날의 한일'
+                      : (sel.isAtSameMomentAs(today) ? '오늘의 할일' : '그날의 할일');
+
+                  return Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      const Text('그날의 할일', style: TextStyle(fontSize: 13.5, fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
-                      const SizedBox(width: 6),
-                      Text(
-                        '(${selectedDayTasks.length}건)',
-                        style: const TextStyle(fontSize: 12, color: AppColors.textSecondary, fontWeight: FontWeight.w600),
+                      Row(
+                        children: [
+                          Text(taskHeaderTitle, style: const TextStyle(fontSize: 13.5, fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
+                          const SizedBox(width: 6),
+                          Text(
+                            '(${selectedDayTasks.length}건)',
+                            style: const TextStyle(fontSize: 12, color: AppColors.textSecondary, fontWeight: FontWeight.w600),
+                          ),
+                        ],
                       ),
+                      if (selectedDayTasks.isNotEmpty)
+                        Text(
+                          '${selectedDayTasks.where((t) => t.isCompleted).length}/${selectedDayTasks.length} 완료',
+                          style: const TextStyle(fontSize: 11.5, color: AppColors.primaryPurple, fontWeight: FontWeight.bold),
+                        ),
                     ],
-                  ),
-                  if (selectedDayTasks.isNotEmpty)
-                    Text(
-                      '${selectedDayTasks.where((t) => t.isCompleted).length}/${selectedDayTasks.length} 완료',
-                      style: const TextStyle(fontSize: 11.5, color: AppColors.primaryPurple, fontWeight: FontWeight.bold),
-                    ),
-                ],
+                  );
+                },
               ),
               const SizedBox(height: 8),
 
