@@ -93,7 +93,11 @@ class HagomMonthCalendarWidgetProvider : HomeWidgetProvider() {
                                 2000 + dayNum
                             )
                         } else {
-                            WidgetBindings.actionIntent(context, "hagomwidget://selectday?day=$dayNum")
+                            WidgetBindings.actionIntent(
+                                context,
+                                "hagomwidget://selectday?day=$dayNum",
+                                3000 + dayNum
+                            )
                         }
                         setOnClickPendingIntent(resId, cellPending)
                     }
@@ -118,14 +122,14 @@ class HagomMonthCalendarWidgetProvider : HomeWidgetProvider() {
                     }
                 }
 
-                // 이전달 / 다음달 넘김 백그라운드 액션
+                // 이전달 / 다음달 넘김 백그라운드 액션 (고유 requestCode 지정)
                 setOnClickPendingIntent(
                     R.id.widget_month_prev_btn,
-                    WidgetBindings.actionIntent(context, "hagomwidget://prevmonth")
+                    WidgetBindings.actionIntent(context, "hagomwidget://prevmonth", 1011)
                 )
                 setOnClickPendingIntent(
                     R.id.widget_month_next_btn,
-                    WidgetBindings.actionIntent(context, "hagomwidget://nextmonth")
+                    WidgetBindings.actionIntent(context, "hagomwidget://nextmonth", 1012)
                 )
 
                 // 중앙 하곰이 마스코트 & 헤더 탭 -> 하곰이의 방
@@ -148,6 +152,9 @@ class HagomMonthCalendarWidgetProvider : HomeWidgetProvider() {
 
                 setOnClickPendingIntent(R.id.widget_month_meds_box, medsIntent)
                 setOnClickPendingIntent(R.id.widget_month_habits_box, habitsIntent)
+                // 달력 위젯 여백/빈 공간 탭 시에도 달력 탭(또는 선택된 날짜)으로 시원하게 열림
+                setOnClickPendingIntent(R.id.widget_month_container, calIntent)
+                setOnClickPendingIntent(R.id.widget_month_title, calIntent)
             }
             appWidgetManager.updateAppWidget(appWidgetId, views)
         }
