@@ -8,6 +8,7 @@ class HagomNativeWidgetSync {
   static const String medsProvider = 'HagomMedsWidgetProvider';
   static const String habitsProvider = 'HagomHabitsWidgetProvider';
   static const String calendarProvider = 'HagomCalendarWidgetProvider';
+  static const String monthCalendarProvider = 'HagomMonthCalendarWidgetProvider';
 
   /// 앱 상태 변경 시 호출되어 안드로이드 홈 화면의 4대 위젯을 모두 최신 상태로 갱신
   static Future<void> updateNativeWidget(AppStateManager state) async {
@@ -137,6 +138,14 @@ class HagomNativeWidgetSync {
       await HomeWidget.saveWidgetData<String>('calendar_btn_title', calBtnTitle);
       await HomeWidget.saveWidgetData<String>('calendar_btn_subtitle', calBtnSubtitle);
       await HomeWidget.updateWidget(name: calendarProvider, androidName: calendarProvider);
+      // -------------------------------------------------------------
+      // 5) 🗓️ 4x4 한 달 달력 위젯 데이터 구성
+      // -------------------------------------------------------------
+      final monthStr = '${now.year}년 ${now.month}월 달력';
+      final monthSummary = '오늘 복약 ${state.completedDoseSlots}/${state.totalDoseSlots} 완료 · 비처벌적 기록 달력';
+      await HomeWidget.saveWidgetData<String>('month_title', monthStr);
+      await HomeWidget.saveWidgetData<String>('month_summary', monthSummary);
+      await HomeWidget.updateWidget(name: monthCalendarProvider, androidName: monthCalendarProvider);
     } catch (e) {
       debugPrint('Native widget update error: $e');
     }

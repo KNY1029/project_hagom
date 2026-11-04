@@ -77,6 +77,17 @@
                 android:name="android.appwidget.provider"
                 android:resource="@xml/hagom_calendar_widget_provider_info" />
         </receiver>
+        <!-- 5) 🗓️ 하곰이 4×4 한 달 기록 달력 대시보드 위젯 리시버 -->
+        <receiver
+            android:name=".HagomMonthCalendarWidgetProvider"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/hagom_month_calendar_widget_provider_info" />
+        </receiver>
     </application>
     <!-- Required to query activities that can process text, see:
          https://developer.android.com/training/package-visibility and

@@ -1,0 +1,163 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/widget_month_container"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/hagom_widget_bg"
+    android:orientation="vertical"
+    android:padding="14dp">
+
+    <!-- 상단 헤더: 년월 타이틀 + 마스코트 아이콘 -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical">
+
+        <TextView
+            android:id="@+id/widget_month_title"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="2026년 11월 달력"
+            android:textColor="#1F2937"
+            android:textSize="15sp"
+            android:textStyle="bold" />
+
+        <ImageView
+            android:layout_width="28dp"
+            android:layout_height="28dp"
+            android:src="@drawable/hagomi_mascot"
+            android:contentDescription="하곰이"
+            android:scaleType="fitCenter" />
+    </LinearLayout>
+
+    <!-- 요일 헤더 (일 ~ 토) -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:orientation="horizontal"
+        android:gravity="center">
+
+        <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:gravity="center" android:text="일" android:textColor="#EF4444" android:textSize="11sp" android:textStyle="bold" />
+        <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:gravity="center" android:text="월" android:textColor="#6B7280" android:textSize="11sp" />
+        <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:gravity="center" android:text="화" android:textColor="#6B7280" android:textSize="11sp" />
+        <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:gravity="center" android:text="수" android:textColor="#6B7280" android:textSize="11sp" />
+        <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:gravity="center" android:text="목" android:textColor="#6B7280" android:textSize="11sp" />
+        <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:gravity="center" android:text="금" android:textColor="#6B7280" android:textSize="11sp" />
+        <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:gravity="center" android:text="토" android:textColor="#6B7280" android:textSize="11sp" />
+    </LinearLayout>
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:layout_marginVertical="6dp"
+        android:background="#E5E7EB" />
+
+    <!-- 달력 그리드 영역 (1~5주 텍스트 뷰) -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:orientation="vertical"
+        android:gravity="center_vertical">
+
+        <!-- 1주차 -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+            <TextView android:id="@+id/d_1" android:layout_width="0dp" android:layout_height="24dp" android:layout_weight="1" android:gravity="center" android:text="1" android:textColor="#EF4444" android:textSize="11.5sp" />
+            <TextView android:id="@+id/d_2" android:layout_width="0dp" android:layout_height="24dp" android:layout_weight="1" android:gravity="center" android:text="2" android:textColor="#1F2937" android:textSize="11.5sp" />
+            <TextView android:id="@+id/d_3" android:layout_width="0dp" android:layout_height="24dp" android:layout_weight="1" android:gravity="center" android:text="3" android:textColor="#1F2937" android:textSize="11.5sp" />
+            <TextView android:id="@+id/d_4" android:layout_width="0dp" android:layout_height="24dp" android:layout_weight="1" android:gravity="center" android:text="4" android:textColor="#1F2937" android:textSize="11.5sp" android:textStyle="bold" android:background="@drawable/hagom_widget_tag_bg" />
+            <TextView android:id="@+id/d_5" android:layout_width="0dp" android:layout_height="24dp" android:layout_weight="1" android:gravity="center" android:text="5" android:textColor="#1F2937" android:textSize="11.5sp" />
+            <TextView android:id="@+id/d_6" android:layout_width="0dp" android:layout_height="24dp" android:layout_weight="1" android:gravity="center" android:text="6" android:textColor="#1F2937" android:textSize="11.5sp" />
+            <TextView android:id="@+id/d_7" android:layout_width="0dp" android:layout_height="24dp" android:layout_weight="1" android:gravity="center" android:text="7" android:textColor="#1F2937" android:textSize="11.5sp" />
+        </LinearLayout>
+
+        <!-- 2주차 -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="3dp"
+            android:orientation="horizontal">
+            <TextView android:id="@+id/d_8" android:layout_width="0dp" android:layout_height="24dp" android:layout_weight="1" android:gravity="center" android:text="8" android:textColor="#EF4444" android:textSize="11.5sp" />
+            <TextView android:id="@+id/d_9" android:layout_width="0dp" android:layout_height="24dp" android:layout_weight="1" android:gravity="center" android:text="9" android:textColor="#1F2937" android:textSize="11.5sp" />
+            <TextView android:id="@+id/d_10" android:layout_width="0dp" android:layout_height="24dp" android:layout_weight="1" android:gravity="center" android:text="10" android:textColor="#1F2937" android:textSize="11.5sp" />
+            <TextView android:id="@+id/d_11" android:layout_width="0dp" android:layout_height="24dp" android:layout_weight="1" android:gravity="center" android:text="11" android:textColor="#1F2937" android:textSize="11.5sp" />
+            <TextView android:id="@+id/d_12" android:layout_width="0dp" android:layout_height="24dp" android:layout_weight="1" android:gravity="center" android:text="12" android:textColor="#1F2937" android:textSize="11.5sp" />
+            <TextView android:id="@+id/d_13" android:layout_width="0dp" android:layout_height="24dp" android:layout_weight="1" android:gravity="center" android:text="13" android:textColor="#1F2937" android:textSize="11.5sp" />
+            <TextView android:id="@+id/d_14" android:layout_width="0dp" android:layout_height="24dp" android:layout_weight="1" android:gravity="center" android:text="14" android:textColor="#1F2937" android:textSize="11.5sp" />
+        </LinearLayout>
+
+        <!-- 3주차 -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="3dp"
+            android:orientation="horizontal">
+            <TextView android:id="@+id/d_15" android:layout_width="0dp" android:layout_height="24dp" android:layout_weight="1" android:gravity="center" android:text="15" android:textColor="#EF4444" android:textSize="11.5sp" />
+            <TextView android:id="@+id/d_16" android:layout_width="0dp" android:layout_height="24dp" android:layout_weight="1" android:gravity="center" android:text="16" android:textColor="#1F2937" android:textSize="11.5sp" />
+            <TextView android:id="@+id/d_17" android:layout_width="0dp" android:layout_height="24dp" android:layout_weight="1" android:gravity="center" android:text="17" android:textColor="#1F2937" android:textSize="11.5sp" />
+            <TextView android:id="@+id/d_18" android:layout_width="0dp" android:layout_height="24dp" android:layout_weight="1" android:gravity="center" android:text="18" android:textColor="#1F2937" android:textSize="11.5sp" />
+            <TextView android:id="@+id/d_19" android:layout_width="0dp" android:layout_height="24dp" android:layout_weight="1" android:gravity="center" android:text="19" android:textColor="#1F2937" android:textSize="11.5sp" />
+            <TextView android:id="@+id/d_20" android:layout_width="0dp" android:layout_height="24dp" android:layout_weight="1" android:gravity="center" android:text="20" android:textColor="#1F2937" android:textSize="11.5sp" />
+            <TextView android:id="@+id/d_21" android:layout_width="0dp" android:layout_height="24dp" android:layout_weight="1" android:gravity="center" android:text="21" android:textColor="#1F2937" android:textSize="11.5sp" />
+        </LinearLayout>
+
+        <!-- 4주차 -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="3dp"
+            android:orientation="horizontal">
+            <TextView android:id="@+id/d_22" android:layout_width="0dp" android:layout_height="24dp" android:layout_weight="1" android:gravity="center" android:text="22" android:textColor="#EF4444" android:textSize="11.5sp" />
+            <TextView android:id="@+id/d_23" android:layout_width="0dp" android:layout_height="24dp" android:layout_weight="1" android:gravity="center" android:text="23" android:textColor="#1F2937" android:textSize="11.5sp" />
+            <TextView android:id="@+id/d_24" android:layout_width="0dp" android:layout_height="24dp" android:layout_weight="1" android:gravity="center" android:text="24" android:textColor="#1F2937" android:textSize="11.5sp" />
+            <TextView android:id="@+id/d_25" android:layout_width="0dp" android:layout_height="24dp" android:layout_weight="1" android:gravity="center" android:text="25" android:textColor="#1F2937" android:textSize="11.5sp" />
+            <TextView android:id="@+id/d_26" android:layout_width="0dp" android:layout_height="24dp" android:layout_weight="1" android:gravity="center" android:text="26" android:textColor="#1F2937" android:textSize="11.5sp" />
+            <TextView android:id="@+id/d_27" android:layout_width="0dp" android:layout_height="24dp" android:layout_weight="1" android:gravity="center" android:text="27" android:textColor="#1F2937" android:textSize="11.5sp" />
+            <TextView android:id="@+id/d_28" android:layout_width="0dp" android:layout_height="24dp" android:layout_weight="1" android:gravity="center" android:text="28" android:textColor="#1F2937" android:textSize="11.5sp" />
+        </LinearLayout>
+
+        <!-- 5주차 -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="3dp"
+            android:orientation="horizontal">
+            <TextView android:id="@+id/d_29" android:layout_width="0dp" android:layout_height="24dp" android:layout_weight="1" android:gravity="center" android:text="29" android:textColor="#EF4444" android:textSize="11.5sp" />
+            <TextView android:id="@+id/d_30" android:layout_width="0dp" android:layout_height="24dp" android:layout_weight="1" android:gravity="center" android:text="30" android:textColor="#1F2937" android:textSize="11.5sp" />
+            <TextView android:id="@+id/d_31" android:layout_width="0dp" android:layout_height="24dp" android:layout_weight="1" android:gravity="center" android:text="" android:textColor="#1F2937" android:textSize="11.5sp" />
+            <TextView android:layout_width="0dp" android:layout_height="24dp" android:layout_weight="1" />
+            <TextView android:layout_width="0dp" android:layout_height="24dp" android:layout_weight="1" />
+            <TextView android:layout_width="0dp" android:layout_height="24dp" android:layout_weight="1" />
+            <TextView android:layout_width="0dp" android:layout_height="24dp" android:layout_weight="1" />
+        </LinearLayout>
+
+    </LinearLayout>
+
+    <!-- 하단 오늘의 진행 요약 칩 -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="6dp"
+        android:background="@drawable/hagom_widget_tag_bg"
+        android:paddingHorizontal="10dp"
+        android:paddingVertical="6dp"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+
+        <TextView
+            android:id="@+id/widget_month_summary"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="오늘 복약 1/4 완료 · 비처벌적 기록 달력"
+            android:textColor="#7B61A8"
+            android:textSize="11.5sp"
+            android:textStyle="bold" />
+    </LinearLayout>
+
+</LinearLayout>
