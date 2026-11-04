@@ -7,7 +7,7 @@ import android.content.Intent
 import android.content.SharedPreferences
 import android.net.Uri
 import android.widget.RemoteViews
-import es.antonborri.home_widget.HomeWidgetBackgroundIntent
+import es.antonborri.home_widget.HomeWidgetLaunchIntent
 import es.antonborri.home_widget.HomeWidgetProvider
 
 class HagomHabitsWidgetProvider : HomeWidgetProvider() {
@@ -36,25 +36,21 @@ class HagomHabitsWidgetProvider : HomeWidgetProvider() {
                 setTextViewText(R.id.widget_habits_btn_title, btnTitle)
                 setTextViewText(R.id.widget_habits_btn_subtitle, btnSubtitle)
 
-                // 1) 좌측 본문 터치 시: 하곰이 앱 열기
-                val openAppIntent = Intent(context, MainActivity::class.java).apply {
-                    flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
-                    putExtra("from_widget", "habits")
-                }
-                val openAppPendingIntent = PendingIntent.getActivity(
+                // 1) 좌측 본문 터치 시: 하곰이 습관 탭 열기
+                val openAppPendingIntent = HomeWidgetLaunchIntent.getActivity(
                     context,
-                    102,
-                    openAppIntent,
-                    PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+                    MainActivity::class.java,
+                    Uri.parse("hagomwidget://openHabits")
                 )
                 setOnClickPendingIntent(R.id.widget_habits_container, openAppPendingIntent)
 
-                // 2) 우측 [실천] 버튼 터치 시: 앱 실행 없이 즉시 습관 카운트 증가되는 백그라운드 인텐트!
-                val bgCheckIntent = HomeWidgetBackgroundIntent.getBroadcast(
+                // 2) 우측 [실천] 1-Tap 버튼 터치 시: 습관 카운트 즉시 1-Tap 실천!
+                val checkHabitPendingIntent = HomeWidgetLaunchIntent.getActivity(
                     context,
-                    Uri.parse("hagomWidget://checkHabit")
+                    MainActivity::class.java,
+                    Uri.parse("hagomwidget://checkHabit")
                 )
-                setOnClickPendingIntent(R.id.widget_habits_btn, bgCheckIntent)
+                setOnClickPendingIntent(R.id.widget_habits_btn, checkHabitPendingIntent)
             }
             appWidgetManager.updateAppWidget(appWidgetId, views)
         }

@@ -7,7 +7,7 @@ import android.content.Intent
 import android.content.SharedPreferences
 import android.net.Uri
 import android.widget.RemoteViews
-import es.antonborri.home_widget.HomeWidgetBackgroundIntent
+import es.antonborri.home_widget.HomeWidgetLaunchIntent
 import es.antonborri.home_widget.HomeWidgetProvider
 
 class HagomCalendarWidgetProvider : HomeWidgetProvider() {
@@ -36,25 +36,21 @@ class HagomCalendarWidgetProvider : HomeWidgetProvider() {
                 setTextViewText(R.id.widget_calendar_btn_title, btnTitle)
                 setTextViewText(R.id.widget_calendar_btn_subtitle, btnSubtitle)
 
-                // 1) 좌측 본문 터치 시: 하곰이 앱 열기
-                val openAppIntent = Intent(context, MainActivity::class.java).apply {
-                    flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
-                    putExtra("from_widget", "calendar")
-                }
-                val openAppPendingIntent = PendingIntent.getActivity(
+                // 1) 좌측 본문 터치 시: 하곰이 달력 탭 열기
+                val openAppPendingIntent = HomeWidgetLaunchIntent.getActivity(
                     context,
-                    103,
-                    openAppIntent,
-                    PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+                    MainActivity::class.java,
+                    Uri.parse("hagomwidget://openCalendar")
                 )
                 setOnClickPendingIntent(R.id.widget_calendar_container, openAppPendingIntent)
 
-                // 2) 우측 [체크] 버튼 터치 시: 앱 실행 없이 즉시 할일 완료 토글되는 백그라운드 인텐트!
-                val bgCheckIntent = HomeWidgetBackgroundIntent.getBroadcast(
+                // 2) 우측 [체크] 1-Tap 버튼 터치 시: 할일 즉시 완료 토글!
+                val checkTaskPendingIntent = HomeWidgetLaunchIntent.getActivity(
                     context,
-                    Uri.parse("hagomWidget://checkTask")
+                    MainActivity::class.java,
+                    Uri.parse("hagomwidget://checkTask")
                 )
-                setOnClickPendingIntent(R.id.widget_calendar_btn, bgCheckIntent)
+                setOnClickPendingIntent(R.id.widget_calendar_btn, checkTaskPendingIntent)
             }
             appWidgetManager.updateAppWidget(appWidgetId, views)
         }

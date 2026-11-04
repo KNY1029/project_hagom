@@ -7,7 +7,7 @@ import android.content.Intent
 import android.content.SharedPreferences
 import android.net.Uri
 import android.widget.RemoteViews
-import es.antonborri.home_widget.HomeWidgetBackgroundIntent
+import es.antonborri.home_widget.HomeWidgetLaunchIntent
 import es.antonborri.home_widget.HomeWidgetProvider
 
 class HagomMedsWidgetProvider : HomeWidgetProvider() {
@@ -36,25 +36,21 @@ class HagomMedsWidgetProvider : HomeWidgetProvider() {
                 setTextViewText(R.id.widget_meds_btn_title, btnTitle)
                 setTextViewText(R.id.widget_meds_btn_subtitle, btnSubtitle)
 
-                // 1) 좌측 본문 터치 시: 하곰이 앱 열기
-                val openAppIntent = Intent(context, MainActivity::class.java).apply {
-                    flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
-                    putExtra("from_widget", "meds")
-                }
-                val openAppPendingIntent = PendingIntent.getActivity(
+                // 1) 좌측 본문 터치 시: 하곰이 복약 탭 열기
+                val openAppPendingIntent = HomeWidgetLaunchIntent.getActivity(
                     context,
-                    101,
-                    openAppIntent,
-                    PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+                    MainActivity::class.java,
+                    Uri.parse("hagomwidget://openMeds")
                 )
                 setOnClickPendingIntent(R.id.widget_meds_container, openAppPendingIntent)
 
-                // 2) 우측 [복용] 버튼 터치 시: 앱 실행 없이 즉시 복약 체크되는 백그라운드 인텐트!
-                val bgCheckIntent = HomeWidgetBackgroundIntent.getBroadcast(
+                // 2) 우측 [복용] 1-Tap 버튼 터치 시: 복약 완료 액션 즉시 실행!
+                val checkMedPendingIntent = HomeWidgetLaunchIntent.getActivity(
                     context,
-                    Uri.parse("hagomWidget://checkMed")
+                    MainActivity::class.java,
+                    Uri.parse("hagomwidget://checkMed")
                 )
-                setOnClickPendingIntent(R.id.widget_meds_btn, bgCheckIntent)
+                setOnClickPendingIntent(R.id.widget_meds_btn, checkMedPendingIntent)
             }
             appWidgetManager.updateAppWidget(appWidgetId, views)
         }

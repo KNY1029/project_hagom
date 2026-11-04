@@ -5,7 +5,9 @@ import android.appwidget.AppWidgetManager
 import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
+import android.net.Uri
 import android.widget.RemoteViews
+import es.antonborri.home_widget.HomeWidgetLaunchIntent
 import es.antonborri.home_widget.HomeWidgetProvider
 
 class HagomMascotWidgetProvider : HomeWidgetProvider() {
@@ -26,16 +28,10 @@ class HagomMascotWidgetProvider : HomeWidgetProvider() {
                 setTextViewText(R.id.widget_mascot_quote, quote)
                 setTextViewText(R.id.widget_mascot_sub, sub)
 
-                // 🚀 위젯 터치 시 앱 메인/방으로 바로 이동
-                val intent = Intent(context, MainActivity::class.java).apply {
-                    flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
-                    putExtra("from_widget", "mascot")
-                }
-                val pendingIntent = PendingIntent.getActivity(
+                val pendingIntent = HomeWidgetLaunchIntent.getActivity(
                     context,
-                    100,
-                    intent,
-                    PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+                    MainActivity::class.java,
+                    Uri.parse("hagomwidget://openRoom")
                 )
                 setOnClickPendingIntent(R.id.widget_mascot_container, pendingIntent)
             }
