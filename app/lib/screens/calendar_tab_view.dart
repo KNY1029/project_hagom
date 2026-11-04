@@ -1283,13 +1283,23 @@ class _CalendarTabViewState extends State<CalendarTabView> {
                                       width: isDone ? 1.2 : 1.0,
                                     ),
                                   ),
-                                  child: Text(
-                                    '${slot.label} ${isDone ? "복용 완료" : "미복용"}',
-                                    style: TextStyle(
-                                      fontSize: 11,
-                                      fontWeight: isDone ? FontWeight.bold : FontWeight.w500,
-                                      color: isDone ? AppColors.completedText : AppColors.textSecondary,
-                                    ),
+                                  child: Builder(
+                                    builder: (context) {
+                                      final takenTime = _state.getSlotTakenTimeForDay(_selectedDate, med.id, slotIdx);
+                                      final timePart = takenTime != null && takenTime.isNotEmpty
+                                          ? ' ${takenTime.split(' ').last}'
+                                          : (slot.scheduledTime != null ? ' ${slot.scheduledTime!.split(' ').last}' : '');
+                                      final statusText = isDone ? '${slot.label}$timePart' : '${slot.label} 미복용';
+
+                                      return Text(
+                                        statusText,
+                                        style: TextStyle(
+                                          fontSize: 11,
+                                          fontWeight: isDone ? FontWeight.bold : FontWeight.w500,
+                                          color: isDone ? AppColors.completedText : AppColors.textSecondary,
+                                        ),
+                                      );
+                                    },
                                   ),
                                 ),
                               );

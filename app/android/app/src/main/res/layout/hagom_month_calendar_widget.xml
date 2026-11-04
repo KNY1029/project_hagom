@@ -7,7 +7,7 @@
     android:orientation="vertical"
     android:padding="12dp">
 
-    <!-- 1) 상단 헤더: 제목 탭 시에만 앱 열림 -->
+    <!-- 1) 상단 헤더: 이전달(<), 제목, 다음달(>), 하곰이 방 아이콘 -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -15,19 +15,43 @@
         android:orientation="horizontal">
 
         <TextView
+            android:id="@+id/widget_month_prev_btn"
+            android:layout_width="30dp"
+            android:layout_height="30dp"
+            android:background="?android:attr/selectableItemBackgroundBorderless"
+            android:gravity="center"
+            android:text="◀"
+            android:textColor="#7B61A8"
+            android:textSize="12sp"
+            android:textStyle="bold" />
+
+        <TextView
             android:id="@+id/widget_month_title"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
+            android:gravity="center"
             android:text="2026년 11월 기록 달력"
             android:textColor="#1F2937"
-            android:textSize="14.5sp"
+            android:textSize="14sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/widget_month_next_btn"
+            android:layout_width="30dp"
+            android:layout_height="30dp"
+            android:background="?android:attr/selectableItemBackgroundBorderless"
+            android:gravity="center"
+            android:text="▶"
+            android:textColor="#7B61A8"
+            android:textSize="12sp"
             android:textStyle="bold" />
 
         <ImageView
             android:id="@+id/widget_month_mascot_btn"
-            android:layout_width="28dp"
-            android:layout_height="28dp"
+            android:layout_width="26dp"
+            android:layout_height="26dp"
+            android:layout_marginStart="4dp"
             android:contentDescription="하곰이의 방"
             android:scaleType="fitCenter"
             android:src="@drawable/hagomi_mascot" />
@@ -57,7 +81,7 @@
         android:layout_marginBottom="4dp"
         android:background="#E5E7EB" />
 
-    <!-- 3) 달력 그리드 영역: weight=1로 4x4 크기까지는 달력 칸 자체가 시원시원하게 커짐 -->
+    <!-- 3) 달력 그리드 영역: weight=1로 4x4 크기까지 달력 칸이 시원시원하게 확장 -->
     <LinearLayout
         android:id="@+id/month_calendar_grid"
         android:layout_width="match_parent"
@@ -149,7 +173,7 @@
         android:layout_marginTop="6dp"
         android:orientation="vertical">
 
-        <!-- 습관 & 복약 달성도 요약 배지 (클릭 시 각 탭으로 직행) -->
+        <!-- 습관 & 복약 달성도 요약 배지 -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -199,7 +223,7 @@
             </LinearLayout>
         </LinearLayout>
 
-        <!-- 오늘 할일 섹션 헤더 (클릭 시 달력 탭으로 직행) -->
+        <!-- 오늘 할일 섹션 헤더: 우측에는 전체 개수 요약만 표시해 첫번째 할일 중복 노출 제거 -->
         <LinearLayout
             android:id="@+id/widget_month_tasks_header"
             android:layout_width="match_parent"

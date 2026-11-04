@@ -306,12 +306,17 @@ class HagomNativeWidgetSync {
       // -------------------------------------------------------------
       // 5) 4x4 한 달 기록 달력 위젯
       // -------------------------------------------------------------
-      final monthStr = '${now.year}년 ${now.month}월 기록 달력';
+      // 5) 4x4 한 달 기록 달력 위젯 (이전달/다음달 이동 오프셋 반영)
+      // -------------------------------------------------------------
+      final offset = state.widgetMonthOffset;
+      final displayMonth = DateTime(now.year, now.month + offset, 1);
+      final monthStr = '${displayMonth.year}년 ${displayMonth.month}월 기록 달력';
       final monthMeds = '복약 $compMeds/$totalMeds 완료';
       final monthHabits = '습관 $doneHabitCount/${todayHabits.length} 완료';
-      final monthTasks = primaryTask != null
-          ? '${primaryTask.title} (${primaryTask.time ?? "시간 자유"})'
-          : '오늘 예정된 할일 없음';
+      final pendingCount = todayTasks.where((t) => !t.isCompleted).length;
+      final monthTasks = todayTasks.isEmpty
+          ? '0개'
+          : (pendingCount > 0 ? '$pendingCount개 남음' : '모두 완료');
 
       await HomeWidget.saveWidgetData<String>('month_title', monthStr);
       await HomeWidget.saveWidgetData<String>('month_meds', monthMeds);
@@ -320,17 +325,16 @@ class HagomNativeWidgetSync {
 
       final todayOnly = DateTime(now.year, now.month, now.day);
       for (int d = 1; d <= 31; d++) {
-        final date = DateTime(now.year, now.month, d);
-        if (date.month != now.month) {
+        final date = DateTime(displayMonth.year, displayMonth.month, d);
+        if (date.month != displayMonth.month) {
           await HomeWidget.saveWidgetData<String>('day_status_$d', '');
           continue;
         }
-        final isTodayCell = d == now.day;
+        final isTodayCell = (date.year == now.year && date.month == now.month && d == now.day);
         final isFutureCell = date.isAfter(todayOnly);
         final isBeforeTrack = state.isBeforeTrackingStart(date);
         final tasks = state.getTasksForDay(date);
         final hasT = tasks.isNotEmpty;
-
         String status = '';
         if (isTodayCell) {
           // 오늘 날짜: 보라색 테두리 강조 + 올클리어(연초록)와 할일 핀만 표시하고 빨간 바/갈색 바는 절대 표시하지 않음

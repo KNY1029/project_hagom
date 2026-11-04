@@ -103,6 +103,15 @@ class HagomMonthCalendarWidgetProvider : HomeWidgetProvider() {
                 val openCalIntent = WidgetBindings.openAppIntent(context, "hagomwidget://opencalendar", 1005)
                 setOnClickPendingIntent(R.id.widget_month_title, openCalIntent)
                 setOnClickPendingIntent(R.id.widget_month_tasks_header, openCalIntent)
+                // 이전달 / 다음달 넘김 백그라운드 액션 연결
+                setOnClickPendingIntent(
+                    R.id.widget_month_prev_btn,
+                    WidgetBindings.actionIntent(context, "hagomwidget://prevmonth")
+                )
+                setOnClickPendingIntent(
+                    R.id.widget_month_next_btn,
+                    WidgetBindings.actionIntent(context, "hagomwidget://nextmonth")
+                )
 
                 // 2) 마스코트 아이콘 탭 -> 하곰이의 방
                 setOnClickPendingIntent(

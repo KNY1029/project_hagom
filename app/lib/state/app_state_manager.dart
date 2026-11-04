@@ -180,6 +180,12 @@ class AppStateManager extends ChangeNotifier {
     requestedCalendarDate = calendarDate;
     notifyListeners();
   }
+  int widgetMonthOffset = 0;
+
+  void changeWidgetMonthOffset(int delta) {
+    widgetMonthOffset += delta;
+    notifyListeners();
+  }
 
   void consumeTargetTab() {
     targetTabIndexRequested = null;
@@ -226,7 +232,20 @@ class AppStateManager extends ChangeNotifier {
   final Map<String, Map<String, bool>> _pastSlotRecords = {};
   // value: { 'habitId': score } (0.0=미실천, 0.5=조금실천, 1.0=완료)
   final Map<String, Map<String, double>> _pastHabitRecords = {};
+  final Map<String, Map<String, String>> _pastSlotTimes = {};
 
+  // 특정 날짜의 슬롯이 '소급 수정(달력에서 나중에 수정한 것)'인지 여부 (key: 'YYYY-MM-DD_medId_slotIdx')
+  final Set<String> _retroactiveSlots = {};
+
+  bool isSlotRetroactive(DateTime day, String medId, int slotIdx) {
+    final key = '${_dateKey(day)}_${medId}_$slotIdx';
+    return _retroactiveSlots.contains(key);
+  }
+
+  void markSlotRetroactive(DateTime day, String medId, int slotIdx) {
+    final key = '${_dateKey(day)}_${medId}_$slotIdx';
+    _retroactiveSlots.add(key);
+  }
   String _dateKey(DateTime dt) =>
       '${dt.year}-${dt.month.toString().padLeft(2, '0')}-${dt.day.toString().padLeft(2, '0')}';
 
@@ -270,7 +289,6 @@ class AppStateManager extends ChangeNotifier {
     if (d == 7) {
       return false; // 복약 전부 미복용
     }
-
     // 8일 이후 패턴 반복 (테스트용)
     if (d % 6 == 1) return true;
     if (d % 6 == 2) return true;
@@ -278,6 +296,39 @@ class AppStateManager extends ChangeNotifier {
     if (d % 6 == 4) return !medId.contains('1');
     if (d % 6 == 5) return medId.contains('1');
     return !medId.contains('1');
+  }
+
+  /// 특정 날짜의 특정 약/슬롯 복용 시각 문자열 가져오기
+  String? getSlotTakenTimeForDay(DateTime day, String medId, int slotIdx) {
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final target = DateTime(day.year, day.month, day.day);
+
+    if (target.isAtSameMomentAs(today)) {
+      final med = _medications.firstWhere((m) => m.id == medId, orElse: () => _medications.first);
+      if (slotIdx >= 0 && slotIdx < med.doseSlots.length) {
+        return med.doseSlots[slotIdx].takenTime;
+      }
+      return null;
+    }
+
+    final key = _dateKey(day);
+    final slotKey = '${medId}_$slotIdx';
+    if (_pastSlotTimes.containsKey(key) && _pastSlotTimes[key]!.containsKey(slotKey)) {
+      return _pastSlotTimes[key]![slotKey];
+    }
+    // 예시 데이터 1~7일 기본 복용 시간대 맵핑
+    if (isSlotCompletedForDay(day, medId, slotIdx)) {
+      return slotIdx == 0 ? '오전 8:05' : '오후 12:35';
+    }
+    return null;
+  }
+
+  void setPastSlotTime(DateTime day, String medId, int slotIdx, String timeStr) {
+    final key = _dateKey(day);
+    final slotKey = '${medId}_$slotIdx';
+    _pastSlotTimes.putIfAbsent(key, () => {})[slotKey] = timeStr;
+    notifyListeners();
   }
 
   // 특정 날짜의 특정 약/슬롯 소급 완료/취소 토글 (사후 개별 기록 연동!)
@@ -304,6 +355,7 @@ class AppStateManager extends ChangeNotifier {
     final nextVal = !current;
 
     _pastSlotRecords.putIfAbsent(key, () => {})[slotKey] = nextVal;
+    _retroactiveSlots.add('${key}_$slotKey');
     gentleAttempts++;
     notifyListeners();
     return nextVal;
@@ -1245,8 +1297,7 @@ class AppStateManager extends ChangeNotifier {
     // 1. 💊 처방약 & 일반약 데이터
     if (includePrescription || includeOtc) {
       buffer.writeln('--- [1. 복약 관리 데이터] ---');
-      buffer.writeln('약물 ID,약품명,분류,용법/용량,복용 주기,복용 기간,회차(시간대),예정 시각,복용 여부,실제 복용 시각,시간 엄수 필수 여부');
-
+      buffer.writeln('약물 ID,약품명,분류,용법/용량,복용 주기,복용 기간,회차(시간대),예정 시각,복용 여부,실제 복용 시각,기록 방식(실시간/사후수정),시간 엄수 필수 여부');
       final targetMeds = _medications.where((m) {
         if (m.isPrescription && includePrescription) return true;
         if (!m.isPrescription && includeOtc) return true;
@@ -1257,8 +1308,11 @@ class AppStateManager extends ChangeNotifier {
         final categoryStr = med.isPrescription ? '처방약 (필수)' : '일반약/영양제';
         for (final slot in med.doseSlots) {
           final statusStr = slot.isCompleted ? '복용 완료' : (slot.isSkipped ? '건너뜀' : '미복용/대기');
+          final recordMethod = !slot.isCompleted
+              ? '-'
+              : (isSlotRetroactive(DateTime.now(), med.id, med.doseSlots.indexOf(slot)) ? '달력 사후 수정' : '당일 실시간 체크');
           buffer.writeln(
-            '"${med.id}","${med.name}","$categoryStr","${med.dosage}","${med.recurrenceSummary}","${med.durationSummary}","${slot.label}","${slot.scheduledTime ?? '-'}","$statusStr","${slot.takenTime ?? '-'}","${med.isPrescription ? '엄수 필요' : '자유'}"',
+            '"${med.id}","${med.name}","$categoryStr","${med.dosage}","${med.recurrenceSummary}","${med.durationSummary}","${slot.label}","${slot.scheduledTime ?? '-'}","$statusStr","${slot.takenTime ?? '-'}","$recordMethod","${med.isPrescription ? '엄수 필요' : '자유'}"',
           );
         }
       }

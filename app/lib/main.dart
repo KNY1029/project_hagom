@@ -92,6 +92,12 @@ Future<void> handleWidgetUriAction(Uri? uri) async {
       targetDate = DateTime.tryParse(dateParam);
     }
     state.setTargetTab(2, calendarDate: targetDate);
+  } else if (action == 'prevmonth') {
+    state.changeWidgetMonthOffset(-1);
+    await state.flushForWidget();
+  } else if (action == 'nextmonth') {
+    state.changeWidgetMonthOffset(1);
+    await state.flushForWidget();
   } else if (action == 'openroom') {
     state.setTargetTab(0, openRoom: true);
   }
