@@ -867,7 +867,8 @@ class _CalendarTabViewState extends State<CalendarTabView> {
                           // 2) 처방약 안 먹은 날: 흰색 셀 + 🚨 빨간색 바 (#EF4444)
                           // 3) 뭔가 덜 한 날: 흰색 셀 + 🟤 웜브라운 바 (#8B5E3C)
                           // 4) 기록 시작일 이전이거나 아직 오지 않은 날짜(미래): 바 일체 없이 완전 깨끗한 순백색 초기화!
-                          if (!isFuture && !isBeforeTracking && !isAll100Done) ...[
+                          // 오늘 날짜는 아직 하루가 끝나지 않았으므로 미복용(빨간 바)/일부 실천(갈색 바) 표시 금지!
+                          if (!isFuture && !isToday && !isBeforeTracking && !isAll100Done) ...[
                             if (hasMissedPrescription)
                               Positioned(
                                 bottom: 4,
@@ -1161,13 +1162,13 @@ class _CalendarTabViewState extends State<CalendarTabView> {
               // 2. 💊 [복약 상태 요약 및 과거 기록 수정 아코디언]
               InkWell(
                 borderRadius: BorderRadius.circular(8),
-                onTap: isSelectedDatePast
+                onTap: (isSelectedDatePast || isSelectedDateToday)
                     ? () {
                         setState(() {
                           _isMedDetailsExpanded = !_isMedDetailsExpanded;
                         });
                       }
-                    : null, // 오늘/미래 날짜는 탭 비활성화 (조회 전용)
+                    : null,
                 child: Padding(
                   padding: const EdgeInsets.symmetric(vertical: 4),
                   child: Row(
@@ -1204,10 +1205,9 @@ class _CalendarTabViewState extends State<CalendarTabView> {
                           ),
                         ],
                       ),
-                      // 🌟 과거 날짜일 때만 [수정하기/접기] 버튼 노출! 오늘은 버튼 없이 조회만 가능!
-                      if (isSelectedDatePast)
+                      if (isSelectedDatePast || isSelectedDateToday)
                         Text(
-                          _isMedDetailsExpanded ? '접기' : '수정하기',
+                          _isMedDetailsExpanded ? '접기' : (isSelectedDatePast ? '수정하기' : '확인하기'),
                           style: const TextStyle(fontSize: 12, color: AppColors.primaryPurple, fontWeight: FontWeight.bold),
                         ),
                     ],
@@ -1254,15 +1254,15 @@ class _CalendarTabViewState extends State<CalendarTabView> {
 
                               return InkWell(
                                 borderRadius: BorderRadius.circular(6),
-                                onTap: () {
-                                  if (!isDone) {
-                                    // 🌟 복약 완료로 기록할 때: 언제 복용했는지 묻는 다이얼로그 (모름/기억 안 남 포함!)
-                                    _showPastMedTimeDialog(med, slotIdx, slot);
-                                  } else {
-                                    // 이미 완료된 슬롯: 되돌리기 다이얼로그
-                                    _showPastMedRevertDialog(med, slotIdx, slot);
-                                  }
-                                },
+                                onTap: isSelectedDatePast
+                                    ? () {
+                                        if (!isDone) {
+                                          _showPastMedTimeDialog(med, slotIdx, slot);
+                                        } else {
+                                          _showPastMedRevertDialog(med, slotIdx, slot);
+                                        }
+                                      }
+                                    : null, // 오늘 날짜는 확인만 가능 (수정은 복약 탭에서)
                                 child: Container(
                                   padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 5),
                                   decoration: BoxDecoration(
@@ -1298,13 +1298,13 @@ class _CalendarTabViewState extends State<CalendarTabView> {
               // 3. 🌱 [습관 현황 요약 및 펼침 아코디언]
               InkWell(
                 borderRadius: BorderRadius.circular(8),
-                onTap: isSelectedDatePast
+                onTap: (isSelectedDatePast || isSelectedDateToday)
                     ? () {
                         setState(() {
                           _isHabitDetailsExpanded = !_isHabitDetailsExpanded;
                         });
                       }
-                    : null, // 오늘은 비활성화 (조회 전용)
+                    : null,
                 child: Padding(
                   padding: const EdgeInsets.symmetric(vertical: 4),
                   child: Row(
@@ -1345,10 +1345,9 @@ class _CalendarTabViewState extends State<CalendarTabView> {
                           ),
                         ],
                       ),
-                      // 🌟 과거 날짜일 때만 [수정하기/접기] 버튼 노출! 오늘은 버튼 없이 조회만 가능!
-                      if (isSelectedDatePast)
+                      if (isSelectedDatePast || isSelectedDateToday)
                         Text(
-                          _isHabitDetailsExpanded ? '접기' : '수정하기',
+                          _isHabitDetailsExpanded ? '접기' : (isSelectedDatePast ? '수정하기' : '확인하기'),
                           style: const TextStyle(fontSize: 12, color: AppColors.primaryPurple, fontWeight: FontWeight.bold),
                         ),
                     ],
@@ -1409,7 +1408,7 @@ class _CalendarTabViewState extends State<CalendarTabView> {
                           // 습관 실천 소급 상태 선택 버튼 (클릭 시 확인 다이얼로그 팝업)
                           InkWell(
                             borderRadius: BorderRadius.circular(6),
-                            onTap: () => _showPastHabitChoiceDialog(habit, isFull, isPart),
+                            onTap: isSelectedDatePast ? () => _showPastHabitChoiceDialog(habit, isFull, isPart) : null,
                             child: Container(
                               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                               decoration: BoxDecoration(

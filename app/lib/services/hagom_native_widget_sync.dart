@@ -194,6 +194,8 @@ class HagomNativeWidgetSync {
         }
       }
 
+      final allHabitsCompleted = todayHabits.isNotEmpty && todayHabits.every((h) => h.score >= 1.0);
+      await HomeWidget.saveWidgetData<String>('habits_all_done', allHabitsCompleted ? 'true' : 'false');
       await HomeWidget.saveWidgetData<String>('habits_tag', habitsTag);
       await HomeWidget.saveWidgetData<String>('habits_progress', habitsProgress);
       await HomeWidget.saveWidgetData<String>('habits_title', habitsTitle);
@@ -263,7 +265,7 @@ class HagomNativeWidgetSync {
         calSubtitleShort = primaryTask.time ?? '오늘';
         calBtnTitle = primaryTask.isCompleted ? '완료' : '체크';
         calAllDone = primaryTask.isCompleted ? 'true' : 'false';
-        calAction = primaryTask.isCompleted ? '' : 'hagomwidget://checktask?id=${Uri.encodeComponent(primaryTask.id)}';
+        calAction = 'hagomwidget://checktask?id=${Uri.encodeComponent(primaryTask.id)}';
       }
 
       await HomeWidget.saveWidgetData<String>('calendar_tag', calTag);
@@ -290,7 +292,7 @@ class HagomNativeWidgetSync {
           await HomeWidget.saveWidgetData<String>('cal_row_${n}_done', t.isCompleted ? 'true' : 'false');
           await HomeWidget.saveWidgetData<String>(
             'cal_row_${n}_action',
-            t.isCompleted ? '' : 'hagomwidget://checktask?id=${Uri.encodeComponent(t.id)}',
+            'hagomwidget://checktask?id=${Uri.encodeComponent(t.id)}',
           );
         } else {
           await HomeWidget.saveWidgetData<String>('cal_row_${n}_text', '');
@@ -316,15 +318,34 @@ class HagomNativeWidgetSync {
       await HomeWidget.saveWidgetData<String>('month_habits', monthHabits);
       await HomeWidget.saveWidgetData<String>('month_tasks', monthTasks);
 
-      for (int d = 1; d <= 30; d++) {
+      final todayOnly = DateTime(now.year, now.month, now.day);
+      for (int d = 1; d <= 31; d++) {
         final date = DateTime(now.year, now.month, d);
+        if (date.month != now.month) {
+          await HomeWidget.saveWidgetData<String>('day_status_$d', '');
+          continue;
+        }
+        final isTodayCell = d == now.day;
+        final isFutureCell = date.isAfter(todayOnly);
+        final isBeforeTrack = state.isBeforeTrackingStart(date);
+        final tasks = state.getTasksForDay(date);
+        final hasT = tasks.isNotEmpty;
+
         String status = '';
-        if (!state.isBeforeTrackingStart(date) && !date.isAfter(now)) {
+        if (isTodayCell) {
+          // 오늘 날짜: 보라색 테두리 강조 + 올클리어(연초록)와 할일 핀만 표시하고 빨간 바/갈색 바는 절대 표시하지 않음
+          final mRate = state.getMedRateForDay(date);
+          final hRate = state.getHabitRateForDay(date);
+          if (!isBeforeTrack && mRate != null && mRate >= 1.0 && hRate != null && hRate >= 1.0) {
+            status = hasT ? 'today_done_pin' : 'today_done';
+          } else {
+            status = hasT ? 'today_pin' : 'today';
+          }
+        } else if (!isBeforeTrack && !isFutureCell) {
+          // 과거 날짜
           final mRate = state.getMedRateForDay(date);
           final hRate = state.getHabitRateForDay(date);
           final isMissedP = state.hasMissedPrescriptionForDay(date);
-          final tasks = state.getTasksForDay(date);
-          final hasT = tasks.isNotEmpty;
 
           if (mRate != null && mRate >= 1.0 && hRate != null && hRate >= 1.0) {
             status = hasT ? 'all_done_pin' : 'all_done';
@@ -335,8 +356,33 @@ class HagomNativeWidgetSync {
           } else if (hasT) {
             status = 'pin_only';
           }
+        } else if (hasT) {
+          // 미래 일정 핀
+          status = 'pin_only';
         }
         await HomeWidget.saveWidgetData<String>('day_status_$d', status);
+      }
+
+      // 달력 위젯을 세로로 길게 늘렸을 때 하단에 추가로 보여줄 오늘의 복약·습관·할일 상세 줄
+      final List<String> detailLines = [];
+      for (final e in todaySlots) {
+        final stateLabel = e.slot.isCompleted ? '완료' : '대기';
+        detailLines.add('복약 · ${e.med.name} (${e.slot.label}) - $stateLabel');
+      }
+      for (final h in todayHabits) {
+        final stateLabel = h.score >= 1.0 ? '완료' : (h.score > 0.0 ? '일부 실천' : '대기');
+        detailLines.add('습관 · ${h.title} - $stateLabel');
+      }
+      for (final t in todayTasks) {
+        final stateLabel = t.isCompleted ? '완료' : '예정';
+        detailLines.add('할일 · ${t.title} - $stateLabel');
+      }
+      for (int i = 0; i < 4; i++) {
+        final n = i + 1;
+        await HomeWidget.saveWidgetData<String>(
+          'month_detail_$n',
+          i < detailLines.length ? detailLines[i] : '',
+        );
       }
 
       await HomeWidget.updateWidget(name: monthCalendarProvider, androidName: monthCalendarProvider);

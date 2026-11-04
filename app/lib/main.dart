@@ -20,6 +20,10 @@ Future<void> handleWidgetUriAction(Uri? uri) async {
 
   final rawAction = uri.host.isNotEmpty ? uri.host : uri.path.replaceAll('/', '');
   final action = rawAction.toLowerCase();
+  if (action == 'noop') {
+    // 이미 완료된 복약/습관 버튼 탭: 앱 실행도 취소도 하지 않고 버튼 터치감만 제공
+    return;
+  }
   final id = uri.queryParameters['id'];
   final slotParam = uri.queryParameters['slot'];
 
@@ -66,21 +70,16 @@ Future<void> handleWidgetUriAction(Uri? uri) async {
       }
     }
   } else if (action == 'checktask') {
+    // 할일은 위젯에서도 완료 <-> 취소 토글을 자유롭게 허용
     if (id != null && state.tasks.any((t) => t.id == id)) {
-      final task = state.tasks.firstWhere((t) => t.id == id);
-      if (!task.isCompleted) {
-        state.toggleTaskCompleted(id);
-        await state.flushForWidget();
-      }
+      state.toggleTaskCompleted(id);
+      await state.flushForWidget();
       return;
     }
     final todayTasks = state.getTasksForDay(DateTime.now());
-    for (final task in todayTasks) {
-      if (!task.isCompleted) {
-        state.toggleTaskCompleted(task.id);
-        await state.flushForWidget();
-        return;
-      }
+    if (todayTasks.isNotEmpty) {
+      state.toggleTaskCompleted(todayTasks.first.id);
+      await state.flushForWidget();
     }
   } else if (action == 'openmeds') {
     state.setTargetTab(0);

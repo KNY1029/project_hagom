@@ -8,11 +8,23 @@
     android:paddingHorizontal="11dp"
     android:paddingVertical="9dp">
 
+    <!-- 100% 완료 시 전환되는 하곰이 축하 화면 -->
     <LinearLayout
+        android:id="@+id/meds_celebration_view"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="match_parent"
         android:gravity="center_vertical"
-        android:orientation="horizontal">
+        android:orientation="horizontal"
+        android:paddingHorizontal="4dp"
+        android:visibility="gone">
+
+        <ImageView
+            android:layout_width="42dp"
+            android:layout_height="42dp"
+            android:layout_marginEnd="10dp"
+            android:contentDescription="하곰이"
+            android:scaleType="fitCenter"
+            android:src="@drawable/hagomi_mascot" />
 
         <LinearLayout
             android:layout_width="0dp"
@@ -20,135 +32,180 @@
             android:layout_weight="1"
             android:orientation="vertical">
 
-            <LinearLayout
+            <TextView
+                android:id="@+id/meds_celebration_badge"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:gravity="center_vertical"
-                android:orientation="horizontal">
-
-                <TextView
-                    android:id="@+id/widget_meds_tag"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginEnd="6dp"
-                    android:background="@drawable/hagom_widget_tag_bg"
-                    android:paddingHorizontal="6dp"
-                    android:paddingVertical="1.5dp"
-                    android:text="다음 복약"
-                    android:textColor="#7B61A8"
-                    android:textSize="10sp"
-                    android:textStyle="bold" />
-
-                <TextView
-                    android:id="@+id/widget_meds_progress"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text=""
-                    android:textColor="#6B7280"
-                    android:textSize="10.5sp" />
-            </LinearLayout>
+                android:background="@drawable/hagom_widget_done_bg"
+                android:paddingHorizontal="7dp"
+                android:paddingVertical="1.5dp"
+                android:text="오늘 복약 모두 완료"
+                android:textColor="#044E36"
+                android:textSize="10sp"
+                android:textStyle="bold" />
 
             <TextView
-                android:id="@+id/widget_meds_title"
+                android:id="@+id/meds_celebration_title"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="2dp"
+                android:layout_marginTop="3dp"
                 android:ellipsize="end"
-                android:maxLines="1"
-                android:text=""
+                android:maxLines="2"
+                android:text="오늘 약을 다 챙겨 드셨네요!\n스스로를 아끼는 마음이 멋져요."
                 android:textColor="#1F2937"
-                android:textSize="13.5sp"
-                android:textStyle="bold" />
-
-            <TextView
-                android:id="@+id/widget_meds_subtitle"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="1dp"
-                android:ellipsize="end"
-                android:maxLines="1"
-                android:text=""
-                android:textColor="#4B5568"
-                android:textSize="10.5sp" />
-        </LinearLayout>
-
-        <LinearLayout
-            android:id="@+id/widget_meds_btn"
-            android:layout_width="64dp"
-            android:layout_height="42dp"
-            android:layout_marginStart="8dp"
-            android:background="@drawable/hagom_widget_btn_bg"
-            android:gravity="center"
-            android:orientation="vertical">
-
-            <TextView
-                android:id="@+id/widget_meds_btn_title"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="복용"
-                android:textColor="#FFFFFF"
-                android:textSize="13.5sp"
-                android:textStyle="bold" />
-        </LinearLayout>
-
-        <LinearLayout
-            android:id="@+id/widget_meds_btn_compact"
-            android:layout_width="46dp"
-            android:layout_height="34dp"
-            android:layout_marginStart="6dp"
-            android:background="@drawable/hagom_widget_btn_bg"
-            android:gravity="center"
-            android:orientation="vertical"
-            android:visibility="gone">
-
-            <TextView
-                android:id="@+id/widget_meds_btn_compact_title"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="복용"
-                android:textColor="#FFFFFF"
-                android:textSize="11.5sp"
+                android:textSize="12sp"
                 android:textStyle="bold" />
         </LinearLayout>
     </LinearLayout>
 
-    <!-- 세로 높이에 맞춰 잘리지 않는 줄 수만큼만 동적 노출 (최대 6줄) -->
+    <!-- 진행 중일 때 보이는 일반 화면 -->
     <LinearLayout
-        android:id="@+id/meds_expanded_list"
+        android:id="@+id/meds_normal_view"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="5dp"
+        android:layout_height="match_parent"
         android:orientation="vertical">
 
         <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="1dp"
-            android:layout_marginBottom="3dp"
-            android:background="#E5E7EB" />
+            android:layout_height="wrap_content"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
 
-        <LinearLayout android:id="@+id/meds_row_1" android:layout_width="match_parent" android:layout_height="26dp" android:gravity="center_vertical" android:orientation="horizontal">
-            <TextView android:id="@+id/meds_row_1_text" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:ellipsize="end" android:maxLines="1" android:text="" android:textColor="#1F2937" android:textSize="11sp" />
-            <TextView android:id="@+id/meds_row_1_btn" android:layout_width="44dp" android:layout_height="21dp" android:layout_marginStart="6dp" android:background="@drawable/hagom_widget_btn_bg" android:gravity="center" android:text="복용" android:textColor="#FFFFFF" android:textSize="10sp" android:textStyle="bold" />
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical">
+
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:id="@+id/widget_meds_tag"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginEnd="6dp"
+                        android:background="@drawable/hagom_widget_tag_bg"
+                        android:paddingHorizontal="6dp"
+                        android:paddingVertical="1.5dp"
+                        android:text="다음 복약"
+                        android:textColor="#7B61A8"
+                        android:textSize="10sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:id="@+id/widget_meds_progress"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text=""
+                        android:textColor="#6B7280"
+                        android:textSize="10.5sp" />
+                </LinearLayout>
+
+                <TextView
+                    android:id="@+id/widget_meds_title"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="2dp"
+                    android:ellipsize="end"
+                    android:maxLines="1"
+                    android:text=""
+                    android:textColor="#1F2937"
+                    android:textSize="13.5sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/widget_meds_subtitle"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="1dp"
+                    android:ellipsize="end"
+                    android:maxLines="1"
+                    android:text=""
+                    android:textColor="#4B5568"
+                    android:textSize="10.5sp" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/widget_meds_btn"
+                android:layout_width="64dp"
+                android:layout_height="42dp"
+                android:layout_marginStart="8dp"
+                android:background="@drawable/hagom_widget_btn_bg"
+                android:gravity="center"
+                android:orientation="vertical">
+
+                <TextView
+                    android:id="@+id/widget_meds_btn_title"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="복용"
+                    android:textColor="#FFFFFF"
+                    android:textSize="13.5sp"
+                    android:textStyle="bold" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/widget_meds_btn_compact"
+                android:layout_width="46dp"
+                android:layout_height="34dp"
+                android:layout_marginStart="6dp"
+                android:background="@drawable/hagom_widget_btn_bg"
+                android:gravity="center"
+                android:orientation="vertical"
+                android:visibility="gone">
+
+                <TextView
+                    android:id="@+id/widget_meds_btn_compact_title"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="복용"
+                    android:textColor="#FFFFFF"
+                    android:textSize="11.5sp"
+                    android:textStyle="bold" />
+            </LinearLayout>
         </LinearLayout>
-        <LinearLayout android:id="@+id/meds_row_2" android:layout_width="match_parent" android:layout_height="26dp" android:gravity="center_vertical" android:orientation="horizontal">
-            <TextView android:id="@+id/meds_row_2_text" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:ellipsize="end" android:maxLines="1" android:text="" android:textColor="#1F2937" android:textSize="11sp" />
-            <TextView android:id="@+id/meds_row_2_btn" android:layout_width="44dp" android:layout_height="21dp" android:layout_marginStart="6dp" android:background="@drawable/hagom_widget_btn_bg" android:gravity="center" android:text="복용" android:textColor="#FFFFFF" android:textSize="10sp" android:textStyle="bold" />
-        </LinearLayout>
-        <LinearLayout android:id="@+id/meds_row_3" android:layout_width="match_parent" android:layout_height="26dp" android:gravity="center_vertical" android:orientation="horizontal">
-            <TextView android:id="@+id/meds_row_3_text" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:ellipsize="end" android:maxLines="1" android:text="" android:textColor="#1F2937" android:textSize="11sp" />
-            <TextView android:id="@+id/meds_row_3_btn" android:layout_width="44dp" android:layout_height="21dp" android:layout_marginStart="6dp" android:background="@drawable/hagom_widget_btn_bg" android:gravity="center" android:text="복용" android:textColor="#FFFFFF" android:textSize="10sp" android:textStyle="bold" />
-        </LinearLayout>
-        <LinearLayout android:id="@+id/meds_row_4" android:layout_width="match_parent" android:layout_height="26dp" android:gravity="center_vertical" android:orientation="horizontal">
-            <TextView android:id="@+id/meds_row_4_text" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:ellipsize="end" android:maxLines="1" android:text="" android:textColor="#1F2937" android:textSize="11sp" />
-            <TextView android:id="@+id/meds_row_4_btn" android:layout_width="44dp" android:layout_height="21dp" android:layout_marginStart="6dp" android:background="@drawable/hagom_widget_btn_bg" android:gravity="center" android:text="복용" android:textColor="#FFFFFF" android:textSize="10sp" android:textStyle="bold" />
-        </LinearLayout>
-        <LinearLayout android:id="@+id/meds_row_5" android:layout_width="match_parent" android:layout_height="26dp" android:gravity="center_vertical" android:orientation="horizontal">
-            <TextView android:id="@+id/meds_row_5_text" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:ellipsize="end" android:maxLines="1" android:text="" android:textColor="#1F2937" android:textSize="11sp" />
-            <TextView android:id="@+id/meds_row_5_btn" android:layout_width="44dp" android:layout_height="21dp" android:layout_marginStart="6dp" android:background="@drawable/hagom_widget_btn_bg" android:gravity="center" android:text="복용" android:textColor="#FFFFFF" android:textSize="10sp" android:textStyle="bold" />
-        </LinearLayout>
-        <LinearLayout android:id="@+id/meds_row_6" android:layout_width="match_parent" android:layout_height="26dp" android:gravity="center_vertical" android:orientation="horizontal">
-            <TextView android:id="@+id/meds_row_6_text" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:ellipsize="end" android:maxLines="1" android:text="" android:textColor="#1F2937" android:textSize="11sp" />
-            <TextView android:id="@+id/meds_row_6_btn" android:layout_width="44dp" android:layout_height="21dp" android:layout_marginStart="6dp" android:background="@drawable/hagom_widget_btn_bg" android:gravity="center" android:text="복용" android:textColor="#FFFFFF" android:textSize="10sp" android:textStyle="bold" />
+
+        <LinearLayout
+            android:id="@+id/meds_expanded_list"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="5dp"
+            android:orientation="vertical">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:layout_marginBottom="3dp"
+                android:background="#E5E7EB" />
+
+            <LinearLayout android:id="@+id/meds_row_1" android:layout_width="match_parent" android:layout_height="26dp" android:gravity="center_vertical" android:orientation="horizontal">
+                <TextView android:id="@+id/meds_row_1_text" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:ellipsize="end" android:maxLines="1" android:text="" android:textColor="#1F2937" android:textSize="11sp" />
+                <TextView android:id="@+id/meds_row_1_btn" android:layout_width="44dp" android:layout_height="21dp" android:layout_marginStart="6dp" android:background="@drawable/hagom_widget_btn_bg" android:gravity="center" android:text="복용" android:textColor="#FFFFFF" android:textSize="10sp" android:textStyle="bold" />
+            </LinearLayout>
+            <LinearLayout android:id="@+id/meds_row_2" android:layout_width="match_parent" android:layout_height="26dp" android:gravity="center_vertical" android:orientation="horizontal">
+                <TextView android:id="@+id/meds_row_2_text" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:ellipsize="end" android:maxLines="1" android:text="" android:textColor="#1F2937" android:textSize="11sp" />
+                <TextView android:id="@+id/meds_row_2_btn" android:layout_width="44dp" android:layout_height="21dp" android:layout_marginStart="6dp" android:background="@drawable/hagom_widget_btn_bg" android:gravity="center" android:text="복용" android:textColor="#FFFFFF" android:textSize="10sp" android:textStyle="bold" />
+            </LinearLayout>
+            <LinearLayout android:id="@+id/meds_row_3" android:layout_width="match_parent" android:layout_height="26dp" android:gravity="center_vertical" android:orientation="horizontal">
+                <TextView android:id="@+id/meds_row_3_text" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:ellipsize="end" android:maxLines="1" android:text="" android:textColor="#1F2937" android:textSize="11sp" />
+                <TextView android:id="@+id/meds_row_3_btn" android:layout_width="44dp" android:layout_height="21dp" android:layout_marginStart="6dp" android:background="@drawable/hagom_widget_btn_bg" android:gravity="center" android:text="복용" android:textColor="#FFFFFF" android:textSize="10sp" android:textStyle="bold" />
+            </LinearLayout>
+            <LinearLayout android:id="@+id/meds_row_4" android:layout_width="match_parent" android:layout_height="26dp" android:gravity="center_vertical" android:orientation="horizontal">
+                <TextView android:id="@+id/meds_row_4_text" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:ellipsize="end" android:maxLines="1" android:text="" android:textColor="#1F2937" android:textSize="11sp" />
+                <TextView android:id="@+id/meds_row_4_btn" android:layout_width="44dp" android:layout_height="21dp" android:layout_marginStart="6dp" android:background="@drawable/hagom_widget_btn_bg" android:gravity="center" android:text="복용" android:textColor="#FFFFFF" android:textSize="10sp" android:textStyle="bold" />
+            </LinearLayout>
+            <LinearLayout android:id="@+id/meds_row_5" android:layout_width="match_parent" android:layout_height="26dp" android:gravity="center_vertical" android:orientation="horizontal">
+                <TextView android:id="@+id/meds_row_5_text" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:ellipsize="end" android:maxLines="1" android:text="" android:textColor="#1F2937" android:textSize="11sp" />
+                <TextView android:id="@+id/meds_row_5_btn" android:layout_width="44dp" android:layout_height="21dp" android:layout_marginStart="6dp" android:background="@drawable/hagom_widget_btn_bg" android:gravity="center" android:text="복용" android:textColor="#FFFFFF" android:textSize="10sp" android:textStyle="bold" />
+            </LinearLayout>
+            <LinearLayout android:id="@+id/meds_row_6" android:layout_width="match_parent" android:layout_height="26dp" android:gravity="center_vertical" android:orientation="horizontal">
+                <TextView android:id="@+id/meds_row_6_text" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:ellipsize="end" android:maxLines="1" android:text="" android:textColor="#1F2937" android:textSize="11sp" />
+                <TextView android:id="@+id/meds_row_6_btn" android:layout_width="44dp" android:layout_height="21dp" android:layout_marginStart="6dp" android:background="@drawable/hagom_widget_btn_bg" android:gravity="center" android:text="복용" android:textColor="#FFFFFF" android:textSize="10sp" android:textStyle="bold" />
+            </LinearLayout>
         </LinearLayout>
     </LinearLayout>
 </LinearLayout>

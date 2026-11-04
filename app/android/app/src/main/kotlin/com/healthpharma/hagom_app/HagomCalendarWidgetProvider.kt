@@ -33,6 +33,9 @@ class HagomCalendarWidgetProvider : HomeWidgetProvider() {
             val maxRows = WidgetBindings.maxFittingRows(appWidgetManager, appWidgetId)
 
             val views = RemoteViews(context.packageName, R.layout.hagom_calendar_widget).apply {
+                setViewVisibility(R.id.calendar_celebration_view, View.GONE)
+                setViewVisibility(R.id.calendar_normal_view, View.VISIBLE)
+
                 setViewVisibility(R.id.widget_calendar_tag, if (isNarrow) View.GONE else View.VISIBLE)
                 setTextViewText(R.id.widget_calendar_tag, WidgetBindings.text(widgetData, "calendar_tag"))
                 setTextViewText(R.id.widget_calendar_progress, WidgetBindings.text(widgetData, "calendar_progress"))
@@ -66,10 +69,10 @@ class HagomCalendarWidgetProvider : HomeWidgetProvider() {
                 setOnClickPendingIntent(R.id.widget_calendar_container, openCalIntent)
 
                 val mainAction = WidgetBindings.text(widgetData, "calendar_action")
-                val btnPending = if (!allDone && mainAction.isNotEmpty()) {
+                val btnPending = if (mainAction.isNotEmpty()) {
                     WidgetBindings.actionIntent(context, mainAction)
                 } else {
-                    openCalIntent
+                    WidgetBindings.noopIntent(context)
                 }
                 setOnClickPendingIntent(R.id.widget_calendar_btn, btnPending)
                 setOnClickPendingIntent(R.id.widget_calendar_btn_compact, btnPending)
@@ -96,8 +99,8 @@ class HagomCalendarWidgetProvider : HomeWidgetProvider() {
                         "체크",
                         R.drawable.hagom_widget_task_btn_bg,
                         isNarrow,
-                        openCalIntent,
-                        idx < maxRows
+                        allowCompletedToggle = true,
+                        allowShow = idx < maxRows
                     )
                 }
             }

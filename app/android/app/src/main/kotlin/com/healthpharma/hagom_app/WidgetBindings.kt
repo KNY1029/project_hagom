@@ -14,9 +14,8 @@ import es.antonborri.home_widget.HomeWidgetBackgroundIntent
 /**
  * 위젯 공통 바인딩 유틸.
  *
- * - 현재 위젯의 실제 세로 높이(dp)에서 상단 대표 카드+여백(약 80dp)을 뺀 뒤
- *   한 줄 높이(26dp)로 나누어 '잘리지 않고 온전히 들어가는 최대 줄 수(0~6)'만 표시한다.
- * - 이미 완료된 항목의 버튼을 누르면 취소되지 않고 해당 탭으로 앱만 열린다.
+ * - 완료된 복약/습관 버튼을 누르면 앱을 켜지도 취소하지도 않는 noopIntent로 연결해 버튼 터치감만 준다.
+ * - 할일(task)은 allowCompletedToggle=true로 넘겨 완료된 상태에서도 다시 눌러 취소할 수 있게 한다.
  */
 object WidgetBindings {
 
@@ -39,6 +38,10 @@ object WidgetBindings {
     fun actionIntent(context: Context, uri: String): PendingIntent =
         HomeWidgetBackgroundIntent.getBroadcast(context, Uri.parse(uri))
 
+    /** 앱을 띄우지도 데이터를 바꾸지도 않고 버튼 클릭 리플만 발생시키는 인텐트 */
+    fun noopIntent(context: Context): PendingIntent =
+        HomeWidgetBackgroundIntent.getBroadcast(context, Uri.parse("hagomwidget://noop"))
+
     fun text(prefs: SharedPreferences, key: String): String = prefs.getString(key, "") ?: ""
 
     fun isNarrowWidth(appWidgetManager: AppWidgetManager, appWidgetId: Int): Boolean {
@@ -47,19 +50,14 @@ object WidgetBindings {
         return minW in 1..205
     }
 
-    /**
-     * 위젯 세로 높이(dp) 기준으로 잘리지 않고 온전히 들어가는 확장 줄 개수(0~6)를 계산.
-     * 상단 대표 행 + 상하 패딩 + 구분선이 약 82dp를 차지하고, 확장 한 줄은 정확히 26dp.
-     */
     fun maxFittingRows(appWidgetManager: AppWidgetManager, appWidgetId: Int): Int {
         val opts = appWidgetManager.getAppWidgetOptions(appWidgetId)
         val minH = opts.getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_HEIGHT, 0)
         val maxH = opts.getInt(AppWidgetManager.OPTION_APPWIDGET_MAX_HEIGHT, 0)
-        // 삼성 One UI 런처는 세로 방향에서 minHeight가 실제 셀 높이에 가깝고, 미지정(0)일 때만 기본값 사용
         val effectiveH = when {
             minH > 0 -> minH
             maxH > 0 -> maxH
-            else -> 90 // 기본 3x1
+            else -> 90
         }
         if (effectiveH < 110) return 0
         val availableForRows = effectiveH - 80
@@ -80,7 +78,7 @@ object WidgetBindings {
         pendingLabel: String,
         pendingBg: Int,
         isNarrow: Boolean,
-        fallbackOpenIntent: PendingIntent,
+        allowCompletedToggle: Boolean,
         allowShow: Boolean
     ) {
         if (!allowShow) {
@@ -109,11 +107,11 @@ object WidgetBindings {
         }
 
         val action = text(prefs, actionKey)
-        if (!isDone && action.isNotEmpty()) {
+        if ((!isDone || allowCompletedToggle) && action.isNotEmpty()) {
             views.setOnClickPendingIntent(btnId, actionIntent(context, action))
         } else {
-            // 이미 완료된 줄은 위젯에서 취소되지 않고 해당 탭으로 앱만 열림
-            views.setOnClickPendingIntent(btnId, fallbackOpenIntent)
+            // 완료된 복약/습관 줄은 눌리는 느낌만 주고 앱은 띄우지 않음
+            views.setOnClickPendingIntent(btnId, noopIntent(context))
         }
     }
 

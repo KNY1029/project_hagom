@@ -468,36 +468,27 @@ class _MedsTabViewState extends State<MedsTabView> {
                         spacing: 6,
                         runSpacing: 6,
                         children: [
-                          ...[
-                            '아침', '아침 식전', '아침 식후',
-                            '점심', '점심 식전', '점심 식후',
-                            '저녁', '저녁 식전', '저녁 식후',
-                            '취침 전', '식간'
-                          ].map((label) {
-                            final existingIdx = currentSlots.indexWhere((s) => s.label == label);
-                            final isSel = existingIdx != -1;
+                          ...['아침', '점심', '저녁', '취침 전'].map((label) {
+                            final isSel = currentSlots.any((s) => s.label.startsWith(label));
                             return FilterChip(
                               showCheckmark: false,
                               label: Text(label),
                               selected: isSel,
                               selectedColor: AppColors.primaryPurple.withOpacity(0.2),
                               labelStyle: TextStyle(
-                                fontSize: 11.5,
+                                fontSize: 12,
                                 color: isSel ? AppColors.primaryPurple : AppColors.textPrimary,
                                 fontWeight: isSel ? FontWeight.bold : FontWeight.normal,
                               ),
                               onSelected: (sel) {
-                                if (sel) {
-                                  // 🌟 번거로운 시각 팝업 없이 똑똑한 의학적 기본 루틴 시간 자동 매핑!
-                                  final defaultTime = _state.routineTimes[label] ?? '오전 8:00';
-                                  setModalState(() {
+                                setModalState(() {
+                                  if (sel) {
+                                    final defaultTime = _state.routineTimes[label] ?? '오전 8:00';
                                     currentSlots.add(DoseSlot(label: label, scheduledTime: defaultTime));
-                                  });
-                                } else {
-                                  setModalState(() {
-                                    currentSlots.removeAt(existingIdx);
-                                  });
-                                }
+                                  } else {
+                                    currentSlots.removeWhere((s) => s.label.startsWith(label));
+                                  }
+                                });
                               },
                             );
                           }),
@@ -613,46 +604,108 @@ class _MedsTabViewState extends State<MedsTabView> {
                             children: currentSlots.asMap().entries.map((entry) {
                               final idx = entry.key;
                               final slot = entry.value;
+
+                              // 아침/점심/저녁 슬롯인 경우 [상관없음] · [식전] · [식후] 타이밍 원터치 선택 지원
+                              String basePrefix = '';
+                              for (final p in ['아침', '점심', '저녁']) {
+                                if (slot.label.startsWith(p)) {
+                                  basePrefix = p;
+                                  break;
+                                }
+                              }
+
+                              String currentTiming = 'none';
+                              if (slot.label.contains('식전')) {
+                                currentTiming = 'before';
+                              } else if (slot.label.contains('식후')) {
+                                currentTiming = 'after';
+                              }
+
                               return Padding(
-                                padding: const EdgeInsets.symmetric(vertical: 2.0),
-                                child: Row(
+                                padding: const EdgeInsets.symmetric(vertical: 4.0),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    Text('${slot.label}: ', style: const TextStyle(fontSize: 11.5, fontWeight: FontWeight.bold)),
-                                    Text(slot.scheduledTime ?? '시각 미지정', style: const TextStyle(fontSize: 11.5, color: AppColors.primaryPurple)),
-                                    const Spacer(),
-                                    TextButton(
-                                      style: TextButton.styleFrom(padding: EdgeInsets.zero, minimumSize: Size.zero),
-                                      onPressed: () async {
-                                        final time = await AppTimePicker.show(
-                                          context,
-                                          initialTime: TimeOfDay.now(),
-                                          title: '${slot.label} 알림 예정 시각 변경',
-                                        );
-                                        if (time != null) {
-                                          final period = time.period == DayPeriod.am ? '오전' : '오후';
-                                          final hour = time.hourOfPeriod == 0 ? 12 : time.hourOfPeriod;
-                                          final min = time.minute.toString().padLeft(2, '0');
-                                          setModalState(() {
-                                            slot.scheduledTime = '$period $hour:$min';
-                                          });
-                                        }
-                                      },
-                                      child: const Text('시각 변경', style: TextStyle(fontSize: 11)),
+                                    Row(
+                                      children: [
+                                        Text('${slot.label}: ', style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+                                        Text(slot.scheduledTime ?? '시각 미지정', style: const TextStyle(fontSize: 12, color: AppColors.primaryPurple, fontWeight: FontWeight.w600)),
+                                        const Spacer(),
+                                        TextButton(
+                                          style: TextButton.styleFrom(padding: EdgeInsets.zero, minimumSize: Size.zero),
+                                          onPressed: () async {
+                                            final time = await AppTimePicker.show(
+                                              context,
+                                              initialTime: TimeOfDay.now(),
+                                              title: '${slot.label} 알림 예정 시각 변경',
+                                            );
+                                            if (time != null) {
+                                              final period = time.period == DayPeriod.am ? '오전' : '오후';
+                                              final hour = time.hourOfPeriod == 0 ? 12 : time.hourOfPeriod;
+                                              final min = time.minute.toString().padLeft(2, '0');
+                                              setModalState(() {
+                                                slot.scheduledTime = '$period $hour:$min';
+                                              });
+                                            }
+                                          },
+                                          child: const Text('시각 변경', style: TextStyle(fontSize: 11.5)),
+                                        ),
+                                        const SizedBox(width: 4),
+                                        IconButton(
+                                          icon: const Icon(Icons.close, size: 15, color: AppColors.textMuted),
+                                          onPressed: () {
+                                            setModalState(() {
+                                              currentSlots.removeAt(idx);
+                                            });
+                                          },
+                                        ),
+                                      ],
                                     ),
-                                    const SizedBox(width: 4),
-                                    IconButton(
-                                      icon: const Icon(Icons.close, size: 14, color: AppColors.textMuted),
-                                      onPressed: () {
-                                        setModalState(() {
-                                          currentSlots.removeAt(idx);
-                                        });
-                                      },
-                                    ),
+                                    if (basePrefix.isNotEmpty) ...[
+                                      const SizedBox(height: 2),
+                                      Row(
+                                        children: [
+                                          const Text('식사 타이밍: ', style: TextStyle(fontSize: 10.5, color: AppColors.textSecondary)),
+                                          const SizedBox(width: 4),
+                                          _buildMiniTimingChip(
+                                            label: '상관없음',
+                                            isSelected: currentTiming == 'none',
+                                            onTap: () {
+                                              setModalState(() {
+                                                slot.label = basePrefix;
+                                                slot.scheduledTime = _state.routineTimes[basePrefix] ?? slot.scheduledTime;
+                                              });
+                                            },
+                                          ),
+                                          const SizedBox(width: 4),
+                                          _buildMiniTimingChip(
+                                            label: '식전',
+                                            isSelected: currentTiming == 'before',
+                                            onTap: () {
+                                              setModalState(() {
+                                                slot.label = '$basePrefix 식전';
+                                                slot.scheduledTime = _state.routineTimes['$basePrefix 식전'] ?? slot.scheduledTime;
+                                              });
+                                            },
+                                          ),
+                                          const SizedBox(width: 4),
+                                          _buildMiniTimingChip(
+                                            label: '식후',
+                                            isSelected: currentTiming == 'after',
+                                            onTap: () {
+                                              setModalState(() {
+                                                slot.label = '$basePrefix 식후';
+                                                slot.scheduledTime = _state.routineTimes['$basePrefix 식후'] ?? slot.scheduledTime;
+                                              });
+                                            },
+                                          ),
+                                        ],
+                                      ),
+                                    ],
                                   ],
                                 ),
                               );
                             }).toList(),
-                          ),
                         ),
                       const SizedBox(height: 10),
                     ],
@@ -1084,6 +1137,36 @@ class _MedsTabViewState extends State<MedsTabView> {
         ),
         const SizedBox(height: 24),
       ],
+    );
+  }
+
+  Widget _buildMiniTimingChip({
+    required String label,
+    required bool isSelected,
+    required VoidCallback onTap,
+  }) {
+    return InkWell(
+      borderRadius: BorderRadius.circular(4),
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+        decoration: BoxDecoration(
+          color: isSelected ? AppColors.primaryPurple.withOpacity(0.15) : const Color(0xFFF3F4F6),
+          borderRadius: BorderRadius.circular(4),
+          border: Border.all(
+            color: isSelected ? AppColors.primaryPurple : Colors.transparent,
+            width: 1,
+          ),
+        ),
+        child: Text(
+          label,
+          style: TextStyle(
+            fontSize: 10.5,
+            fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+            color: isSelected ? AppColors.primaryPurple : AppColors.textSecondary,
+          ),
+        ),
+      ),
     );
   }
 
