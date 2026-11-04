@@ -19,7 +19,12 @@ import '../widgets/daily_greeting_modal.dart';
 ///   * 길게 누르거나 말풍선을 누르면 '하곰이의 방'으로 이동
 class MainNavigationShell extends StatefulWidget {
   final bool startWithTutorial;
-  const MainNavigationShell({super.key, this.startWithTutorial = false});
+  final int initialTabIndex;
+  const MainNavigationShell({
+    super.key,
+    this.startWithTutorial = false,
+    this.initialTabIndex = 0,
+  });
 
   @override
   State<MainNavigationShell> createState() => _MainNavigationShellState();
@@ -32,30 +37,31 @@ class _MainNavigationShellState extends State<MainNavigationShell> {
   @override
   void initState() {
     super.initState();
+    _currentIndex = widget.initialTabIndex;
     if (widget.startWithTutorial) {
       _isTutorialActive = true;
       _currentIndex = 0;
     }
     final state = AppStateManager();
-    _currentIndex = state.selectedTabIndex;
     state.addListener(_onStateChanged);
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      _checkCompanionRoomRouting();
+      _checkWidgetDeepLinkRouting();
     });
   }
 
   void _onStateChanged() {
-    final state = AppStateManager();
-    if (_currentIndex != state.selectedTabIndex) {
-      setState(() {
-        _currentIndex = state.selectedTabIndex;
-      });
-    }
-    _checkCompanionRoomRouting();
+    _checkWidgetDeepLinkRouting();
   }
 
-  void _checkCompanionRoomRouting() {
+  void _checkWidgetDeepLinkRouting() {
     final state = AppStateManager();
+    if (state.targetTabIndexRequested != null && mounted) {
+      final targetIdx = state.targetTabIndexRequested!;
+      setState(() {
+        _currentIndex = targetIdx;
+      });
+      state.consumeTargetTab();
+    }
     if (state.shouldOpenCompanionRoom && mounted) {
       state.shouldOpenCompanionRoom = false;
       Navigator.of(context).push(
@@ -120,6 +126,7 @@ class _MainNavigationShellState extends State<MainNavigationShell> {
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
+        automaticallyImplyLeading: false, // 🚫 메인 셸에서는 뒤로가기 화살표 절대 미표시!
         backgroundColor: Colors.white,
         elevation: 0,
         title: Text(

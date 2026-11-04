@@ -3,10 +3,13 @@ import 'package:flutter/material.dart';
 import 'package:home_widget/home_widget.dart';
 import 'constants/app_colors.dart';
 import 'screens/splash_screen.dart';
+import 'screens/main_navigation_shell.dart';
+import 'screens/companion_room_screen.dart';
 import 'state/app_state_manager.dart';
 
+final GlobalKey<NavigatorState> hagomNavigatorKey = GlobalKey<NavigatorState>();
+
 /// 🚀 [공통 위젯 액션 실행기]
-/// - 백그라운드 콜백이든, 위젯 1-Tap 클릭 딥링크이든 동일하게 실행!
 Future<void> handleWidgetUriAction(Uri? uri) async {
   if (uri == null) return;
 
@@ -49,12 +52,29 @@ Future<void> handleWidgetUriAction(Uri? uri) async {
     }
   } else if (action == 'openMeds') {
     state.setTargetTab(0);
+    _navigateToTargetTab(0);
   } else if (action == 'openHabits') {
     state.setTargetTab(1);
+    _navigateToTargetTab(1);
   } else if (action == 'openCalendar') {
     state.setTargetTab(2);
+    _navigateToTargetTab(2);
   } else if (action == 'openRoom') {
     state.setTargetTab(0, openRoom: true);
+    final nav = hagomNavigatorKey.currentState;
+    if (nav != null) {
+      nav.push(MaterialPageRoute(builder: (_) => const CompanionRoomScreen()));
+    }
+  }
+}
+
+void _navigateToTargetTab(int tabIndex) {
+  final nav = hagomNavigatorKey.currentState;
+  if (nav != null) {
+    nav.pushAndRemoveUntil(
+      MaterialPageRoute(builder: (_) => MainNavigationShell(initialTabIndex: tabIndex)),
+      (route) => false,
+    );
   }
 }
 
@@ -87,14 +107,12 @@ class _HagomAppState extends State<HagomApp> {
   void initState() {
     super.initState();
     if (!kIsWeb) {
-      // 1. 앱이 꺼져있을 때 위젯 1-Tap 버튼 눌러서 켜진 경우 처리
       HomeWidget.initiallyLaunchedFromHomeWidget().then((uri) {
         if (uri != null) {
           handleWidgetUriAction(uri);
         }
       });
 
-      // 2. 앱이 백그라운드에 떠있을 때 위젯 1-Tap 버튼 누른 경우 즉시 처리
       HomeWidget.widgetClicked.listen((Uri? uri) {
         if (uri != null) {
           handleWidgetUriAction(uri);
@@ -106,6 +124,7 @@ class _HagomAppState extends State<HagomApp> {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      navigatorKey: hagomNavigatorKey,
       title: '하곰이 복약 & 습관 케어',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
