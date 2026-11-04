@@ -41,7 +41,9 @@ class HagomMonthCalendarWidgetProvider : HomeWidgetProvider() {
                 setTextViewText(R.id.widget_month_habits, WidgetBindings.text(widgetData, "month_habits"))
                 setTextViewText(R.id.widget_month_tasks, WidgetBindings.text(widgetData, "month_tasks"))
 
-                // 날짜 그리드 채우기 (빈 공간 탭 실수로 앱 열림 방지: 날짜 셀은 클릭 이벤트 미연결)
+                val currentYear = java.util.Calendar.getInstance().get(java.util.Calendar.YEAR)
+                val currentMonth = java.util.Calendar.getInstance().get(java.util.Calendar.MONTH) + 1
+
                 for (day in 1..31) {
                     val resId = context.resources.getIdentifier("d_$day", "id", context.packageName)
                     if (resId != 0) {
@@ -61,6 +63,17 @@ class HagomMonthCalendarWidgetProvider : HomeWidgetProvider() {
                             else -> R.drawable.hagom_widget_white_bg
                         }
                         setInt(resId, "setBackgroundResource", bgRes)
+
+                        // 🌟 날짜를 탭하면 달력 탭에서 바로 해당 날짜가 선택된 상태로 앱 열기!
+                        val monthStr = if (currentMonth < 10) "0$currentMonth" else "$currentMonth"
+                        val dayStr = if (day < 10) "0$day" else "$day"
+                        val dateIso = "$currentYear-$monthStr-$dayStr"
+                        val dayIntent = WidgetBindings.openAppIntent(
+                            context,
+                            "hagomwidget://opencalendar?date=$dateIso",
+                            2000 + day
+                        )
+                        setOnClickPendingIntent(resId, dayIntent)
                     }
                 }
 

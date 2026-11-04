@@ -68,7 +68,7 @@ class _MainNavigationShellState extends State<MainNavigationShell> {
       setState(() {
         _currentIndex = targetIdx;
       });
-      state.consumeTargetTab();
+      state.targetTabIndexRequested = null;
     }
     if (wantsRoom) {
       state.shouldOpenCompanionRoom = false;

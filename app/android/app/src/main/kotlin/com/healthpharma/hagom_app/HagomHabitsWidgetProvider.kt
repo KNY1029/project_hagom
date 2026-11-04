@@ -35,6 +35,8 @@ class HagomHabitsWidgetProvider : HomeWidgetProvider() {
 
             val views = RemoteViews(context.packageName, R.layout.hagom_habits_widget).apply {
                 val openHabitsIntent = WidgetBindings.openAppIntent(context, "hagomwidget://openhabits", 1002)
+                // 버튼과 거리가 먼 좌측 정보 영역 전체를 탭하면 앱 열림
+                setOnClickPendingIntent(R.id.widget_habits_info_area, openHabitsIntent)
                 setOnClickPendingIntent(R.id.widget_habits_title, openHabitsIntent)
                 setOnClickPendingIntent(R.id.widget_habits_tag, openHabitsIntent)
                 setOnClickPendingIntent(R.id.habits_celebration_view, openHabitsIntent)

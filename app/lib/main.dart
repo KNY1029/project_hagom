@@ -86,7 +86,12 @@ Future<void> handleWidgetUriAction(Uri? uri) async {
   } else if (action == 'openhabits') {
     state.setTargetTab(1);
   } else if (action == 'opencalendar') {
-    state.setTargetTab(2);
+    DateTime? targetDate;
+    final dateParam = uri.queryParameters['date'];
+    if (dateParam != null) {
+      targetDate = DateTime.tryParse(dateParam);
+    }
+    state.setTargetTab(2, calendarDate: targetDate);
   } else if (action == 'openroom') {
     state.setTargetTab(0, openRoom: true);
   }

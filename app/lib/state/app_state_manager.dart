@@ -172,15 +172,19 @@ class AppStateManager extends ChangeNotifier {
   int? targetTabIndexRequested;
   bool shouldOpenCompanionRoom = false;
 
-  void setTargetTab(int index, {bool openRoom = false}) {
+  DateTime? requestedCalendarDate;
+
+  void setTargetTab(int index, {bool openRoom = false, DateTime? calendarDate}) {
     targetTabIndexRequested = index;
     shouldOpenCompanionRoom = openRoom;
+    requestedCalendarDate = calendarDate;
     notifyListeners();
   }
 
   void consumeTargetTab() {
     targetTabIndexRequested = null;
     shouldOpenCompanionRoom = false;
+    requestedCalendarDate = null;
   }
   // 🛠️ 개발자 모드(전체 예시 데이터 복원 상태) 여부
   bool isDevSimulationMode = true; // 기본값은 개발자 예시 모드 (발표 및 시연용)

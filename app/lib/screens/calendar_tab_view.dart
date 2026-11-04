@@ -50,7 +50,17 @@ class _CalendarTabViewState extends State<CalendarTabView> {
   }
 
   void _onStateChange() {
-    if (mounted) setState(() {});
+    if (!mounted) return;
+    if (_state.requestedCalendarDate != null) {
+      final req = _state.requestedCalendarDate!;
+      setState(() {
+        _selectedDate = DateTime(req.year, req.month, req.day);
+        _currentMonth = DateTime(req.year, req.month, 1);
+      });
+      _state.requestedCalendarDate = null;
+    } else {
+      setState(() {});
+    }
   }
 
   // 월 이동
