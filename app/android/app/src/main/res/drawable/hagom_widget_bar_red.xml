@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- 기본 흰색 바탕 -->
+    <item>
+        <shape android:shape="rectangle">
+            <solid android:color="#FFFFFF" />
+            <corners android:radius="4dp" />
+        </shape>
+    </item>
+    <!-- 하단 3dp 빨간 캡슐 바 -->
+    <item android:gravity="bottom" android:bottom="2dp" android:left="3dp" android:right="3dp">
+        <shape android:shape="rectangle">
+            <size android:height="2.5dp" />
+            <solid android:color="#EF4444" />
+            <corners android:radius="1.5dp" />
+        </shape>
+    </item>
+</layer-list>

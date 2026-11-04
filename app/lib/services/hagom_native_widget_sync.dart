@@ -145,29 +145,33 @@ class HagomNativeWidgetSync {
       final monthMeds = '복약 ${state.completedDoseSlots}/${state.totalDoseSlots} 완료';
       final monthHabits = '습관 ${state.habitTotalScore.toStringAsFixed(0)}/${todayHabits.length} 실천';
       final monthTasks = todayTasks.isNotEmpty
-          ? '오늘 일정: ${todayTasks.first.title} (${todayTasks.first.time ?? "시간 미지정"})'
-          : '오늘 예정된 일정이 없어요';
+          ? '${todayTasks.first.title} (${todayTasks.first.time ?? "시간 미지정"})'
+          : '예정된 일정이 없어요';
 
       await HomeWidget.saveWidgetData<String>('month_title', monthStr);
       await HomeWidget.saveWidgetData<String>('month_meds', monthMeds);
       await HomeWidget.saveWidgetData<String>('month_habits', monthHabits);
       await HomeWidget.saveWidgetData<String>('month_tasks', monthTasks);
 
-      // 이번 달 날짜별 임상 상태(완료: 초록 틴트, 누락: 빨간/갈색 틴트) 직렬화
+      // 이번 달 날짜별 임상 상태(올클리어만 연초록 틴트, 나머지는 하단 바와 핀으로 정밀 바인딩)
       for (int d = 1; d <= 30; d++) {
         final date = DateTime(now.year, now.month, d);
         if (!state.isBeforeTrackingStart(date) && !date.isAfter(now)) {
           final mRate = state.getMedRateForDay(date);
           final hRate = state.getHabitRateForDay(date);
           final isMissedP = state.hasMissedPrescriptionForDay(date);
+          final tasks = state.getTasksForDay(date);
+          final hasT = tasks.isNotEmpty;
 
           String status = '';
           if (mRate != null && mRate >= 1.0 && hRate != null && hRate >= 1.0) {
-            status = 'all_done';
+            status = hasT ? 'all_done_pin' : 'all_done';
           } else if (isMissedP) {
-            status = 'missed_med';
+            status = hasT ? 'missed_med_pin' : 'missed_med';
           } else if (mRate != null && mRate > 0.0) {
-            status = 'partial';
+            status = hasT ? 'partial_pin' : 'partial';
+          } else if (hasT) {
+            status = 'pin_only';
           }
           await HomeWidget.saveWidgetData<String>('day_status_$d', status);
         }
