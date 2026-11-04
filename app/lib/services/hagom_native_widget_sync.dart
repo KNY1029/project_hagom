@@ -139,12 +139,40 @@ class HagomNativeWidgetSync {
       await HomeWidget.saveWidgetData<String>('calendar_btn_subtitle', calBtnSubtitle);
       await HomeWidget.updateWidget(name: calendarProvider, androidName: calendarProvider);
       // -------------------------------------------------------------
-      // 5) 🗓️ 4x4 한 달 달력 위젯 데이터 구성
+      // 5) 🗓️ 4x4 한 달 달력 위젯 데이터 구성 (복약 + 습관 + 할일 3종 종합)
       // -------------------------------------------------------------
-      final monthStr = '${now.year}년 ${now.month}월 달력';
-      final monthSummary = '오늘 복약 ${state.completedDoseSlots}/${state.totalDoseSlots} 완료 · 비처벌적 기록 달력';
+      final monthStr = '${now.year}년 ${now.month}월 기록 달력';
+      final monthMeds = '복약 ${state.completedDoseSlots}/${state.totalDoseSlots} 완료';
+      final monthHabits = '습관 ${state.habitTotalScore.toStringAsFixed(0)}/${todayHabits.length} 실천';
+      final monthTasks = todayTasks.isNotEmpty
+          ? '오늘 일정: ${todayTasks.first.title} (${todayTasks.first.time ?? "시간 미지정"})'
+          : '오늘 예정된 일정이 없어요';
+
       await HomeWidget.saveWidgetData<String>('month_title', monthStr);
-      await HomeWidget.saveWidgetData<String>('month_summary', monthSummary);
+      await HomeWidget.saveWidgetData<String>('month_meds', monthMeds);
+      await HomeWidget.saveWidgetData<String>('month_habits', monthHabits);
+      await HomeWidget.saveWidgetData<String>('month_tasks', monthTasks);
+
+      // 이번 달 날짜별 임상 상태(완료: 초록 틴트, 누락: 빨간/갈색 틴트) 직렬화
+      for (int d = 1; d <= 30; d++) {
+        final date = DateTime(now.year, now.month, d);
+        if (!state.isBeforeTrackingStart(date) && !date.isAfter(now)) {
+          final mRate = state.getMedRateForDay(date);
+          final hRate = state.getHabitRateForDay(date);
+          final isMissedP = state.hasMissedPrescriptionForDay(date);
+
+          String status = '';
+          if (mRate != null && mRate >= 1.0 && hRate != null && hRate >= 1.0) {
+            status = 'all_done';
+          } else if (isMissedP) {
+            status = 'missed_med';
+          } else if (mRate != null && mRate > 0.0) {
+            status = 'partial';
+          }
+          await HomeWidget.saveWidgetData<String>('day_status_$d', status);
+        }
+      }
+
       await HomeWidget.updateWidget(name: monthCalendarProvider, androidName: monthCalendarProvider);
     } catch (e) {
       debugPrint('Native widget update error: $e');
