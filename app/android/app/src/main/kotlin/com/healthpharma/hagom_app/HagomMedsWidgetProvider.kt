@@ -5,7 +5,9 @@ import android.appwidget.AppWidgetManager
 import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
+import android.net.Uri
 import android.widget.RemoteViews
+import es.antonborri.home_widget.HomeWidgetBackgroundIntent
 import es.antonborri.home_widget.HomeWidgetProvider
 
 class HagomMedsWidgetProvider : HomeWidgetProvider() {
@@ -34,19 +36,25 @@ class HagomMedsWidgetProvider : HomeWidgetProvider() {
                 setTextViewText(R.id.widget_meds_btn_title, btnTitle)
                 setTextViewText(R.id.widget_meds_btn_subtitle, btnSubtitle)
 
-                // 🚀 위젯 어디를 눌러도 하곰이 앱이 즉시 열리도록 PendingIntent 등록!
-                val intent = Intent(context, MainActivity::class.java).apply {
+                // 1) 좌측 본문 터치 시: 하곰이 앱 열기
+                val openAppIntent = Intent(context, MainActivity::class.java).apply {
                     flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
                     putExtra("from_widget", "meds")
                 }
-                val pendingIntent = PendingIntent.getActivity(
+                val openAppPendingIntent = PendingIntent.getActivity(
                     context,
                     101,
-                    intent,
+                    openAppIntent,
                     PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
                 )
-                setOnClickPendingIntent(R.id.widget_meds_container, pendingIntent)
-                setOnClickPendingIntent(R.id.widget_meds_btn, pendingIntent)
+                setOnClickPendingIntent(R.id.widget_meds_container, openAppPendingIntent)
+
+                // 2) 우측 [복용] 버튼 터치 시: 앱 실행 없이 즉시 복약 체크되는 백그라운드 인텐트!
+                val bgCheckIntent = HomeWidgetBackgroundIntent.getBroadcast(
+                    context,
+                    Uri.parse("hagomWidget://checkMed")
+                )
+                setOnClickPendingIntent(R.id.widget_meds_btn, bgCheckIntent)
             }
             appWidgetManager.updateAppWidget(appWidgetId, views)
         }

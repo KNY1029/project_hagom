@@ -88,6 +88,19 @@
                 android:name="android.appwidget.provider"
                 android:resource="@xml/hagom_month_calendar_widget_provider_info" />
         </receiver>
+        <!-- 🚀 home_widget 백그라운드 1-Tap 즉시 체크 리시버 & 서비스 (앱 실행 없이 동작) -->
+        <receiver
+            android:name="es.antonborri.home_widget.HomeWidgetBackgroundReceiver"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="es.antonborri.home_widget.action.BACKGROUND" />
+            </intent-filter>
+        </receiver>
+
+        <service
+            android:name="es.antonborri.home_widget.HomeWidgetBackgroundService"
+            android:exported="true"
+            android:permission="android.permission.BIND_JOB_SERVICE" />
     </application>
     <!-- Required to query activities that can process text, see:
          https://developer.android.com/training/package-visibility and

@@ -5,7 +5,9 @@ import android.appwidget.AppWidgetManager
 import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
+import android.net.Uri
 import android.widget.RemoteViews
+import es.antonborri.home_widget.HomeWidgetBackgroundIntent
 import es.antonborri.home_widget.HomeWidgetProvider
 
 class HagomHabitsWidgetProvider : HomeWidgetProvider() {
@@ -34,19 +36,25 @@ class HagomHabitsWidgetProvider : HomeWidgetProvider() {
                 setTextViewText(R.id.widget_habits_btn_title, btnTitle)
                 setTextViewText(R.id.widget_habits_btn_subtitle, btnSubtitle)
 
-                // 🚀 위젯 터치 시 앱 습관 탭으로 즉시 열기
-                val intent = Intent(context, MainActivity::class.java).apply {
+                // 1) 좌측 본문 터치 시: 하곰이 앱 열기
+                val openAppIntent = Intent(context, MainActivity::class.java).apply {
                     flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
                     putExtra("from_widget", "habits")
                 }
-                val pendingIntent = PendingIntent.getActivity(
+                val openAppPendingIntent = PendingIntent.getActivity(
                     context,
                     102,
-                    intent,
+                    openAppIntent,
                     PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
                 )
-                setOnClickPendingIntent(R.id.widget_habits_container, pendingIntent)
-                setOnClickPendingIntent(R.id.widget_habits_btn, pendingIntent)
+                setOnClickPendingIntent(R.id.widget_habits_container, openAppPendingIntent)
+
+                // 2) 우측 [실천] 버튼 터치 시: 앱 실행 없이 즉시 습관 카운트 증가되는 백그라운드 인텐트!
+                val bgCheckIntent = HomeWidgetBackgroundIntent.getBroadcast(
+                    context,
+                    Uri.parse("hagomWidget://checkHabit")
+                )
+                setOnClickPendingIntent(R.id.widget_habits_btn, bgCheckIntent)
             }
             appWidgetManager.updateAppWidget(appWidgetId, views)
         }

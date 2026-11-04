@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -13,6 +14,16 @@ class AppStateManager extends ChangeNotifier {
   factory AppStateManager() => _instance;
   AppStateManager._internal() {
     _initDataAndStorage();
+  }
+  Completer<void>? _initCompleter;
+
+  Future<void> ensureInitialized() async {
+    if (_initCompleter != null) {
+      return _initCompleter!.future;
+    }
+    _initCompleter = Completer<void>();
+    await _initDataAndStorage();
+    _initCompleter!.complete();
   }
 
   @override
