@@ -1,13 +1,9 @@
 package com.healthpharma.hagom_app
 
-import android.app.PendingIntent
 import android.appwidget.AppWidgetManager
 import android.content.Context
-import android.content.Intent
 import android.content.SharedPreferences
-import android.net.Uri
 import android.widget.RemoteViews
-import es.antonborri.home_widget.HomeWidgetLaunchIntent
 import es.antonborri.home_widget.HomeWidgetProvider
 
 class HagomMascotWidgetProvider : HomeWidgetProvider() {
@@ -28,12 +24,10 @@ class HagomMascotWidgetProvider : HomeWidgetProvider() {
                 setTextViewText(R.id.widget_mascot_quote, quote)
                 setTextViewText(R.id.widget_mascot_sub, sub)
 
-                val pendingIntent = HomeWidgetLaunchIntent.getActivity(
-                    context,
-                    MainActivity::class.java,
-                    Uri.parse("hagomwidget://openRoom")
+                setOnClickPendingIntent(
+                    R.id.widget_mascot_container,
+                    WidgetBindings.openAppIntent(context, "hagomwidget://openroom", 1004)
                 )
-                setOnClickPendingIntent(R.id.widget_mascot_container, pendingIntent)
             }
             appWidgetManager.updateAppWidget(appWidgetId, views)
         }

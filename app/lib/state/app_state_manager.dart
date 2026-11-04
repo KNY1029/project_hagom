@@ -13,7 +13,7 @@ class AppStateManager extends ChangeNotifier {
   static final AppStateManager _instance = AppStateManager._internal();
   factory AppStateManager() => _instance;
   AppStateManager._internal() {
-    _initDataAndStorage();
+    ensureInitialized();
   }
   Completer<void>? _initCompleter;
 
@@ -24,6 +24,19 @@ class AppStateManager extends ChangeNotifier {
     _initCompleter = Completer<void>();
     await _initDataAndStorage();
     _initCompleter!.complete();
+  }
+
+  /// 백그라운드 위젯 콜백에서 변경된 내용을 디스크와 위젯에 즉시 확정 저장
+  Future<void> flushForWidget() async {
+    await _saveDataToDisk();
+    await HagomNativeWidgetSync.updateNativeWidget(this);
+  }
+
+  /// 앱이 포그라운드로 돌아올 때 위젯에서 변경한 최신 상태를 디스크에서 다시 읽어옴
+  Future<void> reloadFromDisk() async {
+    _prefs ??= await SharedPreferences.getInstance();
+    await _prefs!.reload();
+    await _loadDataFromDisk();
   }
 
   @override
@@ -607,6 +620,21 @@ class AppStateManager extends ChangeNotifier {
       if (loadedCustomSlots != null) {
         customTimeSlots.clear();
         customTimeSlots.addAll(loadedCustomSlots);
+      }
+      // 이미 약에 저장된 비표준 시간대 라벨도 커스텀 칩 목록에 자동 복원 (레이스 유실 방어)
+      const standardLabels = {
+        '아침', '아침 식전', '아침 식후',
+        '점심', '점심 식전', '점심 식후',
+        '저녁', '저녁 식전', '저녁 식후',
+        '취침 전', '식간',
+      };
+      for (final med in _medications) {
+        for (final slot in med.doseSlots) {
+          final l = slot.label.trim();
+          if (l.isNotEmpty && !standardLabels.contains(l) && !customTimeSlots.contains(l)) {
+            customTimeSlots.add(l);
+          }
+        }
       }
       final loadedRoutineTimesRaw = _prefs!.getString('hagom_routine_times');
       if (loadedRoutineTimesRaw != null) {

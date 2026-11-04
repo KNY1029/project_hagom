@@ -7,26 +7,23 @@
     android:orientation="vertical"
     android:padding="12dp">
 
-    <!-- 1) 3x1 기본 행 -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:gravity="center_vertical">
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
 
-        <!-- 좌측 정보 영역 -->
         <LinearLayout
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:orientation="vertical">
 
-            <!-- 상단 태그 및 진행 현황 -->
             <LinearLayout
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:gravity="center_vertical">
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
 
                 <TextView
                     android:id="@+id/widget_calendar_tag"
@@ -45,12 +42,11 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginStart="8dp"
-                    android:text="오후 2:00"
+                    android:text=""
                     android:textColor="#6B7280"
                     android:textSize="11sp" />
             </LinearLayout>
 
-            <!-- 일정 제목 -->
             <TextView
                 android:id="@+id/widget_calendar_title"
                 android:layout_width="match_parent"
@@ -58,12 +54,11 @@
                 android:layout_marginTop="4dp"
                 android:ellipsize="end"
                 android:maxLines="1"
-                android:text="약학 실습 보고서 작성"
+                android:text=""
                 android:textColor="#1F2937"
                 android:textSize="14.5sp"
                 android:textStyle="bold" />
 
-            <!-- 일정 설명 -->
             <TextView
                 android:id="@+id/widget_calendar_subtitle"
                 android:layout_width="match_parent"
@@ -71,20 +66,19 @@
                 android:layout_marginTop="2dp"
                 android:ellipsize="end"
                 android:maxLines="1"
-                android:text="카테고리: 과제 및 실습"
+                android:text=""
                 android:textColor="#4B5568"
                 android:textSize="11sp" />
         </LinearLayout>
 
-        <!-- 우측 체크 버튼 -->
         <LinearLayout
             android:id="@+id/widget_calendar_btn"
             android:layout_width="72dp"
             android:layout_height="48dp"
             android:layout_marginStart="10dp"
             android:background="@drawable/hagom_widget_task_btn_bg"
-            android:orientation="vertical"
-            android:gravity="center">
+            android:gravity="center"
+            android:orientation="vertical">
 
             <TextView
                 android:id="@+id/widget_calendar_btn_title"
@@ -97,40 +91,39 @@
         </LinearLayout>
     </LinearLayout>
 
-    <!-- 2) 🌟 [세로로 늘렸을 때(3x2, 3x3) 나타나는 오늘 전체 할일 목록 확장 영역] -->
     <LinearLayout
-        android:id="@+id/widget_calendar_expanded_list"
+        android:id="@+id/calendar_expanded_list"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="8dp"
         android:orientation="vertical">
 
-        <!-- 구분선 -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="1dp"
             android:layout_marginBottom="6dp"
             android:background="#E5E7EB" />
 
-        <!-- 할일 1 (약학 실습 보고서) -->
         <LinearLayout
+            android:id="@+id/cal_row_1"
             android:layout_width="match_parent"
             android:layout_height="32dp"
             android:gravity="center_vertical"
             android:orientation="horizontal">
 
             <TextView
+                android:id="@+id/cal_row_1_text"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:ellipsize="end"
                 android:maxLines="1"
-                android:text="약학 실습 보고서 작성 (오후 2:00)"
+                android:text=""
                 android:textColor="#1F2937"
                 android:textSize="11.5sp" />
 
             <TextView
-                android:id="@+id/task_slot_1_btn"
+                android:id="@+id/cal_row_1_btn"
                 android:layout_width="54dp"
                 android:layout_height="24dp"
                 android:background="@drawable/hagom_widget_task_btn_bg"
@@ -141,25 +134,26 @@
                 android:textStyle="bold" />
         </LinearLayout>
 
-        <!-- 할일 2 (병원 진료 및 상담) -->
         <LinearLayout
+            android:id="@+id/cal_row_2"
             android:layout_width="match_parent"
             android:layout_height="32dp"
             android:gravity="center_vertical"
             android:orientation="horizontal">
 
             <TextView
+                android:id="@+id/cal_row_2_text"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:ellipsize="end"
                 android:maxLines="1"
-                android:text="정신건강의학과 정기 진료 (오후 4:30)"
+                android:text=""
                 android:textColor="#1F2937"
                 android:textSize="11.5sp" />
 
             <TextView
-                android:id="@+id/task_slot_2_btn"
+                android:id="@+id/cal_row_2_btn"
                 android:layout_width="54dp"
                 android:layout_height="24dp"
                 android:background="@drawable/hagom_widget_task_btn_bg"
@@ -170,6 +164,34 @@
                 android:textStyle="bold" />
         </LinearLayout>
 
+        <LinearLayout
+            android:id="@+id/cal_row_3"
+            android:layout_width="match_parent"
+            android:layout_height="32dp"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <TextView
+                android:id="@+id/cal_row_3_text"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:ellipsize="end"
+                android:maxLines="1"
+                android:text=""
+                android:textColor="#1F2937"
+                android:textSize="11.5sp" />
+
+            <TextView
+                android:id="@+id/cal_row_3_btn"
+                android:layout_width="54dp"
+                android:layout_height="24dp"
+                android:background="@drawable/hagom_widget_task_btn_bg"
+                android:gravity="center"
+                android:text="체크"
+                android:textColor="#FFFFFF"
+                android:textSize="10.5sp"
+                android:textStyle="bold" />
+        </LinearLayout>
     </LinearLayout>
-
 </LinearLayout>

@@ -55,14 +55,22 @@ class _MainNavigationShellState extends State<MainNavigationShell> {
 
   void _checkWidgetDeepLinkRouting() {
     final state = AppStateManager();
-    if (state.targetTabIndexRequested != null && mounted) {
+    if (!mounted) return;
+    final hasTabRequest = state.targetTabIndexRequested != null;
+    final wantsRoom = state.shouldOpenCompanionRoom;
+    if (!hasTabRequest && !wantsRoom) return;
+
+    // 설정이나 하곰이 방 등 하위 페이지가 열려 있으면 먼저 메인 셸로 복귀
+    Navigator.of(context).popUntil((route) => route.isFirst);
+
+    if (hasTabRequest) {
       final targetIdx = state.targetTabIndexRequested!;
       setState(() {
         _currentIndex = targetIdx;
       });
       state.consumeTargetTab();
     }
-    if (state.shouldOpenCompanionRoom && mounted) {
+    if (wantsRoom) {
       state.shouldOpenCompanionRoom = false;
       Navigator.of(context).push(
         MaterialPageRoute(builder: (_) => const CompanionRoomScreen()),

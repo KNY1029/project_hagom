@@ -7,26 +7,23 @@
     android:orientation="vertical"
     android:padding="12dp">
 
-    <!-- 1) 3x1 기본 행 -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:gravity="center_vertical">
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
 
-        <!-- 좌측 정보 영역 -->
         <LinearLayout
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:orientation="vertical">
 
-            <!-- 상단 태그 및 진행 현황 -->
             <LinearLayout
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:gravity="center_vertical">
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
 
                 <TextView
                     android:id="@+id/widget_habits_tag"
@@ -45,12 +42,11 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginStart="8dp"
-                    android:text="2/4 실천 중"
+                    android:text=""
                     android:textColor="#6B7280"
                     android:textSize="11sp" />
             </LinearLayout>
 
-            <!-- 습관 제목 -->
             <TextView
                 android:id="@+id/widget_habits_title"
                 android:layout_width="match_parent"
@@ -58,12 +54,11 @@
                 android:layout_marginTop="4dp"
                 android:ellipsize="end"
                 android:maxLines="1"
-                android:text="물 한 컵 마시기"
+                android:text=""
                 android:textColor="#1F2937"
                 android:textSize="14.5sp"
                 android:textStyle="bold" />
 
-            <!-- 습관 서브타이틀 -->
             <TextView
                 android:id="@+id/widget_habits_subtitle"
                 android:layout_width="match_parent"
@@ -71,20 +66,19 @@
                 android:layout_marginTop="2dp"
                 android:ellipsize="end"
                 android:maxLines="1"
-                android:text="언제든 자유롭게 · 1컵"
+                android:text=""
                 android:textColor="#4B5568"
                 android:textSize="11sp" />
         </LinearLayout>
 
-        <!-- 우측 실천 버튼 -->
         <LinearLayout
             android:id="@+id/widget_habits_btn"
             android:layout_width="72dp"
             android:layout_height="48dp"
             android:layout_marginStart="10dp"
             android:background="@drawable/hagom_widget_habit_btn_bg"
-            android:orientation="vertical"
-            android:gravity="center">
+            android:gravity="center"
+            android:orientation="vertical">
 
             <TextView
                 android:id="@+id/widget_habits_btn_title"
@@ -97,40 +91,39 @@
         </LinearLayout>
     </LinearLayout>
 
-    <!-- 2) 🌟 [세로로 늘렸을 때(3x2, 3x3) 나타나는 오늘 전체 습관 목록 확장 영역] -->
     <LinearLayout
-        android:id="@+id/widget_habits_expanded_list"
+        android:id="@+id/habits_expanded_list"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="8dp"
         android:orientation="vertical">
 
-        <!-- 구분선 -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="1dp"
             android:layout_marginBottom="6dp"
             android:background="#E5E7EB" />
 
-        <!-- 습관 1 (물 마시기) -->
         <LinearLayout
+            android:id="@+id/habits_row_1"
             android:layout_width="match_parent"
             android:layout_height="32dp"
             android:gravity="center_vertical"
             android:orientation="horizontal">
 
             <TextView
+                android:id="@+id/habits_row_1_text"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:ellipsize="end"
                 android:maxLines="1"
-                android:text="물 마시기 (3/4잔)"
+                android:text=""
                 android:textColor="#1F2937"
                 android:textSize="11.5sp" />
 
             <TextView
-                android:id="@+id/habit_slot_1_btn"
+                android:id="@+id/habits_row_1_btn"
                 android:layout_width="54dp"
                 android:layout_height="24dp"
                 android:background="@drawable/hagom_widget_habit_btn_bg"
@@ -141,81 +134,26 @@
                 android:textStyle="bold" />
         </LinearLayout>
 
-        <!-- 습관 2 (오늘 계획 보기) -->
         <LinearLayout
+            android:id="@+id/habits_row_2"
             android:layout_width="match_parent"
             android:layout_height="32dp"
             android:gravity="center_vertical"
             android:orientation="horizontal">
 
             <TextView
+                android:id="@+id/habits_row_2_text"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:ellipsize="end"
                 android:maxLines="1"
-                android:text="오늘 계획 가볍게 보기"
+                android:text=""
                 android:textColor="#1F2937"
                 android:textSize="11.5sp" />
 
             <TextView
-                android:layout_width="54dp"
-                android:layout_height="24dp"
-                android:background="@drawable/hagom_widget_done_bg"
-                android:gravity="center"
-                android:text="완료"
-                android:textColor="#044E36"
-                android:textSize="10.5sp"
-                android:textStyle="bold" />
-        </LinearLayout>
-
-        <!-- 습관 3 (몸 움직이기) -->
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="32dp"
-            android:gravity="center_vertical"
-            android:orientation="horizontal">
-
-            <TextView
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:ellipsize="end"
-                android:maxLines="1"
-                android:text="가볍게 몸 움직이기 (스트레칭)"
-                android:textColor="#1F2937"
-                android:textSize="11.5sp" />
-
-            <TextView
-                android:layout_width="54dp"
-                android:layout_height="24dp"
-                android:background="@drawable/hagom_widget_done_bg"
-                android:gravity="center"
-                android:text="완료"
-                android:textColor="#044E36"
-                android:textSize="10.5sp"
-                android:textStyle="bold" />
-        </LinearLayout>
-
-        <!-- 습관 4 (스마트폰 내려놓기) -->
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="32dp"
-            android:gravity="center_vertical"
-            android:orientation="horizontal">
-
-            <TextView
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:ellipsize="end"
-                android:maxLines="1"
-                android:text="자기 전 스마트폰 내려놓기"
-                android:textColor="#1F2937"
-                android:textSize="11.5sp" />
-
-            <TextView
-                android:id="@+id/habit_slot_4_btn"
+                android:id="@+id/habits_row_2_btn"
                 android:layout_width="54dp"
                 android:layout_height="24dp"
                 android:background="@drawable/hagom_widget_habit_btn_bg"
@@ -226,6 +164,64 @@
                 android:textStyle="bold" />
         </LinearLayout>
 
+        <LinearLayout
+            android:id="@+id/habits_row_3"
+            android:layout_width="match_parent"
+            android:layout_height="32dp"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <TextView
+                android:id="@+id/habits_row_3_text"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:ellipsize="end"
+                android:maxLines="1"
+                android:text=""
+                android:textColor="#1F2937"
+                android:textSize="11.5sp" />
+
+            <TextView
+                android:id="@+id/habits_row_3_btn"
+                android:layout_width="54dp"
+                android:layout_height="24dp"
+                android:background="@drawable/hagom_widget_habit_btn_bg"
+                android:gravity="center"
+                android:text="실천"
+                android:textColor="#FFFFFF"
+                android:textSize="10.5sp"
+                android:textStyle="bold" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/habits_row_4"
+            android:layout_width="match_parent"
+            android:layout_height="32dp"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <TextView
+                android:id="@+id/habits_row_4_text"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:ellipsize="end"
+                android:maxLines="1"
+                android:text=""
+                android:textColor="#1F2937"
+                android:textSize="11.5sp" />
+
+            <TextView
+                android:id="@+id/habits_row_4_btn"
+                android:layout_width="54dp"
+                android:layout_height="24dp"
+                android:background="@drawable/hagom_widget_habit_btn_bg"
+                android:gravity="center"
+                android:text="실천"
+                android:textColor="#FFFFFF"
+                android:textSize="10.5sp"
+                android:textStyle="bold" />
+        </LinearLayout>
     </LinearLayout>
-
 </LinearLayout>

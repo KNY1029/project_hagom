@@ -1,7 +1,9 @@
 package com.healthpharma.hagom_app
 
+import android.content.ClipData
 import android.content.ContentValues
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Build
 import android.os.Environment
@@ -78,13 +80,26 @@ class MainActivity : FlutterActivity() {
                             cacheFile
                         )
 
-                        // 🌟 카카오톡 등 외부 메신저가 파일을 정상 첨부할 수 있도록 범용 MIME 및 모든 권한 부여!
+                        // 카카오톡 등은 EXTRA_TEXT가 함께 있으면 텍스트만 공유하고 파일을 버리거나,
+                        // */* 와일드카드를 거부한다. text/csv + ClipData + 패키지별 URI 권한 부여가 정석.
                         val shareIntent = Intent(Intent.ACTION_SEND).apply {
-                            type = "*/*" // text/csv뿐 아니라 모든 메신저(카톡)에서 파일 첨부로 완벽 인식
+                            type = "text/csv"
                             putExtra(Intent.EXTRA_STREAM, fileUri)
-                            putExtra(Intent.EXTRA_SUBJECT, fileName)
-                            putExtra(Intent.EXTRA_TEXT, "하곰이 비처벌적 환자 케어 솔루션 - 건강 기록 리포트 파일 ($fileName)")
+                            clipData = ClipData.newRawUri(fileName, fileUri)
                             addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                        }
+
+                        val resInfoList = packageManager.queryIntentActivities(
+                            shareIntent,
+                            PackageManager.MATCH_DEFAULT_ONLY
+                        )
+                        for (resolveInfo in resInfoList) {
+                            val pkgName = resolveInfo.activityInfo.packageName
+                            grantUriPermission(
+                                pkgName,
+                                fileUri,
+                                Intent.FLAG_GRANT_READ_URI_PERMISSION
+                            )
                         }
 
                         val chooser = Intent.createChooser(shareIntent, "건강 기록 파일 전송 및 저장").apply {

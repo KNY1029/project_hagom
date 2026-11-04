@@ -256,8 +256,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
       if (mounted) {
         CelebrationToast.show(
           context,
-          title: '다운로드 처리 완료',
-          message: '건강 기록 파일이 안전하게 추출되었어요.',
+          title: '파일 처리 오류',
+          message: '파일 내보내기 중 문제가 발생했어요: $e',
         );
       }
     }
@@ -358,7 +358,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     ),
                     SizedBox(height: 3),
                     Text(
-                      '정신약학 비처벌 복약 솔루션 · v0.66.126',
+                      '정신약학 비처벌 복약 솔루션 · v0.67.127',
                       style: TextStyle(
                         fontSize: 12,
                         color: AppColors.textSecondary,

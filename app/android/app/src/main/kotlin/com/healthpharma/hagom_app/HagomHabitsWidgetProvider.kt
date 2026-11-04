@@ -1,14 +1,10 @@
 package com.healthpharma.hagom_app
 
-import android.app.PendingIntent
 import android.appwidget.AppWidgetManager
 import android.content.Context
-import android.content.Intent
 import android.content.SharedPreferences
 import android.graphics.Color
-import android.net.Uri
 import android.widget.RemoteViews
-import es.antonborri.home_widget.HomeWidgetLaunchIntent
 import es.antonborri.home_widget.HomeWidgetProvider
 
 class HagomHabitsWidgetProvider : HomeWidgetProvider() {
@@ -21,98 +17,63 @@ class HagomHabitsWidgetProvider : HomeWidgetProvider() {
     ) {
         for (appWidgetId in appWidgetIds) {
             val views = RemoteViews(context.packageName, R.layout.hagom_habits_widget).apply {
-                val tag = widgetData.getString("habits_tag", "오늘의 습관") ?: "오늘의 습관"
-                val progress = widgetData.getString("habits_progress", "2/4 실천 중") ?: "2/4 실천 중"
-                val title = widgetData.getString("habits_title", "물 한 컵 마시기") ?: "물 한 컵 마시기"
-                val subtitle = widgetData.getString("habits_subtitle", "언제든 자유롭게 · 1컵") ?: "언제든 자유롭게 · 1컵"
-                val btnTitle = widgetData.getString("habits_btn_title", "실천") ?: "실천"
+                setTextViewText(R.id.widget_habits_tag, WidgetBindings.text(widgetData, "habits_tag"))
+                setTextViewText(R.id.widget_habits_progress, WidgetBindings.text(widgetData, "habits_progress"))
+                setTextViewText(R.id.widget_habits_title, WidgetBindings.text(widgetData, "habits_title"))
+                setTextViewText(R.id.widget_habits_subtitle, WidgetBindings.text(widgetData, "habits_subtitle"))
 
-                setTextViewText(R.id.widget_habits_tag, tag)
-                setTextViewText(R.id.widget_habits_progress, progress)
-                setTextViewText(R.id.widget_habits_title, title)
-                setTextViewText(R.id.widget_habits_subtitle, subtitle)
+                val btnTitle = WidgetBindings.text(widgetData, "habits_btn_title")
                 setTextViewText(R.id.widget_habits_btn_title, btnTitle)
 
-                when {
-                    btnTitle == "완료" || progress.contains("4/4") -> {
+                val state = WidgetBindings.text(widgetData, "habits_state")
+                when (state) {
+                    "done" -> {
                         setInt(R.id.widget_habits_btn, "setBackgroundResource", R.drawable.hagom_widget_green_btn_bg)
                         setTextColor(R.id.widget_habits_btn_title, Color.parseColor("#1B6B46"))
                     }
-                    progress.contains("0/4") || progress.contains("대기") -> {
-                        setInt(R.id.widget_habits_btn, "setBackgroundResource", R.drawable.hagom_widget_gray_btn_bg)
-                        setTextColor(R.id.widget_habits_btn_title, Color.parseColor("#4B5568"))
-                    }
-                    else -> {
+                    "partial" -> {
                         setInt(R.id.widget_habits_btn, "setBackgroundResource", R.drawable.hagom_widget_brown_btn_bg)
                         setTextColor(R.id.widget_habits_btn_title, Color.parseColor("#8B5E3C"))
                     }
+                    else -> {
+                        setInt(R.id.widget_habits_btn, "setBackgroundResource", R.drawable.hagom_widget_habit_btn_bg)
+                        setTextColor(R.id.widget_habits_btn_title, Color.WHITE)
+                    }
                 }
 
-                // 1) 바탕 터치 시: 습관 탭(1번)으로 직행
-                val openAppPendingIntent = HomeWidgetLaunchIntent.getActivity(
-                    context,
-                    MainActivity::class.java,
-                    Uri.parse("hagomwidget://openHabits")
+                setOnClickPendingIntent(
+                    R.id.widget_habits_container,
+                    WidgetBindings.openAppIntent(context, "hagomwidget://openhabits", 1002)
                 )
-                setOnClickPendingIntent(R.id.widget_habits_container, openAppPendingIntent)
 
-                // 2) 메인 실천 버튼 터치 시 브로드캐스트
-                val checkHabitIntent = Intent(context, WidgetActionReceiver::class.java).apply {
-                    action = "ACTION_CHECK_HABIT"
-                }
-                val checkHabitPendingIntent = PendingIntent.getBroadcast(
-                    context,
-                    202,
-                    checkHabitIntent,
-                    PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
-                )
-                setOnClickPendingIntent(R.id.widget_habits_btn, checkHabitPendingIntent)
-
-                // 3) 🌟 세로 확장 시 나타나는 작은 습관 버튼들 상태 렌더링 & 개별 인텐트 연결!
-                val habit1Done = widgetData.getBoolean("habit_slot_1_done", false)
-                val habit4Done = widgetData.getBoolean("habit_slot_4_done", false)
-
-                if (habit1Done) {
-                    setTextViewText(R.id.habit_slot_1_btn, "완료")
-                    setInt(R.id.habit_slot_1_btn, "setBackgroundResource", R.drawable.hagom_widget_done_bg)
-                    setTextColor(R.id.habit_slot_1_btn, Color.parseColor("#044E36"))
+                val mainAction = WidgetBindings.text(widgetData, "habits_action")
+                if (mainAction.isNotEmpty()) {
+                    setOnClickPendingIntent(R.id.widget_habits_btn, WidgetBindings.actionIntent(context, mainAction))
                 } else {
-                    setTextViewText(R.id.habit_slot_1_btn, "실천")
-                    setInt(R.id.habit_slot_1_btn, "setBackgroundResource", R.drawable.hagom_widget_habit_btn_bg)
-                    setTextColor(R.id.habit_slot_1_btn, Color.WHITE)
+                    setOnClickPendingIntent(
+                        R.id.widget_habits_btn,
+                        WidgetBindings.openAppIntent(context, "hagomwidget://openhabits", 1002)
+                    )
                 }
 
-                if (habit4Done) {
-                    setTextViewText(R.id.habit_slot_4_btn, "완료")
-                    setInt(R.id.habit_slot_4_btn, "setBackgroundResource", R.drawable.hagom_widget_done_bg)
-                    setTextColor(R.id.habit_slot_4_btn, Color.parseColor("#044E36"))
-                } else {
-                    setTextViewText(R.id.habit_slot_4_btn, "실천")
-                    setInt(R.id.habit_slot_4_btn, "setBackgroundResource", R.drawable.hagom_widget_habit_btn_bg)
-                    setTextColor(R.id.habit_slot_4_btn, Color.WHITE)
+                val rowIds = listOf(
+                    Triple(R.id.habits_row_1, R.id.habits_row_1_text, R.id.habits_row_1_btn),
+                    Triple(R.id.habits_row_2, R.id.habits_row_2_text, R.id.habits_row_2_btn),
+                    Triple(R.id.habits_row_3, R.id.habits_row_3_text, R.id.habits_row_3_btn),
+                    Triple(R.id.habits_row_4, R.id.habits_row_4_text, R.id.habits_row_4_btn)
+                )
+                rowIds.forEachIndexed { idx, (rowId, textId, btnId) ->
+                    val n = idx + 1
+                    WidgetBindings.bindRow(
+                        this, widgetData, context,
+                        rowId, textId, btnId,
+                        "habits_row_${n}_text",
+                        "habits_row_${n}_done",
+                        "habits_row_${n}_action",
+                        "실천",
+                        R.drawable.hagom_widget_habit_btn_bg
+                    )
                 }
-
-                val habitSlot1Intent = PendingIntent.getBroadcast(
-                    context,
-                    206,
-                    Intent(context, WidgetActionReceiver::class.java).apply {
-                        action = "ACTION_CHECK_HABIT_SLOT"
-                        putExtra("habit_index", 1)
-                    },
-                    PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
-                )
-                setOnClickPendingIntent(R.id.habit_slot_1_btn, habitSlot1Intent)
-
-                val habitSlot4Intent = PendingIntent.getBroadcast(
-                    context,
-                    207,
-                    Intent(context, WidgetActionReceiver::class.java).apply {
-                        action = "ACTION_CHECK_HABIT_SLOT"
-                        putExtra("habit_index", 4)
-                    },
-                    PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
-                )
-                setOnClickPendingIntent(R.id.habit_slot_4_btn, habitSlot4Intent)
             }
             appWidgetManager.updateAppWidget(appWidgetId, views)
         }

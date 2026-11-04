@@ -1,14 +1,10 @@
 package com.healthpharma.hagom_app
 
-import android.app.PendingIntent
 import android.appwidget.AppWidgetManager
 import android.content.Context
-import android.content.Intent
 import android.content.SharedPreferences
 import android.graphics.Color
-import android.net.Uri
 import android.widget.RemoteViews
-import es.antonborri.home_widget.HomeWidgetLaunchIntent
 import es.antonborri.home_widget.HomeWidgetProvider
 
 class HagomMedsWidgetProvider : HomeWidgetProvider() {
@@ -21,19 +17,16 @@ class HagomMedsWidgetProvider : HomeWidgetProvider() {
     ) {
         for (appWidgetId in appWidgetIds) {
             val views = RemoteViews(context.packageName, R.layout.hagom_meds_widget).apply {
-                val tag = widgetData.getString("meds_tag", "다음 복약") ?: "다음 복약"
-                val progress = widgetData.getString("meds_progress", "2/3 완료") ?: "2/3 완료"
-                val title = widgetData.getString("meds_title", "Focusin 10mg") ?: "Focusin 10mg"
-                val subtitle = widgetData.getString("meds_subtitle", "오후 12:30 · 식후 복용") ?: "오후 12:30 · 식후 복용"
-                val btnTitle = widgetData.getString("meds_btn_title", "복용") ?: "복용"
+                setTextViewText(R.id.widget_meds_tag, WidgetBindings.text(widgetData, "meds_tag"))
+                setTextViewText(R.id.widget_meds_progress, WidgetBindings.text(widgetData, "meds_progress"))
+                setTextViewText(R.id.widget_meds_title, WidgetBindings.text(widgetData, "meds_title"))
+                setTextViewText(R.id.widget_meds_subtitle, WidgetBindings.text(widgetData, "meds_subtitle"))
 
-                setTextViewText(R.id.widget_meds_tag, tag)
-                setTextViewText(R.id.widget_meds_progress, progress)
-                setTextViewText(R.id.widget_meds_title, title)
-                setTextViewText(R.id.widget_meds_subtitle, subtitle)
+                val btnTitle = WidgetBindings.text(widgetData, "meds_btn_title")
                 setTextViewText(R.id.widget_meds_btn_title, btnTitle)
 
-                if (btnTitle == "완료" || progress.contains("3/3")) {
+                val allDone = widgetData.getString("meds_all_done", "false") == "true"
+                if (allDone) {
                     setInt(R.id.widget_meds_btn, "setBackgroundResource", R.drawable.hagom_widget_green_btn_bg)
                     setTextColor(R.id.widget_meds_btn_title, Color.parseColor("#1B6B46"))
                 } else {
@@ -41,71 +34,40 @@ class HagomMedsWidgetProvider : HomeWidgetProvider() {
                     setTextColor(R.id.widget_meds_btn_title, Color.WHITE)
                 }
 
-                // 1) 바탕 터치 시: 복약 탭(0번)으로 직행
-                val openAppPendingIntent = HomeWidgetLaunchIntent.getActivity(
-                    context,
-                    MainActivity::class.java,
-                    Uri.parse("hagomwidget://openMeds")
+                // 바탕 탭 -> 복약 탭으로 이동
+                setOnClickPendingIntent(
+                    R.id.widget_meds_container,
+                    WidgetBindings.openAppIntent(context, "hagomwidget://openmeds", 1001)
                 )
-                setOnClickPendingIntent(R.id.widget_meds_container, openAppPendingIntent)
 
-                // 2) 메인 우측 복용 버튼 터치 시 브로드캐스트
-                val checkMedIntent = Intent(context, WidgetActionReceiver::class.java).apply {
-                    action = "ACTION_CHECK_MED"
-                }
-                val checkMedPendingIntent = PendingIntent.getBroadcast(
-                    context,
-                    201,
-                    checkMedIntent,
-                    PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
-                )
-                setOnClickPendingIntent(R.id.widget_meds_btn, checkMedPendingIntent)
-
-                // 3) 🌟 세로 확장 시 나타나는 작은 슬롯 버튼들 상태 렌더링 & 개별 인텐트 연결!
-                val slot2Done = widgetData.getBoolean("med_slot_2_done", false)
-                val slot3Done = widgetData.getBoolean("med_slot_3_done", false)
-
-                if (slot2Done) {
-                    setTextViewText(R.id.med_slot_2_btn, "완료")
-                    setInt(R.id.med_slot_2_btn, "setBackgroundResource", R.drawable.hagom_widget_done_bg)
-                    setTextColor(R.id.med_slot_2_btn, Color.parseColor("#044E36"))
+                // 대표 버튼 -> 실제 앱 데이터 변경
+                val mainAction = WidgetBindings.text(widgetData, "meds_action")
+                if (mainAction.isNotEmpty()) {
+                    setOnClickPendingIntent(R.id.widget_meds_btn, WidgetBindings.actionIntent(context, mainAction))
                 } else {
-                    setTextViewText(R.id.med_slot_2_btn, "복용")
-                    setInt(R.id.med_slot_2_btn, "setBackgroundResource", R.drawable.hagom_widget_btn_bg)
-                    setTextColor(R.id.med_slot_2_btn, Color.WHITE)
+                    setOnClickPendingIntent(
+                        R.id.widget_meds_btn,
+                        WidgetBindings.openAppIntent(context, "hagomwidget://openmeds", 1001)
+                    )
                 }
 
-                if (slot3Done) {
-                    setTextViewText(R.id.med_slot_3_btn, "완료")
-                    setInt(R.id.med_slot_3_btn, "setBackgroundResource", R.drawable.hagom_widget_done_bg)
-                    setTextColor(R.id.med_slot_3_btn, Color.parseColor("#044E36"))
-                } else {
-                    setTextViewText(R.id.med_slot_3_btn, "복용")
-                    setInt(R.id.med_slot_3_btn, "setBackgroundResource", R.drawable.hagom_widget_btn_bg)
-                    setTextColor(R.id.med_slot_3_btn, Color.WHITE)
+                val rowIds = listOf(
+                    Triple(R.id.meds_row_1, R.id.meds_row_1_text, R.id.meds_row_1_btn),
+                    Triple(R.id.meds_row_2, R.id.meds_row_2_text, R.id.meds_row_2_btn),
+                    Triple(R.id.meds_row_3, R.id.meds_row_3_text, R.id.meds_row_3_btn)
+                )
+                rowIds.forEachIndexed { idx, (rowId, textId, btnId) ->
+                    val n = idx + 1
+                    WidgetBindings.bindRow(
+                        this, widgetData, context,
+                        rowId, textId, btnId,
+                        "meds_row_${n}_text",
+                        "meds_row_${n}_done",
+                        "meds_row_${n}_action",
+                        "복용",
+                        R.drawable.hagom_widget_btn_bg
+                    )
                 }
-
-                val slot2Intent = PendingIntent.getBroadcast(
-                    context,
-                    204,
-                    Intent(context, WidgetActionReceiver::class.java).apply {
-                        action = "ACTION_CHECK_MED_SLOT"
-                        putExtra("slot_index", 2)
-                    },
-                    PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
-                )
-                setOnClickPendingIntent(R.id.med_slot_2_btn, slot2Intent)
-
-                val slot3Intent = PendingIntent.getBroadcast(
-                    context,
-                    205,
-                    Intent(context, WidgetActionReceiver::class.java).apply {
-                        action = "ACTION_CHECK_MED_SLOT"
-                        putExtra("slot_index", 3)
-                    },
-                    PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
-                )
-                setOnClickPendingIntent(R.id.med_slot_3_btn, slot3Intent)
             }
             appWidgetManager.updateAppWidget(appWidgetId, views)
         }

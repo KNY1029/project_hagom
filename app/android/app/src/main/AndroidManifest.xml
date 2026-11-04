@@ -112,16 +112,6 @@
             android:name="es.antonborri.home_widget.HomeWidgetBackgroundService"
             android:exported="true"
             android:permission="android.permission.BIND_JOB_SERVICE" />
-        <!-- 🚀 위젯 1-Tap 다이렉트 브로드캐스트 액션 리시버 (앱 실행 없이 데이터 즉각 갱신!) -->
-        <receiver
-            android:name=".WidgetActionReceiver"
-            android:exported="false">
-            <intent-filter>
-                <action android:name="ACTION_CHECK_MED" />
-                <action android:name="ACTION_CHECK_HABIT" />
-                <action android:name="ACTION_CHECK_TASK" />
-            </intent-filter>
-        </receiver>
         <!-- 📥 엑셀 CSV 파일 안전 내보내기 & 시스템 공유용 FileProvider -->
         <provider
             android:name="androidx.core.content.FileProvider"
