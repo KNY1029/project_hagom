@@ -143,6 +143,24 @@ class AppStateManager extends ChangeNotifier {
     }
     notifyListeners();
   }
+  // --- 📅 앱 사용 및 기록 시작일 (시작일 이전 날짜는 달력 바 및 초록색 미표시) ---
+  DateTime? _trackingStartDate;
+  DateTime get trackingStartDate {
+    if (_trackingStartDate != null) return _trackingStartDate!;
+    // 기본값: 오늘 날짜
+    final now = DateTime.now();
+    return DateTime(now.year, now.month, now.day);
+  }
+
+  /// 특정 날짜가 기록 시작일 이전인지 확인
+  bool isBeforeTrackingStart(DateTime date) {
+    // 개발자 모드 시뮬레이션 중일 때는 달력에 1~7일 예시가 보여야 하므로 제외
+    if (_pastSlotRecords.isNotEmpty || _pastHabitRecords.isNotEmpty) {
+      return false;
+    }
+    final target = DateTime(date.year, date.month, date.day);
+    return target.isBefore(trackingStartDate);
+  }
   // --- 🐻 하곰이 통계 (누적 발걸음) ---
   // --- 🗓️ 할일 및 일정 데이터 ---
   final List<TaskItem> _tasks = [];
@@ -454,6 +472,9 @@ class AppStateManager extends ChangeNotifier {
         await _prefs!.setString('hagom_last_greeting_day', _lastGreetingDayKey!);
       }
       await _prefs!.setBool('hagom_initial_mode_selected', isInitialModeSelected);
+      if (_trackingStartDate != null) {
+        await _prefs!.setString('hagom_tracking_start_date', _dateKey(_trackingStartDate!));
+      }
     } catch (_) {}
   }
 
@@ -493,6 +514,15 @@ class AppStateManager extends ChangeNotifier {
           if (m.name == '비타민 D & 오메가3') m.name = '일반 영양제 (예시 B)';
           if (m.name == '비타민 D 고용량 (주 1회)') m.name = '주 1회 복용약 (예시)';
         }
+      }
+      final startRaw = _prefs!.getString('hagom_tracking_start_date');
+      if (startRaw != null) {
+        _trackingStartDate = DateTime.tryParse(startRaw);
+      } else {
+        // 최초 로드 시 오늘 날짜를 기록 시작일로 고정
+        final now = DateTime.now();
+        _trackingStartDate = DateTime(now.year, now.month, now.day);
+        await _prefs!.setString('hagom_tracking_start_date', _dateKey(_trackingStartDate!));
       }
       final habitsRaw = _prefs!.getString('hagom_habits');
       if (habitsRaw != null) {

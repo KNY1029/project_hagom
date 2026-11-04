@@ -797,14 +797,14 @@ class _CalendarTabViewState extends State<CalendarTabView> {
                   final habitRate = _state.getHabitRateForDay(cellDate);
                   final hasTasks = _state.getTasksForDay(cellDate).isNotEmpty;
                   final hasMissedPrescription = _state.hasMissedPrescriptionForDay(cellDate);
-
                   final isFuture = cellDate.isAfter(today);
+                  final isBeforeTracking = _state.isBeforeTrackingStart(cellDate);
 
-                  // 🌟 [통 연초록 틴트 규격]: "약과 습관 둘 다 100% 완료했을 때만" 통으로 연초록! (미래 날짜는 완전 순백색 초기화)
+                  // 🌟 [통 연초록 틴트 규격]: 기록 시작일 이후이면서 미래가 아닐 때, "약과 습관 둘 다 100% 완료했을 때만" 통으로 연초록!
+                  // 기록 시작일 이전이거나 미래인 날짜는 완전 깨끗한 순백색 초기화!
                   final isMed100 = medRate != null && medRate >= 1.0;
                   final isHabit100 = habitRate != null && habitRate >= 1.0;
-                  final isAll100Done = !isFuture && isMed100 && isHabit100;
-
+                  final isAll100Done = !isFuture && !isBeforeTracking && isMed100 && isHabit100;
                   final isPartial = medRate != null && medRate > 0.0 && medRate < 1.0;
                   final isZero = medRate != null && medRate == 0.0;
                   return GestureDetector(
@@ -860,8 +860,8 @@ class _CalendarTabViewState extends State<CalendarTabView> {
                           // 1) 전부 다 한 날: 통 연초록 틴트 (#E6F8F0) + 하단 바 없음!
                           // 2) 처방약 안 먹은 날: 흰색 셀 + 🚨 빨간색 바 (#EF4444)
                           // 3) 뭔가 덜 한 날: 흰색 셀 + 🟤 웜브라운 바 (#8B5E3C)
-                          // 4) 아직 오지 않은 날짜(미래): 바 일체 없이 완전 깨끗한 순백색 초기화!
-                          if (!isFuture && !isAll100Done) ...[
+                          // 4) 기록 시작일 이전이거나 아직 오지 않은 날짜(미래): 바 일체 없이 완전 깨끗한 순백색 초기화!
+                          if (!isFuture && !isBeforeTracking && !isAll100Done) ...[
                             if (hasMissedPrescription)
                               Positioned(
                                 bottom: 4,

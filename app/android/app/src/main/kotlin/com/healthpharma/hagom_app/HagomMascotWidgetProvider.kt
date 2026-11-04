@@ -1,7 +1,9 @@
 package com.healthpharma.hagom_app
 
+import android.app.PendingIntent
 import android.appwidget.AppWidgetManager
 import android.content.Context
+import android.content.Intent
 import android.content.SharedPreferences
 import android.widget.RemoteViews
 import es.antonborri.home_widget.HomeWidgetProvider
@@ -23,6 +25,19 @@ class HagomMascotWidgetProvider : HomeWidgetProvider() {
                 setTextViewText(R.id.widget_mascot_badge, badge)
                 setTextViewText(R.id.widget_mascot_quote, quote)
                 setTextViewText(R.id.widget_mascot_sub, sub)
+
+                // 🚀 위젯 터치 시 앱 메인/방으로 바로 이동
+                val intent = Intent(context, MainActivity::class.java).apply {
+                    flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
+                    putExtra("from_widget", "mascot")
+                }
+                val pendingIntent = PendingIntent.getActivity(
+                    context,
+                    100,
+                    intent,
+                    PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+                )
+                setOnClickPendingIntent(R.id.widget_mascot_container, pendingIntent)
             }
             appWidgetManager.updateAppWidget(appWidgetId, views)
         }

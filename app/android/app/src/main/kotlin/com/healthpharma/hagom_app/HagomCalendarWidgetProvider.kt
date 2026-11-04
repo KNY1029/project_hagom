@@ -1,7 +1,9 @@
 package com.healthpharma.hagom_app
 
+import android.app.PendingIntent
 import android.appwidget.AppWidgetManager
 import android.content.Context
+import android.content.Intent
 import android.content.SharedPreferences
 import android.widget.RemoteViews
 import es.antonborri.home_widget.HomeWidgetProvider
@@ -31,6 +33,20 @@ class HagomCalendarWidgetProvider : HomeWidgetProvider() {
                 setTextViewText(R.id.widget_calendar_extra, extra)
                 setTextViewText(R.id.widget_calendar_btn_title, btnTitle)
                 setTextViewText(R.id.widget_calendar_btn_subtitle, btnSubtitle)
+
+                // 🚀 위젯 터치 시 앱 달력 탭으로 즉시 열기
+                val intent = Intent(context, MainActivity::class.java).apply {
+                    flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
+                    putExtra("from_widget", "calendar")
+                }
+                val pendingIntent = PendingIntent.getActivity(
+                    context,
+                    103,
+                    intent,
+                    PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+                )
+                setOnClickPendingIntent(R.id.widget_calendar_container, pendingIntent)
+                setOnClickPendingIntent(R.id.widget_calendar_btn, pendingIntent)
             }
             appWidgetManager.updateAppWidget(appWidgetId, views)
         }

@@ -1,7 +1,9 @@
 package com.healthpharma.hagom_app
 
+import android.app.PendingIntent
 import android.appwidget.AppWidgetManager
 import android.content.Context
+import android.content.Intent
 import android.content.SharedPreferences
 import android.widget.RemoteViews
 import es.antonborri.home_widget.HomeWidgetProvider
@@ -31,6 +33,20 @@ class HagomHabitsWidgetProvider : HomeWidgetProvider() {
                 setTextViewText(R.id.widget_habits_extra, extra)
                 setTextViewText(R.id.widget_habits_btn_title, btnTitle)
                 setTextViewText(R.id.widget_habits_btn_subtitle, btnSubtitle)
+
+                // 🚀 위젯 터치 시 앱 습관 탭으로 즉시 열기
+                val intent = Intent(context, MainActivity::class.java).apply {
+                    flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
+                    putExtra("from_widget", "habits")
+                }
+                val pendingIntent = PendingIntent.getActivity(
+                    context,
+                    102,
+                    intent,
+                    PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+                )
+                setOnClickPendingIntent(R.id.widget_habits_container, pendingIntent)
+                setOnClickPendingIntent(R.id.widget_habits_btn, pendingIntent)
             }
             appWidgetManager.updateAppWidget(appWidgetId, views)
         }

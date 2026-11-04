@@ -1,7 +1,9 @@
 package com.healthpharma.hagom_app
 
+import android.app.PendingIntent
 import android.appwidget.AppWidgetManager
 import android.content.Context
+import android.content.Intent
 import android.content.SharedPreferences
 import android.widget.RemoteViews
 import es.antonborri.home_widget.HomeWidgetProvider
@@ -31,6 +33,20 @@ class HagomMedsWidgetProvider : HomeWidgetProvider() {
                 setTextViewText(R.id.widget_meds_extra, extra)
                 setTextViewText(R.id.widget_meds_btn_title, btnTitle)
                 setTextViewText(R.id.widget_meds_btn_subtitle, btnSubtitle)
+
+                // 🚀 위젯 어디를 눌러도 하곰이 앱이 즉시 열리도록 PendingIntent 등록!
+                val intent = Intent(context, MainActivity::class.java).apply {
+                    flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
+                    putExtra("from_widget", "meds")
+                }
+                val pendingIntent = PendingIntent.getActivity(
+                    context,
+                    101,
+                    intent,
+                    PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+                )
+                setOnClickPendingIntent(R.id.widget_meds_container, pendingIntent)
+                setOnClickPendingIntent(R.id.widget_meds_btn, pendingIntent)
             }
             appWidgetManager.updateAppWidget(appWidgetId, views)
         }
