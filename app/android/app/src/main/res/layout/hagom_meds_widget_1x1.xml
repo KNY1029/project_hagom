@@ -3,39 +3,40 @@
     android:id="@+id/widget_meds_container"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@drawable/hagom_widget_btn_bg"
+    android:background="@drawable/hagom_widget_bg"
     android:orientation="vertical"
     android:gravity="center"
     android:padding="8dp">
 
+    <!-- 상단 라벨 -->
     <TextView
         android:id="@+id/widget_meds_tag"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="복약"
-        android:textColor="#FFFFFF"
-        android:alpha="0.85"
-        android:textSize="11sp"
+        android:textColor="#7B61A8"
+        android:textSize="11.5sp"
         android:textStyle="bold" />
 
+    <!-- 중앙 대형 달성 현황 수치 (예: 2/3) -->
     <TextView
-        android:id="@+id/widget_meds_btn_title"
+        android:id="@+id/widget_meds_progress"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        android:text="2/3"
+        android:textColor="#1F2937"
+        android:textSize="22sp"
+        android:textStyle="bold" />
+
+    <!-- 하단 상태 라벨 (완료 / 진행 중) -->
+    <TextView
+        android:id="@+id/widget_meds_status"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="2dp"
-        android:text="복용"
-        android:textColor="#FFFFFF"
-        android:textSize="18sp"
-        android:textStyle="bold" />
-
-    <TextView
-        android:id="@+id/widget_meds_btn_subtitle"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="2dp"
-        android:text="1-Tap"
-        android:textColor="#FFFFFF"
-        android:alpha="0.75"
-        android:textSize="10sp" />
+        android:text="완료"
+        android:textColor="#6B7280"
+        android:textSize="10.5sp" />
 
 </LinearLayout>
