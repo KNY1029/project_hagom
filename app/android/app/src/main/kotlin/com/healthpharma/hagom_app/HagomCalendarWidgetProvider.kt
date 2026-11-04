@@ -66,7 +66,8 @@ class HagomCalendarWidgetProvider : HomeWidgetProvider() {
                 setTextColor(R.id.widget_calendar_btn_compact_title, txtColor)
 
                 val openCalIntent = WidgetBindings.openAppIntent(context, "hagomwidget://opencalendar", 1003)
-                setOnClickPendingIntent(R.id.widget_calendar_container, openCalIntent)
+                setOnClickPendingIntent(R.id.widget_calendar_title, openCalIntent)
+                setOnClickPendingIntent(R.id.widget_calendar_tag, openCalIntent)
 
                 val mainAction = WidgetBindings.text(widgetData, "calendar_action")
                 val btnPending = if (mainAction.isNotEmpty()) {

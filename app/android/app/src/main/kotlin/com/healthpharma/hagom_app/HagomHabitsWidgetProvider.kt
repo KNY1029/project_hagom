@@ -35,7 +35,9 @@ class HagomHabitsWidgetProvider : HomeWidgetProvider() {
 
             val views = RemoteViews(context.packageName, R.layout.hagom_habits_widget).apply {
                 val openHabitsIntent = WidgetBindings.openAppIntent(context, "hagomwidget://openhabits", 1002)
-                setOnClickPendingIntent(R.id.widget_habits_container, openHabitsIntent)
+                setOnClickPendingIntent(R.id.widget_habits_title, openHabitsIntent)
+                setOnClickPendingIntent(R.id.widget_habits_tag, openHabitsIntent)
+                setOnClickPendingIntent(R.id.habits_celebration_view, openHabitsIntent)
 
                 if (allDone) {
                     setViewVisibility(R.id.habits_celebration_view, View.VISIBLE)

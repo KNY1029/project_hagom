@@ -363,26 +363,20 @@ class HagomNativeWidgetSync {
         await HomeWidget.saveWidgetData<String>('day_status_$d', status);
       }
 
-      // 달력 위젯을 세로로 길게 늘렸을 때 하단에 추가로 보여줄 오늘의 복약·습관·할일 상세 줄
-      final List<String> detailLines = [];
-      for (final e in todaySlots) {
-        final stateLabel = e.slot.isCompleted ? '완료' : '대기';
-        detailLines.add('복약 · ${e.med.name} (${e.slot.label}) - $stateLabel');
-      }
-      for (final h in todayHabits) {
-        final stateLabel = h.score >= 1.0 ? '완료' : (h.score > 0.0 ? '일부 실천' : '대기');
-        detailLines.add('습관 · ${h.title} - $stateLabel');
-      }
-      for (final t in todayTasks) {
-        final stateLabel = t.isCompleted ? '완료' : '예정';
-        detailLines.add('할일 · ${t.title} - $stateLabel');
-      }
-      for (int i = 0; i < 4; i++) {
+      // 달력 위젯에 오늘 할일 전체 목록 전달 (최대 5개)
+      for (int i = 0; i < 5; i++) {
         final n = i + 1;
-        await HomeWidget.saveWidgetData<String>(
-          'month_detail_$n',
-          i < detailLines.length ? detailLines[i] : '',
-        );
+        if (i < todayTasks.length) {
+          final t = todayTasks[i];
+          final timeStr = t.time != null ? ' (${t.time})' : '';
+          final check = t.isCompleted ? '완료' : '예정';
+          await HomeWidget.saveWidgetData<String>(
+            'month_today_task_$n',
+            '${t.title}$timeStr - $check',
+          );
+        } else {
+          await HomeWidget.saveWidgetData<String>('month_today_task_$n', '');
+        }
       }
 
       await HomeWidget.updateWidget(name: monthCalendarProvider, androidName: monthCalendarProvider);

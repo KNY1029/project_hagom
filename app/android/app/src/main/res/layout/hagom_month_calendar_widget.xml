@@ -5,9 +5,9 @@
     android:layout_height="match_parent"
     android:background="@drawable/hagom_widget_bg"
     android:orientation="vertical"
-    android:padding="13dp">
+    android:padding="12dp">
 
-    <!-- 1) 상단 헤더 -->
+    <!-- 1) 상단 헤더: 제목 탭 시에만 앱 열림 -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -25,9 +25,10 @@
             android:textStyle="bold" />
 
         <ImageView
-            android:layout_width="26dp"
-            android:layout_height="26dp"
-            android:contentDescription="하곰이"
+            android:id="@+id/widget_month_mascot_btn"
+            android:layout_width="28dp"
+            android:layout_height="28dp"
+            android:contentDescription="하곰이의 방"
             android:scaleType="fitCenter"
             android:src="@drawable/hagomi_mascot" />
     </LinearLayout>
@@ -56,76 +57,83 @@
         android:layout_marginBottom="4dp"
         android:background="#E5E7EB" />
 
-    <!-- 3) 달력 그리드 영역: 고정 높이(세로로 늘려도 달력 칸이 과하게 벌어지지 않고 아래 요약이 넓어짐) -->
+    <!-- 3) 달력 그리드 영역: weight=1로 4x4 크기까지는 달력 칸 자체가 시원시원하게 커짐 -->
     <LinearLayout
+        android:id="@+id/month_calendar_grid"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="0dp"
+        android:layout_weight="1"
         android:orientation="vertical">
 
         <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="26dp"
+            android:layout_height="0dp"
+            android:layout_weight="1"
             android:gravity="center_vertical"
             android:orientation="horizontal">
-            <TextView android:id="@+id/d_1" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:gravity="center" android:text="1" android:textColor="#EF4444" android:textSize="11.5sp" />
-            <TextView android:id="@+id/d_2" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:gravity="center" android:text="2" android:textColor="#1F2937" android:textSize="11.5sp" />
-            <TextView android:id="@+id/d_3" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:gravity="center" android:text="3" android:textColor="#1F2937" android:textSize="11.5sp" />
-            <TextView android:id="@+id/d_4" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:gravity="center" android:text="4" android:textColor="#1F2937" android:textSize="11.5sp" />
-            <TextView android:id="@+id/d_5" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:gravity="center" android:text="5" android:textColor="#1F2937" android:textSize="11.5sp" />
-            <TextView android:id="@+id/d_6" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:gravity="center" android:text="6" android:textColor="#1F2937" android:textSize="11.5sp" />
-            <TextView android:id="@+id/d_7" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:gravity="center" android:text="7" android:textColor="#1F2937" android:textSize="11.5sp" />
+            <TextView android:id="@+id/d_1" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:gravity="center" android:text="1" android:textColor="#EF4444" android:textSize="12sp" />
+            <TextView android:id="@+id/d_2" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:gravity="center" android:text="2" android:textColor="#1F2937" android:textSize="12sp" />
+            <TextView android:id="@+id/d_3" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:gravity="center" android:text="3" android:textColor="#1F2937" android:textSize="12sp" />
+            <TextView android:id="@+id/d_4" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:gravity="center" android:text="4" android:textColor="#1F2937" android:textSize="12sp" />
+            <TextView android:id="@+id/d_5" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:gravity="center" android:text="5" android:textColor="#1F2937" android:textSize="12sp" />
+            <TextView android:id="@+id/d_6" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:gravity="center" android:text="6" android:textColor="#1F2937" android:textSize="12sp" />
+            <TextView android:id="@+id/d_7" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:gravity="center" android:text="7" android:textColor="#1F2937" android:textSize="12sp" />
         </LinearLayout>
 
         <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="26dp"
+            android:layout_height="0dp"
+            android:layout_weight="1"
             android:gravity="center_vertical"
             android:orientation="horizontal">
-            <TextView android:id="@+id/d_8" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:gravity="center" android:text="8" android:textColor="#EF4444" android:textSize="11.5sp" />
-            <TextView android:id="@+id/d_9" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:gravity="center" android:text="9" android:textColor="#1F2937" android:textSize="11.5sp" />
-            <TextView android:id="@+id/d_10" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:gravity="center" android:text="10" android:textColor="#1F2937" android:textSize="11.5sp" />
-            <TextView android:id="@+id/d_11" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:gravity="center" android:text="11" android:textColor="#1F2937" android:textSize="11.5sp" />
-            <TextView android:id="@+id/d_12" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:gravity="center" android:text="12" android:textColor="#1F2937" android:textSize="11.5sp" />
-            <TextView android:id="@+id/d_13" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:gravity="center" android:text="13" android:textColor="#1F2937" android:textSize="11.5sp" />
-            <TextView android:id="@+id/d_14" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:gravity="center" android:text="14" android:textColor="#1F2937" android:textSize="11.5sp" />
+            <TextView android:id="@+id/d_8" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:gravity="center" android:text="8" android:textColor="#EF4444" android:textSize="12sp" />
+            <TextView android:id="@+id/d_9" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:gravity="center" android:text="9" android:textColor="#1F2937" android:textSize="12sp" />
+            <TextView android:id="@+id/d_10" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:gravity="center" android:text="10" android:textColor="#1F2937" android:textSize="12sp" />
+            <TextView android:id="@+id/d_11" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:gravity="center" android:text="11" android:textColor="#1F2937" android:textSize="12sp" />
+            <TextView android:id="@+id/d_12" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:gravity="center" android:text="12" android:textColor="#1F2937" android:textSize="12sp" />
+            <TextView android:id="@+id/d_13" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:gravity="center" android:text="13" android:textColor="#1F2937" android:textSize="12sp" />
+            <TextView android:id="@+id/d_14" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:gravity="center" android:text="14" android:textColor="#1F2937" android:textSize="12sp" />
         </LinearLayout>
 
         <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="26dp"
+            android:layout_height="0dp"
+            android:layout_weight="1"
             android:gravity="center_vertical"
             android:orientation="horizontal">
-            <TextView android:id="@+id/d_15" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:gravity="center" android:text="15" android:textColor="#EF4444" android:textSize="11.5sp" />
-            <TextView android:id="@+id/d_16" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:gravity="center" android:text="16" android:textColor="#1F2937" android:textSize="11.5sp" />
-            <TextView android:id="@+id/d_17" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:gravity="center" android:text="17" android:textColor="#1F2937" android:textSize="11.5sp" />
-            <TextView android:id="@+id/d_18" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:gravity="center" android:text="18" android:textColor="#1F2937" android:textSize="11.5sp" />
-            <TextView android:id="@+id/d_19" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:gravity="center" android:text="19" android:textColor="#1F2937" android:textSize="11.5sp" />
-            <TextView android:id="@+id/d_20" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:gravity="center" android:text="20" android:textColor="#1F2937" android:textSize="11.5sp" />
-            <TextView android:id="@+id/d_21" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:gravity="center" android:text="21" android:textColor="#1F2937" android:textSize="11.5sp" />
+            <TextView android:id="@+id/d_15" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:gravity="center" android:text="15" android:textColor="#EF4444" android:textSize="12sp" />
+            <TextView android:id="@+id/d_16" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:gravity="center" android:text="16" android:textColor="#1F2937" android:textSize="12sp" />
+            <TextView android:id="@+id/d_17" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:gravity="center" android:text="17" android:textColor="#1F2937" android:textSize="12sp" />
+            <TextView android:id="@+id/d_18" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:gravity="center" android:text="18" android:textColor="#1F2937" android:textSize="12sp" />
+            <TextView android:id="@+id/d_19" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:gravity="center" android:text="19" android:textColor="#1F2937" android:textSize="12sp" />
+            <TextView android:id="@+id/d_20" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:gravity="center" android:text="20" android:textColor="#1F2937" android:textSize="12sp" />
+            <TextView android:id="@+id/d_21" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:gravity="center" android:text="21" android:textColor="#1F2937" android:textSize="12sp" />
         </LinearLayout>
 
         <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="26dp"
+            android:layout_height="0dp"
+            android:layout_weight="1"
             android:gravity="center_vertical"
             android:orientation="horizontal">
-            <TextView android:id="@+id/d_22" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:gravity="center" android:text="22" android:textColor="#EF4444" android:textSize="11.5sp" />
-            <TextView android:id="@+id/d_23" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:gravity="center" android:text="23" android:textColor="#1F2937" android:textSize="11.5sp" />
-            <TextView android:id="@+id/d_24" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:gravity="center" android:text="24" android:textColor="#1F2937" android:textSize="11.5sp" />
-            <TextView android:id="@+id/d_25" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:gravity="center" android:text="25" android:textColor="#1F2937" android:textSize="11.5sp" />
-            <TextView android:id="@+id/d_26" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:gravity="center" android:text="26" android:textColor="#1F2937" android:textSize="11.5sp" />
-            <TextView android:id="@+id/d_27" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:gravity="center" android:text="27" android:textColor="#1F2937" android:textSize="11.5sp" />
-            <TextView android:id="@+id/d_28" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:gravity="center" android:text="28" android:textColor="#1F2937" android:textSize="11.5sp" />
+            <TextView android:id="@+id/d_22" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:gravity="center" android:text="22" android:textColor="#EF4444" android:textSize="12sp" />
+            <TextView android:id="@+id/d_23" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:gravity="center" android:text="23" android:textColor="#1F2937" android:textSize="12sp" />
+            <TextView android:id="@+id/d_24" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:gravity="center" android:text="24" android:textColor="#1F2937" android:textSize="12sp" />
+            <TextView android:id="@+id/d_25" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:gravity="center" android:text="25" android:textColor="#1F2937" android:textSize="12sp" />
+            <TextView android:id="@+id/d_26" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:gravity="center" android:text="26" android:textColor="#1F2937" android:textSize="12sp" />
+            <TextView android:id="@+id/d_27" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:gravity="center" android:text="27" android:textColor="#1F2937" android:textSize="12sp" />
+            <TextView android:id="@+id/d_28" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:gravity="center" android:text="28" android:textColor="#1F2937" android:textSize="12sp" />
         </LinearLayout>
 
         <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="26dp"
+            android:layout_height="0dp"
+            android:layout_weight="1"
             android:gravity="center_vertical"
             android:orientation="horizontal">
-            <TextView android:id="@+id/d_29" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:gravity="center" android:text="29" android:textColor="#EF4444" android:textSize="11.5sp" />
-            <TextView android:id="@+id/d_30" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:gravity="center" android:text="30" android:textColor="#1F2937" android:textSize="11.5sp" />
-            <TextView android:id="@+id/d_31" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:gravity="center" android:text="" android:textColor="#1F2937" android:textSize="11.5sp" />
+            <TextView android:id="@+id/d_29" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:gravity="center" android:text="29" android:textColor="#EF4444" android:textSize="12sp" />
+            <TextView android:id="@+id/d_30" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:gravity="center" android:text="30" android:textColor="#1F2937" android:textSize="12sp" />
+            <TextView android:id="@+id/d_31" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:gravity="center" android:text="" android:textColor="#1F2937" android:textSize="12sp" />
             <TextView android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" />
             <TextView android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" />
             <TextView android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" />
@@ -133,53 +141,23 @@
         </LinearLayout>
     </LinearLayout>
 
-    <!-- 4) 하단 요약 & 상세 영역: layout_weight="1"을 부여해 세로로 늘릴수록 이 영역이 커짐 -->
+    <!-- 4) 하단 요약 영역 (습관/복약 진행률 + 오늘의 할일 전체 목록) -->
     <LinearLayout
+        android:id="@+id/month_bottom_panel"
         android:layout_width="match_parent"
-        android:layout_height="0dp"
+        android:layout_height="wrap_content"
         android:layout_marginTop="6dp"
-        android:layout_weight="1"
         android:orientation="vertical">
 
+        <!-- 습관 & 복약 달성도 요약 배지 (클릭 시 각 탭으로 직행) -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:background="@drawable/hagom_widget_tag_bg"
-            android:gravity="center_vertical"
-            android:orientation="horizontal"
-            android:paddingHorizontal="10dp"
-            android:paddingVertical="6dp">
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="오늘 할일"
-                android:textColor="#8B5E3C"
-                android:textSize="11sp"
-                android:textStyle="bold" />
-
-            <TextView
-                android:id="@+id/widget_month_tasks"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="8dp"
-                android:layout_weight="1"
-                android:ellipsize="end"
-                android:maxLines="1"
-                android:text=""
-                android:textColor="#1F2937"
-                android:textSize="11sp"
-                android:textStyle="bold" />
-        </LinearLayout>
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="5dp"
             android:gravity="center_vertical"
             android:orientation="horizontal">
 
             <LinearLayout
+                android:id="@+id/widget_month_habits_box"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_marginEnd="4dp"
@@ -195,11 +173,12 @@
                     android:layout_height="wrap_content"
                     android:text=""
                     android:textColor="#044E36"
-                    android:textSize="10.5sp"
+                    android:textSize="11sp"
                     android:textStyle="bold" />
             </LinearLayout>
 
             <LinearLayout
+                android:id="@+id/widget_month_meds_box"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="4dp"
@@ -215,67 +194,117 @@
                     android:layout_height="wrap_content"
                     android:text=""
                     android:textColor="#7B61A8"
-                    android:textSize="10.5sp"
+                    android:textSize="11sp"
                     android:textStyle="bold" />
             </LinearLayout>
         </LinearLayout>
 
-        <!-- 세로로 기본보다 더 길게 늘렸을 때 추가로 펼쳐지는 오늘의 할일/복약/습관 상세 줄 -->
+        <!-- 오늘 할일 섹션 헤더 (클릭 시 달력 탭으로 직행) -->
+        <LinearLayout
+            android:id="@+id/widget_month_tasks_header"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="5dp"
+            android:background="@drawable/hagom_widget_task_btn_bg"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:paddingHorizontal="10dp"
+            android:paddingVertical="5dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="오늘의 할일"
+                android:textColor="#FFFFFF"
+                android:textSize="11sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/widget_month_tasks"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:layout_weight="1"
+                android:ellipsize="end"
+                android:gravity="end"
+                android:maxLines="1"
+                android:text=""
+                android:textColor="#FFFFFF"
+                android:textSize="10.5sp" />
+        </LinearLayout>
+
+        <!-- 오늘 할일 목록 (최대 5개까지 세로 확장에 따라 동적 노출) -->
         <LinearLayout
             android:id="@+id/month_extra_container"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="5dp"
-            android:orientation="vertical"
-            android:visibility="gone">
+            android:layout_marginTop="3dp"
+            android:orientation="vertical">
 
             <TextView
-                android:id="@+id/month_detail_1"
+                android:id="@+id/month_task_1"
                 android:layout_width="match_parent"
-                android:layout_height="22dp"
+                android:layout_height="21dp"
                 android:ellipsize="end"
                 android:gravity="center_vertical"
                 android:maxLines="1"
                 android:paddingHorizontal="4dp"
                 android:text=""
-                android:textColor="#374151"
-                android:textSize="11sp" />
+                android:textColor="#1F2937"
+                android:textSize="11sp"
+                android:visibility="gone" />
 
             <TextView
-                android:id="@+id/month_detail_2"
+                android:id="@+id/month_task_2"
                 android:layout_width="match_parent"
-                android:layout_height="22dp"
+                android:layout_height="21dp"
                 android:ellipsize="end"
                 android:gravity="center_vertical"
                 android:maxLines="1"
                 android:paddingHorizontal="4dp"
                 android:text=""
-                android:textColor="#374151"
-                android:textSize="11sp" />
+                android:textColor="#1F2937"
+                android:textSize="11sp"
+                android:visibility="gone" />
 
             <TextView
-                android:id="@+id/month_detail_3"
+                android:id="@+id/month_task_3"
                 android:layout_width="match_parent"
-                android:layout_height="22dp"
+                android:layout_height="21dp"
                 android:ellipsize="end"
                 android:gravity="center_vertical"
                 android:maxLines="1"
                 android:paddingHorizontal="4dp"
                 android:text=""
-                android:textColor="#374151"
-                android:textSize="11sp" />
+                android:textColor="#1F2937"
+                android:textSize="11sp"
+                android:visibility="gone" />
 
             <TextView
-                android:id="@+id/month_detail_4"
+                android:id="@+id/month_task_4"
                 android:layout_width="match_parent"
-                android:layout_height="22dp"
+                android:layout_height="21dp"
                 android:ellipsize="end"
                 android:gravity="center_vertical"
                 android:maxLines="1"
                 android:paddingHorizontal="4dp"
                 android:text=""
-                android:textColor="#374151"
-                android:textSize="11sp" />
+                android:textColor="#1F2937"
+                android:textSize="11sp"
+                android:visibility="gone" />
+
+            <TextView
+                android:id="@+id/month_task_5"
+                android:layout_width="match_parent"
+                android:layout_height="21dp"
+                android:ellipsize="end"
+                android:gravity="center_vertical"
+                android:maxLines="1"
+                android:paddingHorizontal="4dp"
+                android:text=""
+                android:textColor="#1F2937"
+                android:textSize="11sp"
+                android:visibility="gone" />
         </LinearLayout>
     </LinearLayout>
 </LinearLayout>

@@ -35,7 +35,11 @@ class HagomMedsWidgetProvider : HomeWidgetProvider() {
 
             val views = RemoteViews(context.packageName, R.layout.hagom_meds_widget).apply {
                 val openMedsIntent = WidgetBindings.openAppIntent(context, "hagomwidget://openmeds", 1001)
-                setOnClickPendingIntent(R.id.widget_meds_container, openMedsIntent)
+                // 빈 배경(container)을 실수로 만졌을 때 앱으로 튕기는 문제 방지:
+                // 오직 상단 제목 텍스트 및 태그를 명확히 눌렀을 때만 앱으로 이동
+                setOnClickPendingIntent(R.id.widget_meds_title, openMedsIntent)
+                setOnClickPendingIntent(R.id.widget_meds_tag, openMedsIntent)
+                setOnClickPendingIntent(R.id.meds_celebration_view, openMedsIntent)
 
                 if (allDone) {
                     setViewVisibility(R.id.meds_celebration_view, View.VISIBLE)

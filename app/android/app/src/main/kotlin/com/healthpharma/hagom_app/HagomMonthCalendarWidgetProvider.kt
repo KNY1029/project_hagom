@@ -30,7 +30,10 @@ class HagomMonthCalendarWidgetProvider : HomeWidgetProvider() {
         for (appWidgetId in appWidgetIds) {
             val opts = appWidgetManager.getAppWidgetOptions(appWidgetId)
             val minH = opts.getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_HEIGHT, 240)
-            val extraLines = if (minH > 265) ((minH - 255) / 22).coerceIn(1, 4) else 0
+
+            // 4x4(약 220~270dp)까지는 달력 격자가 커지고,
+            // 4x5 이상(>275dp)으로 길게 늘렸을 때 오늘의 할일 상세 목록이 최대 5개까지 늘어남
+            val taskLines = if (minH > 275) ((minH - 265) / 22).coerceIn(1, 5) else 0
 
             val views = RemoteViews(context.packageName, R.layout.hagom_month_calendar_widget).apply {
                 setTextViewText(R.id.widget_month_title, WidgetBindings.text(widgetData, "month_title"))
@@ -38,6 +41,7 @@ class HagomMonthCalendarWidgetProvider : HomeWidgetProvider() {
                 setTextViewText(R.id.widget_month_habits, WidgetBindings.text(widgetData, "month_habits"))
                 setTextViewText(R.id.widget_month_tasks, WidgetBindings.text(widgetData, "month_tasks"))
 
+                // 날짜 그리드 채우기 (빈 공간 탭 실수로 앱 열림 방지: 날짜 셀은 클릭 이벤트 미연결)
                 for (day in 1..31) {
                     val resId = context.resources.getIdentifier("d_$day", "id", context.packageName)
                     if (resId != 0) {
@@ -60,16 +64,18 @@ class HagomMonthCalendarWidgetProvider : HomeWidgetProvider() {
                     }
                 }
 
-                setViewVisibility(R.id.month_extra_container, if (extraLines > 0) View.VISIBLE else View.GONE)
-                val detailIds = listOf(
-                    R.id.month_detail_1,
-                    R.id.month_detail_2,
-                    R.id.month_detail_3,
-                    R.id.month_detail_4
+                // 오늘 할일 상세 목록 바인딩 (세로로 길게 늘렸을 때)
+                setViewVisibility(R.id.month_extra_container, if (taskLines > 0) View.VISIBLE else View.GONE)
+                val taskIds = listOf(
+                    R.id.month_task_1,
+                    R.id.month_task_2,
+                    R.id.month_task_3,
+                    R.id.month_task_4,
+                    R.id.month_task_5
                 )
-                detailIds.forEachIndexed { idx, viewId ->
-                    val txt = WidgetBindings.text(widgetData, "month_detail_${idx + 1}")
-                    if (idx < extraLines && txt.isNotEmpty()) {
+                taskIds.forEachIndexed { idx, viewId ->
+                    val txt = WidgetBindings.text(widgetData, "month_today_task_${idx + 1}")
+                    if (idx < taskLines && txt.isNotEmpty()) {
                         setViewVisibility(viewId, View.VISIBLE)
                         setTextViewText(viewId, txt)
                     } else {
@@ -77,9 +83,30 @@ class HagomMonthCalendarWidgetProvider : HomeWidgetProvider() {
                     }
                 }
 
+                // 🌟 [원치 않는 앱 열림 완전 차단]:
+                // 전체 배경(container)에는 Intent를 걸지 않아 화면 빈 공간을 만져도 앱이 절대 켜지지 않습니다.
+                // 오직 명확한 버튼/제목 영역을 눌렀을 때만 해당 목적지로 갑니다:
+                // 1) 상단 제목 & 할일 헤더 탭 -> 달력 탭
+                val openCalIntent = WidgetBindings.openAppIntent(context, "hagomwidget://opencalendar", 1005)
+                setOnClickPendingIntent(R.id.widget_month_title, openCalIntent)
+                setOnClickPendingIntent(R.id.widget_month_tasks_header, openCalIntent)
+
+                // 2) 마스코트 아이콘 탭 -> 하곰이의 방
                 setOnClickPendingIntent(
-                    R.id.widget_month_container,
-                    WidgetBindings.openAppIntent(context, "hagomwidget://opencalendar", 1005)
+                    R.id.widget_month_mascot_btn,
+                    WidgetBindings.openAppIntent(context, "hagomwidget://openroom", 1004)
+                )
+
+                // 3) 복약 배지 탭 -> 복약 탭
+                setOnClickPendingIntent(
+                    R.id.widget_month_meds_box,
+                    WidgetBindings.openAppIntent(context, "hagomwidget://openmeds", 1001)
+                )
+
+                // 4) 습관 배지 탭 -> 습관 탭
+                setOnClickPendingIntent(
+                    R.id.widget_month_habits_box,
+                    WidgetBindings.openAppIntent(context, "hagomwidget://openhabits", 1002)
                 )
             }
             appWidgetManager.updateAppWidget(appWidgetId, views)
