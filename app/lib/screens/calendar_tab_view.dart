@@ -1034,12 +1034,19 @@ class _CalendarTabViewState extends State<CalendarTabView> {
                                     activeColor: AppColors.primaryPurple,
                                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
                                     onChanged: (_) {
+                                      final wasCompleted = t.isCompleted;
                                       _state.toggleTaskCompleted(t.id);
-                                      if (!t.isCompleted) {
+                                      if (!wasCompleted) {
                                         CelebrationToast.show(
                                           context,
                                           title: '일정 완료',
                                           message: '\'${t.title}\'을(를) 잘 마쳤어요.',
+                                        );
+                                      } else {
+                                        CelebrationToast.show(
+                                          context,
+                                          title: '일정 완료 취소',
+                                          message: '\'${t.title}\' 완료를 취소했어요.',
                                         );
                                       }
                                     },
@@ -1180,7 +1187,7 @@ class _CalendarTabViewState extends State<CalendarTabView> {
               if (_isMedDetailsExpanded) ...[
                 const SizedBox(height: 10),
                 Column(
-                  children: _state.medications.map((med) {
+                  children: _state.medications.where((m) => m.isDueOn(_selectedDate)).map((med) {
                     return Container(
                       margin: const EdgeInsets.only(bottom: 6),
                       padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
@@ -1294,7 +1301,7 @@ class _CalendarTabViewState extends State<CalendarTabView> {
                                   : (selectedHabitRate >= 1.0
                                       ? '전체 달성'
                                       : (selectedHabitRate > 0.0
-                                          ? '${(selectedHabitRate * _state.habits.length).toStringAsFixed(1)}/${_state.habits.length}개 실천'
+                                          ? '${(selectedHabitRate * _state.habits.where((h) => h.isDueOn(_selectedDate)).length).toStringAsFixed(1)}/${_state.habits.where((h) => h.isDueOn(_selectedDate)).length}개 실천'
                                           : '미실천/기록 없음')),
                               style: TextStyle(
                                 fontSize: 11.5,
@@ -1322,7 +1329,7 @@ class _CalendarTabViewState extends State<CalendarTabView> {
               if (_isHabitDetailsExpanded) ...[
                 const SizedBox(height: 10),
                 Column(
-                  children: _state.habits.map((habit) {
+                  children: _state.habits.where((h) => h.isDueOn(_selectedDate)).map((habit) {
                     final hScore = _state.getHabitScoreForDay(_selectedDate, habit.id);
                     final isFull = hScore >= 1.0;
                     final isPart = hScore > 0.0 && hScore < 1.0;

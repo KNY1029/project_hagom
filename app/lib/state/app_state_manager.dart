@@ -37,17 +37,18 @@ class AppStateManager extends ChangeNotifier {
   final List<MedicationItem> _medications = [];
   List<MedicationItem> get medications => _medications;
 
-  // 오늘 복약 통계 (전체 슬롯 중 완료된 슬롯 수 기준)
-  int get totalDoseSlots => _medications.fold(0, (sum, m) => sum + m.totalSlotsCount);
-  int get completedDoseSlots => _medications.fold(0, (sum, m) => sum + m.completedSlotsCount);
+  // 🌟 오늘 복약 통계 (오늘 복용해야 하는 약들의 슬롯만 집계!)
+  int get totalDoseSlots => _medications.where((m) => m.isDueToday).fold(0, (sum, m) => sum + m.totalSlotsCount);
+  int get completedDoseSlots => _medications.where((m) => m.isDueToday).fold(0, (sum, m) => sum + m.completedSlotsCount);
 
   // --- 🌱 습관 데이터 ---
   final List<HabitItem> _habits = [];
   List<HabitItem> get habits => _habits;
 
-  // 습관 달성률 계산 (비처벌적: 조금 한 것도 0.5점으로 인정)
-  double get habitTotalScore => _habits.fold(0.0, (sum, item) => sum + item.score);
-  double get habitCompletionRate => _habits.isEmpty ? 0.0 : (habitTotalScore / _habits.length);
+  // 🌟 오늘 실천해야 하는 습관 통계 (오늘 실천 대상인 습관만 집계!)
+  int get todayHabitsCount => _habits.where((h) => h.isDueToday).length;
+  double get habitTotalScore => _habits.where((h) => h.isDueToday).fold(0.0, (sum, item) => sum + item.score);
+  double get habitCompletionRate => todayHabitsCount == 0 ? 0.0 : (habitTotalScore / todayHabitsCount);
 
   // --- ⚙️ 5대 알림 통합 설정 시스템 ---
   bool medsNotificationEnabled = true;     // 일반 복약 알림 (처방약은 항상 켜짐!)
@@ -285,13 +286,14 @@ class AppStateManager extends ChangeNotifier {
 
     if (target.isAfter(today)) return null; // 미래 날짜는 깨끗하게 비움
 
-    // 등록된 약이 하나도 없으면 달력에서 완료(1.0)로 오판하지 않도록 0.0 처리!
-    if (totalDoseSlots == 0) return 0.0;
+    // 등록된 약이 하나도 없거나 오늘 복용할 약이 없으면 0.0 처리!
+    final dueMeds = _medications.where((m) => m.isDueOn(day)).toList();
+    if (dueMeds.isEmpty) return 0.0;
 
     int total = 0;
     int completed = 0;
 
-    for (final med in _medications) {
+    for (final med in dueMeds) {
       for (int i = 0; i < med.doseSlots.length; i++) {
         total++;
         if (isSlotCompletedForDay(day, med.id, i)) {
@@ -311,12 +313,11 @@ class AppStateManager extends ChangeNotifier {
 
     if (target.isAfter(today)) return false; // 미래 날짜는 제외
 
-    for (final med in _medications) {
-      if (med.isPrescription) {
-        for (int i = 0; i < med.doseSlots.length; i++) {
-          if (!isSlotCompletedForDay(day, med.id, i)) {
-            return true; // 처방 약물을 하나라도 놓쳤음!
-          }
+    final duePrescriptions = _medications.where((m) => m.isPrescription && m.isDueOn(day));
+    for (final med in duePrescriptions) {
+      for (int i = 0; i < med.doseSlots.length; i++) {
+        if (!isSlotCompletedForDay(day, med.id, i)) {
+          return true; // 오늘 복용해야 하는 처방 약물을 하나라도 놓쳤음!
         }
       }
     }
@@ -366,13 +367,14 @@ class AppStateManager extends ChangeNotifier {
     final target = DateTime(day.year, day.month, day.day);
 
     if (target.isAfter(today)) return null;
-    if (_habits.isEmpty) return 1.0;
+    final dueHabits = _habits.where((h) => h.isDueOn(day)).toList();
+    if (dueHabits.isEmpty) return 1.0;
 
     double sum = 0.0;
-    for (final h in _habits) {
+    for (final h in dueHabits) {
       sum += getHabitScoreForDay(day, h.id);
     }
-    return sum / _habits.length;
+    return sum / dueHabits.length;
   }
 
   // 과거 날짜의 습관 상태 소급 변경 (0.0 -> 0.5 -> 1.0 -> 1.0 유지)
