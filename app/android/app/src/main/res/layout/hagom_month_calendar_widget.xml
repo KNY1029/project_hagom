@@ -92,13 +92,15 @@
     <LinearLayout
         android:id="@+id/month_calendar_grid"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="0dp"
+        android:layout_weight="1"
         android:orientation="vertical">
 
         <!-- 1주차 -->
         <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="27dp"
+            android:layout_height="0dp"
+            android:layout_weight="1"
             android:gravity="center_vertical"
             android:orientation="horizontal">
             <TextView android:id="@+id/c_0" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:gravity="center" android:textColor="#EF4444" android:textSize="12sp" />
@@ -113,7 +115,8 @@
         <!-- 2주차 -->
         <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="27dp"
+            android:layout_height="0dp"
+            android:layout_weight="1"
             android:gravity="center_vertical"
             android:orientation="horizontal">
             <TextView android:id="@+id/c_7" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:gravity="center" android:textColor="#EF4444" android:textSize="12sp" />
@@ -128,7 +131,8 @@
         <!-- 3주차 -->
         <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="27dp"
+            android:layout_height="0dp"
+            android:layout_weight="1"
             android:gravity="center_vertical"
             android:orientation="horizontal">
             <TextView android:id="@+id/c_14" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:gravity="center" android:textColor="#EF4444" android:textSize="12sp" />
@@ -143,7 +147,8 @@
         <!-- 4주차 -->
         <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="27dp"
+            android:layout_height="0dp"
+            android:layout_weight="1"
             android:gravity="center_vertical"
             android:orientation="horizontal">
             <TextView android:id="@+id/c_21" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:gravity="center" android:textColor="#EF4444" android:textSize="12sp" />
@@ -158,7 +163,8 @@
         <!-- 5주차 -->
         <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="27dp"
+            android:layout_height="0dp"
+            android:layout_weight="1"
             android:gravity="center_vertical"
             android:orientation="horizontal">
             <TextView android:id="@+id/c_28" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:gravity="center" android:textColor="#EF4444" android:textSize="12sp" />
@@ -173,7 +179,8 @@
         <!-- 6주차 -->
         <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="27dp"
+            android:layout_height="0dp"
+            android:layout_weight="1"
             android:gravity="center_vertical"
             android:orientation="horizontal">
             <TextView android:id="@+id/c_35" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:gravity="center" android:textColor="#EF4444" android:textSize="12sp" />
@@ -260,7 +267,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="오늘의 할일"
-                android:textColor="#7A5E24"
+                android:textColor="#8A671F"
                 android:textSize="11sp"
                 android:textStyle="bold" />
 
@@ -274,83 +281,9 @@
                 android:gravity="end"
                 android:maxLines="1"
                 android:text=""
-                android:textColor="#9E7C38"
+                android:textColor="#B58A32"
                 android:textSize="10.5sp"
                 android:textStyle="bold" />
-        </LinearLayout>
-
-        <!-- 오늘 할일 목록 (최대 5개까지 세로 확장에 따라 동적 노출) -->
-        <LinearLayout
-            android:id="@+id/month_extra_container"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="3dp"
-            android:orientation="vertical">
-
-            <TextView
-                android:id="@+id/month_task_1"
-                android:layout_width="match_parent"
-                android:layout_height="21dp"
-                android:ellipsize="end"
-                android:gravity="center_vertical"
-                android:maxLines="1"
-                android:paddingHorizontal="4dp"
-                android:text=""
-                android:textColor="#1F2937"
-                android:textSize="11sp"
-                android:visibility="gone" />
-
-            <TextView
-                android:id="@+id/month_task_2"
-                android:layout_width="match_parent"
-                android:layout_height="21dp"
-                android:ellipsize="end"
-                android:gravity="center_vertical"
-                android:maxLines="1"
-                android:paddingHorizontal="4dp"
-                android:text=""
-                android:textColor="#1F2937"
-                android:textSize="11sp"
-                android:visibility="gone" />
-
-            <TextView
-                android:id="@+id/month_task_3"
-                android:layout_width="match_parent"
-                android:layout_height="21dp"
-                android:ellipsize="end"
-                android:gravity="center_vertical"
-                android:maxLines="1"
-                android:paddingHorizontal="4dp"
-                android:text=""
-                android:textColor="#1F2937"
-                android:textSize="11sp"
-                android:visibility="gone" />
-
-            <TextView
-                android:id="@+id/month_task_4"
-                android:layout_width="match_parent"
-                android:layout_height="21dp"
-                android:ellipsize="end"
-                android:gravity="center_vertical"
-                android:maxLines="1"
-                android:paddingHorizontal="4dp"
-                android:text=""
-                android:textColor="#1F2937"
-                android:textSize="11sp"
-                android:visibility="gone" />
-
-            <TextView
-                android:id="@+id/month_task_5"
-                android:layout_width="match_parent"
-                android:layout_height="21dp"
-                android:ellipsize="end"
-                android:gravity="center_vertical"
-                android:maxLines="1"
-                android:paddingHorizontal="4dp"
-                android:text=""
-                android:textColor="#1F2937"
-                android:textSize="11sp"
-                android:visibility="gone" />
         </LinearLayout>
     </LinearLayout>
 </LinearLayout>

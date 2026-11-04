@@ -103,24 +103,6 @@ class HagomMonthCalendarWidgetProvider : HomeWidgetProvider() {
                     }
                 }
 
-                // 할일 목록 바인딩
-                setViewVisibility(R.id.month_extra_container, if (taskLines > 0) View.VISIBLE else View.GONE)
-                val taskIds = listOf(
-                    R.id.month_task_1,
-                    R.id.month_task_2,
-                    R.id.month_task_3,
-                    R.id.month_task_4,
-                    R.id.month_task_5
-                )
-                taskIds.forEachIndexed { idx, viewId ->
-                    val txt = WidgetBindings.text(widgetData, "month_today_task_${idx + 1}")
-                    if (idx < taskLines && txt.isNotEmpty()) {
-                        setViewVisibility(viewId, View.VISIBLE)
-                        setTextViewText(viewId, txt)
-                    } else {
-                        setViewVisibility(viewId, View.GONE)
-                    }
-                }
 
                 // 이전달 / 다음달 넘김 백그라운드 액션 (고유 requestCode 지정)
                 setOnClickPendingIntent(

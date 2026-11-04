@@ -93,7 +93,7 @@
                         android:paddingHorizontal="6dp"
                         android:paddingVertical="1.5dp"
                         android:text="오늘의 할일"
-                        android:textColor="#7A5E24"
+                        android:textColor="#8A671F"
                         android:textSize="10sp"
                         android:textStyle="bold" />
 
