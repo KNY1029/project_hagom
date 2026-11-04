@@ -24,17 +24,13 @@ class HagomMedsWidgetProvider : HomeWidgetProvider() {
                 val progress = widgetData.getString("meds_progress", "2/3 완료")
                 val title = widgetData.getString("meds_title", "Focusin 10mg")
                 val subtitle = widgetData.getString("meds_subtitle", "오후 12:30 · 식후 복용")
-                val extra = widgetData.getString("meds_extra", "처방약 (시간 엄수)")
                 val btnTitle = widgetData.getString("meds_btn_title", "복용")
-                val btnSubtitle = widgetData.getString("meds_btn_subtitle", "1-Tap")
 
                 setTextViewText(R.id.widget_meds_tag, tag)
                 setTextViewText(R.id.widget_meds_progress, progress)
                 setTextViewText(R.id.widget_meds_title, title)
                 setTextViewText(R.id.widget_meds_subtitle, subtitle)
-                setTextViewText(R.id.widget_meds_extra, extra)
                 setTextViewText(R.id.widget_meds_btn_title, btnTitle)
-                setTextViewText(R.id.widget_meds_btn_subtitle, btnSubtitle)
 
                 // 1) 좌측 본문 터치 시: 하곰이 복약 탭 열기
                 val openAppPendingIntent = HomeWidgetLaunchIntent.getActivity(
@@ -44,11 +40,15 @@ class HagomMedsWidgetProvider : HomeWidgetProvider() {
                 )
                 setOnClickPendingIntent(R.id.widget_meds_container, openAppPendingIntent)
 
-                // 2) 우측 [복용] 1-Tap 버튼 터치 시: 복약 완료 액션 즉시 실행!
-                val checkMedPendingIntent = HomeWidgetLaunchIntent.getActivity(
+                // 2) 🌟 우측 [복용] 버튼 터치 시: BroadcastReceiver를 통해 즉각 로컬 데이터 갱신 및 위젯 업데이트!
+                val checkMedIntent = Intent(context, WidgetActionReceiver::class.java).apply {
+                    action = "ACTION_CHECK_MED"
+                }
+                val checkMedPendingIntent = PendingIntent.getBroadcast(
                     context,
-                    MainActivity::class.java,
-                    Uri.parse("hagomwidget://checkMed")
+                    201,
+                    checkMedIntent,
+                    PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
                 )
                 setOnClickPendingIntent(R.id.widget_meds_btn, checkMedPendingIntent)
             }

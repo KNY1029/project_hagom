@@ -24,17 +24,13 @@ class HagomCalendarWidgetProvider : HomeWidgetProvider() {
                 val progress = widgetData.getString("calendar_progress", "오후 2:00")
                 val title = widgetData.getString("calendar_title", "약학 실습 보고서 작성")
                 val subtitle = widgetData.getString("calendar_subtitle", "카테고리: 과제 및 실습")
-                val extra = widgetData.getString("calendar_extra", "상태: 진행 대기")
                 val btnTitle = widgetData.getString("calendar_btn_title", "체크")
-                val btnSubtitle = widgetData.getString("calendar_btn_subtitle", "1-Tap")
 
                 setTextViewText(R.id.widget_calendar_tag, tag)
                 setTextViewText(R.id.widget_calendar_progress, progress)
                 setTextViewText(R.id.widget_calendar_title, title)
                 setTextViewText(R.id.widget_calendar_subtitle, subtitle)
-                setTextViewText(R.id.widget_calendar_extra, extra)
                 setTextViewText(R.id.widget_calendar_btn_title, btnTitle)
-                setTextViewText(R.id.widget_calendar_btn_subtitle, btnSubtitle)
 
                 // 1) 좌측 본문 터치 시: 하곰이 달력 탭 열기
                 val openAppPendingIntent = HomeWidgetLaunchIntent.getActivity(
@@ -44,11 +40,15 @@ class HagomCalendarWidgetProvider : HomeWidgetProvider() {
                 )
                 setOnClickPendingIntent(R.id.widget_calendar_container, openAppPendingIntent)
 
-                // 2) 우측 [체크] 1-Tap 버튼 터치 시: 할일 즉시 완료 토글!
-                val checkTaskPendingIntent = HomeWidgetLaunchIntent.getActivity(
+                // 2) 🌟 우측 [체크] 버튼 터치 시: BroadcastReceiver를 통해 즉각 할일 완료 토글 및 위젯 업데이트!
+                val checkTaskIntent = Intent(context, WidgetActionReceiver::class.java).apply {
+                    action = "ACTION_CHECK_TASK"
+                }
+                val checkTaskPendingIntent = PendingIntent.getBroadcast(
                     context,
-                    MainActivity::class.java,
-                    Uri.parse("hagomwidget://checkTask")
+                    203,
+                    checkTaskIntent,
+                    PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
                 )
                 setOnClickPendingIntent(R.id.widget_calendar_btn, checkTaskPendingIntent)
             }

@@ -4,112 +4,207 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@drawable/hagom_widget_bg"
-    android:orientation="horizontal"
-    android:padding="14dp"
-    android:gravity="center_vertical">
+    android:orientation="vertical"
+    android:padding="12dp">
 
-    <!-- 좌측 정보 영역 -->
+    <!-- 1) 기본 3x1 메인 행 (다음 대기 약 및 복용 버튼) -->
     <LinearLayout
-        android:layout_width="0dp"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_weight="1"
-        android:orientation="vertical">
+        android:orientation="horizontal"
+        android:gravity="center_vertical">
 
-        <!-- 상단 태그 및 진행 현황 -->
+        <!-- 좌측 정보 영역 -->
         <LinearLayout
-            android:layout_width="wrap_content"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:gravity="center_vertical">
+            android:layout_weight="1"
+            android:orientation="vertical">
 
-            <TextView
-                android:id="@+id/widget_meds_tag"
+            <!-- 상단 태그 및 진행 현황 -->
+            <LinearLayout
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:background="@drawable/hagom_widget_tag_bg"
-                android:paddingHorizontal="7dp"
-                android:paddingVertical="2dp"
-                android:text="다음 복약"
-                android:textColor="#7B61A8"
-                android:textSize="10.5sp"
+                android:orientation="horizontal"
+                android:gravity="center_vertical">
+
+                <TextView
+                    android:id="@+id/widget_meds_tag"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/hagom_widget_tag_bg"
+                    android:paddingHorizontal="7dp"
+                    android:paddingVertical="2dp"
+                    android:text="다음 복약"
+                    android:textColor="#7B61A8"
+                    android:textSize="10.5sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/widget_meds_progress"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="8dp"
+                    android:text="2/3 완료"
+                    android:textColor="#6B7280"
+                    android:textSize="11sp" />
+            </LinearLayout>
+
+            <!-- 약 이름 -->
+            <TextView
+                android:id="@+id/widget_meds_title"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:ellipsize="end"
+                android:maxLines="1"
+                android:text="Focusin 10mg"
+                android:textColor="#1F2937"
+                android:textSize="14.5sp"
                 android:textStyle="bold" />
 
+            <!-- 복용법 / 예정 시각 -->
             <TextView
-                android:id="@+id/widget_meds_progress"
-                android:layout_width="wrap_content"
+                android:id="@+id/widget_meds_subtitle"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="8dp"
-                android:text="2/3 완료"
-                android:textColor="#6B7280"
+                android:layout_marginTop="2dp"
+                android:ellipsize="end"
+                android:maxLines="1"
+                android:text="오후 12:30 · 식후 복용"
+                android:textColor="#4B5568"
                 android:textSize="11sp" />
         </LinearLayout>
 
-        <!-- 약 이름 -->
-        <TextView
-            android:id="@+id/widget_meds_title"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="5dp"
-            android:ellipsize="end"
-            android:maxLines="1"
-            android:text="Focusin 10mg"
-            android:textColor="#1F2937"
-            android:textSize="15sp"
-            android:textStyle="bold" />
+        <!-- 우측 복용 버튼 (1-Tap 텍스트 제거, 크고 깔끔한 단독 버튼) -->
+        <LinearLayout
+            android:id="@+id/widget_meds_btn"
+            android:layout_width="72dp"
+            android:layout_height="48dp"
+            android:layout_marginStart="10dp"
+            android:background="@drawable/hagom_widget_btn_bg"
+            android:orientation="vertical"
+            android:gravity="center">
 
-        <!-- 복용법 / 예정 시각 -->
-        <TextView
-            android:id="@+id/widget_meds_subtitle"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="2dp"
-            android:ellipsize="end"
-            android:maxLines="1"
-            android:text="오후 12:30 · 식후 복용"
-            android:textColor="#4B5568"
-            android:textSize="11.5sp" />
-
-        <!-- 처방약 안내 문구 -->
-        <TextView
-            android:id="@+id/widget_meds_extra"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="4dp"
-            android:text="처방약 (시간 엄수)"
-            android:textColor="#8B5E3C"
-            android:textSize="10sp"
-            android:textStyle="bold" />
+            <TextView
+                android:id="@+id/widget_meds_btn_title"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="복용"
+                android:textColor="#FFFFFF"
+                android:textSize="15sp"
+                android:textStyle="bold" />
+        </LinearLayout>
     </LinearLayout>
 
-    <!-- 우측 1-Tap 대형 버튼 -->
+    <!-- 2) 🌟 [세로로 늘렸을 때(3x2, 3x3) 나타나는 오늘 전체 복약 목록 확장 영역] -->
     <LinearLayout
-        android:id="@+id/widget_meds_btn"
-        android:layout_width="84dp"
-        android:layout_height="match_parent"
-        android:layout_marginStart="14dp"
-        android:background="@drawable/hagom_widget_btn_bg"
-        android:orientation="vertical"
-        android:gravity="center"
-        android:padding="6dp">
+        android:id="@+id/widget_meds_expanded_list"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:orientation="vertical">
 
-        <TextView
-            android:id="@+id/widget_meds_btn_title"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="복용"
-            android:textColor="#FFFFFF"
-            android:textSize="16sp"
-            android:textStyle="bold" />
+        <!-- 구분선 -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:layout_marginBottom="6dp"
+            android:background="#E5E7EB" />
 
-        <TextView
-            android:id="@+id/widget_meds_btn_subtitle"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="3dp"
-            android:text="1-Tap"
-            android:textColor="#FFFFFF"
-            android:alpha="0.85"
-            android:textSize="10sp" />
+        <!-- 슬롯 1 (아침) -->
+        <LinearLayout
+            android:id="@+id/med_slot_1_row"
+            android:layout_width="match_parent"
+            android:layout_height="32dp"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <TextView
+                android:id="@+id/med_slot_1_label"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:ellipsize="end"
+                android:maxLines="1"
+                android:text="처방약 (아침 · 오전 8:00)"
+                android:textColor="#1F2937"
+                android:textSize="11.5sp" />
+
+            <TextView
+                android:id="@+id/med_slot_1_status"
+                android:layout_width="54dp"
+                android:layout_height="24dp"
+                android:background="@drawable/hagom_widget_done_bg"
+                android:gravity="center"
+                android:text="완료"
+                android:textColor="#044E36"
+                android:textSize="10.5sp"
+                android:textStyle="bold" />
+        </LinearLayout>
+
+        <!-- 슬롯 2 (점심) -->
+        <LinearLayout
+            android:id="@+id/med_slot_2_row"
+            android:layout_width="match_parent"
+            android:layout_height="32dp"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <TextView
+                android:id="@+id/med_slot_2_label"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:ellipsize="end"
+                android:maxLines="1"
+                android:text="처방약 (점심 · 오후 12:30)"
+                android:textColor="#1F2937"
+                android:textSize="11.5sp" />
+
+            <TextView
+                android:id="@+id/med_slot_2_btn"
+                android:layout_width="54dp"
+                android:layout_height="24dp"
+                android:background="@drawable/hagom_widget_btn_bg"
+                android:gravity="center"
+                android:text="복용"
+                android:textColor="#FFFFFF"
+                android:textSize="10.5sp"
+                android:textStyle="bold" />
+        </LinearLayout>
+
+        <!-- 슬롯 3 (저녁 영양제) -->
+        <LinearLayout
+            android:id="@+id/med_slot_3_row"
+            android:layout_width="match_parent"
+            android:layout_height="32dp"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <TextView
+                android:id="@+id/med_slot_3_label"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:ellipsize="end"
+                android:maxLines="1"
+                android:text="일반 영양제 (저녁 · 오후 7:00)"
+                android:textColor="#1F2937"
+                android:textSize="11.5sp" />
+
+            <TextView
+                android:id="@+id/med_slot_3_btn"
+                android:layout_width="54dp"
+                android:layout_height="24dp"
+                android:background="@drawable/hagom_widget_btn_bg"
+                android:gravity="center"
+                android:text="복용"
+                android:textColor="#FFFFFF"
+                android:textSize="10.5sp"
+                android:textStyle="bold" />
+        </LinearLayout>
+
     </LinearLayout>
 
 </LinearLayout>

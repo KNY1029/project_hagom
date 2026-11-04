@@ -15,7 +15,7 @@
         android:layout_weight="1"
         android:orientation="vertical">
 
-        <!-- 상단 태그 및 시간 -->
+        <!-- 상단 태그 및 진행 현황 -->
         <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -30,7 +30,7 @@
                 android:paddingHorizontal="7dp"
                 android:paddingVertical="2dp"
                 android:text="오늘의 일정"
-                android:textColor="#D97706"
+                android:textColor="#7B61A8"
                 android:textSize="10.5sp"
                 android:textStyle="bold" />
 
@@ -44,7 +44,7 @@
                 android:textSize="11sp" />
         </LinearLayout>
 
-        <!-- 일정/할일 제목 -->
+        <!-- 일정 제목 -->
         <TextView
             android:id="@+id/widget_calendar_title"
             android:layout_width="match_parent"
@@ -57,7 +57,7 @@
             android:textSize="15sp"
             android:textStyle="bold" />
 
-        <!-- 분류 안내 -->
+        <!-- 일정 설명 -->
         <TextView
             android:id="@+id/widget_calendar_subtitle"
             android:layout_width="match_parent"
@@ -68,29 +68,17 @@
             android:text="카테고리: 과제 및 실습"
             android:textColor="#4B5568"
             android:textSize="11.5sp" />
-
-        <!-- 상태 멘트 -->
-        <TextView
-            android:id="@+id/widget_calendar_extra"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="4dp"
-            android:text="상태: 진행 대기"
-            android:textColor="#D97706"
-            android:textSize="10sp"
-            android:textStyle="bold" />
     </LinearLayout>
 
-    <!-- 우측 1-Tap 대형 버튼 -->
+    <!-- 우측 체크 버튼 (1-Tap 텍스트 제거) -->
     <LinearLayout
         android:id="@+id/widget_calendar_btn"
-        android:layout_width="84dp"
-        android:layout_height="match_parent"
-        android:layout_marginStart="14dp"
+        android:layout_width="72dp"
+        android:layout_height="48dp"
+        android:layout_marginStart="10dp"
         android:background="@drawable/hagom_widget_task_btn_bg"
         android:orientation="vertical"
-        android:gravity="center"
-        android:padding="6dp">
+        android:gravity="center">
 
         <TextView
             android:id="@+id/widget_calendar_btn_title"
@@ -98,18 +86,8 @@
             android:layout_height="wrap_content"
             android:text="체크"
             android:textColor="#FFFFFF"
-            android:textSize="16sp"
+            android:textSize="15sp"
             android:textStyle="bold" />
-
-        <TextView
-            android:id="@+id/widget_calendar_btn_subtitle"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="3dp"
-            android:text="1-Tap"
-            android:textColor="#FFFFFF"
-            android:alpha="0.85"
-            android:textSize="10sp" />
     </LinearLayout>
 
 </LinearLayout>

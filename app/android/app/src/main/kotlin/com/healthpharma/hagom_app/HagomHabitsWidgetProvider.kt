@@ -24,17 +24,13 @@ class HagomHabitsWidgetProvider : HomeWidgetProvider() {
                 val progress = widgetData.getString("habits_progress", "2/3 실천 중")
                 val title = widgetData.getString("habits_title", "물 한 컵 마시기")
                 val subtitle = widgetData.getString("habits_subtitle", "언제든 자유롭게 · 1컵")
-                val extra = widgetData.getString("habits_extra", "오늘의 작은 발걸음")
                 val btnTitle = widgetData.getString("habits_btn_title", "실천")
-                val btnSubtitle = widgetData.getString("habits_btn_subtitle", "1-Tap")
 
                 setTextViewText(R.id.widget_habits_tag, tag)
                 setTextViewText(R.id.widget_habits_progress, progress)
                 setTextViewText(R.id.widget_habits_title, title)
                 setTextViewText(R.id.widget_habits_subtitle, subtitle)
-                setTextViewText(R.id.widget_habits_extra, extra)
                 setTextViewText(R.id.widget_habits_btn_title, btnTitle)
-                setTextViewText(R.id.widget_habits_btn_subtitle, btnSubtitle)
 
                 // 1) 좌측 본문 터치 시: 하곰이 습관 탭 열기
                 val openAppPendingIntent = HomeWidgetLaunchIntent.getActivity(
@@ -44,11 +40,15 @@ class HagomHabitsWidgetProvider : HomeWidgetProvider() {
                 )
                 setOnClickPendingIntent(R.id.widget_habits_container, openAppPendingIntent)
 
-                // 2) 우측 [실천] 1-Tap 버튼 터치 시: 습관 카운트 즉시 1-Tap 실천!
-                val checkHabitPendingIntent = HomeWidgetLaunchIntent.getActivity(
+                // 2) 🌟 우측 [실천] 버튼 터치 시: BroadcastReceiver를 통해 즉각 로컬 데이터 갱신 및 위젯 업데이트!
+                val checkHabitIntent = Intent(context, WidgetActionReceiver::class.java).apply {
+                    action = "ACTION_CHECK_HABIT"
+                }
+                val checkHabitPendingIntent = PendingIntent.getBroadcast(
                     context,
-                    MainActivity::class.java,
-                    Uri.parse("hagomwidget://checkHabit")
+                    202,
+                    checkHabitIntent,
+                    PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
                 )
                 setOnClickPendingIntent(R.id.widget_habits_btn, checkHabitPendingIntent)
             }
