@@ -347,32 +347,41 @@ class HagomNativeWidgetSync {
       await HomeWidget.saveWidgetData<String>('month_inspecting_iso', isInspectingOtherDay ? '${targetDate.year}-${targetDate.month.toString().padLeft(2, '0')}-${targetDate.day.toString().padLeft(2, '0')}' : '');
       await HomeWidget.saveWidgetData<String>('month_selected_day', selectedDayNum?.toString() ?? '');
       final todayOnly = DateTime(now.year, now.month, now.day);
-      for (int d = 1; d <= 31; d++) {
-        final date = DateTime(displayMonth.year, displayMonth.month, d);
-        if (date.month != displayMonth.month) {
-          await HomeWidget.saveWidgetData<String>('day_status_$d', '');
+      // 🌟 [어떤 달이든 100% 실제 달력 반영]:
+      // 1일의 시작 요일(일=0, 월=1, ..., 토=6)과 해당 월의 총 일수(28~31일)를 정밀 계산!
+      final firstDayWeekday = DateTime(displayMonth.year, displayMonth.month, 1).weekday % 7; // 일요일=0
+      final daysInMonth = DateTime(displayMonth.year, displayMonth.month + 1, 0).day; // 이번달 말일
+
+      for (int i = 0; i < 42; i++) {
+        final dayNum = i - firstDayWeekday + 1;
+        if (dayNum < 1 || dayNum > daysInMonth) {
+          // 이전달/다음달 빈 셀
+          await HomeWidget.saveWidgetData<String>('cell_${i}_text', '');
+          await HomeWidget.saveWidgetData<String>('cell_${i}_status', 'empty');
+          await HomeWidget.saveWidgetData<String>('cell_${i}_day', '');
           continue;
         }
-        final isTodayCell = (date.year == now.year && date.month == now.month && d == now.day);
-        final isFutureCell = date.isAfter(todayOnly);
-        final isBeforeTrack = state.isBeforeTrackingStart(date);
-        final tasks = state.getTasksForDay(date);
+
+        final cellDate = DateTime(displayMonth.year, displayMonth.month, dayNum);
+        final isTodayCell = (cellDate.year == now.year && cellDate.month == now.month && cellDate.day == now.day);
+        final isFutureCell = cellDate.isAfter(todayOnly);
+        final isBeforeTrack = state.isBeforeTrackingStart(cellDate);
+        final tasks = state.getTasksForDay(cellDate);
         final hasT = tasks.isNotEmpty;
+
         String status = '';
         if (isTodayCell) {
-          // 오늘 날짜: 보라색 테두리 강조 + 올클리어(연초록)와 할일 핀만 표시하고 빨간 바/갈색 바는 절대 표시하지 않음
-          final mRate = state.getMedRateForDay(date);
-          final hRate = state.getHabitRateForDay(date);
+          final mRate = state.getMedRateForDay(cellDate);
+          final hRate = state.getHabitRateForDay(cellDate);
           if (!isBeforeTrack && mRate != null && mRate >= 1.0 && hRate != null && hRate >= 1.0) {
             status = hasT ? 'today_done_pin' : 'today_done';
           } else {
             status = hasT ? 'today_pin' : 'today';
           }
         } else if (!isBeforeTrack && !isFutureCell) {
-          // 과거 날짜
-          final mRate = state.getMedRateForDay(date);
-          final hRate = state.getHabitRateForDay(date);
-          final isMissedP = state.hasMissedPrescriptionForDay(date);
+          final mRate = state.getMedRateForDay(cellDate);
+          final hRate = state.getHabitRateForDay(cellDate);
+          final isMissedP = state.hasMissedPrescriptionForDay(cellDate);
 
           if (mRate != null && mRate >= 1.0 && hRate != null && hRate >= 1.0) {
             status = hasT ? 'all_done_pin' : 'all_done';
@@ -384,10 +393,12 @@ class HagomNativeWidgetSync {
             status = 'pin_only';
           }
         } else if (hasT) {
-          // 미래 일정 핀
           status = 'pin_only';
         }
-        await HomeWidget.saveWidgetData<String>('day_status_$d', status);
+
+        await HomeWidget.saveWidgetData<String>('cell_${i}_text', dayNum.toString());
+        await HomeWidget.saveWidgetData<String>('cell_${i}_status', status);
+        await HomeWidget.saveWidgetData<String>('cell_${i}_day', dayNum.toString());
       }
 
       // 달력 위젯에 선택된 날짜(또는 오늘) 할일 전체 목록 전달 (최대 5개)

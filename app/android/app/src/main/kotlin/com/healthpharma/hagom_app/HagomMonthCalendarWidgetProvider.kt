@@ -3,6 +3,7 @@ package com.healthpharma.hagom_app
 import android.appwidget.AppWidgetManager
 import android.content.Context
 import android.content.SharedPreferences
+import android.graphics.Color
 import android.os.Bundle
 import android.view.View
 import android.widget.RemoteViews
@@ -43,13 +44,28 @@ class HagomMonthCalendarWidgetProvider : HomeWidgetProvider() {
                 setTextViewText(R.id.widget_month_habits, WidgetBindings.text(widgetData, "month_habits"))
                 setTextViewText(R.id.widget_month_tasks, WidgetBindings.text(widgetData, "month_tasks"))
 
-                // 날짜 그리드 채우기
-                for (day in 1..31) {
-                    val resId = context.resources.getIdentifier("d_$day", "id", context.packageName)
+                // 🌟 [42개 셀(c_0 ~ c_41) 동적 매핑]: 실제 시작 요일 및 말일 반영!
+                for (i in 0 until 42) {
+                    val resId = context.resources.getIdentifier("c_$i", "id", context.packageName)
                     if (resId != 0) {
-                        val status = widgetData.getString("day_status_$day", "") ?: ""
-                        val isDaySelected = (selectedDay != null && selectedDay == day)
+                        val cellText = widgetData.getString("cell_${i}_text", "") ?: ""
+                        val status = widgetData.getString("cell_${i}_status", "empty") ?: "empty"
+                        val dayNum = widgetData.getString("cell_${i}_day", "")?.toIntOrNull()
 
+                        if (status == "empty" || cellText.isEmpty() || dayNum == null) {
+                            setTextViewText(resId, "")
+                            setInt(resId, "setBackgroundResource", 0)
+                            setOnClickPendingIntent(resId, null)
+                            continue
+                        }
+
+                        setTextViewText(resId, cellText)
+
+                        // 일요일(i % 7 == 0)은 빨간색 글자
+                        val isSunday = (i % 7 == 0)
+                        setTextColor(resId, if (isSunday) Color.parseColor("#EF4444") else Color.parseColor("#1F2937"))
+
+                        val isDaySelected = (selectedDay != null && selectedDay == dayNum)
                         val bgRes = if (isDaySelected) {
                             if (status.contains("pin")) R.drawable.hagom_widget_selected_pin else R.drawable.hagom_widget_selected_bg
                         } else {
@@ -70,17 +86,14 @@ class HagomMonthCalendarWidgetProvider : HomeWidgetProvider() {
                         }
                         setInt(resId, "setBackgroundResource", bgRes)
 
-                        // 🌟 [핵심 인터랙션]:
-                        // 1) 아직 선택되지 않은 날짜를 누르면 -> 위젯 안에서 해당 날짜 선택(selectday)으로 요약만 먼저 갱신!
-                        // 2) 이미 선택되어 하이라이트된 날짜를 '한 번 더' 누르면 -> 앱 달력 탭의 해당 날짜로 직행!
                         val cellPending = if (isDaySelected && inspectingIso.isNotEmpty()) {
                             WidgetBindings.openAppIntent(
                                 context,
                                 "hagomwidget://opencalendar?date=$inspectingIso",
-                                2000 + day
+                                2000 + dayNum
                             )
                         } else {
-                            WidgetBindings.actionIntent(context, "hagomwidget://selectday?day=$day")
+                            WidgetBindings.actionIntent(context, "hagomwidget://selectday?day=$dayNum")
                         }
                         setOnClickPendingIntent(resId, cellPending)
                     }
@@ -115,14 +128,13 @@ class HagomMonthCalendarWidgetProvider : HomeWidgetProvider() {
                     WidgetBindings.actionIntent(context, "hagomwidget://nextmonth")
                 )
 
-                // 중앙 하곰이 마스코트 & 헤더 탭 -> 하곰이의 방 또는 달력 탭
+                // 중앙 하곰이 마스코트 & 헤더 탭 -> 하곰이의 방
                 setOnClickPendingIntent(
                     R.id.widget_month_header_center,
                     WidgetBindings.openAppIntent(context, "hagomwidget://openroom", 1004)
                 )
 
-                // 🌟 [오늘이 아닌 다른 날짜가 선택된 상태일 때의 스마트 라우팅]:
-                // 오늘 날짜가 아닐 때는 복약/습관 배지나 할일 헤더를 눌러도 전부 달력 탭(해당 선택 날짜)으로 직행!
+                // 스마트 라우팅 (오늘 아닌 날짜가 선택되었을 땐 어디 눌러도 달력 탭 해당 날짜로 직행)
                 val calTargetUri = if (hasSelectedOtherDay) {
                     "hagomwidget://opencalendar?date=$inspectingIso"
                 } else {
