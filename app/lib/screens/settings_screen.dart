@@ -358,7 +358,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     ),
                     SizedBox(height: 3),
                     Text(
-                      '정신약학 비처벌 복약 솔루션 · v0.82.142',
+                      '정신약학 비처벌 복약 솔루션 · v0.83.143',
                       style: TextStyle(
                         fontSize: 12,
                         color: AppColors.textSecondary,
@@ -680,6 +680,17 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     );
                   },
                 ),
+                if (_state.isDevSimulationMode) ...[
+                  const Divider(height: 1, color: Color(0xFFF3F4F6)),
+                  ListTile(
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                    leading: const Icon(Icons.palette_outlined, color: AppColors.primaryPurple),
+                    title: const Text('개발자 테마 및 색상 설정', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: AppColors.primaryPurple)),
+                    subtitle: Text('현재 테마: ${_themeName(_state.currentThemeKey)} · 딥 바이올렛 & 위젯 미니 테마', style: const TextStyle(fontSize: 11.5, color: AppColors.textSecondary)),
+                    trailing: const Icon(Icons.arrow_forward_ios, size: 14, color: AppColors.primaryPurple),
+                    onTap: _showDeveloperThemeModal,
+                  ),
+                ],
                 const Divider(height: 1, color: Color(0xFFF3F4F6)),
                 ListTile(
                   contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
@@ -695,5 +706,272 @@ class _SettingsScreenState extends State<SettingsScreen> {
         ],
       ),
     );
+  }
+  String _themeName(String key) {
+    switch (key) {
+      case AppColors.themeDeepViolet:
+        return '딥 바이올렛 (#EAE2FB 메인 / #541D7A 진한 글씨)';
+      case AppColors.themeWidgetHabitBrown:
+        return '습관 위젯 웜 브라운 미니 테마';
+      case AppColors.themeWidgetTaskOcher:
+        return '할일 위젯 오커 골드 미니 테마';
+      case AppColors.themeCustom:
+        return '사용자 정의 커스텀 테마';
+      case AppColors.themeDefault:
+      default:
+        return '기본 라벤더 퍼플 & 웜 브라운';
+    }
+  }
+
+  void _showDeveloperThemeModal() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => StatefulBuilder(
+        builder: (bCtx, setMState) {
+          return Container(
+            decoration: const BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+            ),
+            padding: const EdgeInsets.fromLTRB(20, 16, 20, 28),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Center(
+                  child: Container(
+                    width: 36,
+                    height: 4,
+                    decoration: BoxDecoration(color: Colors.grey[300], borderRadius: BorderRadius.circular(2)),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                const Text(
+                  '🛠️ 개발자 모드: 테마 및 색상 실시간 전환',
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
+                ),
+                const SizedBox(height: 6),
+                const Text(
+                  '선택 즉시 앱 전체 폰트·배경·포인트 컬러가 실시간으로 재렌더링돼요.',
+                  style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
+                ),
+                const SizedBox(height: 16),
+
+                // 1) 프리셋 라디오 타일들
+                _buildThemeRadio(
+                  title: '기본 테마',
+                  subtitle: '오리지널 라벤더 퍼플 (#7B61A8) & 웜 브라운',
+                  key: AppColors.themeDefault,
+                  previewColors: [const Color(0xFF7B61A8), const Color(0xFF8B5E3C), const Color(0xFFF3EFF8)],
+                  setMState: setMState,
+                ),
+                _buildThemeRadio(
+                  title: '딥 바이올렛 테마 (#EAE2FB / #541D7A)',
+                  subtitle: '#EAE2FB 연보라 메인 배경과 #541D7A 또렷한 딥 퍼플 글씨',
+                  key: AppColors.themeDeepViolet,
+                  previewColors: [const Color(0xFF541D7A), const Color(0xFFEAE2FB), const Color(0xFFF7F3FD)],
+                  setMState: setMState,
+                ),
+                _buildThemeRadio(
+                  title: '습관 위젯 미니 테마 (웜 브라운)',
+                  subtitle: '습관 위젯의 따뜻한 웜 브라운 톤앤매너를 앱 전체 포인트로 적용',
+                  key: AppColors.themeWidgetHabitBrown,
+                  previewColors: [const Color(0xFF8B5E3C), const Color(0xFF6B4226), const Color(0xFFF7F3EE)],
+                  setMState: setMState,
+                ),
+                _buildThemeRadio(
+                  title: '할일 위젯 미니 테마 (더스티 오커)',
+                  subtitle: '할일 위젯의 차분한 황토 골드 톤앤매너를 앱 전체 포인트로 적용',
+                  key: AppColors.themeWidgetTaskOcher,
+                  previewColors: [const Color(0xFFB58A32), const Color(0xFF8B5E3C), const Color(0xFFFBF6E9)],
+                  setMState: setMState,
+                ),
+
+                const SizedBox(height: 16),
+                SizedBox(
+                  width: double.infinity,
+                  child: OutlinedButton.icon(
+                    style: OutlinedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                      side: BorderSide(color: AppColors.primaryPurple),
+                    ),
+                    icon: Icon(Icons.colorize, size: 16, color: AppColors.primaryPurple),
+                    label: Text(
+                      '사용자 지정 색상 코드 직접 입력',
+                      style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: AppColors.primaryPurple),
+                    ),
+                    onPressed: () {
+                      Navigator.of(ctx).pop();
+                      _showCustomHexColorDialog();
+                    },
+                  ),
+                ),
+              ],
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _buildThemeRadio({
+    required String title,
+    required String subtitle,
+    required String key,
+    required List<Color> previewColors,
+    required StateSetter setMState,
+  }) {
+    final isSelected = (_state.currentThemeKey == key);
+    return InkWell(
+      onTap: () {
+        _state.setTheme(key);
+        setMState(() {});
+        setState(() {});
+      },
+      borderRadius: BorderRadius.circular(10),
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 8),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+        decoration: BoxDecoration(
+          color: isSelected ? AppColors.lightLavender.withOpacity(0.5) : const Color(0xFFF9FAFB),
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(
+            color: isSelected ? AppColors.primaryPurple : AppColors.divider,
+            width: isSelected ? 1.5 : 1.0,
+          ),
+        ),
+        child: Row(
+          children: [
+            // 컬러 팔레트 스와치 3색 프리뷰
+            Row(
+              children: previewColors.map((c) => Container(
+                width: 14,
+                height: 14,
+                margin: const EdgeInsets.only(right: 3),
+                decoration: BoxDecoration(color: c, shape: BoxShape.circle, border: Border.all(color: Colors.black12)),
+              )).toList(),
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(title, style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: isSelected ? AppColors.primaryPurple : AppColors.textPrimary)),
+                  const SizedBox(height: 2),
+                  Text(subtitle, style: const TextStyle(fontSize: 11, color: AppColors.textSecondary)),
+                ],
+              ),
+            ),
+            if (isSelected)
+              Icon(Icons.check_circle, size: 18, color: AppColors.primaryPurple)
+            else
+              const Icon(Icons.radio_button_unchecked, size: 18, color: AppColors.textMuted),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showCustomHexColorDialog() {
+    final primaryCtl = TextEditingController(text: '#541D7A');
+    final bgCtl = TextEditingController(text: '#F7F3FD');
+    final textCtl = TextEditingController(text: '#541D7A');
+    final tintCtl = TextEditingController(text: '#EAE2FB');
+
+    showDialog(
+      context: context,
+      builder: (dCtx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: const Text('사용자 테마 색상 직접 지정', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Text('원하는 HEX 색상 코드를 입력하면 변수에 실시간 반영돼요.', style: TextStyle(fontSize: 11.5, color: AppColors.textSecondary)),
+              const SizedBox(height: 14),
+              _buildHexField('메인 브랜드 컬러 (Primary)', primaryCtl),
+              _buildHexField('앱 배경 컬러 (Background)', bgCtl),
+              _buildHexField('연한 카드/틴트 배경 (Light Tint)', tintCtl),
+              _buildHexField('주요 텍스트 컬러 (Text Primary)', textCtl),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dCtx).pop(),
+            child: const Text('취소', style: TextStyle(color: AppColors.textSecondary)),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.primaryPurple,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+            ),
+            onPressed: () {
+              try {
+                final p = _parseHex(primaryCtl.text.trim());
+                final b = _parseHex(bgCtl.text.trim());
+                final t = _parseHex(tintCtl.text.trim());
+                final txt = _parseHex(textCtl.text.trim());
+
+                _state.setCustomTheme(
+                  primary: p,
+                  background: b,
+                  lightTint: t,
+                  textPrimary: txt,
+                  warmAccent: AppColors.warmBrown,
+                );
+                Navigator.of(dCtx).pop();
+                setState(() {});
+                CelebrationToast.show(
+                  context,
+                  title: '커스텀 테마 적용 완료',
+                  message: '지정한 색상 변수로 앱 전체가 전환되었어요.',
+                );
+              } catch (_) {
+                CelebrationToast.show(
+                  context,
+                  title: '색상 코드 형식 오류',
+                  message: '#RRGGBB 형식으로 입력해 주세요.',
+                );
+              }
+            },
+            child: const Text('적용하기', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildHexField(String label, TextEditingController ctl) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 10),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(label, style: const TextStyle(fontSize: 11.5, fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
+          const SizedBox(height: 4),
+          TextField(
+            controller: ctl,
+            decoration: InputDecoration(
+              isDense: true,
+              contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+              border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+            ),
+            style: const TextStyle(fontSize: 12, fontFamily: 'monospace'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Color _parseHex(String hex) {
+    var str = hex.replaceAll('#', '');
+    if (str.length == 6) {
+      str = 'FF$str';
+    }
+    return Color(int.parse(str, radix: 16));
   }
 }

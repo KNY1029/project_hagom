@@ -6,6 +6,7 @@ import '../models/medication_item.dart';
 import '../models/habit_item.dart';
 import '../services/hagom_native_widget_sync.dart';
 import '../models/task_item.dart';
+import '../constants/app_colors.dart';
 
 /// 앱 전체의 복약 및 습관 데이터를 로컬 DB에 영구 보존하고 실시간 알림을 보내는 상태 관리자
 class AppStateManager extends ChangeNotifier {
@@ -206,6 +207,40 @@ class AppStateManager extends ChangeNotifier {
   }
   // 🛠️ 개발자 모드(전체 예시 데이터 복원 상태) 여부
   bool isDevSimulationMode = true; // 기본값은 개발자 예시 모드 (발표 및 시연용)
+  // 🎨 개발자 모드 전용 동적 테마 관리
+  String currentThemeKey = AppColors.themeDefault;
+  Map<String, String> customThemeColors = {};
+
+  void setTheme(String themeKey) {
+    currentThemeKey = themeKey;
+    AppColors.applyPreset(themeKey);
+    notifyListeners();
+  }
+
+  void setCustomTheme({
+    required Color primary,
+    required Color background,
+    required Color lightTint,
+    required Color textPrimary,
+    required Color warmAccent,
+  }) {
+    currentThemeKey = AppColors.themeCustom;
+    AppColors.applyCustomColors(
+      primary: primary,
+      background: background,
+      lightTint: lightTint,
+      textPrimary: textPrimary,
+      warmAccent: warmAccent,
+    );
+    customThemeColors = {
+      'primary': primary.value.toRadixString(16),
+      'background': background.value.toRadixString(16),
+      'lightTint': lightTint.value.toRadixString(16),
+      'textPrimary': textPrimary.value.toRadixString(16),
+      'warmAccent': warmAccent.value.toRadixString(16),
+    };
+    notifyListeners();
+  }
   // --- 📅 앱 사용 및 기록 시작일 (시작일 이전 날짜는 달력 바 및 초록색 미표시) ---
   DateTime? _trackingStartDate;
   DateTime get trackingStartDate {
@@ -599,6 +634,8 @@ class AppStateManager extends ChangeNotifier {
       }
       await _prefs!.setStringList('hagom_custom_time_slots', customTimeSlots);
       await _prefs!.setString('hagom_routine_times', jsonEncode(routineTimes));
+      await _prefs!.setString('hagom_theme_key', currentThemeKey);
+      await _prefs!.setString('hagom_custom_theme', jsonEncode(customThemeColors));
     } catch (_) {}
   }
 
@@ -607,6 +644,28 @@ class AppStateManager extends ChangeNotifier {
     if (_prefs == null) return;
     try {
       final medsRaw = _prefs!.getString('hagom_medications');
+      final savedTheme = _prefs!.getString('hagom_theme_key');
+      if (savedTheme != null) {
+        currentThemeKey = savedTheme;
+        if (savedTheme == AppColors.themeCustom) {
+          final customRaw = _prefs!.getString('hagom_custom_theme');
+          if (customRaw != null) {
+            final Map<String, dynamic> cMap = jsonDecode(customRaw);
+            customThemeColors = cMap.map((k, v) => MapEntry(k, v.toString()));
+            if (customThemeColors.containsKey('primary')) {
+              AppColors.applyCustomColors(
+                primary: Color(int.parse(customThemeColors['primary']!, radix: 16)),
+                background: Color(int.parse(customThemeColors['background']!, radix: 16)),
+                lightTint: Color(int.parse(customThemeColors['lightTint']!, radix: 16)),
+                textPrimary: Color(int.parse(customThemeColors['textPrimary']!, radix: 16)),
+                warmAccent: Color(int.parse(customThemeColors['warmAccent']!, radix: 16)),
+              );
+            }
+          }
+        } else {
+          AppColors.applyPreset(savedTheme);
+        }
+      }
       if (medsRaw != null) {
         final List<dynamic> decoded = jsonDecode(medsRaw);
         _medications.clear();

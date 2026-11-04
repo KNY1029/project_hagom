@@ -169,26 +169,32 @@ class _HagomAppState extends State<HagomApp> with WidgetsBindingObserver {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      navigatorKey: hagomNavigatorKey,
-      title: '하곰이 복약 & 습관 케어',
-      debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        useMaterial3: true,
-        scaffoldBackgroundColor: AppColors.background,
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: AppColors.primaryPurple,
-          primary: AppColors.primaryPurple,
-          secondary: AppColors.warmBrown,
-          surface: Colors.white,
-        ),
-        appBarTheme: const AppBarTheme(
-          backgroundColor: Colors.white,
-          foregroundColor: AppColors.textPrimary,
-          elevation: 0,
-        ),
-      ),
-      home: const SplashScreen(),
+    final state = AppStateManager();
+    return AnimatedBuilder(
+      animation: state,
+      builder: (context, _) {
+        return MaterialApp(
+          navigatorKey: hagomNavigatorKey,
+          title: '하곰이 복약 & 습관 케어',
+          debugShowCheckedModeBanner: false,
+          theme: ThemeData(
+            useMaterial3: true,
+            scaffoldBackgroundColor: AppColors.activeBackground,
+            colorScheme: ColorScheme.fromSeed(
+              seedColor: AppColors.activePrimary,
+              primary: AppColors.activePrimary,
+              secondary: AppColors.activeWarmAccent,
+              surface: Colors.white,
+            ),
+            appBarTheme: AppBarTheme(
+              backgroundColor: Colors.white,
+              foregroundColor: AppColors.activeTextPrimary,
+              elevation: 0,
+            ),
+          ),
+          home: const SplashScreen(),
+        );
+      },
     );
   }
 }
