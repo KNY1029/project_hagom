@@ -181,9 +181,21 @@ class AppStateManager extends ChangeNotifier {
     notifyListeners();
   }
   int widgetMonthOffset = 0;
+  int? widgetSelectedDay; // 달력 위젯에서 현재 탭해보고 있는 날짜 (null이면 오늘)
+
+  void selectWidgetDay(int day) {
+    if (widgetSelectedDay == day) {
+      // 이미 선택된 날짜를 한 번 더 누르면 오늘로 리셋
+      widgetSelectedDay = null;
+    } else {
+      widgetSelectedDay = day;
+    }
+    notifyListeners();
+  }
 
   void changeWidgetMonthOffset(int delta) {
     widgetMonthOffset += delta;
+    widgetSelectedDay = null; // 월 변경 시 선택 리셋
     notifyListeners();
   }
 

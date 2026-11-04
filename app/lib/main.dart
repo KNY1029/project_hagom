@@ -92,6 +92,15 @@ Future<void> handleWidgetUriAction(Uri? uri) async {
       targetDate = DateTime.tryParse(dateParam);
     }
     state.setTargetTab(2, calendarDate: targetDate);
+  } else if (action == 'selectday') {
+    final dayStr = uri.queryParameters['day'];
+    if (dayStr != null) {
+      final day = int.tryParse(dayStr);
+      if (day != null) {
+        state.selectWidgetDay(day);
+        await state.flushForWidget();
+      }
+    }
   } else if (action == 'prevmonth') {
     state.changeWidgetMonthOffset(-1);
     await state.flushForWidget();

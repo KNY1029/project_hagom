@@ -7,7 +7,7 @@
     android:orientation="vertical"
     android:padding="12dp">
 
-    <!-- 1) 상단 헤더: 이전달(<), 제목, 다음달(>), 하곰이 방 아이콘 -->
+    <!-- 1) 상단 헤더: 이전달(◀), 완벽한 중앙 대칭 하곰이 아이콘 + 월 제목, 다음달(▶) -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -16,8 +16,8 @@
 
         <TextView
             android:id="@+id/widget_month_prev_btn"
-            android:layout_width="30dp"
-            android:layout_height="30dp"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
             android:background="?android:attr/selectableItemBackgroundBorderless"
             android:gravity="center"
             android:text="◀"
@@ -25,36 +25,43 @@
             android:textSize="12sp"
             android:textStyle="bold" />
 
-        <TextView
-            android:id="@+id/widget_month_title"
+        <LinearLayout
+            android:id="@+id/widget_month_header_center"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:gravity="center"
-            android:text="2026년 11월 기록 달력"
-            android:textColor="#1F2937"
-            android:textSize="14sp"
-            android:textStyle="bold" />
+            android:orientation="horizontal">
+
+            <ImageView
+                android:id="@+id/widget_month_mascot_btn"
+                android:layout_width="22dp"
+                android:layout_height="22dp"
+                android:layout_marginEnd="6dp"
+                android:contentDescription="하곰이의 방"
+                android:scaleType="fitCenter"
+                android:src="@drawable/hagomi_mascot" />
+
+            <TextView
+                android:id="@+id/widget_month_title"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="2026년 11월 기록 달력"
+                android:textColor="#1F2937"
+                android:textSize="13.5sp"
+                android:textStyle="bold" />
+        </LinearLayout>
 
         <TextView
             android:id="@+id/widget_month_next_btn"
-            android:layout_width="30dp"
-            android:layout_height="30dp"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
             android:background="?android:attr/selectableItemBackgroundBorderless"
             android:gravity="center"
             android:text="▶"
             android:textColor="#7B61A8"
             android:textSize="12sp"
             android:textStyle="bold" />
-
-        <ImageView
-            android:id="@+id/widget_month_mascot_btn"
-            android:layout_width="26dp"
-            android:layout_height="26dp"
-            android:layout_marginStart="4dp"
-            android:contentDescription="하곰이의 방"
-            android:scaleType="fitCenter"
-            android:src="@drawable/hagomi_mascot" />
     </LinearLayout>
 
     <!-- 2) 요일 헤더 -->

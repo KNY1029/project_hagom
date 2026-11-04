@@ -311,18 +311,41 @@ class HagomNativeWidgetSync {
       final offset = state.widgetMonthOffset;
       final displayMonth = DateTime(now.year, now.month + offset, 1);
       final monthStr = '${displayMonth.year}년 ${displayMonth.month}월 기록 달력';
-      final monthMeds = '복약 $compMeds/$totalMeds 완료';
-      final monthHabits = '습관 $doneHabitCount/${todayHabits.length} 완료';
-      final pendingCount = todayTasks.where((t) => !t.isCompleted).length;
-      final monthTasks = todayTasks.isEmpty
+
+      // 🌟 [핵심 UX]: 위젯에서 날짜를 탭해 선택 중인 경우 해당 날짜의 복약/습관/할일 요약 표시, 아니면 오늘치 표시
+      final selectedDayNum = state.widgetSelectedDay;
+      final targetDate = (selectedDayNum != null && selectedDayNum >= 1 && selectedDayNum <= 31)
+          ? DateTime(displayMonth.year, displayMonth.month, selectedDayNum)
+          : now;
+      final isInspectingOtherDay = (targetDate.year != now.year || targetDate.month != now.month || targetDate.day != now.day);
+
+      final targetSlots = <_MedSlotEntry>[];
+      for (final med in state.medications) {
+        if (!med.isDueOn(targetDate)) continue;
+        for (int i = 0; i < med.doseSlots.length; i++) {
+          final isDone = state.isSlotCompletedForDay(targetDate, med.id, i);
+          targetSlots.add(_MedSlotEntry(med: med, slotIndex: i, slot: DoseSlot(label: med.doseSlots[i].label, scheduledTime: med.doseSlots[i].scheduledTime, isCompleted: isDone)));
+        }
+      }
+      final targetCompMeds = targetSlots.where((e) => e.slot.isCompleted).length;
+      final targetDueHabits = state.habits.where((h) => h.isDueOn(targetDate)).toList();
+      final targetDoneHabits = targetDueHabits.where((h) => (state.getHabitScoreForDay(targetDate, h.id) ?? 0.0) >= 1.0).length;
+      final targetTasks = state.getTasksForDay(targetDate);
+      final targetPendingTasks = targetTasks.where((t) => !t.isCompleted).length;
+
+      final datePrefix = isInspectingOtherDay ? '${targetDate.month}/${targetDate.day} ' : '';
+      final monthMeds = '${datePrefix}복약 $targetCompMeds/${targetSlots.length} 완료';
+      final monthHabits = '${datePrefix}습관 $targetDoneHabits/${targetDueHabits.length} 완료';
+      final monthTasks = targetTasks.isEmpty
           ? '0개'
-          : (pendingCount > 0 ? '$pendingCount개 남음' : '모두 완료');
+          : (targetPendingTasks > 0 ? '$targetPendingTasks개 남음' : '모두 완료');
 
       await HomeWidget.saveWidgetData<String>('month_title', monthStr);
       await HomeWidget.saveWidgetData<String>('month_meds', monthMeds);
       await HomeWidget.saveWidgetData<String>('month_habits', monthHabits);
       await HomeWidget.saveWidgetData<String>('month_tasks', monthTasks);
-
+      await HomeWidget.saveWidgetData<String>('month_inspecting_iso', isInspectingOtherDay ? '${targetDate.year}-${targetDate.month.toString().padLeft(2, '0')}-${targetDate.day.toString().padLeft(2, '0')}' : '');
+      await HomeWidget.saveWidgetData<String>('month_selected_day', selectedDayNum?.toString() ?? '');
       final todayOnly = DateTime(now.year, now.month, now.day);
       for (int d = 1; d <= 31; d++) {
         final date = DateTime(displayMonth.year, displayMonth.month, d);
@@ -367,11 +390,11 @@ class HagomNativeWidgetSync {
         await HomeWidget.saveWidgetData<String>('day_status_$d', status);
       }
 
-      // 달력 위젯에 오늘 할일 전체 목록 전달 (최대 5개)
+      // 달력 위젯에 선택된 날짜(또는 오늘) 할일 전체 목록 전달 (최대 5개)
       for (int i = 0; i < 5; i++) {
         final n = i + 1;
-        if (i < todayTasks.length) {
-          final t = todayTasks[i];
+        if (i < targetTasks.length) {
+          final t = targetTasks[i];
           final timeStr = t.time != null ? ' (${t.time})' : '';
           final check = t.isCompleted ? '완료' : '예정';
           await HomeWidget.saveWidgetData<String>(
