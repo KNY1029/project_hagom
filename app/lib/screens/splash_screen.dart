@@ -224,7 +224,7 @@ class _SplashScreenState extends State<SplashScreen> {
 
               // 🌟 2. 군더더기 없는 미니멀하고 따뜻한 한 줄 인사
               const Text(
-                '오늘도 와주셔서 고마워요',
+                '오늘도 와줘서 고마워요',
                 style: TextStyle(
                   fontSize: 22,
                   fontWeight: FontWeight.bold,

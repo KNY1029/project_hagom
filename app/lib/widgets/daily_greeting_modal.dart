@@ -59,7 +59,7 @@ class DailyGreetingModal extends StatelessWidget {
 
             // 🌟 2. 접속 축하 타이틀
             const Text(
-              '오늘도 와주셔서 고마워요',
+              '오늘도 와줘서 고마워요',
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,

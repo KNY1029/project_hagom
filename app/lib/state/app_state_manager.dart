@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/medication_item.dart';
 import '../models/habit_item.dart';
+import '../services/hagom_native_widget_sync.dart';
 import '../models/task_item.dart';
 
 /// 앱 전체의 복약 및 습관 데이터를 로컬 DB에 영구 보존하고 실시간 알림을 보내는 상태 관리자
@@ -18,6 +19,7 @@ class AppStateManager extends ChangeNotifier {
   void notifyListeners() {
     super.notifyListeners();
     _saveDataToDisk(); // 상태 변경 시마다 로컬 DB에 자동 영구 저장!
+    HagomNativeWidgetSync.updateNativeWidget(this);
   }
 
   // --- 💊 복약 데이터 ---
