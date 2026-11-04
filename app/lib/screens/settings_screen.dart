@@ -52,36 +52,46 @@ class _SettingsScreenState extends State<SettingsScreen> {
       backgroundColor: Colors.transparent,
       builder: (mCtx) => StatefulBuilder(
         builder: (context, setModalState) => Container(
-          decoration: const BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+          margin: const EdgeInsets.only(bottom: 12, left: 12, right: 12),
+          padding: EdgeInsets.only(
+            top: 20,
+            left: 20,
+            right: 20,
+            bottom: MediaQuery.of(context).viewInsets.bottom + 20,
           ),
-          padding: const EdgeInsets.fromLTRB(20, 16, 20, 28),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(20),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.12),
+                blurRadius: 16,
+                offset: const Offset(0, -4),
+              ),
+            ],
+          ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Center(
-                child: Container(
-                  width: 36,
-                  height: 4,
-                  decoration: BoxDecoration(
-                    color: Colors.grey.shade300,
-                    borderRadius: BorderRadius.circular(2),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text(
+                    '건강 기록 데이터 추출 및 다운로드',
+                    style: TextStyle(fontSize: 16.5, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
                   ),
-                ),
+                  IconButton(
+                    icon: const Icon(Icons.close, color: AppColors.textMuted, size: 20),
+                    onPressed: () => Navigator.of(mCtx).pop(),
+                  ),
+                ],
               ),
-              const SizedBox(height: 16),
-              const Text(
-                '건강 기록 데이터 추출 및 다운로드',
-                style: TextStyle(fontSize: 16.5, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
-              ),
-              const SizedBox(height: 4),
+              const SizedBox(height: 2),
               const Text(
                 '다운로드할 카테고리를 선택해 주세요. 앱에 기록된 모든 로우 데이터가 엑셀(CSV) 스프레드시트로 생성돼요.',
                 style: TextStyle(fontSize: 12, color: AppColors.textSecondary, height: 1.4),
               ),
-              const SizedBox(height: 14),
 
               // 체크박스 4대 영역
               _buildCategoryCheckbox('처방약 데이터 (필수 복용약, 용법/용량, 복용 시각, 엄수 여부)', includePrescription, (val) {
@@ -348,7 +358,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     ),
                     SizedBox(height: 3),
                     Text(
-                      '정신약학 비처벌 복약 솔루션 · v0.63.123',
+                      '정신약학 비처벌 복약 솔루션 · v0.64.124',
                       style: TextStyle(
                         fontSize: 12,
                         color: AppColors.textSecondary,

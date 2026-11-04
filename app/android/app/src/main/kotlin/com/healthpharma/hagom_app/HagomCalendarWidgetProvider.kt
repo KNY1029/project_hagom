@@ -61,11 +61,37 @@ class HagomCalendarWidgetProvider : HomeWidgetProvider() {
                 )
                 setOnClickPendingIntent(R.id.widget_calendar_btn, checkTaskPendingIntent)
 
-                // 3) 🌟 세로 확장 시 나타나는 작은 할일 버튼들에도 클릭 리스너 연결!
+                // 3) 🌟 세로 확장 시 나타나는 작은 할일 버튼들 상태 렌더링 & 개별 인텐트 연결!
+                val task1Done = widgetData.getBoolean("task_slot_1_done", false)
+                val task2Done = widgetData.getBoolean("task_slot_2_done", false)
+
+                if (task1Done) {
+                    setTextViewText(R.id.task_slot_1_btn, "완료")
+                    setInt(R.id.task_slot_1_btn, "setBackgroundResource", R.drawable.hagom_widget_done_bg)
+                    setTextColor(R.id.task_slot_1_btn, Color.parseColor("#044E36"))
+                } else {
+                    setTextViewText(R.id.task_slot_1_btn, "체크")
+                    setInt(R.id.task_slot_1_btn, "setBackgroundResource", R.drawable.hagom_widget_task_btn_bg)
+                    setTextColor(R.id.task_slot_1_btn, Color.WHITE)
+                }
+
+                if (task2Done) {
+                    setTextViewText(R.id.task_slot_2_btn, "완료")
+                    setInt(R.id.task_slot_2_btn, "setBackgroundResource", R.drawable.hagom_widget_done_bg)
+                    setTextColor(R.id.task_slot_2_btn, Color.parseColor("#044E36"))
+                } else {
+                    setTextViewText(R.id.task_slot_2_btn, "체크")
+                    setInt(R.id.task_slot_2_btn, "setBackgroundResource", R.drawable.hagom_widget_task_btn_bg)
+                    setTextColor(R.id.task_slot_2_btn, Color.WHITE)
+                }
+
                 val taskSlot1Intent = PendingIntent.getBroadcast(
                     context,
                     208,
-                    Intent(context, WidgetActionReceiver::class.java).apply { action = "ACTION_CHECK_TASK" },
+                    Intent(context, WidgetActionReceiver::class.java).apply {
+                        action = "ACTION_CHECK_TASK_SLOT"
+                        putExtra("task_index", 1)
+                    },
                     PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
                 )
                 setOnClickPendingIntent(R.id.task_slot_1_btn, taskSlot1Intent)
@@ -73,7 +99,10 @@ class HagomCalendarWidgetProvider : HomeWidgetProvider() {
                 val taskSlot2Intent = PendingIntent.getBroadcast(
                     context,
                     209,
-                    Intent(context, WidgetActionReceiver::class.java).apply { action = "ACTION_CHECK_TASK" },
+                    Intent(context, WidgetActionReceiver::class.java).apply {
+                        action = "ACTION_CHECK_TASK_SLOT"
+                        putExtra("task_index", 2)
+                    },
                     PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
                 )
                 setOnClickPendingIntent(R.id.task_slot_2_btn, taskSlot2Intent)

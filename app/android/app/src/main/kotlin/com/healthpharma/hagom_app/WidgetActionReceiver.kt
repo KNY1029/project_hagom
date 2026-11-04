@@ -5,7 +5,6 @@ import android.content.BroadcastReceiver
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
-import android.widget.RemoteViews
 import org.json.JSONArray
 
 class WidgetActionReceiver : BroadcastReceiver() {
@@ -16,45 +15,66 @@ class WidgetActionReceiver : BroadcastReceiver() {
         val homePrefs = context.getSharedPreferences("HomeWidgetPreferences", Context.MODE_PRIVATE)
         val flutterPrefs = context.getSharedPreferences("FlutterSharedPreferences", Context.MODE_PRIVATE)
 
-        when (action) {
-            "ACTION_CHECK_MED" -> {
-                // 1) 위젯 데이터 즉시 업데이트
-                val curProgress = homePrefs.getString("meds_progress", "1/3 완료") ?: "1/3 완료"
-                val nextProgress = when {
-                    curProgress.contains("0/3") -> "1/3 완료"
-                    curProgress.contains("1/3") -> "2/3 완료"
-                    curProgress.contains("2/3") -> "3/3 완료"
-                    else -> "3/3 완료"
+        when {
+            action == "ACTION_CHECK_MED" || action == "ACTION_CHECK_MED_SLOT" -> {
+                val slotIdx = intent.getIntExtra("slot_index", -1)
+
+                // 1) 특정 슬롯 상태 토글 또는 다음 슬롯 진행
+                val slot2Done = homePrefs.getBoolean("med_slot_2_done", false)
+                val slot3Done = homePrefs.getBoolean("med_slot_3_done", false)
+
+                val (newSlot2, newSlot3) = when (slotIdx) {
+                    2 -> Pair(!slot2Done, slot3Done)
+                    3 -> Pair(slot2Done, !slot3Done)
+                    else -> {
+                        // 메인 복용 버튼
+                        if (!slot2Done) Pair(true, slot3Done)
+                        else Pair(slot2Done, true)
+                    }
                 }
-                val nextSub = if (nextProgress.contains("3/3")) "오늘의 모든 복약 완료!" else "오후 12:30 · 식후 복용"
-                val nextBtn = if (nextProgress.contains("3/3")) "완료" else "복용"
+
+                val completedCount = 1 + (if (newSlot2) 1 else 0) + (if (newSlot3) 1 else 0)
+                val nextProgress = "$completedCount/3 완료"
+                val nextBtn = if (completedCount >= 3) "완료" else "복용"
+                val nextSub = if (completedCount >= 3) "오늘의 모든 복약 완료!" else (if (!newSlot2) "오후 12:30 · 식후 복용" else "오후 7:00 · 식후 복용")
 
                 homePrefs.edit()
+                    .putBoolean("med_slot_2_done", newSlot2)
+                    .putBoolean("med_slot_3_done", newSlot3)
                     .putString("meds_progress", nextProgress)
                     .putString("meds_subtitle", nextSub)
                     .putString("meds_btn_title", nextBtn)
                     .apply()
 
-                // Flutter SharedPreferences의 실제 복약 슬롯 데이터도 완료로 업데이트
                 updateFlutterMedSlot(flutterPrefs)
 
-                // 화면 즉시 갱신 (onUpdate 호출 강제 트리거)
                 val ids = appWidgetManager.getAppWidgetIds(ComponentName(context, HagomMedsWidgetProvider::class.java))
                 val provider = HagomMedsWidgetProvider()
                 provider.onUpdate(context, appWidgetManager, ids, homePrefs)
             }
 
-            "ACTION_CHECK_HABIT" -> {
-                val curProgress = homePrefs.getString("habits_progress", "2/4 실천 중") ?: "2/4 실천 중"
-                val nextProgress = when {
-                    curProgress.contains("2/4") -> "3/4 실천 중"
-                    curProgress.contains("3/4") -> "4/4 실천 완료"
-                    curProgress.contains("4/4") -> "4/4 실천 완료"
-                    else -> "3/4 실천 중"
+            action == "ACTION_CHECK_HABIT" || action == "ACTION_CHECK_HABIT_SLOT" -> {
+                val habitIdx = intent.getIntExtra("habit_index", -1)
+
+                val habit1Done = homePrefs.getBoolean("habit_slot_1_done", false)
+                val habit4Done = homePrefs.getBoolean("habit_slot_4_done", false)
+
+                val (newH1, newH4) = when (habitIdx) {
+                    1 -> Pair(!habit1Done, habit4Done)
+                    4 -> Pair(habit1Done, !habit4Done)
+                    else -> {
+                        if (!habit1Done) Pair(true, habit4Done)
+                        else Pair(habit1Done, true)
+                    }
                 }
-                val nextBtn = if (nextProgress.contains("4/4")) "완료" else "실천"
+
+                val completedCount = 2 + (if (newH1) 1 else 0) + (if (newH4) 1 else 0)
+                val nextProgress = "$completedCount/4 실천 중"
+                val nextBtn = if (completedCount >= 4) "완료" else "실천"
 
                 homePrefs.edit()
+                    .putBoolean("habit_slot_1_done", newH1)
+                    .putBoolean("habit_slot_4_done", newH4)
                     .putString("habits_progress", nextProgress)
                     .putString("habits_btn_title", nextBtn)
                     .apply()
@@ -66,14 +86,28 @@ class WidgetActionReceiver : BroadcastReceiver() {
                 provider.onUpdate(context, appWidgetManager, ids, homePrefs)
             }
 
-            "ACTION_CHECK_TASK" -> {
-                val curBtn = homePrefs.getString("calendar_btn_title", "체크") ?: "체크"
-                val nextBtn = if (curBtn == "체크") "완료" else "체크"
-                val nextExtra = if (nextBtn == "완료") "상태: 완료됨" else "상태: 진행 대기"
+            action == "ACTION_CHECK_TASK" || action == "ACTION_CHECK_TASK_SLOT" -> {
+                val taskIdx = intent.getIntExtra("task_index", -1)
+
+                val task1Done = homePrefs.getBoolean("task_slot_1_done", false)
+                val task2Done = homePrefs.getBoolean("task_slot_2_done", false)
+
+                val (newT1, newT2) = when (taskIdx) {
+                    1 -> Pair(!task1Done, task2Done)
+                    2 -> Pair(task1Done, !task2Done)
+                    else -> {
+                        if (!task1Done) Pair(true, task2Done)
+                        else Pair(task1Done, true)
+                    }
+                }
+
+                val completedCount = (if (newT1) 1 else 0) + (if (newT2) 1 else 0)
+                val nextBtn = if (completedCount >= 2) "완료" else "체크"
 
                 homePrefs.edit()
+                    .putBoolean("task_slot_1_done", newT1)
+                    .putBoolean("task_slot_2_done", newT2)
                     .putString("calendar_btn_title", nextBtn)
-                    .putString("calendar_extra", nextExtra)
                     .apply()
 
                 updateFlutterTask(flutterPrefs)

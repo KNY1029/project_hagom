@@ -61,11 +61,37 @@ class HagomMedsWidgetProvider : HomeWidgetProvider() {
                 )
                 setOnClickPendingIntent(R.id.widget_meds_btn, checkMedPendingIntent)
 
-                // 3) 🌟 세로 확장 시 나타나는 작은 슬롯 버튼들에도 클릭 리스너 연결!
+                // 3) 🌟 세로 확장 시 나타나는 작은 슬롯 버튼들 상태 렌더링 & 개별 인텐트 연결!
+                val slot2Done = widgetData.getBoolean("med_slot_2_done", false)
+                val slot3Done = widgetData.getBoolean("med_slot_3_done", false)
+
+                if (slot2Done) {
+                    setTextViewText(R.id.med_slot_2_btn, "완료")
+                    setInt(R.id.med_slot_2_btn, "setBackgroundResource", R.drawable.hagom_widget_done_bg)
+                    setTextColor(R.id.med_slot_2_btn, Color.parseColor("#044E36"))
+                } else {
+                    setTextViewText(R.id.med_slot_2_btn, "복용")
+                    setInt(R.id.med_slot_2_btn, "setBackgroundResource", R.drawable.hagom_widget_btn_bg)
+                    setTextColor(R.id.med_slot_2_btn, Color.WHITE)
+                }
+
+                if (slot3Done) {
+                    setTextViewText(R.id.med_slot_3_btn, "완료")
+                    setInt(R.id.med_slot_3_btn, "setBackgroundResource", R.drawable.hagom_widget_done_bg)
+                    setTextColor(R.id.med_slot_3_btn, Color.parseColor("#044E36"))
+                } else {
+                    setTextViewText(R.id.med_slot_3_btn, "복용")
+                    setInt(R.id.med_slot_3_btn, "setBackgroundResource", R.drawable.hagom_widget_btn_bg)
+                    setTextColor(R.id.med_slot_3_btn, Color.WHITE)
+                }
+
                 val slot2Intent = PendingIntent.getBroadcast(
                     context,
                     204,
-                    Intent(context, WidgetActionReceiver::class.java).apply { action = "ACTION_CHECK_MED" },
+                    Intent(context, WidgetActionReceiver::class.java).apply {
+                        action = "ACTION_CHECK_MED_SLOT"
+                        putExtra("slot_index", 2)
+                    },
                     PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
                 )
                 setOnClickPendingIntent(R.id.med_slot_2_btn, slot2Intent)
@@ -73,7 +99,10 @@ class HagomMedsWidgetProvider : HomeWidgetProvider() {
                 val slot3Intent = PendingIntent.getBroadcast(
                     context,
                     205,
-                    Intent(context, WidgetActionReceiver::class.java).apply { action = "ACTION_CHECK_MED" },
+                    Intent(context, WidgetActionReceiver::class.java).apply {
+                        action = "ACTION_CHECK_MED_SLOT"
+                        putExtra("slot_index", 3)
+                    },
                     PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
                 )
                 setOnClickPendingIntent(R.id.med_slot_3_btn, slot3Intent)

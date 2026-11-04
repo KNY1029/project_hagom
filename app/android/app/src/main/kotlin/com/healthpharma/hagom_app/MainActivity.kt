@@ -29,7 +29,6 @@ class MainActivity : FlutterActivity() {
                     try {
                         var savedPath = ""
 
-                        // 🌟 안드로이드 10+ (API 29+) MediaStore 공식 공용 Download 폴더에 진짜 다운로드!
                         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
                             val values = ContentValues().apply {
                                 put(MediaStore.MediaColumns.DISPLAY_NAME, fileName)
@@ -44,7 +43,6 @@ class MainActivity : FlutterActivity() {
                                 savedPath = "다운로드 폴더 ($fileName)"
                             }
                         } else {
-                            // 레거시 안드로이드
                             val downloadsDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
                             val file = File(downloadsDir, fileName)
                             FileOutputStream(file).use { output ->
@@ -53,7 +51,6 @@ class MainActivity : FlutterActivity() {
                             savedPath = file.absolutePath
                         }
 
-                        // 또한 사용자가 바로 카톡/드라이브/메일로 보낼 수 있게 캐시 파일도 동시 준비
                         val cacheFile = File(cacheDir, fileName)
                         FileOutputStream(cacheFile).use { output ->
                             output.write(content.toByteArray(Charsets.UTF_8))
@@ -81,14 +78,20 @@ class MainActivity : FlutterActivity() {
                             cacheFile
                         )
 
+                        // 🌟 카카오톡 등 외부 메신저가 파일을 정상 첨부할 수 있도록 범용 MIME 및 모든 권한 부여!
                         val shareIntent = Intent(Intent.ACTION_SEND).apply {
-                            type = "text/csv"
+                            type = "*/*" // text/csv뿐 아니라 모든 메신저(카톡)에서 파일 첨부로 완벽 인식
                             putExtra(Intent.EXTRA_STREAM, fileUri)
                             putExtra(Intent.EXTRA_SUBJECT, fileName)
+                            putExtra(Intent.EXTRA_TEXT, "하곰이 비처벌적 환자 케어 솔루션 - 건강 기록 리포트 파일 ($fileName)")
                             addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
                         }
 
-                        startActivity(Intent.createChooser(shareIntent, "건강 기록 파일 전송 및 저장"))
+                        val chooser = Intent.createChooser(shareIntent, "건강 기록 파일 전송 및 저장").apply {
+                            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                        }
+
+                        startActivity(chooser)
                         result.success(true)
                     } catch (e: Exception) {
                         result.error("SHARE_ERROR", e.message, null)

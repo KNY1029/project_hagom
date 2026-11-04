@@ -68,11 +68,37 @@ class HagomHabitsWidgetProvider : HomeWidgetProvider() {
                 )
                 setOnClickPendingIntent(R.id.widget_habits_btn, checkHabitPendingIntent)
 
-                // 3) 🌟 세로 확장 시 나타나는 작은 습관 버튼들에도 클릭 리스너 연결!
+                // 3) 🌟 세로 확장 시 나타나는 작은 습관 버튼들 상태 렌더링 & 개별 인텐트 연결!
+                val habit1Done = widgetData.getBoolean("habit_slot_1_done", false)
+                val habit4Done = widgetData.getBoolean("habit_slot_4_done", false)
+
+                if (habit1Done) {
+                    setTextViewText(R.id.habit_slot_1_btn, "완료")
+                    setInt(R.id.habit_slot_1_btn, "setBackgroundResource", R.drawable.hagom_widget_done_bg)
+                    setTextColor(R.id.habit_slot_1_btn, Color.parseColor("#044E36"))
+                } else {
+                    setTextViewText(R.id.habit_slot_1_btn, "실천")
+                    setInt(R.id.habit_slot_1_btn, "setBackgroundResource", R.drawable.hagom_widget_habit_btn_bg)
+                    setTextColor(R.id.habit_slot_1_btn, Color.WHITE)
+                }
+
+                if (habit4Done) {
+                    setTextViewText(R.id.habit_slot_4_btn, "완료")
+                    setInt(R.id.habit_slot_4_btn, "setBackgroundResource", R.drawable.hagom_widget_done_bg)
+                    setTextColor(R.id.habit_slot_4_btn, Color.parseColor("#044E36"))
+                } else {
+                    setTextViewText(R.id.habit_slot_4_btn, "실천")
+                    setInt(R.id.habit_slot_4_btn, "setBackgroundResource", R.drawable.hagom_widget_habit_btn_bg)
+                    setTextColor(R.id.habit_slot_4_btn, Color.WHITE)
+                }
+
                 val habitSlot1Intent = PendingIntent.getBroadcast(
                     context,
                     206,
-                    Intent(context, WidgetActionReceiver::class.java).apply { action = "ACTION_CHECK_HABIT" },
+                    Intent(context, WidgetActionReceiver::class.java).apply {
+                        action = "ACTION_CHECK_HABIT_SLOT"
+                        putExtra("habit_index", 1)
+                    },
                     PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
                 )
                 setOnClickPendingIntent(R.id.habit_slot_1_btn, habitSlot1Intent)
@@ -80,7 +106,10 @@ class HagomHabitsWidgetProvider : HomeWidgetProvider() {
                 val habitSlot4Intent = PendingIntent.getBroadcast(
                     context,
                     207,
-                    Intent(context, WidgetActionReceiver::class.java).apply { action = "ACTION_CHECK_HABIT" },
+                    Intent(context, WidgetActionReceiver::class.java).apply {
+                        action = "ACTION_CHECK_HABIT_SLOT"
+                        putExtra("habit_index", 4)
+                    },
                     PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
                 )
                 setOnClickPendingIntent(R.id.habit_slot_4_btn, habitSlot4Intent)
