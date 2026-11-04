@@ -258,7 +258,7 @@ class _WidgetSimulatorScreenState extends State<WidgetSimulatorScreen> {
       tagText = const Color(0xFF8C6D53);
       tagLabel = 'WE MISS YOU';
       badgeEmoji = '기다리고 있어요';
-      mainQuote = '많이 바쁘셨나요? 오늘 약은 챙기셨을까요?\n잠시 들러서 편안히 확인해 보세요.';
+      mainQuote = '많이 바빴나요? 오늘 약은 챙겼어요?\n잠시 들러서 편안히 확인해 보세요.';
       bottomChipText = '연속 기록 유지까지 4시간 남음';
       bottomChipBg = const Color(0xFFF5EFE6);
       bottomChipFg = const Color(0xFF8C6D53);
