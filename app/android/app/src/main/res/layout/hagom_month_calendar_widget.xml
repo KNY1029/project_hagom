@@ -267,7 +267,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="오늘의 할일"
-                android:textColor="#356D99"
+                android:textColor="#7B61A8"
                 android:textSize="11sp"
                 android:textStyle="bold" />
 
@@ -281,7 +281,7 @@
                 android:gravity="end"
                 android:maxLines="1"
                 android:text=""
-                android:textColor="#4A88B8"
+                android:textColor="#7B61A8"
                 android:textSize="10.5sp"
                 android:textStyle="bold" />
         </LinearLayout>
