@@ -468,7 +468,12 @@ class _MedsTabViewState extends State<MedsTabView> {
                         spacing: 6,
                         runSpacing: 6,
                         children: [
-                          ...['아침', '점심', '저녁', '취침 전'].map((label) {
+                          ...[
+                            '아침', '아침 식전', '아침 식후',
+                            '점심', '점심 식전', '점심 식후',
+                            '저녁', '저녁 식전', '저녁 식후',
+                            '취침 전', '식간'
+                          ].map((label) {
                             final existingIdx = currentSlots.indexWhere((s) => s.label == label);
                             final isSel = existingIdx != -1;
                             return FilterChip(
@@ -483,8 +488,7 @@ class _MedsTabViewState extends State<MedsTabView> {
                               ),
                               onSelected: (sel) {
                                 if (sel) {
-                                  // 🌟 시간 설정 팝업을 강제하지 않고, 기존에 설정된 루틴 시간 또는 기본값으로 즉시 추가!
-                                  // (아래 시간 목록에서 언제든 '시각 변경'으로 설정 가능)
+                                  // 🌟 번거로운 시각 팝업 없이 똑똑한 의학적 기본 루틴 시간 자동 매핑!
                                   final defaultTime = _state.routineTimes[label] ?? '오전 8:00';
                                   setModalState(() {
                                     currentSlots.add(DoseSlot(label: label, scheduledTime: defaultTime));
