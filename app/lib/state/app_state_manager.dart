@@ -154,6 +154,8 @@ class AppStateManager extends ChangeNotifier {
     }
     notifyListeners();
   }
+  // 🛠️ 개발자 모드(전체 예시 데이터 복원 상태) 여부
+  bool isDevSimulationMode = true; // 기본값은 개발자 예시 모드 (발표 및 시연용)
   // --- 📅 앱 사용 및 기록 시작일 (시작일 이전 날짜는 달력 바 및 초록색 미표시) ---
   DateTime? _trackingStartDate;
   DateTime get trackingStartDate {
@@ -165,6 +167,10 @@ class AppStateManager extends ChangeNotifier {
 
   /// 특정 날짜가 기록 시작일 이전인지 확인
   bool isBeforeTrackingStart(DateTime date) {
+    // 개발자 모드에서는 1~7일 모든 임상 예시 데이터가 달력에 온전히 보여야 하므로 절대 가리지 않음!
+    if (isDevSimulationMode) {
+      return false;
+    }
     // 개발자 모드 시뮬레이션 중일 때는 달력에 1~7일 예시가 보여야 하므로 제외
     if (_pastSlotRecords.isNotEmpty || _pastHabitRecords.isNotEmpty) {
       return false;
@@ -1055,6 +1061,7 @@ class AppStateManager extends ChangeNotifier {
     _tasks.clear();
     _pastSlotRecords.clear();
     _pastHabitRecords.clear();
+    isDevSimulationMode = false; // 클린 슬레이트: 실사용 모드 (기록 시작일 이전 숨김 적용)
 
     _habits.clear();
     _habits.addAll([
@@ -1093,6 +1100,7 @@ class AppStateManager extends ChangeNotifier {
     _pastSlotRecords.clear();
     _pastHabitRecords.clear();
     _initDefaultData();
+    isDevSimulationMode = true; // 개발자 모드 복원: 전체 예시 노출 모드
 
     await _saveDataToDisk();
     notifyListeners();
