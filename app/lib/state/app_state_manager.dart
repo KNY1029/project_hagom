@@ -600,7 +600,7 @@ class AppStateManager extends ChangeNotifier {
       HabitItem(
         id: 'habit_2',
         title: '오늘 계획 가볍게 보기',
-        subtitle: '유연하게 · 1분이라도 충분해',
+        subtitle: '유연하게 · 1분이라도 충분해요',
         targetPerDay: 1,
         currentCount: 2, // 완료
       ),
@@ -1018,7 +1018,7 @@ class AppStateManager extends ChangeNotifier {
       HabitItem(
         id: 'habit_plan',
         title: '오늘 계획 가볍게 보기',
-        subtitle: '유연하게 · 1분이라도 충분해',
+        subtitle: '유연하게 · 1분이라도 충분해요',
         targetPerDay: 1,
         currentCount: 0, // 대기
       ),

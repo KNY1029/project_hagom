@@ -142,9 +142,9 @@ class _WidgetSimulatorScreenState extends State<WidgetSimulatorScreen> {
               children: [
                 _buildEmotionChip('auto', '앱 데이터 자동 연동'),
                 _buildEmotionChip('joy', '기쁨 (올클리어)'),
-                _buildEmotionChip('encourage', '할 수 있어! (진행 중)'),
-                _buildEmotionChip('miss1to3', '돌아와... (1~3일 미접속)'),
-                _buildEmotionChip('miss4plus', '왜 안 들어와 (4일+ 듀오링고)'),
+                _buildEmotionChip('encourage', '할 수 있어요! (진행 중)'),
+                _buildEmotionChip('miss1to3', '기다리고 있어요 (1~3일 미접속)'),
+                _buildEmotionChip('miss4plus', '복약이 시급해요 (4일+ 미접속)'),
               ],
             ),
           ),
@@ -245,7 +245,7 @@ class _WidgetSimulatorScreenState extends State<WidgetSimulatorScreen> {
       tagBg = const Color(0xFFECFDF5);
       tagText = const Color(0xFF059669);
       tagLabel = 'MENTAL CARE';
-      badgeEmoji = '할 수 있어!';
+      badgeEmoji = '할 수 있어요!';
       mainQuote = '한 가지만 실천해도 충분해요.\n오늘 약 하나만 챙겨도 대단한 거예요.';
       final nextMed = _getNextDoseSummary();
       bottomChipText = nextMed;
@@ -257,7 +257,7 @@ class _WidgetSimulatorScreenState extends State<WidgetSimulatorScreen> {
       tagBg = const Color(0xFFF5EFE6);
       tagText = const Color(0xFF8C6D53);
       tagLabel = 'WE MISS YOU';
-      badgeEmoji = '돌아와...';
+      badgeEmoji = '기다리고 있어요';
       mainQuote = '많이 바쁘셨나요? 오늘 약은 챙기셨을까요?\n잠시 들러서 편안히 확인해 보세요.';
       bottomChipText = '연속 기록 유지까지 4시간 남음';
       bottomChipBg = const Color(0xFFF5EFE6);
@@ -269,7 +269,7 @@ class _WidgetSimulatorScreenState extends State<WidgetSimulatorScreen> {
       tagBg = const Color(0xFFFEE2E2);
       tagText = const Color(0xFFDC2626);
       tagLabel = 'DUOLINGO MODE';
-      badgeEmoji = '왜 안 들어와';
+      badgeEmoji = '복약이 시급해요';
       mainQuote = '기다리고 있어요.\n건강을 위해 오늘 약 복용을 꼭 챙겨주세요.';
       bottomChipText = '4일째 미접속 · 오늘 약 복용 시급!';
       bottomChipBg = const Color(0xFFFEE2E2);
