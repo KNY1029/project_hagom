@@ -895,6 +895,7 @@ class AppStateManager extends ChangeNotifier {
     String durationSummary = '계속 복용',
     bool isPrescription = false,
     List<String>? repeatDays,
+    String? memo,
   }) {
     _medications.add(
       MedicationItem(
@@ -906,6 +907,7 @@ class AppStateManager extends ChangeNotifier {
         durationSummary: durationSummary,
         isPrescription: isPrescription,
         repeatDays: repeatDays ?? [],
+        memo: memo,
       ),
     );
     notifyListeners();
@@ -921,6 +923,7 @@ class AppStateManager extends ChangeNotifier {
     required String durationSummary,
     required bool isPrescription,
     List<String>? repeatDays,
+    String? memo,
   }) {
     final med = _medications.firstWhere((m) => m.id == id);
     med.name = name;
@@ -930,6 +933,7 @@ class AppStateManager extends ChangeNotifier {
     med.durationSummary = durationSummary;
     med.isPrescription = isPrescription;
     if (repeatDays != null) med.repeatDays = repeatDays;
+    if (memo != null) med.memo = memo;
     notifyListeners();
   }
 

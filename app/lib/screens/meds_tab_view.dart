@@ -45,7 +45,7 @@ class _MedsTabViewState extends State<MedsTabView> {
 
     final nameCtrl = TextEditingController(text: isEditing ? med.name : '');
     final dosageCtrl = TextEditingController(text: isEditing ? med.dosage : '');
-
+    final memoCtrl = TextEditingController(text: isEditing ? (med.memo ?? '') : '');
     String recurrenceType = '매일';
     if (isEditing) {
       final summary = med.recurrenceSummary;
@@ -176,8 +176,19 @@ class _MedsTabViewState extends State<MedsTabView> {
                       controller: dosageCtrl,
                       decoration: InputDecoration(
                         isDense: true,
-                        labelText: '용량 및 복용법',
-                        hintText: '',
+                        labelText: '복용법',
+                        hintText: '식후 30분, 공복 등',
+                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+                        contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                      ),
+                    ),
+                    const SizedBox(height: 14),
+                    TextField(
+                      controller: memoCtrl,
+                      decoration: InputDecoration(
+                        isDense: true,
+                        labelText: '기타 (용량, 보관법 등 - 선택)',
+                        hintText: '10mg, 1정 등 필요 시 입력',
                         border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
                         contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
                       ),
@@ -805,6 +816,7 @@ class _MedsTabViewState extends State<MedsTabView> {
                                     durationSummary: durationSummary,
                                     isPrescription: isPrescription,
                                     repeatDays: recurrenceType == '특정 요일' ? selectedRepeatDays : [],
+                                    memo: memoCtrl.text.trim().isNotEmpty ? memoCtrl.text.trim() : null,
                                   );
                                 } else {
                                   _state.addMedication(
@@ -815,6 +827,7 @@ class _MedsTabViewState extends State<MedsTabView> {
                                     durationSummary: durationSummary,
                                     isPrescription: isPrescription,
                                     repeatDays: recurrenceType == '특정 요일' ? selectedRepeatDays : [],
+                                    memo: memoCtrl.text.trim().isNotEmpty ? memoCtrl.text.trim() : null,
                                   );
                                 }
                                 Navigator.of(ctx).pop();

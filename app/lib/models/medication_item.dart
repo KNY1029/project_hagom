@@ -45,6 +45,7 @@ class MedicationItem {
   String recurrenceSummary;    // 주기 요약 (예: 매일, 매주 일요일, 2일 간격)
   String durationSummary;      // 복용 기간 (예: 계속 복용, 7일간)
   bool isPrescription;         // 의사 처방 필수 약물 여부 (강조 표시)
+  String? memo;                // 기타 참고 메모 (용량, 보관법, 주의사항 등)
   List<String> repeatDays;     // 특정 요일 복용 목록 (['일'] 등)
   
   List<DoseSlot> doseSlots;    // 아침, 점심, 저녁 등 회차별 상태 목록!
@@ -62,6 +63,7 @@ class MedicationItem {
     required this.doseSlots,
     this.skipReason,
     this.isExpanded = false,
+    this.memo,
   }) : repeatDays = repeatDays ?? [];
 
   /// 🌟 오늘(Today) 복용해야 하는 약인지 판별하는 스마트 게터
@@ -103,6 +105,7 @@ class MedicationItem {
     'repeatDays': repeatDays,
     'doseSlots': doseSlots.map((s) => s.toJson()).toList(),
     'skipReason': skipReason,
+    'memo': memo,
   };
 
   factory MedicationItem.fromJson(Map<String, dynamic> json) => MedicationItem(
@@ -118,6 +121,7 @@ class MedicationItem {
             .toList() ??
         [],
     skipReason: json['skipReason'] as String?,
+    memo: json['memo'] as String?,
   );
 
   // 오늘 먹어야 할 모든 회차가 완료되거나 건너뛰어 정리되었는지 확인
