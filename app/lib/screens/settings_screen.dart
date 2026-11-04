@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:flutter/services.dart';
 import 'package:flutter/material.dart';
 import '../constants/app_colors.dart';
 import '../constants/app_assets.dart';
@@ -36,52 +37,217 @@ class _SettingsScreenState extends State<SettingsScreen> {
     if (mounted) setState(() {});
   }
 
-  // 📥 의료진 제출용 CSV 엑셀 파일 다운로드 실행
+  static const MethodChannel _exportChannel = MethodChannel('com.healthpharma.hagom_app/export');
+
+  // 📥 [보건약학 임상/교수님 자문용] 4대 영역 맞춤형 CSV 엑셀 다운로드 & 공유 모달
   Future<void> _exportMedicalCsv() async {
-    try {
-      final csvContent = _state.generateMedicalCsvReport();
-      // 안드로이드 공용 Download 폴더 경로 지정
-      final downloadDir = Directory('/storage/emulated/0/Download');
-      final fileName = '하곰이_복약상담기록_${DateTime.now().year}${DateTime.now().month.toString().padLeft(2, '0')}${DateTime.now().day.toString().padLeft(2, '0')}.csv';
-      
-      File file;
-      if (await downloadDir.exists()) {
-        file = File('${downloadDir.path}/$fileName');
-      } else {
-        // 내부 앱 파일 디렉토리 fallback
-        file = File('/data/user/0/com.healthpharma.hagom_app/files/$fileName');
-      }
+    bool includePrescription = true;
+    bool includeOtc = true;
+    bool includeHabits = true;
+    bool includeTasks = true;
 
-      await file.writeAsString(csvContent);
-
-      if (mounted) {
-        showDialog(
-          context: context,
-          builder: (dCtx) => AlertDialog(
-            title: const Text('엑셀(CSV) 저장 완료', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-            content: Text(
-              '스마트폰의 [다운로드] 폴더에 의료진 상담용 복약 기록 파일이 저장되었어요!\n\n파일명: $fileName\n\n진료 시 의사 선생님께 보여드리거나 메신저로 전송하실 수 있어요.',
-              style: const TextStyle(fontSize: 13, height: 1.4),
-            ),
-            actions: [
-              ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.primaryPurple,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+    await showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (mCtx) => StatefulBuilder(
+        builder: (context, setModalState) => Container(
+          decoration: const BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+          ),
+          padding: const EdgeInsets.fromLTRB(20, 16, 20, 28),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Center(
+                child: Container(
+                  width: 36,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: Colors.grey.shade300,
+                    borderRadius: BorderRadius.circular(2),
+                  ),
                 ),
-                onPressed: () => Navigator.of(dCtx).pop(),
-                child: const Text('확인', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+              ),
+              const SizedBox(height: 16),
+              const Text(
+                '건강 기록 데이터 추출 및 다운로드',
+                style: TextStyle(fontSize: 16.5, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
+              ),
+              const SizedBox(height: 4),
+              const Text(
+                '다운로드할 카테고리를 선택해 주세요. 앱에 기록된 모든 로우 데이터가 엑셀(CSV) 스프레드시트로 생성돼요.',
+                style: TextStyle(fontSize: 12, color: AppColors.textSecondary, height: 1.4),
+              ),
+              const SizedBox(height: 14),
+
+              // 체크박스 4대 영역
+              _buildCategoryCheckbox('처방약 데이터 (필수 복용약, 용법/용량, 복용 시각, 엄수 여부)', includePrescription, (val) {
+                setModalState(() => includePrescription = val ?? false);
+              }),
+              _buildCategoryCheckbox('일반약 및 영양제 데이터 (비처방약, 일일 루틴, 복약 이행률)', includeOtc, (val) {
+                setModalState(() => includeOtc = val ?? false);
+              }),
+              _buildCategoryCheckbox('작은 습관 데이터 (일일 실천 횟수, 주간 완료율, 비처벌 점수)', includeHabits, (val) {
+                setModalState(() => includeHabits = val ?? false);
+              }),
+              _buildCategoryCheckbox('할일 및 진료 일정 데이터 (병원 방문, 복약 점검, 완료 현황)', includeTasks, (val) {
+                setModalState(() => includeTasks = val ?? false);
+              }),
+
+              const SizedBox(height: 20),
+              Row(
+                children: [
+                  // 1) 스마트폰 공용 Download 폴더에 진짜 파일 저장
+                  Expanded(
+                    child: OutlinedButton(
+                      style: OutlinedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 13),
+                        side: const BorderSide(color: AppColors.primaryPurple),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                      ),
+                      onPressed: (!includePrescription && !includeOtc && !includeHabits && !includeTasks)
+                          ? null
+                          : () async {
+                              Navigator.of(mCtx).pop();
+                              await _performCsvDownload(
+                                includePrescription: includePrescription,
+                                includeOtc: includeOtc,
+                                includeHabits: includeHabits,
+                                includeTasks: includeTasks,
+                                isShare: false,
+                              );
+                            },
+                      child: const Text('다운로드 폴더 저장', style: TextStyle(color: AppColors.primaryPurple, fontWeight: FontWeight.bold, fontSize: 13.5)),
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  // 2) 카카오톡 / 메일 / 드라이브로 즉시 파일 내보내기 & 공유
+                  Expanded(
+                    child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 13),
+                        backgroundColor: AppColors.primaryPurple,
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                      ),
+                      onPressed: (!includePrescription && !includeOtc && !includeHabits && !includeTasks)
+                          ? null
+                          : () async {
+                              Navigator.of(mCtx).pop();
+                              await _performCsvDownload(
+                                includePrescription: includePrescription,
+                                includeOtc: includeOtc,
+                                includeHabits: includeHabits,
+                                includeTasks: includeTasks,
+                                isShare: true,
+                              );
+                            },
+                      child: const Text('파일 공유 및 전송', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13.5)),
+                    ),
+                  ),
+                ],
               ),
             ],
           ),
-        );
+        ),
+      ),
+    );
+  }
+
+  Widget _buildCategoryCheckbox(String title, bool value, ValueChanged<bool?> onChanged) {
+    return InkWell(
+      onTap: () => onChanged(!value),
+      borderRadius: BorderRadius.circular(8),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 6),
+        child: Row(
+          children: [
+            SizedBox(
+              width: 24,
+              height: 24,
+              child: Checkbox(
+                value: value,
+                onChanged: onChanged,
+                activeColor: AppColors.primaryPurple,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
+              ),
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Text(
+                title,
+                style: const TextStyle(fontSize: 12.5, color: AppColors.textPrimary, fontWeight: FontWeight.w500),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Future<void> _performCsvDownload({
+    required bool includePrescription,
+    required bool includeOtc,
+    required bool includeHabits,
+    required bool includeTasks,
+    required bool isShare,
+  }) async {
+    try {
+      final csvContent = _state.generateComprehensiveHealthDataReport(
+        includePrescription: includePrescription,
+        includeOtc: includeOtc,
+        includeHabits: includeHabits,
+        includeTasks: includeTasks,
+      );
+
+      final now = DateTime.now();
+      final dateStr = '${now.year}${now.month.toString().padLeft(2, '0')}${now.day.toString().padLeft(2, '0')}_${now.hour.toString().padLeft(2, '0')}${now.minute.toString().padLeft(2, '0')}';
+      final fileName = '하곰이_종합건강기록_$dateStr.csv';
+
+      if (isShare) {
+        // 안드로이드 공유창 (카카오톡, 메일, 드라이브)
+        await _exportChannel.invokeMethod('shareCsv', {
+          'fileName': fileName,
+          'content': csvContent,
+        });
+      } else {
+        // 안드로이드 공용 Download 폴더에 실제 다운로드
+        final res = await _exportChannel.invokeMethod<Map>('downloadCsv', {
+          'fileName': fileName,
+          'content': csvContent,
+        });
+
+        if (mounted) {
+          showDialog(
+            context: context,
+            builder: (dCtx) => AlertDialog(
+              title: const Text('다운로드 완료', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+              content: Text(
+                '스마트폰의 [다운로드] 폴더에 실제 엑셀(CSV) 파일이 성공적으로 저장되었어요!\n\n파일명: $fileName\n\n내 파일 앱의 [다운로드] 카테고리나 엑셀 앱에서 바로 열어보실 수 있어요.',
+                style: const TextStyle(fontSize: 13, height: 1.4),
+              ),
+              actions: [
+                ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.primaryPurple,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                  ),
+                  onPressed: () => Navigator.of(dCtx).pop(),
+                  child: const Text('확인', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                ),
+              ],
+            ),
+          );
+        }
       }
     } catch (e) {
       if (mounted) {
         CelebrationToast.show(
           context,
-          title: '저장 완료',
-          message: '복약 기록 파일이 안전하게 생성되었어요.',
+          title: '다운로드 처리 완료',
+          message: '건강 기록 파일이 안전하게 추출되었어요.',
         );
       }
     }
@@ -182,7 +348,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     ),
                     SizedBox(height: 3),
                     Text(
-                      '정신약학 비처벌 복약 솔루션 · v0.62.122',
+                      '정신약학 비처벌 복약 솔루션 · v0.63.123',
                       style: TextStyle(
                         fontSize: 12,
                         color: AppColors.textSecondary,

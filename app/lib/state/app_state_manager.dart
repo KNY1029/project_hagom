@@ -508,6 +508,8 @@ class AppStateManager extends ChangeNotifier {
       if (_trackingStartDate != null) {
         await _prefs!.setString('hagom_tracking_start_date', _dateKey(_trackingStartDate!));
       }
+      await _prefs!.setStringList('hagom_custom_time_slots', customTimeSlots);
+      await _prefs!.setString('hagom_routine_times', jsonEncode(routineTimes));
     } catch (_) {}
   }
 
@@ -593,6 +595,21 @@ class AppStateManager extends ChangeNotifier {
       dailyResetMinute = _prefs!.getInt('hagom_daily_reset_minute') ?? 0;
       _lastGreetingDayKey = _prefs!.getString('hagom_last_greeting_day');
       isInitialModeSelected = _prefs!.getBool('hagom_initial_mode_selected') ?? false;
+      final loadedCustomSlots = _prefs!.getStringList('hagom_custom_time_slots');
+      if (loadedCustomSlots != null) {
+        customTimeSlots.clear();
+        customTimeSlots.addAll(loadedCustomSlots);
+      }
+      final loadedRoutineTimesRaw = _prefs!.getString('hagom_routine_times');
+      if (loadedRoutineTimesRaw != null) {
+        try {
+          final Map<String, dynamic> decoded = jsonDecode(loadedRoutineTimesRaw);
+          routineTimes.clear();
+          decoded.forEach((key, value) {
+            routineTimes[key] = value.toString();
+          });
+        } catch (_) {}
+      }
       notifyListeners();
     } catch (_) {}
   }
@@ -1135,25 +1152,80 @@ class AppStateManager extends ChangeNotifier {
 
     notifyListeners();
   }
-  // 🌟 의사 진료 상담용 복약 CSV 문자열 생성 (TDM 특화)
-  String generateMedicalCsvReport() {
+  // 🌟 [보건약학 임상 연구 & 교수님 자문용] 4대 영역 종합 건강 데이터 CSV 생성기
+  String generateComprehensiveHealthDataReport({
+    bool includePrescription = true,
+    bool includeOtc = true,
+    bool includeHabits = true,
+    bool includeTasks = true,
+  }) {
     final buffer = StringBuffer();
-    // 엑셀에서 한글이 깨지지 않도록 UTF-8 BOM 삽입
+    // 엑셀에서 한글 깨짐 방지 UTF-8 BOM
     buffer.write('\uFEFF');
-    buffer.writeln('하곰이 헬스케어 - 의료진 진료 상담용 복약 기록');
-    buffer.writeln('출력 일시,${DateTime.now().toString().substring(0, 16)}');
+    buffer.writeln('하곰이(Hagom) 비처벌적 환자 케어 솔루션 - 통합 건강 기록 데이터');
+    buffer.writeln('추출 일시,${DateTime.now().toString().substring(0, 19)}');
+    buffer.writeln('기록 시작일,${_trackingStartDate != null ? _dateKey(_trackingStartDate!) : "기록 전"}');
+    buffer.writeln('다정한 시도 횟수,$gentleAttempts,돌아온 횟수,$returnedCount');
     buffer.writeln('');
-    buffer.writeln('약품명,처방 여부,용법 및 용량,복용 주기,회차 라벨,예정 시각,복용 완료 여부,실제 복용 시각');
 
-    for (final med in _medications) {
-      for (final slot in med.doseSlots) {
-        final prescriptionStr = med.isPrescription ? '의사 처방 필수약' : '일반/영양제';
-        final statusStr = slot.isCompleted ? '복용 완료' : (slot.isSkipped ? '건너뜀' : '미복용/대기');
+    // 1. 💊 처방약 & 일반약 데이터
+    if (includePrescription || includeOtc) {
+      buffer.writeln('--- [1. 복약 관리 데이터] ---');
+      buffer.writeln('약물 ID,약품명,분류,용법/용량,복용 주기,복용 기간,회차(시간대),예정 시각,복용 여부,실제 복용 시각,시간 엄수 필수 여부');
+
+      final targetMeds = _medications.where((m) {
+        if (m.isPrescription && includePrescription) return true;
+        if (!m.isPrescription && includeOtc) return true;
+        return false;
+      });
+
+      for (final med in targetMeds) {
+        final categoryStr = med.isPrescription ? '처방약 (필수)' : '일반약/영양제';
+        for (final slot in med.doseSlots) {
+          final statusStr = slot.isCompleted ? '복용 완료' : (slot.isSkipped ? '건너뜀' : '미복용/대기');
+          buffer.writeln(
+            '"${med.id}","${med.name}","$categoryStr","${med.dosage}","${med.recurrenceSummary}","${med.durationSummary}","${slot.label}","${slot.scheduledTime ?? '-'}","$statusStr","${slot.takenTime ?? '-'}","${med.isPrescription ? '엄수 필요' : '자유'}"',
+          );
+        }
+      }
+      buffer.writeln('');
+    }
+
+    // 2. 🌱 작은 습관 데이터
+    if (includeHabits) {
+      buffer.writeln('--- [2. 작은 습관 관리 데이터] ---');
+      buffer.writeln('습관 ID,습관 제목,상세 설명,실천 주기,1일 목표 횟수,오늘 실천 횟수,주간 완료 횟수,달성률(%),비처벌적 평가 상태');
+
+      for (final habit in _habits) {
+        final percent = (habit.score * 100).toInt();
+        final evaluation = habit.score >= 1.0 ? '목표 달성' : (habit.score > 0 ? '다정한 일부 실천' : '실천 대기');
         buffer.writeln(
-          '"${med.name}","$prescriptionStr","${med.dosage}","${med.recurrenceSummary}","${slot.label}","${slot.scheduledTime ?? '-'}","$statusStr","${slot.takenTime ?? '-'}"',
+          '"${habit.id}","${habit.title}","${habit.subtitle}","${habit.recurrenceSummary}","${habit.targetPerDay}회","${habit.currentCount}회","${habit.weeklyCompletedCount}회","$percent%","$evaluation"',
         );
       }
+      buffer.writeln('');
+    }
+
+    // 3. 🗓️ 할일 및 진료 일정 데이터
+    // 3. 🗓️ 할일 및 진료 일정 데이터
+    if (includeTasks) {
+      buffer.writeln('--- [3. 할일 및 일정 관리 데이터] ---');
+      buffer.writeln('일정 ID,일정명,예정 일자,예정 시각,완료 여부,반복 설정,알림 설정');
+
+      for (final task in _tasks) {
+        final dateStr = '${task.date.year}-${task.date.month.toString().padLeft(2, '0')}-${task.date.day.toString().padLeft(2, '0')}';
+        final statusStr = task.isCompleted ? '완료' : '진행 대기';
+        buffer.writeln(
+          '"${task.id}","${task.title}","$dateStr","${task.time ?? '-'}","$statusStr","${task.repeatSummary}","${task.reminderSummary}"',
+        );
+      }
+      buffer.writeln('');
     }
     return buffer.toString();
+  }
+
+  // 🌟 기존 레거시 함수 호환
+  String generateMedicalCsvReport() {
+    return generateComprehensiveHealthDataReport();
   }
 }
