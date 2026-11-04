@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/widget_mascot_container"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/hagom_widget_bg"
+    android:orientation="horizontal"
+    android:padding="14dp"
+    android:gravity="center_vertical">
+
+    <!-- 좌측 마스코트 캐릭터 영역 -->
+    <ImageView
+        android:id="@+id/widget_mascot_img"
+        android:layout_width="72dp"
+        android:layout_height="72dp"
+        android:src="@drawable/hagomi_mascot"
+        android:contentDescription="하곰이"
+        android:scaleType="fitCenter" />
+
+    <!-- 우측 따뜻한 응원 텍스트 영역 -->
+    <LinearLayout
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:layout_marginStart="14dp"
+        android:orientation="vertical">
+
+        <!-- 뱃지 -->
+        <TextView
+            android:id="@+id/widget_mascot_badge"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@drawable/hagom_widget_tag_bg"
+            android:paddingHorizontal="7dp"
+            android:paddingVertical="2dp"
+            android:text="하곰이의 응원"
+            android:textColor="#7B61A8"
+            android:textSize="10.5sp"
+            android:textStyle="bold" />
+
+        <!-- 메인 대사 -->
+        <TextView
+            android:id="@+id/widget_mascot_quote"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="5dp"
+            android:text="한 가지만 실천해도 충분해요.\n오늘 약 하나만 챙겨도 대단한 거예요."
+            android:textColor="#1F2937"
+            android:textSize="12.5sp"
+            android:textStyle="bold"
+            android:lineSpacingExtra="2dp" />
+
+        <!-- 서브 멘트 -->
+        <TextView
+            android:id="@+id/widget_mascot_sub"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="3dp"
+            android:text="천천히 편안한 속도로 가요"
+            android:textColor="#6B7280"
+            android:textSize="11sp" />
+    </LinearLayout>
+
+</LinearLayout>

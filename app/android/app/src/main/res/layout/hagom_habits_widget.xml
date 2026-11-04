@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/widget_habits_container"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/hagom_widget_bg"
+    android:orientation="horizontal"
+    android:padding="14dp"
+    android:gravity="center_vertical">
+
+    <!-- 좌측 정보 영역 -->
+    <LinearLayout
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:orientation="vertical">
+
+        <!-- 상단 태그 및 진행 현황 -->
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical">
+
+            <TextView
+                android:id="@+id/widget_habits_tag"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="@drawable/hagom_widget_tag_bg"
+                android:paddingHorizontal="7dp"
+                android:paddingVertical="2dp"
+                android:text="오늘의 습관"
+                android:textColor="#059669"
+                android:textSize="10.5sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/widget_habits_progress"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:text="2/3 실천 중"
+                android:textColor="#6B7280"
+                android:textSize="11sp" />
+        </LinearLayout>
+
+        <!-- 습관 이름 -->
+        <TextView
+            android:id="@+id/widget_habits_title"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="5dp"
+            android:ellipsize="end"
+            android:maxLines="1"
+            android:text="물 한 컵 마시기"
+            android:textColor="#1F2937"
+            android:textSize="15sp"
+            android:textStyle="bold" />
+
+        <!-- 가이드 문구 -->
+        <TextView
+            android:id="@+id/widget_habits_subtitle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="2dp"
+            android:ellipsize="end"
+            android:maxLines="1"
+            android:text="언제든 자유롭게 · 1컵"
+            android:textColor="#4B5568"
+            android:textSize="11.5sp" />
+
+        <!-- 연속 실천 문구 -->
+        <TextView
+            android:id="@+id/widget_habits_extra"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:text="오늘의 작은 발걸음"
+            android:textColor="#059669"
+            android:textSize="10sp"
+            android:textStyle="bold" />
+    </LinearLayout>
+
+    <!-- 우측 1-Tap 대형 버튼 -->
+    <LinearLayout
+        android:id="@+id/widget_habits_btn"
+        android:layout_width="84dp"
+        android:layout_height="match_parent"
+        android:layout_marginStart="14dp"
+        android:background="@drawable/hagom_widget_habit_btn_bg"
+        android:orientation="vertical"
+        android:gravity="center"
+        android:padding="6dp">
+
+        <TextView
+            android:id="@+id/widget_habits_btn_title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="실천"
+            android:textColor="#FFFFFF"
+            android:textSize="16sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/widget_habits_btn_subtitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="3dp"
+            android:text="1-Tap"
+            android:textColor="#FFFFFF"
+            android:alpha="0.85"
+            android:textSize="10sp" />
+    </LinearLayout>
+
+</LinearLayout>

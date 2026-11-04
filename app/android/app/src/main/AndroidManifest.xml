@@ -30,16 +30,52 @@
         <meta-data
             android:name="flutterEmbedding"
             android:value="2" />
-        <!-- 📱 하곰이 2×1 안드로이드 시스템 홈 위젯 리시버 -->
+        <!-- 1) 🐻 하곰이 마스코트 응원 한마디 위젯 리시버 -->
         <receiver
-            android:name=".HagomWidgetProvider"
+            android:name=".HagomMascotWidgetProvider"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
             </intent-filter>
             <meta-data
                 android:name="android.appwidget.provider"
-                android:resource="@xml/hagom_widget_provider_info" />
+                android:resource="@xml/hagom_mascot_widget_provider_info" />
+        </receiver>
+
+        <!-- 2) 💊 하곰이 복약 관리 1-Tap 위젯 리시버 -->
+        <receiver
+            android:name=".HagomMedsWidgetProvider"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/hagom_meds_widget_provider_info" />
+        </receiver>
+
+        <!-- 3) 🌱 하곰이 습관 관리 1-Tap 위젯 리시버 -->
+        <receiver
+            android:name=".HagomHabitsWidgetProvider"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/hagom_habits_widget_provider_info" />
+        </receiver>
+
+        <!-- 4) 🗓️ 하곰이 달력/할일 1-Tap 위젯 리시버 -->
+        <receiver
+            android:name=".HagomCalendarWidgetProvider"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/hagom_calendar_widget_provider_info" />
         </receiver>
     </application>
     <!-- Required to query activities that can process text, see:

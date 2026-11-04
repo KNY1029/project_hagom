@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/widget_calendar_container"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/hagom_widget_bg"
+    android:orientation="horizontal"
+    android:padding="14dp"
+    android:gravity="center_vertical">
+
+    <!-- 좌측 정보 영역 -->
+    <LinearLayout
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:orientation="vertical">
+
+        <!-- 상단 태그 및 시간 -->
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical">
+
+            <TextView
+                android:id="@+id/widget_calendar_tag"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="@drawable/hagom_widget_tag_bg"
+                android:paddingHorizontal="7dp"
+                android:paddingVertical="2dp"
+                android:text="오늘의 일정"
+                android:textColor="#D97706"
+                android:textSize="10.5sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/widget_calendar_progress"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:text="오후 2:00"
+                android:textColor="#6B7280"
+                android:textSize="11sp" />
+        </LinearLayout>
+
+        <!-- 일정/할일 제목 -->
+        <TextView
+            android:id="@+id/widget_calendar_title"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="5dp"
+            android:ellipsize="end"
+            android:maxLines="1"
+            android:text="약학 실습 보고서 작성"
+            android:textColor="#1F2937"
+            android:textSize="15sp"
+            android:textStyle="bold" />
+
+        <!-- 분류 안내 -->
+        <TextView
+            android:id="@+id/widget_calendar_subtitle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="2dp"
+            android:ellipsize="end"
+            android:maxLines="1"
+            android:text="카테고리: 과제 및 실습"
+            android:textColor="#4B5568"
+            android:textSize="11.5sp" />
+
+        <!-- 상태 멘트 -->
+        <TextView
+            android:id="@+id/widget_calendar_extra"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:text="상태: 진행 대기"
+            android:textColor="#D97706"
+            android:textSize="10sp"
+            android:textStyle="bold" />
+    </LinearLayout>
+
+    <!-- 우측 1-Tap 대형 버튼 -->
+    <LinearLayout
+        android:id="@+id/widget_calendar_btn"
+        android:layout_width="84dp"
+        android:layout_height="match_parent"
+        android:layout_marginStart="14dp"
+        android:background="@drawable/hagom_widget_task_btn_bg"
+        android:orientation="vertical"
+        android:gravity="center"
+        android:padding="6dp">
+
+        <TextView
+            android:id="@+id/widget_calendar_btn_title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="체크"
+            android:textColor="#FFFFFF"
+            android:textSize="16sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/widget_calendar_btn_subtitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="3dp"
+            android:text="1-Tap"
+            android:textColor="#FFFFFF"
+            android:alpha="0.85"
+            android:textSize="10sp" />
+    </LinearLayout>
+
+</LinearLayout>
