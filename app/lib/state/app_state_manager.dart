@@ -1306,57 +1306,71 @@ class AppStateManager extends ChangeNotifier {
     buffer.writeln('다정한 시도 횟수,$gentleAttempts,돌아온 횟수,$returnedCount');
     buffer.writeln('');
 
-    // 1. 💊 처방약 & 일반약 데이터
-    if (includePrescription || includeOtc) {
-      buffer.writeln('--- [1. 복약 관리 데이터] ---');
-      buffer.writeln('약물 ID,약품명,분류,용법/용량,복용 주기,복용 기간,회차(시간대),예정 시각,복용 여부,실제 복용 시각,기록 방식(실시간/사후수정),시간 엄수 필수 여부');
-      final targetMeds = _medications.where((m) {
-        if (m.isPrescription && includePrescription) return true;
-        if (!m.isPrescription && includeOtc) return true;
-        return false;
-      });
+    final nowStr = '${DateTime.now().year}-${DateTime.now().month.toString().padLeft(2, '0')}-${DateTime.now().day.toString().padLeft(2, '0')}';
 
-      for (final med in targetMeds) {
-        final categoryStr = med.isPrescription ? '처방약 (필수)' : '일반약/영양제';
+    // 1. 💊 처방약 데이터 (별도 분리)
+    if (includePrescription) {
+      buffer.writeln('--- [1. 처방약 관리 데이터] ---');
+      buffer.writeln('기록 일자,약물 ID,약품명,복용법,기타 메모,복용 주기,복용 기간,회차(시간대),예정 시각,복용 여부,실제 복용 시각,기록 방식(실시간/사후수정)');
+      final rxMeds = _medications.where((m) => m.isPrescription);
+      for (final med in rxMeds) {
         for (final slot in med.doseSlots) {
           final statusStr = slot.isCompleted ? '복용 완료' : (slot.isSkipped ? '건너뜀' : '미복용/대기');
           final recordMethod = !slot.isCompleted
               ? '-'
               : (isSlotRetroactive(DateTime.now(), med.id, med.doseSlots.indexOf(slot)) ? '달력 사후 수정' : '당일 실시간 체크');
           buffer.writeln(
-            '"${med.id}","${med.name}","$categoryStr","${med.dosage}","${med.recurrenceSummary}","${med.durationSummary}","${slot.label}","${slot.scheduledTime ?? '-'}","$statusStr","${slot.takenTime ?? '-'}","$recordMethod","${med.isPrescription ? '엄수 필요' : '자유'}"',
+            '"$nowStr","${med.id}","${med.name}","${med.dosage}","${med.memo ?? '-'}","${med.recurrenceSummary}","${med.durationSummary}","${slot.label}","${slot.scheduledTime ?? '-'}","$statusStr","${slot.takenTime ?? '-'}","$recordMethod"',
           );
         }
       }
       buffer.writeln('');
     }
 
-    // 2. 🌱 작은 습관 데이터
+    // 2. 🌿 일반의약품 및 영양제 데이터 (별도 분리)
+    if (includeOtc) {
+      buffer.writeln('--- [2. 일반의약품 및 영양제 데이터] ---');
+      buffer.writeln('기록 일자,약물 ID,약품명,복용법,기타 메모,복용 주기,복용 기간,회차(시간대),예정 시각,복용 여부,실제 복용 시각,기록 방식(실시간/사후수정)');
+      final otcMeds = _medications.where((m) => !m.isPrescription);
+      for (final med in otcMeds) {
+        for (final slot in med.doseSlots) {
+          final statusStr = slot.isCompleted ? '복용 완료' : (slot.isSkipped ? '건너뜀' : '미복용/대기');
+          final recordMethod = !slot.isCompleted
+              ? '-'
+              : (isSlotRetroactive(DateTime.now(), med.id, med.doseSlots.indexOf(slot)) ? '달력 사후 수정' : '당일 실시간 체크');
+          buffer.writeln(
+            '"$nowStr","${med.id}","${med.name}","${med.dosage}","${med.memo ?? '-'}","${med.recurrenceSummary}","${med.durationSummary}","${slot.label}","${slot.scheduledTime ?? '-'}","$statusStr","${slot.takenTime ?? '-'}","$recordMethod"',
+          );
+        }
+      }
+      buffer.writeln('');
+    }
+
+    // 3. 🌱 작은 습관 데이터
     if (includeHabits) {
-      buffer.writeln('--- [2. 작은 습관 관리 데이터] ---');
-      buffer.writeln('습관 ID,습관 제목,상세 설명,실천 주기,1일 목표 횟수,오늘 실천 횟수,주간 완료 횟수,달성률(%),비처벌적 평가 상태');
+      buffer.writeln('--- [3. 작은 습관 관리 데이터] ---');
+      buffer.writeln('기록 일자,습관 ID,습관 제목,상세 설명,실천 주기,1일 목표 횟수,오늘 실천 횟수,주간 완료 횟수,달성률(%),비처벌적 평가 상태');
 
       for (final habit in _habits) {
         final percent = (habit.score * 100).toInt();
         final evaluation = habit.score >= 1.0 ? '목표 달성' : (habit.score > 0 ? '다정한 일부 실천' : '실천 대기');
         buffer.writeln(
-          '"${habit.id}","${habit.title}","${habit.subtitle}","${habit.recurrenceSummary}","${habit.targetPerDay}회","${habit.currentCount}회","${habit.weeklyCompletedCount}회","$percent%","$evaluation"',
+          '"$nowStr","${habit.id}","${habit.title}","${habit.subtitle}","${habit.recurrenceSummary}","${habit.targetPerDay}회","${habit.currentCount}회","${habit.weeklyCompletedCount}회","$percent%","$evaluation"',
         );
       }
       buffer.writeln('');
     }
 
-    // 3. 🗓️ 할일 및 진료 일정 데이터
-    // 3. 🗓️ 할일 및 진료 일정 데이터
+    // 4. 🗓️ 할일 및 진료 일정 데이터
     if (includeTasks) {
-      buffer.writeln('--- [3. 할일 및 일정 관리 데이터] ---');
-      buffer.writeln('일정 ID,일정명,예정 일자,예정 시각,완료 여부,반복 설정,알림 설정');
+      buffer.writeln('--- [4. 할일 및 일정 관리 데이터] ---');
+      buffer.writeln('대상 일자,일정 ID,일정명,예정 시각,완료 여부,반복 설정,알림 설정');
 
       for (final task in _tasks) {
         final dateStr = '${task.date.year}-${task.date.month.toString().padLeft(2, '0')}-${task.date.day.toString().padLeft(2, '0')}';
         final statusStr = task.isCompleted ? '완료' : '진행 대기';
         buffer.writeln(
-          '"${task.id}","${task.title}","$dateStr","${task.time ?? '-'}","$statusStr","${task.repeatSummary}","${task.reminderSummary}"',
+          '"$dateStr","${task.id}","${task.title}","${task.time ?? '-'}","$statusStr","${task.repeatSummary}","${task.reminderSummary}"',
         );
       }
       buffer.writeln('');

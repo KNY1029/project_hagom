@@ -47,7 +47,7 @@ class HagomMonthCalendarWidgetProvider : HomeWidgetProvider() {
                 for (day in 1..31) {
                     val resId = context.resources.getIdentifier("d_$day", "id", context.packageName)
                     if (resId != 0) {
-                        val status = widgetData.getString("day_status_$day", "")
+                        val status = widgetData.getString("day_status_$day", "") ?: ""
                         val isDaySelected = (selectedDay != null && selectedDay == day)
 
                         val bgRes = if (isDaySelected) {
