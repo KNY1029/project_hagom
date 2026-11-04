@@ -235,7 +235,7 @@ class _WidgetSimulatorScreenState extends State<WidgetSimulatorScreen> {
       tagText = const Color(0xFF6D28D9);
       tagLabel = 'ALL CLEAR';
       badgeEmoji = '기쁨';
-      mainQuote = '오늘 약이랑 루틴 전부 올클리어!\n너 진짜 최고야, 너무 멋져!';
+      mainQuote = '오늘 약과 루틴을 모두 완료했어요!\n스스로를 아끼는 마음이 정말 멋져요.';
       bottomChipText = '5일 연속 달성 · 오늘 복약 완료';
       bottomChipBg = const Color(0xFFEDE9FE);
       bottomChipFg = const Color(0xFF6D28D9);
@@ -246,7 +246,7 @@ class _WidgetSimulatorScreenState extends State<WidgetSimulatorScreen> {
       tagText = const Color(0xFF059669);
       tagLabel = 'MENTAL CARE';
       badgeEmoji = '할 수 있어!';
-      mainQuote = '한 가지만 해도 충분해.\n오늘 약 하나만 챙겨도 대단해!';
+      mainQuote = '한 가지만 실천해도 충분해요.\n오늘 약 하나만 챙겨도 대단한 거예요.';
       final nextMed = _getNextDoseSummary();
       bottomChipText = nextMed;
       bottomChipBg = const Color(0xFFECFDF5);
@@ -258,7 +258,7 @@ class _WidgetSimulatorScreenState extends State<WidgetSimulatorScreen> {
       tagText = const Color(0xFF8C6D53);
       tagLabel = 'WE MISS YOU';
       badgeEmoji = '돌아와...';
-      mainQuote = '많이 바빴지? 오늘 약은 챙겼어?\n1초만 얼굴 보고 가자...';
+      mainQuote = '많이 바쁘셨나요? 오늘 약은 챙기셨을까요?\n잠시 들러서 편안히 확인해 보세요.';
       bottomChipText = '연속 기록 유지까지 4시간 남음';
       bottomChipBg = const Color(0xFFF5EFE6);
       bottomChipFg = const Color(0xFF8C6D53);
@@ -270,7 +270,7 @@ class _WidgetSimulatorScreenState extends State<WidgetSimulatorScreen> {
       tagText = const Color(0xFFDC2626);
       tagLabel = 'DUOLINGO MODE';
       badgeEmoji = '왜 안 들어와';
-      mainQuote = '너 나 잊은 거 아니지?\n나 여기서 너만 기다리고 있는데...';
+      mainQuote = '기다리고 있어요.\n건강을 위해 오늘 약 복용을 꼭 챙겨주세요.';
       bottomChipText = '4일째 미접속 · 오늘 약 복용 시급!';
       bottomChipBg = const Color(0xFFFEE2E2);
       bottomChipFg = const Color(0xFFDC2626);
