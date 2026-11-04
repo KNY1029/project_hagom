@@ -706,6 +706,7 @@ class _MedsTabViewState extends State<MedsTabView> {
                                 ),
                               );
                             }).toList(),
+                          ),
                         ),
                       const SizedBox(height: 10),
                     ],

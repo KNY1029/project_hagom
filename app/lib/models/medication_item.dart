@@ -1,6 +1,6 @@
 /// 개별 복용 회차 (예: 아침, 점심, 저녁 각각의 복용 상태 및 시간)
 class DoseSlot {
-  final String label;          // 회차 라벨 (예: '아침', '점심', '저녁', '1회차')
+  String label;                // 회차 라벨 (예: '아침', '점심', '저녁', '1회차')
   String? scheduledTime;       // 예정 시각 (동적 갱신 가능)
   bool isCompleted;            // 복용 완료 여부
   bool isSkipped;              // 🌿 이번 회차 건너뜀 여부
