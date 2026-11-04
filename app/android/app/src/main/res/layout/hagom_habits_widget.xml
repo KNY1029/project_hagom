@@ -130,6 +130,7 @@
                 android:textSize="11.5sp" />
 
             <TextView
+                android:id="@+id/habit_slot_1_btn"
                 android:layout_width="54dp"
                 android:layout_height="24dp"
                 android:background="@drawable/hagom_widget_habit_btn_bg"
@@ -214,6 +215,7 @@
                 android:textSize="11.5sp" />
 
             <TextView
+                android:id="@+id/habit_slot_4_btn"
                 android:layout_width="54dp"
                 android:layout_height="24dp"
                 android:background="@drawable/hagom_widget_habit_btn_bg"

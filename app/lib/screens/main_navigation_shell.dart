@@ -36,6 +36,39 @@ class _MainNavigationShellState extends State<MainNavigationShell> {
       _isTutorialActive = true;
       _currentIndex = 0;
     }
+    final state = AppStateManager();
+    _currentIndex = state.selectedTabIndex;
+    state.addListener(_onStateChanged);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _checkCompanionRoomRouting();
+    });
+  }
+
+  void _onStateChanged() {
+    final state = AppStateManager();
+    if (_currentIndex != state.selectedTabIndex) {
+      setState(() {
+        _currentIndex = state.selectedTabIndex;
+      });
+    }
+    _checkCompanionRoomRouting();
+  }
+
+  void _checkCompanionRoomRouting() {
+    final state = AppStateManager();
+    if (state.shouldOpenCompanionRoom && mounted) {
+      state.shouldOpenCompanionRoom = false;
+      Navigator.of(context).push(
+        MaterialPageRoute(builder: (_) => const CompanionRoomScreen()),
+      );
+    }
+  }
+
+  @override
+  void dispose() {
+    AppStateManager().removeListener(_onStateChanged);
+    _bubbleTimer?.cancel();
+    super.dispose();
   }
 
   final List<Widget> _tabs = const [
@@ -80,12 +113,6 @@ class _MainNavigationShellState extends State<MainNavigationShell> {
     Navigator.of(context).push(
       MaterialPageRoute(builder: (context) => const CompanionRoomScreen()),
     );
-  }
-
-  @override
-  void dispose() {
-    _bubbleTimer?.cancel();
-    super.dispose();
   }
 
   @override

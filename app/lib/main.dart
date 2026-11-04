@@ -47,6 +47,14 @@ Future<void> handleWidgetUriAction(Uri? uri) async {
     } else if (state.tasks.isNotEmpty) {
       state.toggleTaskCompleted(state.tasks.first.id);
     }
+  } else if (action == 'openMeds') {
+    state.setTargetTab(0);
+  } else if (action == 'openHabits') {
+    state.setTargetTab(1);
+  } else if (action == 'openCalendar') {
+    state.setTargetTab(2);
+  } else if (action == 'openRoom') {
+    state.setTargetTab(0, openRoom: true);
   }
 }
 

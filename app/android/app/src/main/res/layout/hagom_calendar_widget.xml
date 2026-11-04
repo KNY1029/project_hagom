@@ -130,6 +130,7 @@
                 android:textSize="11.5sp" />
 
             <TextView
+                android:id="@+id/task_slot_1_btn"
                 android:layout_width="54dp"
                 android:layout_height="24dp"
                 android:background="@drawable/hagom_widget_task_btn_bg"
@@ -158,6 +159,7 @@
                 android:textSize="11.5sp" />
 
             <TextView
+                android:id="@+id/task_slot_2_btn"
                 android:layout_width="54dp"
                 android:layout_height="24dp"
                 android:background="@drawable/hagom_widget_task_btn_bg"

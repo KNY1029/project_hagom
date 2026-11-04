@@ -155,6 +155,15 @@ class AppStateManager extends ChangeNotifier {
     }
     notifyListeners();
   }
+  // --- 🚀 위젯 터치 시 특정 탭(복약:0, 습관:1, 달력:2) 및 하곰이 방 직행 라우팅 ---
+  int selectedTabIndex = 0;
+  bool shouldOpenCompanionRoom = false;
+
+  void setTargetTab(int index, {bool openRoom = false}) {
+    selectedTabIndex = index;
+    shouldOpenCompanionRoom = openRoom;
+    notifyListeners();
+  }
   // 🛠️ 개발자 모드(전체 예시 데이터 복원 상태) 여부
   bool isDevSimulationMode = true; // 기본값은 개발자 예시 모드 (발표 및 시연용)
   // --- 📅 앱 사용 및 기록 시작일 (시작일 이전 날짜는 달력 바 및 초록색 미표시) ---

@@ -33,9 +33,6 @@ class HagomMedsWidgetProvider : HomeWidgetProvider() {
                 setTextViewText(R.id.widget_meds_subtitle, subtitle)
                 setTextViewText(R.id.widget_meds_btn_title, btnTitle)
 
-                // 🌟 복약 버튼 색상 앱과 100% 동일하게 분기:
-                // - 미복용/대기 중: 하곰이 브랜드 라벤더 퍼플 (#7B61A8) + 흰색 글자
-                // - 전체 완료 (3/3): 소프트 민트초록 (#EAF8F1) + 딥그린 글자 (#1B6B46)
                 if (btnTitle == "완료" || progress.contains("3/3")) {
                     setInt(R.id.widget_meds_btn, "setBackgroundResource", R.drawable.hagom_widget_green_btn_bg)
                     setTextColor(R.id.widget_meds_btn_title, Color.parseColor("#1B6B46"))
@@ -44,6 +41,7 @@ class HagomMedsWidgetProvider : HomeWidgetProvider() {
                     setTextColor(R.id.widget_meds_btn_title, Color.WHITE)
                 }
 
+                // 1) 바탕 터치 시: 복약 탭(0번)으로 직행
                 val openAppPendingIntent = HomeWidgetLaunchIntent.getActivity(
                     context,
                     MainActivity::class.java,
@@ -51,6 +49,7 @@ class HagomMedsWidgetProvider : HomeWidgetProvider() {
                 )
                 setOnClickPendingIntent(R.id.widget_meds_container, openAppPendingIntent)
 
+                // 2) 메인 우측 복용 버튼 터치 시 브로드캐스트
                 val checkMedIntent = Intent(context, WidgetActionReceiver::class.java).apply {
                     action = "ACTION_CHECK_MED"
                 }
@@ -61,6 +60,23 @@ class HagomMedsWidgetProvider : HomeWidgetProvider() {
                     PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
                 )
                 setOnClickPendingIntent(R.id.widget_meds_btn, checkMedPendingIntent)
+
+                // 3) 🌟 세로 확장 시 나타나는 작은 슬롯 버튼들에도 클릭 리스너 연결!
+                val slot2Intent = PendingIntent.getBroadcast(
+                    context,
+                    204,
+                    Intent(context, WidgetActionReceiver::class.java).apply { action = "ACTION_CHECK_MED" },
+                    PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+                )
+                setOnClickPendingIntent(R.id.med_slot_2_btn, slot2Intent)
+
+                val slot3Intent = PendingIntent.getBroadcast(
+                    context,
+                    205,
+                    Intent(context, WidgetActionReceiver::class.java).apply { action = "ACTION_CHECK_MED" },
+                    PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+                )
+                setOnClickPendingIntent(R.id.med_slot_3_btn, slot3Intent)
             }
             appWidgetManager.updateAppWidget(appWidgetId, views)
         }
