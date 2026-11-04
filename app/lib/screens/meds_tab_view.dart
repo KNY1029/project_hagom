@@ -46,11 +46,22 @@ class _MedsTabViewState extends State<MedsTabView> {
     final nameCtrl = TextEditingController(text: isEditing ? med.name : '');
     final dosageCtrl = TextEditingController(text: isEditing ? med.dosage : '');
 
-    String recurrenceType = isEditing ? med.recurrenceSummary : '매일';
-    if (recurrenceType.contains('시간')) {
-      recurrenceType = '시간 간격';
-    } else if (recurrenceType.contains('간격')) {
-      recurrenceType = '며칠 간격';
+    String recurrenceType = '매일';
+    if (isEditing) {
+      final summary = med.recurrenceSummary;
+      if (summary.contains('시간')) {
+        recurrenceType = '시간 간격';
+      } else if (summary.contains('간격')) {
+        recurrenceType = '며칠 간격';
+      } else if (summary.contains('요일') || summary.startsWith('매주')) {
+        recurrenceType = '특정 요일';
+      } else if (summary == '오늘만') {
+        recurrenceType = '오늘만';
+      } else if (summary == '필요 시') {
+        recurrenceType = '필요 시';
+      } else {
+        recurrenceType = '매일';
+      }
     }
     final intervalCtrl = TextEditingController(
       text: isEditing && med.recurrenceSummary.contains('일 간격')
@@ -450,7 +461,7 @@ class _MedsTabViewState extends State<MedsTabView> {
                             final existingIdx = currentSlots.indexWhere((s) => s.label == label);
                             final isSel = existingIdx != -1;
                             return FilterChip(
-                              showCheckmark: false, // 🌟 체크 표시 완전 제거하여 버튼 크기 덜컹거림 원천 차단!
+                              showCheckmark: false,
                               label: Text(label),
                               selected: isSel,
                               selectedColor: AppColors.primaryPurple.withOpacity(0.2),
@@ -459,23 +470,13 @@ class _MedsTabViewState extends State<MedsTabView> {
                                 color: isSel ? AppColors.primaryPurple : AppColors.textPrimary,
                                 fontWeight: isSel ? FontWeight.bold : FontWeight.normal,
                               ),
-                              onSelected: (sel) async {
+                              onSelected: (sel) {
                                 if (sel) {
-                                  final time = await AppTimePicker.show(
-                                    context,
-                                    initialTime: null,
-                                    title: '$label 알림 시각 설정',
-                                  );
-                                  String finalTime = _state.routineTimes[label] ?? '오전 8:00';
-                                  if (time != null) {
-                                    final period = time.period == DayPeriod.am ? '오전' : '오후';
-                                    final hour = time.hourOfPeriod == 0 ? 12 : time.hourOfPeriod;
-                                    final min = time.minute.toString().padLeft(2, '0');
-                                    finalTime = '$period $hour:$min';
-                                    _state.routineTimes[label] = finalTime;
-                                  }
+                                  // 🌟 시간 설정 팝업을 강제하지 않고, 기존에 설정된 루틴 시간 또는 기본값으로 즉시 추가!
+                                  // (아래 시간 목록에서 언제든 '시각 변경'으로 설정 가능)
+                                  final defaultTime = _state.routineTimes[label] ?? '오전 8:00';
                                   setModalState(() {
-                                    currentSlots.add(DoseSlot(label: label, scheduledTime: finalTime));
+                                    currentSlots.add(DoseSlot(label: label, scheduledTime: defaultTime));
                                   });
                                 } else {
                                   setModalState(() {
@@ -485,59 +486,26 @@ class _MedsTabViewState extends State<MedsTabView> {
                               },
                             );
                           }),
-                          // 커스텀 시간대 슬롯들
+                          // 커스텀 시간대 슬롯들 (기본 칩들과 동일한 FilterChip 크기, 높이, 라운딩 및 삭제 버튼 적용!)
                           ..._state.customTimeSlots.map((customLabel) {
                             final existingIdx = currentSlots.indexWhere((s) => s.label == customLabel);
                             final isSel = existingIdx != -1;
-                            return Container(
-                              margin: const EdgeInsets.only(right: 6, bottom: 6),
-                              decoration: BoxDecoration(
-                                color: isSel ? AppColors.primaryPurple.withOpacity(0.15) : const Color(0xFFF3F4F6),
-                                borderRadius: BorderRadius.circular(8),
-                                border: Border.all(
-                                  color: isSel ? AppColors.primaryPurple.withOpacity(0.5) : AppColors.divider,
-                                ),
-                              ),
-                              child: Row(
+                            return FilterChip(
+                              showCheckmark: false,
+                              selected: isSel,
+                              selectedColor: AppColors.primaryPurple.withOpacity(0.2),
+                              label: Row(
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
-                                  GestureDetector(
-                                    onTap: () async {
-                                      if (!isSel) {
-                                        final time = await AppTimePicker.show(
-                                          context,
-                                          initialTime: null,
-                                          title: '$customLabel 알림 시각 설정',
-                                        );
-                                        String? finalTime;
-                                        if (time != null) {
-                                          final period = time.period == DayPeriod.am ? '오전' : '오후';
-                                          final hour = time.hourOfPeriod == 0 ? 12 : time.hourOfPeriod;
-                                          final min = time.minute.toString().padLeft(2, '0');
-                                          finalTime = '$period $hour:$min';
-                                          _state.routineTimes[customLabel] = finalTime;
-                                        }
-                                        setModalState(() {
-                                          currentSlots.add(DoseSlot(label: customLabel, scheduledTime: finalTime));
-                                        });
-                                      } else {
-                                        setModalState(() {
-                                          currentSlots.removeAt(existingIdx);
-                                        });
-                                      }
-                                    },
-                                    child: Padding(
-                                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                                      child: Text(
-                                        customLabel,
-                                        style: TextStyle(
-                                          fontSize: 11.5,
-                                          fontWeight: isSel ? FontWeight.bold : FontWeight.normal,
-                                          color: isSel ? AppColors.primaryPurple : AppColors.textPrimary,
-                                        ),
-                                      ),
+                                  Text(
+                                    customLabel,
+                                    style: TextStyle(
+                                      fontSize: 11.5,
+                                      color: isSel ? AppColors.primaryPurple : AppColors.textPrimary,
+                                      fontWeight: isSel ? FontWeight.bold : FontWeight.normal,
                                     ),
                                   ),
+                                  const SizedBox(width: 4),
                                   GestureDetector(
                                     onTap: () {
                                       setModalState(() {
@@ -545,13 +513,23 @@ class _MedsTabViewState extends State<MedsTabView> {
                                         _state.removeCustomTimeSlot(customLabel);
                                       });
                                     },
-                                    child: const Padding(
-                                      padding: EdgeInsets.only(right: 6, left: 2, top: 4, bottom: 4),
-                                      child: Icon(Icons.close, size: 14, color: AppColors.textMuted),
-                                    ),
+                                    child: const Icon(Icons.close, size: 13, color: AppColors.textMuted),
                                   ),
                                 ],
                               ),
+                              onSelected: (sel) {
+                                if (sel) {
+                                  // 🌟 시간 설정을 강제하지 않고 옵셔널로 즉시 추가!
+                                  final defaultTime = _state.routineTimes[customLabel] ?? '오전 8:00';
+                                  setModalState(() {
+                                    currentSlots.add(DoseSlot(label: customLabel, scheduledTime: defaultTime));
+                                  });
+                                } else {
+                                  setModalState(() {
+                                    currentSlots.removeAt(existingIdx);
+                                  });
+                                }
+                              },
                             );
                           }),
                           // [+ 기타] 추가 버튼 (다른 필터 칩들과 동일한 크기/디자인 적용)
