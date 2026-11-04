@@ -30,7 +30,7 @@ class HagomCalendarWidgetProvider : HomeWidgetProvider() {
     ) {
         for (appWidgetId in appWidgetIds) {
             val isNarrow = WidgetBindings.isNarrowWidth(appWidgetManager, appWidgetId)
-            val isExpanded = WidgetBindings.isVerticallyExpanded(appWidgetManager, appWidgetId)
+            val maxRows = WidgetBindings.maxFittingRows(appWidgetManager, appWidgetId)
 
             val views = RemoteViews(context.packageName, R.layout.hagom_calendar_widget).apply {
                 setViewVisibility(R.id.widget_calendar_tag, if (isNarrow) View.GONE else View.VISIBLE)
@@ -66,7 +66,7 @@ class HagomCalendarWidgetProvider : HomeWidgetProvider() {
                 setOnClickPendingIntent(R.id.widget_calendar_container, openCalIntent)
 
                 val mainAction = WidgetBindings.text(widgetData, "calendar_action")
-                val btnPending = if (mainAction.isNotEmpty()) {
+                val btnPending = if (!allDone && mainAction.isNotEmpty()) {
                     WidgetBindings.actionIntent(context, mainAction)
                 } else {
                     openCalIntent
@@ -74,12 +74,15 @@ class HagomCalendarWidgetProvider : HomeWidgetProvider() {
                 setOnClickPendingIntent(R.id.widget_calendar_btn, btnPending)
                 setOnClickPendingIntent(R.id.widget_calendar_btn_compact, btnPending)
 
-                setViewVisibility(R.id.calendar_expanded_list, if (isExpanded) View.VISIBLE else View.GONE)
+                setViewVisibility(R.id.calendar_expanded_list, if (maxRows > 0) View.VISIBLE else View.GONE)
 
                 val rowIds = listOf(
                     Triple(R.id.cal_row_1, R.id.cal_row_1_text, R.id.cal_row_1_btn),
                     Triple(R.id.cal_row_2, R.id.cal_row_2_text, R.id.cal_row_2_btn),
-                    Triple(R.id.cal_row_3, R.id.cal_row_3_text, R.id.cal_row_3_btn)
+                    Triple(R.id.cal_row_3, R.id.cal_row_3_text, R.id.cal_row_3_btn),
+                    Triple(R.id.cal_row_4, R.id.cal_row_4_text, R.id.cal_row_4_btn),
+                    Triple(R.id.cal_row_5, R.id.cal_row_5_text, R.id.cal_row_5_btn),
+                    Triple(R.id.cal_row_6, R.id.cal_row_6_text, R.id.cal_row_6_btn)
                 )
                 rowIds.forEachIndexed { idx, (rowId, textId, btnId) ->
                     val n = idx + 1
@@ -92,7 +95,9 @@ class HagomCalendarWidgetProvider : HomeWidgetProvider() {
                         "cal_row_${n}_action",
                         "체크",
                         R.drawable.hagom_widget_task_btn_bg,
-                        isNarrow
+                        isNarrow,
+                        openCalIntent,
+                        idx < maxRows
                     )
                 }
             }

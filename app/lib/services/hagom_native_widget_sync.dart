@@ -5,8 +5,9 @@ import '../state/app_state_manager.dart';
 
 /// 안드로이드 홈 화면 위젯과 앱 데이터를 1:1로 동기화하는 서비스.
 ///
-/// 상단 대표 카드에 이미 표시된 항목은 아래 확장 목록(row_1~row_3)에서 제외하여
-/// 중복 표시를 막고, 가로 폭이 좁을 때(2xN) 쓸 짧은 텍스트(_short)도 함께 내려보낸다.
+/// - 상단 대표 카드는 아래 확장 목록에서 제외(중복 제거)
+/// - 확장 목록은 최대 6줄까지 내려보내며, 네이티브가 현재 위젯 높이에 맞춰 잘리지 않는 개수만 노출
+/// - 이미 완료된 항목의 action은 비워서 위젯에서 실수로 취소되지 않게 함(탭 시 해당 탭으로 앱만 열림)
 class HagomNativeWidgetSync {
   static const String mascotProvider = 'HagomMascotWidgetProvider';
   static const String medsProvider = 'HagomMedsWidgetProvider';
@@ -67,7 +68,6 @@ class HagomNativeWidgetSync {
           break;
         }
       }
-      // 전부 완료된 경우 첫 회차를 대표로 두어 상단/하단 중복 기준을 명확히 함
       primaryMed ??= todaySlots.isNotEmpty ? todaySlots.first : null;
 
       String medsTag = '다음 복약';
@@ -105,8 +105,7 @@ class HagomNativeWidgetSync {
         medsSubtitleShort = '$totalMeds회 모두 완료';
         medsBtnTitle = '완료';
         medsAllDone = 'true';
-        final last = todaySlots.last;
-        medsAction = 'hagomwidget://checkmed?id=${Uri.encodeComponent(last.med.id)}&slot=${last.slotIndex}';
+        medsAction = ''; // 완료 상태에서는 탭 시 앱(복약 탭)만 열림
       }
 
       await HomeWidget.saveWidgetData<String>('meds_tag', medsTag);
@@ -118,16 +117,14 @@ class HagomNativeWidgetSync {
       await HomeWidget.saveWidgetData<String>('meds_all_done', medsAllDone);
       await HomeWidget.saveWidgetData<String>('meds_action', medsAction);
 
-      // 확장 영역 최대 3줄: 상단 대표 카드(primaryMed)는 제외하여 중복 표시 방지!
-      // 단, 전부 완료 상태여서 상단이 '오늘 복약 모두 완료' 요약 문구일 때는 전체 회차를 보여줌.
       final remainingSlots = allMedsCompleted
           ? todaySlots
-          : todaySlots.where((e) => ! identical(e, primaryMed)).toList();
+          : todaySlots.where((e) => !identical(e, primaryMed)).toList();
       final orderedSlots = [
         ...remainingSlots.where((e) => !e.slot.isCompleted && !e.slot.isSkipped),
         ...remainingSlots.where((e) => e.slot.isCompleted || e.slot.isSkipped),
       ];
-      for (int i = 0; i < 3; i++) {
+      for (int i = 0; i < 6; i++) {
         final n = i + 1;
         if (i < orderedSlots.length) {
           final e = orderedSlots[i];
@@ -137,7 +134,7 @@ class HagomNativeWidgetSync {
           await HomeWidget.saveWidgetData<String>('meds_row_${n}_done', e.slot.isCompleted ? 'true' : 'false');
           await HomeWidget.saveWidgetData<String>(
             'meds_row_${n}_action',
-            'hagomwidget://checkmed?id=${Uri.encodeComponent(e.med.id)}&slot=${e.slotIndex}',
+            e.slot.isCompleted ? '' : 'hagomwidget://checkmed?id=${Uri.encodeComponent(e.med.id)}&slot=${e.slotIndex}',
           );
         } else {
           await HomeWidget.saveWidgetData<String>('meds_row_${n}_text', '');
@@ -149,7 +146,7 @@ class HagomNativeWidgetSync {
       await HomeWidget.updateWidget(name: medsProvider, androidName: medsProvider);
 
       // -------------------------------------------------------------
-      // 3) 습관 관리 위젯 (상단 대표 습관은 아래 목록에서 제외)
+      // 3) 습관 관리 위젯
       // -------------------------------------------------------------
       final pendingHabits = todayHabits.where((h) => h.score < 1.0).toList();
       final primaryHabit = pendingHabits.isNotEmpty
@@ -185,14 +182,16 @@ class HagomNativeWidgetSync {
         if (primaryHabit.score >= 1.0) {
           habitsBtnTitle = '완료';
           habitsState = 'done';
+          habitsAction = '';
         } else if (primaryHabit.score > 0.0) {
           habitsBtnTitle = '실천';
           habitsState = 'partial';
+          habitsAction = 'hagomwidget://checkhabit?id=${Uri.encodeComponent(primaryHabit.id)}';
         } else {
           habitsBtnTitle = '실천';
           habitsState = 'standby';
+          habitsAction = 'hagomwidget://checkhabit?id=${Uri.encodeComponent(primaryHabit.id)}';
         }
-        habitsAction = 'hagomwidget://checkhabit?id=${Uri.encodeComponent(primaryHabit.id)}';
       }
 
       await HomeWidget.saveWidgetData<String>('habits_tag', habitsTag);
@@ -204,23 +203,23 @@ class HagomNativeWidgetSync {
       await HomeWidget.saveWidgetData<String>('habits_state', habitsState);
       await HomeWidget.saveWidgetData<String>('habits_action', habitsAction);
 
-      // 상단 대표 습관(primaryHabit)을 제외한 나머지 습관들만 아래 최대 3줄에 표시
       final remainingHabits = todayHabits.where((h) => h.id != primaryHabit?.id).toList();
       final orderedHabits = [
         ...remainingHabits.where((h) => h.score < 1.0),
         ...remainingHabits.where((h) => h.score >= 1.0),
       ];
-      for (int i = 0; i < 3; i++) {
+      for (int i = 0; i < 6; i++) {
         final n = i + 1;
         if (i < orderedHabits.length) {
           final h = orderedHabits[i];
           final prog = h.targetPerDay > 1 ? ' (${h.currentCount}/${h.targetPerDay})' : '';
+          final isDone = h.score >= 1.0;
           await HomeWidget.saveWidgetData<String>('habits_row_${n}_text', '${h.title}$prog');
           await HomeWidget.saveWidgetData<String>('habits_row_${n}_short', h.title);
-          await HomeWidget.saveWidgetData<String>('habits_row_${n}_done', h.score >= 1.0 ? 'true' : 'false');
+          await HomeWidget.saveWidgetData<String>('habits_row_${n}_done', isDone ? 'true' : 'false');
           await HomeWidget.saveWidgetData<String>(
             'habits_row_${n}_action',
-            'hagomwidget://checkhabit?id=${Uri.encodeComponent(h.id)}',
+            isDone ? '' : 'hagomwidget://checkhabit?id=${Uri.encodeComponent(h.id)}',
           );
         } else {
           await HomeWidget.saveWidgetData<String>('habits_row_${n}_text', '');
@@ -232,7 +231,7 @@ class HagomNativeWidgetSync {
       await HomeWidget.updateWidget(name: habitsProvider, androidName: habitsProvider);
 
       // -------------------------------------------------------------
-      // 4) 할일 / 일정 위젯 (상단 대표 할일은 아래 목록에서 제외)
+      // 4) 할일 / 일정 위젯
       // -------------------------------------------------------------
       final now = DateTime.now();
       final todayTasks = state.getTasksForDay(now);
@@ -264,7 +263,7 @@ class HagomNativeWidgetSync {
         calSubtitleShort = primaryTask.time ?? '오늘';
         calBtnTitle = primaryTask.isCompleted ? '완료' : '체크';
         calAllDone = primaryTask.isCompleted ? 'true' : 'false';
-        calAction = 'hagomwidget://checktask?id=${Uri.encodeComponent(primaryTask.id)}';
+        calAction = primaryTask.isCompleted ? '' : 'hagomwidget://checktask?id=${Uri.encodeComponent(primaryTask.id)}';
       }
 
       await HomeWidget.saveWidgetData<String>('calendar_tag', calTag);
@@ -281,7 +280,7 @@ class HagomNativeWidgetSync {
         ...remainingTasks.where((t) => !t.isCompleted),
         ...remainingTasks.where((t) => t.isCompleted),
       ];
-      for (int i = 0; i < 3; i++) {
+      for (int i = 0; i < 6; i++) {
         final n = i + 1;
         if (i < orderedTasks.length) {
           final t = orderedTasks[i];
@@ -291,7 +290,7 @@ class HagomNativeWidgetSync {
           await HomeWidget.saveWidgetData<String>('cal_row_${n}_done', t.isCompleted ? 'true' : 'false');
           await HomeWidget.saveWidgetData<String>(
             'cal_row_${n}_action',
-            'hagomwidget://checktask?id=${Uri.encodeComponent(t.id)}',
+            t.isCompleted ? '' : 'hagomwidget://checktask?id=${Uri.encodeComponent(t.id)}',
           );
         } else {
           await HomeWidget.saveWidgetData<String>('cal_row_${n}_text', '');

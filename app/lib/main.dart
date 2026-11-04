@@ -9,14 +9,13 @@ final GlobalKey<NavigatorState> hagomNavigatorKey = GlobalKey<NavigatorState>();
 
 /// 위젯 액션/딥링크 실행기.
 ///
-/// 주의: Dart의 Uri.parse('hagomwidget://openHabits').host는 자동으로 소문자('openhabits')로
-/// 정규화되므로, 반드시 toLowerCase()로 비교해야 한다.
+/// 정책: 위젯에서는 실수로 인한 기록 유실을 막기 위해 '완료/실천/체크'만 수행하고
+/// 이미 완료된 항목을 되돌리거나 취소하는 동작은 하지 않는다(수정은 앱 내부에서만).
 Future<void> handleWidgetUriAction(Uri? uri) async {
   if (uri == null) return;
 
   final state = AppStateManager();
   await state.ensureInitialized();
-  // 백그라운드 isolate나 이전 위젯 탭으로 디스크가 바뀐 경우를 반영
   await state.reloadFromDisk();
 
   final rawAction = uri.host.isNotEmpty ? uri.host : uri.path.replaceAll('/', '');
@@ -31,12 +30,10 @@ Future<void> handleWidgetUriAction(Uri? uri) async {
       if (idx != -1 && slotIdx >= 0 && slotIdx < state.medications[idx].doseSlots.length) {
         final med = state.medications[idx];
         final slot = med.doseSlots[slotIdx];
-        if (slot.isCompleted) {
-          state.cancelSpecificSlot(med.id, slotIdx);
-        } else {
+        if (!slot.isCompleted) {
           state.completeSlot(med.id, slotIdx);
+          await state.flushForWidget();
         }
-        await state.flushForWidget();
         return;
       }
     }
@@ -54,12 +51,10 @@ Future<void> handleWidgetUriAction(Uri? uri) async {
   } else if (action == 'checkhabit') {
     if (id != null && state.habits.any((h) => h.id == id)) {
       final habit = state.habits.firstWhere((h) => h.id == id);
-      if (habit.score >= 1.0) {
-        state.resetHabitProgress(habit.id);
-      } else {
+      if (habit.score < 1.0) {
         state.advanceHabitProgress(habit.id);
+        await state.flushForWidget();
       }
-      await state.flushForWidget();
       return;
     }
     final todayHabits = state.habits.where((h) => h.isDueToday).toList();
@@ -72,14 +67,20 @@ Future<void> handleWidgetUriAction(Uri? uri) async {
     }
   } else if (action == 'checktask') {
     if (id != null && state.tasks.any((t) => t.id == id)) {
-      state.toggleTaskCompleted(id);
-      await state.flushForWidget();
+      final task = state.tasks.firstWhere((t) => t.id == id);
+      if (!task.isCompleted) {
+        state.toggleTaskCompleted(id);
+        await state.flushForWidget();
+      }
       return;
     }
     final todayTasks = state.getTasksForDay(DateTime.now());
-    if (todayTasks.isNotEmpty) {
-      state.toggleTaskCompleted(todayTasks.first.id);
-      await state.flushForWidget();
+    for (final task in todayTasks) {
+      if (!task.isCompleted) {
+        state.toggleTaskCompleted(task.id);
+        await state.flushForWidget();
+        return;
+      }
     }
   } else if (action == 'openmeds') {
     state.setTargetTab(0);
@@ -92,7 +93,6 @@ Future<void> handleWidgetUriAction(Uri? uri) async {
   }
 }
 
-/// 안드로이드 위젯 버튼 백그라운드 콜백
 @pragma('vm:entry-point')
 Future<void> backgroundCallback(Uri? uri) async {
   await handleWidgetUriAction(uri);
@@ -144,7 +144,6 @@ class _HagomAppState extends State<HagomApp> with WidgetsBindingObserver {
   @override
   void didChangeAppLifecycleState(AppLifecycleState lifecycleState) {
     if (lifecycleState == AppLifecycleState.resumed && !kIsWeb) {
-      // 홈 화면 위젯에서 체크한 내용이 앱에 즉시 반영되도록 디스크에서 다시 로드
       AppStateManager().reloadFromDisk();
     }
   }

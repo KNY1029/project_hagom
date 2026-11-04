@@ -8,7 +8,6 @@
     android:paddingHorizontal="11dp"
     android:paddingVertical="9dp">
 
-    <!-- 상단 대표 행 -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -73,7 +72,6 @@
                 android:textSize="10.5sp" />
         </LinearLayout>
 
-        <!-- 넓을 때(3xN 이상) 쓰는 일반 버튼 -->
         <LinearLayout
             android:id="@+id/widget_meds_btn"
             android:layout_width="64dp"
@@ -93,7 +91,6 @@
                 android:textStyle="bold" />
         </LinearLayout>
 
-        <!-- 좁을 때(2xN) 약 이름을 가리지 않는 컴팩트 버튼 -->
         <LinearLayout
             android:id="@+id/widget_meds_btn_compact"
             android:layout_width="46dp"
@@ -115,7 +112,7 @@
         </LinearLayout>
     </LinearLayout>
 
-    <!-- 세로 확장(n×2 이상) 시 최대 3개까지 잘리지 않게 표시 -->
+    <!-- 세로 높이에 맞춰 잘리지 않는 줄 수만큼만 동적 노출 (최대 6줄) -->
     <LinearLayout
         android:id="@+id/meds_expanded_list"
         android:layout_width="match_parent"
@@ -129,97 +126,29 @@
             android:layout_marginBottom="3dp"
             android:background="#E5E7EB" />
 
-        <LinearLayout
-            android:id="@+id/meds_row_1"
-            android:layout_width="match_parent"
-            android:layout_height="26dp"
-            android:gravity="center_vertical"
-            android:orientation="horizontal">
-
-            <TextView
-                android:id="@+id/meds_row_1_text"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:ellipsize="end"
-                android:maxLines="1"
-                android:text=""
-                android:textColor="#1F2937"
-                android:textSize="11sp" />
-
-            <TextView
-                android:id="@+id/meds_row_1_btn"
-                android:layout_width="44dp"
-                android:layout_height="21dp"
-                android:layout_marginStart="6dp"
-                android:background="@drawable/hagom_widget_btn_bg"
-                android:gravity="center"
-                android:text="복용"
-                android:textColor="#FFFFFF"
-                android:textSize="10sp"
-                android:textStyle="bold" />
+        <LinearLayout android:id="@+id/meds_row_1" android:layout_width="match_parent" android:layout_height="26dp" android:gravity="center_vertical" android:orientation="horizontal">
+            <TextView android:id="@+id/meds_row_1_text" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:ellipsize="end" android:maxLines="1" android:text="" android:textColor="#1F2937" android:textSize="11sp" />
+            <TextView android:id="@+id/meds_row_1_btn" android:layout_width="44dp" android:layout_height="21dp" android:layout_marginStart="6dp" android:background="@drawable/hagom_widget_btn_bg" android:gravity="center" android:text="복용" android:textColor="#FFFFFF" android:textSize="10sp" android:textStyle="bold" />
         </LinearLayout>
-
-        <LinearLayout
-            android:id="@+id/meds_row_2"
-            android:layout_width="match_parent"
-            android:layout_height="26dp"
-            android:gravity="center_vertical"
-            android:orientation="horizontal">
-
-            <TextView
-                android:id="@+id/meds_row_2_text"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:ellipsize="end"
-                android:maxLines="1"
-                android:text=""
-                android:textColor="#1F2937"
-                android:textSize="11sp" />
-
-            <TextView
-                android:id="@+id/meds_row_2_btn"
-                android:layout_width="44dp"
-                android:layout_height="21dp"
-                android:layout_marginStart="6dp"
-                android:background="@drawable/hagom_widget_btn_bg"
-                android:gravity="center"
-                android:text="복용"
-                android:textColor="#FFFFFF"
-                android:textSize="10sp"
-                android:textStyle="bold" />
+        <LinearLayout android:id="@+id/meds_row_2" android:layout_width="match_parent" android:layout_height="26dp" android:gravity="center_vertical" android:orientation="horizontal">
+            <TextView android:id="@+id/meds_row_2_text" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:ellipsize="end" android:maxLines="1" android:text="" android:textColor="#1F2937" android:textSize="11sp" />
+            <TextView android:id="@+id/meds_row_2_btn" android:layout_width="44dp" android:layout_height="21dp" android:layout_marginStart="6dp" android:background="@drawable/hagom_widget_btn_bg" android:gravity="center" android:text="복용" android:textColor="#FFFFFF" android:textSize="10sp" android:textStyle="bold" />
         </LinearLayout>
-
-        <LinearLayout
-            android:id="@+id/meds_row_3"
-            android:layout_width="match_parent"
-            android:layout_height="26dp"
-            android:gravity="center_vertical"
-            android:orientation="horizontal">
-
-            <TextView
-                android:id="@+id/meds_row_3_text"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:ellipsize="end"
-                android:maxLines="1"
-                android:text=""
-                android:textColor="#1F2937"
-                android:textSize="11sp" />
-
-            <TextView
-                android:id="@+id/meds_row_3_btn"
-                android:layout_width="44dp"
-                android:layout_height="21dp"
-                android:layout_marginStart="6dp"
-                android:background="@drawable/hagom_widget_btn_bg"
-                android:gravity="center"
-                android:text="복용"
-                android:textColor="#FFFFFF"
-                android:textSize="10sp"
-                android:textStyle="bold" />
+        <LinearLayout android:id="@+id/meds_row_3" android:layout_width="match_parent" android:layout_height="26dp" android:gravity="center_vertical" android:orientation="horizontal">
+            <TextView android:id="@+id/meds_row_3_text" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:ellipsize="end" android:maxLines="1" android:text="" android:textColor="#1F2937" android:textSize="11sp" />
+            <TextView android:id="@+id/meds_row_3_btn" android:layout_width="44dp" android:layout_height="21dp" android:layout_marginStart="6dp" android:background="@drawable/hagom_widget_btn_bg" android:gravity="center" android:text="복용" android:textColor="#FFFFFF" android:textSize="10sp" android:textStyle="bold" />
+        </LinearLayout>
+        <LinearLayout android:id="@+id/meds_row_4" android:layout_width="match_parent" android:layout_height="26dp" android:gravity="center_vertical" android:orientation="horizontal">
+            <TextView android:id="@+id/meds_row_4_text" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:ellipsize="end" android:maxLines="1" android:text="" android:textColor="#1F2937" android:textSize="11sp" />
+            <TextView android:id="@+id/meds_row_4_btn" android:layout_width="44dp" android:layout_height="21dp" android:layout_marginStart="6dp" android:background="@drawable/hagom_widget_btn_bg" android:gravity="center" android:text="복용" android:textColor="#FFFFFF" android:textSize="10sp" android:textStyle="bold" />
+        </LinearLayout>
+        <LinearLayout android:id="@+id/meds_row_5" android:layout_width="match_parent" android:layout_height="26dp" android:gravity="center_vertical" android:orientation="horizontal">
+            <TextView android:id="@+id/meds_row_5_text" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:ellipsize="end" android:maxLines="1" android:text="" android:textColor="#1F2937" android:textSize="11sp" />
+            <TextView android:id="@+id/meds_row_5_btn" android:layout_width="44dp" android:layout_height="21dp" android:layout_marginStart="6dp" android:background="@drawable/hagom_widget_btn_bg" android:gravity="center" android:text="복용" android:textColor="#FFFFFF" android:textSize="10sp" android:textStyle="bold" />
+        </LinearLayout>
+        <LinearLayout android:id="@+id/meds_row_6" android:layout_width="match_parent" android:layout_height="26dp" android:gravity="center_vertical" android:orientation="horizontal">
+            <TextView android:id="@+id/meds_row_6_text" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:ellipsize="end" android:maxLines="1" android:text="" android:textColor="#1F2937" android:textSize="11sp" />
+            <TextView android:id="@+id/meds_row_6_btn" android:layout_width="44dp" android:layout_height="21dp" android:layout_marginStart="6dp" android:background="@drawable/hagom_widget_btn_bg" android:gravity="center" android:text="복용" android:textColor="#FFFFFF" android:textSize="10sp" android:textStyle="bold" />
         </LinearLayout>
     </LinearLayout>
 </LinearLayout>

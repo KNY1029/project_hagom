@@ -30,7 +30,7 @@ class HagomHabitsWidgetProvider : HomeWidgetProvider() {
     ) {
         for (appWidgetId in appWidgetIds) {
             val isNarrow = WidgetBindings.isNarrowWidth(appWidgetManager, appWidgetId)
-            val isExpanded = WidgetBindings.isVerticallyExpanded(appWidgetManager, appWidgetId)
+            val maxRows = WidgetBindings.maxFittingRows(appWidgetManager, appWidgetId)
 
             val views = RemoteViews(context.packageName, R.layout.hagom_habits_widget).apply {
                 setViewVisibility(R.id.widget_habits_tag, if (isNarrow) View.GONE else View.VISIBLE)
@@ -69,7 +69,7 @@ class HagomHabitsWidgetProvider : HomeWidgetProvider() {
                 setOnClickPendingIntent(R.id.widget_habits_container, openHabitsIntent)
 
                 val mainAction = WidgetBindings.text(widgetData, "habits_action")
-                val btnPending = if (mainAction.isNotEmpty()) {
+                val btnPending = if (state != "done" && mainAction.isNotEmpty()) {
                     WidgetBindings.actionIntent(context, mainAction)
                 } else {
                     openHabitsIntent
@@ -77,12 +77,15 @@ class HagomHabitsWidgetProvider : HomeWidgetProvider() {
                 setOnClickPendingIntent(R.id.widget_habits_btn, btnPending)
                 setOnClickPendingIntent(R.id.widget_habits_btn_compact, btnPending)
 
-                setViewVisibility(R.id.habits_expanded_list, if (isExpanded) View.VISIBLE else View.GONE)
+                setViewVisibility(R.id.habits_expanded_list, if (maxRows > 0) View.VISIBLE else View.GONE)
 
                 val rowIds = listOf(
                     Triple(R.id.habits_row_1, R.id.habits_row_1_text, R.id.habits_row_1_btn),
                     Triple(R.id.habits_row_2, R.id.habits_row_2_text, R.id.habits_row_2_btn),
-                    Triple(R.id.habits_row_3, R.id.habits_row_3_text, R.id.habits_row_3_btn)
+                    Triple(R.id.habits_row_3, R.id.habits_row_3_text, R.id.habits_row_3_btn),
+                    Triple(R.id.habits_row_4, R.id.habits_row_4_text, R.id.habits_row_4_btn),
+                    Triple(R.id.habits_row_5, R.id.habits_row_5_text, R.id.habits_row_5_btn),
+                    Triple(R.id.habits_row_6, R.id.habits_row_6_text, R.id.habits_row_6_btn)
                 )
                 rowIds.forEachIndexed { idx, (rowId, textId, btnId) ->
                     val n = idx + 1
@@ -95,7 +98,9 @@ class HagomHabitsWidgetProvider : HomeWidgetProvider() {
                         "habits_row_${n}_action",
                         "실천",
                         R.drawable.hagom_widget_habit_btn_bg,
-                        isNarrow
+                        isNarrow,
+                        openHabitsIntent,
+                        idx < maxRows
                     )
                 }
             }

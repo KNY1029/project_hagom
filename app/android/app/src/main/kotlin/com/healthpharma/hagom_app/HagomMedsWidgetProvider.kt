@@ -30,7 +30,7 @@ class HagomMedsWidgetProvider : HomeWidgetProvider() {
     ) {
         for (appWidgetId in appWidgetIds) {
             val isNarrow = WidgetBindings.isNarrowWidth(appWidgetManager, appWidgetId)
-            val isExpanded = WidgetBindings.isVerticallyExpanded(appWidgetManager, appWidgetId)
+            val maxRows = WidgetBindings.maxFittingRows(appWidgetManager, appWidgetId)
 
             val views = RemoteViews(context.packageName, R.layout.hagom_meds_widget).apply {
                 setViewVisibility(R.id.widget_meds_tag, if (isNarrow) View.GONE else View.VISIBLE)
@@ -66,7 +66,7 @@ class HagomMedsWidgetProvider : HomeWidgetProvider() {
                 setOnClickPendingIntent(R.id.widget_meds_container, openMedsIntent)
 
                 val mainAction = WidgetBindings.text(widgetData, "meds_action")
-                val btnPending = if (mainAction.isNotEmpty()) {
+                val btnPending = if (!allDone && mainAction.isNotEmpty()) {
                     WidgetBindings.actionIntent(context, mainAction)
                 } else {
                     openMedsIntent
@@ -74,12 +74,15 @@ class HagomMedsWidgetProvider : HomeWidgetProvider() {
                 setOnClickPendingIntent(R.id.widget_meds_btn, btnPending)
                 setOnClickPendingIntent(R.id.widget_meds_btn_compact, btnPending)
 
-                setViewVisibility(R.id.meds_expanded_list, if (isExpanded) View.VISIBLE else View.GONE)
+                setViewVisibility(R.id.meds_expanded_list, if (maxRows > 0) View.VISIBLE else View.GONE)
 
                 val rowIds = listOf(
                     Triple(R.id.meds_row_1, R.id.meds_row_1_text, R.id.meds_row_1_btn),
                     Triple(R.id.meds_row_2, R.id.meds_row_2_text, R.id.meds_row_2_btn),
-                    Triple(R.id.meds_row_3, R.id.meds_row_3_text, R.id.meds_row_3_btn)
+                    Triple(R.id.meds_row_3, R.id.meds_row_3_text, R.id.meds_row_3_btn),
+                    Triple(R.id.meds_row_4, R.id.meds_row_4_text, R.id.meds_row_4_btn),
+                    Triple(R.id.meds_row_5, R.id.meds_row_5_text, R.id.meds_row_5_btn),
+                    Triple(R.id.meds_row_6, R.id.meds_row_6_text, R.id.meds_row_6_btn)
                 )
                 rowIds.forEachIndexed { idx, (rowId, textId, btnId) ->
                     val n = idx + 1
@@ -92,7 +95,9 @@ class HagomMedsWidgetProvider : HomeWidgetProvider() {
                         "meds_row_${n}_action",
                         "복용",
                         R.drawable.hagom_widget_btn_bg,
-                        isNarrow
+                        isNarrow,
+                        openMedsIntent,
+                        idx < maxRows
                     )
                 }
             }

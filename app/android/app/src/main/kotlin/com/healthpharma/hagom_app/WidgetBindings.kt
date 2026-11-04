@@ -14,9 +14,9 @@ import es.antonborri.home_widget.HomeWidgetBackgroundIntent
 /**
  * 위젯 공통 바인딩 유틸.
  *
- * - 2×N처럼 가로 폭이 좁아지면(minWidth < 210dp) 태그를 숨기고 컴팩트 버튼(46×34dp)으로 전환해
- *   약/습관/할일 이름이 가려지지 않게 한다.
- * - 세로 1칸(minHeight < 105dp)일 때는 확장 목록 전체를 숨기고, 세로 2칸 이상일 때 최대 3개까지 표시한다.
+ * - 현재 위젯의 실제 세로 높이(dp)에서 상단 대표 카드+여백(약 80dp)을 뺀 뒤
+ *   한 줄 높이(26dp)로 나누어 '잘리지 않고 온전히 들어가는 최대 줄 수(0~6)'만 표시한다.
+ * - 이미 완료된 항목의 버튼을 누르면 취소되지 않고 해당 탭으로 앱만 열린다.
  */
 object WidgetBindings {
 
@@ -41,19 +41,29 @@ object WidgetBindings {
 
     fun text(prefs: SharedPreferences, key: String): String = prefs.getString(key, "") ?: ""
 
-    /** 가로 2칸 이하인지 판별 */
     fun isNarrowWidth(appWidgetManager: AppWidgetManager, appWidgetId: Int): Boolean {
         val opts = appWidgetManager.getAppWidgetOptions(appWidgetId)
         val minW = opts.getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_WIDTH, 250)
         return minW in 1..205
     }
 
-    /** 세로 2칸 이상으로 늘렸는지 판별 */
-    fun isVerticallyExpanded(appWidgetManager: AppWidgetManager, appWidgetId: Int): Boolean {
+    /**
+     * 위젯 세로 높이(dp) 기준으로 잘리지 않고 온전히 들어가는 확장 줄 개수(0~6)를 계산.
+     * 상단 대표 행 + 상하 패딩 + 구분선이 약 82dp를 차지하고, 확장 한 줄은 정확히 26dp.
+     */
+    fun maxFittingRows(appWidgetManager: AppWidgetManager, appWidgetId: Int): Int {
         val opts = appWidgetManager.getAppWidgetOptions(appWidgetId)
-        val maxH = opts.getInt(AppWidgetManager.OPTION_APPWIDGET_MAX_HEIGHT, 110)
-        val minH = opts.getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_HEIGHT, 80)
-        return maxH >= 135 || minH >= 115
+        val minH = opts.getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_HEIGHT, 0)
+        val maxH = opts.getInt(AppWidgetManager.OPTION_APPWIDGET_MAX_HEIGHT, 0)
+        // 삼성 One UI 런처는 세로 방향에서 minHeight가 실제 셀 높이에 가깝고, 미지정(0)일 때만 기본값 사용
+        val effectiveH = when {
+            minH > 0 -> minH
+            maxH > 0 -> maxH
+            else -> 90 // 기본 3x1
+        }
+        if (effectiveH < 110) return 0
+        val availableForRows = effectiveH - 80
+        return (availableForRows / 26).coerceIn(1, 6)
     }
 
     fun bindRow(
@@ -69,8 +79,14 @@ object WidgetBindings {
         actionKey: String,
         pendingLabel: String,
         pendingBg: Int,
-        isNarrow: Boolean
+        isNarrow: Boolean,
+        fallbackOpenIntent: PendingIntent,
+        allowShow: Boolean
     ) {
+        if (!allowShow) {
+            views.setViewVisibility(rowId, View.GONE)
+            return
+        }
         val fullText = text(prefs, textKey)
         val shortText = text(prefs, shortTextKey)
         val display = if (isNarrow && shortText.isNotEmpty()) shortText else fullText
@@ -93,8 +109,11 @@ object WidgetBindings {
         }
 
         val action = text(prefs, actionKey)
-        if (action.isNotEmpty()) {
+        if (!isDone && action.isNotEmpty()) {
             views.setOnClickPendingIntent(btnId, actionIntent(context, action))
+        } else {
+            // 이미 완료된 줄은 위젯에서 취소되지 않고 해당 탭으로 앱만 열림
+            views.setOnClickPendingIntent(btnId, fallbackOpenIntent)
         }
     }
 
