@@ -43,6 +43,27 @@ class _SettingsScreenState extends State<SettingsScreen> {
     'com.healthpharma.hagom_app/export',
   );
 
+  Future<void> _sendTestNotification() async {
+    String message;
+    try {
+      final sent = await _exportChannel.invokeMethod<bool>(
+        'showTestNotification',
+      );
+      message = sent == true
+          ? '테스트 알림을 보냈어요.'
+          : '알림 권한이 꺼져 있어요. 권한을 허용한 뒤 다시 눌러 주세요.';
+    } on PlatformException catch (error) {
+      message = '테스트 알림을 보내지 못했어요: ${error.message ?? error.code}';
+    } on MissingPluginException {
+      message = '이 기기에서는 알림 테스트를 지원하지 않아요.';
+    }
+
+    if (!mounted) return;
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(SnackBar(content: Text(message)));
+  }
+
   // 📥 [보건약학 임상/교수님 자문용] 4대 영역 맞춤형 CSV 엑셀 다운로드 & 공유 모달
   Future<void> _exportMedicalCsv() async {
     bool includePrescription = true;
@@ -459,7 +480,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     ),
                     SizedBox(height: 3),
                     Text(
-                      '정신약학 비처벌 복약 솔루션 · v0.87.151',
+                      '정신약학 비처벌 복약 솔루션 · v0.87.155',
                       style: TextStyle(
                         fontSize: 12,
                         color: AppColors.textSecondary,
@@ -758,6 +779,40 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   ),
                   value: _state.completionFeedbackEnabled,
                   onChanged: (val) => _state.setCompletionFeedbackEnabled(val),
+                ),
+                const Divider(height: 1, color: Color(0xFFF3F4F6)),
+                Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 10,
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        '알림 테스트(개발자)',
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                          color: AppColors.textPrimary,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      const Text(
+                        '실제 기기에 테스트 알림을 한 번 보냅니다.',
+                        style: TextStyle(
+                          fontSize: 11.5,
+                          color: AppColors.textSecondary,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      OutlinedButton.icon(
+                        onPressed: _sendTestNotification,
+                        icon: const Icon(Icons.notifications_active_outlined),
+                        label: const Text('테스트 알림 보내기'),
+                      ),
+                    ],
+                  ),
                 ),
                 const Divider(height: 1, color: Color(0xFFF3F4F6)),
                 ListTile(
