@@ -138,4 +138,3 @@ class HagomMonthCalendarWidgetProvider : HomeWidgetProvider() {
             appWidgetManager.updateAppWidget(appWidgetId, views)
         }
     }
-}
