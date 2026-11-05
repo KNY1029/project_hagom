@@ -264,6 +264,7 @@
             android:paddingVertical="5dp">
 
             <TextView
+                android:id="@+id/widget_month_tasks_label"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="오늘의 할일"

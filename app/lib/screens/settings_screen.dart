@@ -358,7 +358,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     ),
                     SizedBox(height: 3),
                     Text(
-                      '정신약학 비처벌 복약 솔루션 · v0.84.144',
+                      '정신약학 비처벌 복약 솔루션 · v0.85.145',
                       style: TextStyle(
                         fontSize: 12,
                         color: AppColors.textSecondary,
@@ -680,17 +680,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     );
                   },
                 ),
-                if (_state.isDevSimulationMode) ...[
-                  const Divider(height: 1, color: Color(0xFFF3F4F6)),
-                  ListTile(
-                    contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-                    leading: const Icon(Icons.palette_outlined, color: AppColors.primaryPurple),
-                    title: const Text('개발자 테마 및 색상 설정', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: AppColors.primaryPurple)),
-                    subtitle: Text('현재 테마: ${_themeName(_state.currentThemeKey)} · 딥 바이올렛 & 위젯 미니 테마', style: const TextStyle(fontSize: 11.5, color: AppColors.textSecondary)),
-                    trailing: const Icon(Icons.arrow_forward_ios, size: 14, color: AppColors.primaryPurple),
-                    onTap: _showDeveloperThemeModal,
-                  ),
-                ],
+                const Divider(height: 1, color: Color(0xFFF3F4F6)),
+                ListTile(
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                  leading: const Icon(Icons.palette_outlined, color: AppColors.primaryPurple),
+                  title: const Text('테마 및 색상 설정 (개발자)', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: AppColors.primaryPurple)),
+                  subtitle: Text('현재: ${_themeName(_state.currentThemeKey)} · 딥 바이올렛/위젯 미니 테마', style: const TextStyle(fontSize: 11.5, color: AppColors.textSecondary)),
+                  trailing: const Icon(Icons.arrow_forward_ios, size: 14, color: AppColors.primaryPurple),
+                  onTap: _showDeveloperThemeModal,
+                ),
                 const Divider(height: 1, color: Color(0xFFF3F4F6)),
                 ListTile(
                   contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),

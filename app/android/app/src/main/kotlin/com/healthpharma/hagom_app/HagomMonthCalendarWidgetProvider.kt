@@ -39,6 +39,8 @@ class HagomMonthCalendarWidgetProvider : HomeWidgetProvider() {
                 setTextViewText(R.id.widget_month_title, WidgetBindings.text(widgetData, "month_title"))
                 setTextViewText(R.id.widget_month_meds, WidgetBindings.text(widgetData, "month_meds"))
                 setTextViewText(R.id.widget_month_habits, WidgetBindings.text(widgetData, "month_habits"))
+                val taskLabel = widgetData.getString("month_tasks_label", "오늘의 할일") ?: "오늘의 할일"
+                setTextViewText(R.id.widget_month_tasks_label, taskLabel)
                 setTextViewText(R.id.widget_month_tasks, WidgetBindings.text(widgetData, "month_tasks"))
 
                 // 🌟 [42개 셀(c_0 ~ c_41) 동적 매핑]: 실제 시작 요일 및 말일 반영!

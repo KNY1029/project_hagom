@@ -339,6 +339,19 @@ class HagomNativeWidgetSync {
       final monthHabits = isTargetFuture
           ? '${datePrefix}습관 ${targetDueHabits.length}개 예정'
           : '${datePrefix}습관 $targetDoneHabits/${targetDueHabits.length} 완료';
+
+      // 🌟 [할일 라벨 및 상태 세분화]: 과거: 그날의 한일, 오늘: 오늘의 할일, 미래: 그날의 할일
+      final todayOnly = DateTime(now.year, now.month, now.day);
+      final targetDateOnly = DateTime(targetDate.year, targetDate.month, targetDate.day);
+      final String taskSectionLabel;
+      if (targetDateOnly.isBefore(todayOnly)) {
+        taskSectionLabel = isInspectingOtherDay ? '${targetDate.month}/${targetDate.day} 그날의 한일' : '그날의 한일';
+      } else if (targetDateOnly.isAfter(todayOnly)) {
+        taskSectionLabel = isInspectingOtherDay ? '${targetDate.month}/${targetDate.day} 그날의 할일' : '그날의 할일';
+      } else {
+        taskSectionLabel = '오늘의 할일';
+      }
+
       final monthTasks = targetTasks.isEmpty
           ? '0개'
           : (isTargetFuture ? '${targetTasks.length}개 예정' : (targetPendingTasks > 0 ? '$targetPendingTasks개 남음' : '모두 완료'));
@@ -347,11 +360,11 @@ class HagomNativeWidgetSync {
       await HomeWidget.saveWidgetData<String>('month_meds', monthMeds);
       await HomeWidget.saveWidgetData<String>('month_habits', monthHabits);
       await HomeWidget.saveWidgetData<String>('month_tasks', monthTasks);
+      await HomeWidget.saveWidgetData<String>('month_tasks_label', taskSectionLabel);
       final targetDateIso = '${targetDate.year}-${targetDate.month.toString().padLeft(2, '0')}-${targetDate.day.toString().padLeft(2, '0')}';
       await HomeWidget.saveWidgetData<String>('month_inspecting_iso', isInspectingOtherDay ? targetDateIso : '');
       await HomeWidget.saveWidgetData<String>('month_selected_date', selDate != null ? targetDateIso : '');
       await HomeWidget.saveWidgetData<String>('month_selected_day', selDate != null ? selDate.day.toString() : '');
-      final todayOnly = DateTime(now.year, now.month, now.day);
       // 🌟 [어떤 달이든 100% 실제 달력 반영]:
       // 1일의 시작 요일(일=0, 월=1, ..., 토=6)과 해당 월의 총 일수(28~31일)를 정밀 계산!
       final firstDayWeekday = DateTime(displayMonth.year, displayMonth.month, 1).weekday % 7; // 일요일=0
