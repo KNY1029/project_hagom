@@ -182,21 +182,25 @@ class AppStateManager extends ChangeNotifier {
     notifyListeners();
   }
   int widgetMonthOffset = 0;
-  int? widgetSelectedDay; // 달력 위젯에서 현재 탭해보고 있는 날짜 (null이면 오늘)
+  DateTime? widgetSelectedDate; // 달력 위젯에서 현재 탭해보고 있는 실제 연-월-일 (null이면 오늘)
+  int? get widgetSelectedDay => widgetSelectedDate?.day;
 
-  void selectWidgetDay(int day) {
-    if (widgetSelectedDay == day) {
+  void selectWidgetDate(DateTime date) {
+    if (widgetSelectedDate != null &&
+        widgetSelectedDate!.year == date.year &&
+        widgetSelectedDate!.month == date.month &&
+        widgetSelectedDate!.day == date.day) {
       // 이미 선택된 날짜를 한 번 더 누르면 오늘로 리셋
-      widgetSelectedDay = null;
+      widgetSelectedDate = null;
     } else {
-      widgetSelectedDay = day;
+      widgetSelectedDate = DateTime(date.year, date.month, date.day);
     }
     notifyListeners();
   }
 
   void changeWidgetMonthOffset(int delta) {
     widgetMonthOffset += delta;
-    widgetSelectedDay = null; // 월 변경 시 선택 리셋
+    widgetSelectedDate = null; // 월 변경 시 선택 리셋
     notifyListeners();
   }
 
@@ -307,6 +311,11 @@ class AppStateManager extends ChangeNotifier {
       if (slotIdx >= 0 && slotIdx < med.doseSlots.length) {
         return med.doseSlots[slotIdx].isCompleted;
       }
+      return false;
+    }
+
+    // 🌟 [미래 날짜 철칙]: 아직 오지 않은 날짜는 무조건 미복용(false)!
+    if (target.isAfter(today)) {
       return false;
     }
 
@@ -465,6 +474,11 @@ class AppStateManager extends ChangeNotifier {
     if (target.isAtSameMomentAs(today)) {
       final habit = _habits.firstWhere((h) => h.id == habitId, orElse: () => _habits.first);
       return habit.score;
+    }
+
+    // 🌟 [미래 날짜 철칙]: 아직 오지 않은 날짜는 무조건 미실천(0.0)!
+    if (target.isAfter(today)) {
+      return 0.0;
     }
 
     final key = _dateKey(day);
@@ -636,6 +650,12 @@ class AppStateManager extends ChangeNotifier {
       await _prefs!.setString('hagom_routine_times', jsonEncode(routineTimes));
       await _prefs!.setString('hagom_theme_key', currentThemeKey);
       await _prefs!.setString('hagom_custom_theme', jsonEncode(customThemeColors));
+      await _prefs!.setInt('hagom_widget_month_offset', widgetMonthOffset);
+      if (widgetSelectedDate != null) {
+        await _prefs!.setString('hagom_widget_selected_date', _dateKey(widgetSelectedDate!));
+      } else {
+        await _prefs!.remove('hagom_widget_selected_date');
+      }
     } catch (_) {}
   }
 
@@ -665,6 +685,11 @@ class AppStateManager extends ChangeNotifier {
         } else {
           AppColors.applyPreset(savedTheme);
         }
+      }
+      widgetMonthOffset = _prefs!.getInt('hagom_widget_month_offset') ?? 0;
+      final savedSelDate = _prefs!.getString('hagom_widget_selected_date');
+      if (savedSelDate != null) {
+        widgetSelectedDate = DateTime.tryParse(savedSelDate);
       }
       if (medsRaw != null) {
         final List<dynamic> decoded = jsonDecode(medsRaw);

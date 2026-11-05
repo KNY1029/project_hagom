@@ -32,12 +32,9 @@ class HagomMonthCalendarWidgetProvider : HomeWidgetProvider() {
             val opts = appWidgetManager.getAppWidgetOptions(appWidgetId)
             val minH = opts.getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_HEIGHT, 240)
             val taskLines = if (minH > 275) ((minH - 265) / 22).coerceIn(1, 5) else 0
-
-            val selectedDayStr = widgetData.getString("month_selected_day", "") ?: ""
-            val selectedDay = selectedDayStr.toIntOrNull()
+            val selectedDateStr = widgetData.getString("month_selected_date", "") ?: ""
             val inspectingIso = widgetData.getString("month_inspecting_iso", "") ?: ""
             val hasSelectedOtherDay = inspectingIso.isNotEmpty()
-
             val views = RemoteViews(context.packageName, R.layout.hagom_month_calendar_widget).apply {
                 setTextViewText(R.id.widget_month_title, WidgetBindings.text(widgetData, "month_title"))
                 setTextViewText(R.id.widget_month_meds, WidgetBindings.text(widgetData, "month_meds"))
@@ -51,25 +48,24 @@ class HagomMonthCalendarWidgetProvider : HomeWidgetProvider() {
                         val cellText = widgetData.getString("cell_${i}_text", "") ?: ""
                         val status = widgetData.getString("cell_${i}_status", "empty") ?: "empty"
                         val dayNum = widgetData.getString("cell_${i}_day", "")?.toIntOrNull()
+                        val cellDate = widgetData.getString("cell_${i}_date", "") ?: ""
 
-                        if (status == "empty" || cellText.isEmpty() || dayNum == null) {
+                        if (status == "empty" || cellText.isEmpty() || dayNum == null || cellDate.isEmpty()) {
                             setTextViewText(resId, "")
                             setInt(resId, "setBackgroundResource", 0)
                             setOnClickPendingIntent(resId, null)
                             continue
                         }
-
                         setTextViewText(resId, cellText)
 
                         // 일요일(i % 7 == 0)은 빨간색 글자
                         val isSunday = (i % 7 == 0)
                         setTextColor(resId, if (isSunday) Color.parseColor("#EF4444") else Color.parseColor("#1F2937"))
 
-                        val isDaySelected = (selectedDay != null && selectedDay == dayNum)
+                        val isDaySelected = (selectedDateStr.isNotEmpty() && selectedDateStr == cellDate)
                         val bgRes = if (isDaySelected) {
                             if (status.contains("pin")) R.drawable.hagom_widget_selected_pin else R.drawable.hagom_widget_selected_bg
                         } else {
-                            when (status) {
                                 "today" -> R.drawable.hagom_widget_today_bg
                                 "today_pin" -> R.drawable.hagom_widget_today_pin
                                 "today_done" -> R.drawable.hagom_widget_today_done_bg
@@ -85,18 +81,17 @@ class HagomMonthCalendarWidgetProvider : HomeWidgetProvider() {
                             }
                         }
                         setInt(resId, "setBackgroundResource", bgRes)
-
                         val cellPending = if (isDaySelected && inspectingIso.isNotEmpty()) {
                             WidgetBindings.openAppIntent(
                                 context,
-                                "hagomwidget://opencalendar?date=$inspectingIso",
-                                2000 + dayNum
+                                "hagomwidget://opencalendar?date=$cellDate",
+                                2000 + i
                             )
                         } else {
                             WidgetBindings.actionIntent(
                                 context,
-                                "hagomwidget://selectday?day=$dayNum",
-                                3000 + dayNum
+                                "hagomwidget://selectday?date=$cellDate",
+                                3000 + i
                             )
                         }
                         setOnClickPendingIntent(resId, cellPending)

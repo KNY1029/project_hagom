@@ -312,12 +312,11 @@ class HagomNativeWidgetSync {
       final displayMonth = DateTime(now.year, now.month + offset, 1);
       final monthStr = '${displayMonth.year}년 ${displayMonth.month}월 기록 달력';
 
-      // 🌟 [핵심 UX]: 위젯에서 날짜를 탭해 선택 중인 경우 해당 날짜의 복약/습관/할일 요약 표시, 아니면 오늘치 표시
-      final selectedDayNum = state.widgetSelectedDay;
-      final targetDate = (selectedDayNum != null && selectedDayNum >= 1 && selectedDayNum <= 31)
-          ? DateTime(displayMonth.year, displayMonth.month, selectedDayNum)
-          : now;
+      // 🌟 [핵심 UX]: 위젯에서 특정 날짜를 탭해 선택 중인 경우 해당 날짜의 복약/습관/할일 요약 표시, 아니면 오늘치 표시
+      final selDate = state.widgetSelectedDate;
+      final targetDate = selDate ?? now;
       final isInspectingOtherDay = (targetDate.year != now.year || targetDate.month != now.month || targetDate.day != now.day);
+      final isTargetFuture = targetDate.isAfter(DateTime(now.year, now.month, now.day));
 
       final targetSlots = <_MedSlotEntry>[];
       for (final med in state.medications) {
@@ -327,25 +326,31 @@ class HagomNativeWidgetSync {
           targetSlots.add(_MedSlotEntry(med: med, slotIndex: i, slot: DoseSlot(label: med.doseSlots[i].label, scheduledTime: med.doseSlots[i].scheduledTime, isCompleted: isDone)));
         }
       }
-      final targetCompMeds = targetSlots.where((e) => e.slot.isCompleted).length;
+      final targetCompMeds = isTargetFuture ? 0 : targetSlots.where((e) => e.slot.isCompleted).length;
       final targetDueHabits = state.habits.where((h) => h.isDueOn(targetDate)).toList();
-      final targetDoneHabits = targetDueHabits.where((h) => (state.getHabitScoreForDay(targetDate, h.id) ?? 0.0) >= 1.0).length;
+      final targetDoneHabits = isTargetFuture ? 0 : targetDueHabits.where((h) => (state.getHabitScoreForDay(targetDate, h.id) ?? 0.0) >= 1.0).length;
       final targetTasks = state.getTasksForDay(targetDate);
       final targetPendingTasks = targetTasks.where((t) => !t.isCompleted).length;
 
       final datePrefix = isInspectingOtherDay ? '${targetDate.month}/${targetDate.day} ' : '';
-      final monthMeds = '${datePrefix}복약 $targetCompMeds/${targetSlots.length} 완료';
-      final monthHabits = '${datePrefix}습관 $targetDoneHabits/${targetDueHabits.length} 완료';
+      final monthMeds = isTargetFuture
+          ? '${datePrefix}복약 ${targetSlots.length}개 예정'
+          : '${datePrefix}복약 $targetCompMeds/${targetSlots.length} 완료';
+      final monthHabits = isTargetFuture
+          ? '${datePrefix}습관 ${targetDueHabits.length}개 예정'
+          : '${datePrefix}습관 $targetDoneHabits/${targetDueHabits.length} 완료';
       final monthTasks = targetTasks.isEmpty
           ? '0개'
-          : (targetPendingTasks > 0 ? '$targetPendingTasks개 남음' : '모두 완료');
+          : (isTargetFuture ? '${targetTasks.length}개 예정' : (targetPendingTasks > 0 ? '$targetPendingTasks개 남음' : '모두 완료'));
 
       await HomeWidget.saveWidgetData<String>('month_title', monthStr);
       await HomeWidget.saveWidgetData<String>('month_meds', monthMeds);
       await HomeWidget.saveWidgetData<String>('month_habits', monthHabits);
       await HomeWidget.saveWidgetData<String>('month_tasks', monthTasks);
-      await HomeWidget.saveWidgetData<String>('month_inspecting_iso', isInspectingOtherDay ? '${targetDate.year}-${targetDate.month.toString().padLeft(2, '0')}-${targetDate.day.toString().padLeft(2, '0')}' : '');
-      await HomeWidget.saveWidgetData<String>('month_selected_day', selectedDayNum?.toString() ?? '');
+      final targetDateIso = '${targetDate.year}-${targetDate.month.toString().padLeft(2, '0')}-${targetDate.day.toString().padLeft(2, '0')}';
+      await HomeWidget.saveWidgetData<String>('month_inspecting_iso', isInspectingOtherDay ? targetDateIso : '');
+      await HomeWidget.saveWidgetData<String>('month_selected_date', selDate != null ? targetDateIso : '');
+      await HomeWidget.saveWidgetData<String>('month_selected_day', selDate != null ? selDate.day.toString() : '');
       final todayOnly = DateTime(now.year, now.month, now.day);
       // 🌟 [어떤 달이든 100% 실제 달력 반영]:
       // 1일의 시작 요일(일=0, 월=1, ..., 토=6)과 해당 월의 총 일수(28~31일)를 정밀 계산!
@@ -359,6 +364,7 @@ class HagomNativeWidgetSync {
           await HomeWidget.saveWidgetData<String>('cell_${i}_text', '');
           await HomeWidget.saveWidgetData<String>('cell_${i}_status', 'empty');
           await HomeWidget.saveWidgetData<String>('cell_${i}_day', '');
+          await HomeWidget.saveWidgetData<String>('cell_${i}_date', '');
           continue;
         }
 
@@ -396,9 +402,11 @@ class HagomNativeWidgetSync {
           status = 'pin_only';
         }
 
+        final dateIso = '${cellDate.year}-${cellDate.month.toString().padLeft(2, '0')}-${cellDate.day.toString().padLeft(2, '0')}';
         await HomeWidget.saveWidgetData<String>('cell_${i}_text', dayNum.toString());
         await HomeWidget.saveWidgetData<String>('cell_${i}_status', status);
         await HomeWidget.saveWidgetData<String>('cell_${i}_day', dayNum.toString());
+        await HomeWidget.saveWidgetData<String>('cell_${i}_date', dateIso);
       }
 
       // 달력 위젯에 선택된 날짜(또는 오늘) 할일 전체 목록 전달 (최대 5개)
