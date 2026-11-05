@@ -229,6 +229,36 @@ class AppStateManager extends ChangeNotifier {
     return null;
   }
 
+  void setTheme(String themeKey) {
+    applyTheme(themeKey);
+  }
+
+  void setCustomTheme({
+    required Color primary,
+    required Color background,
+    required Color lightTint,
+    required Color textPrimary,
+    Color? textSecondary,
+    Color? warmAccent,
+  }) {
+    final key = 'custom_${DateTime.now().millisecondsSinceEpoch}';
+    final preset = ThemePreset(
+      key: key,
+      name: '사용자 지정',
+      description: '커스텀 테마',
+      primary: primary,
+      background: background,
+      lightTint: lightTint,
+      textPrimary: textPrimary,
+      textSecondary: textSecondary ?? primary,
+      warmAccent: warmAccent ?? primary,
+      divider: AppColors.divider,
+      isCustom: true,
+    );
+    customThemes.add(preset);
+    applyTheme(key);
+  }
+
   void applyTheme(String themeKey) {
     final theme = _findTheme(themeKey) ?? AppColors.defaultTheme;
     currentThemeKey = theme.key;

@@ -76,6 +76,12 @@ class AppColors {
   static Color textSecondary = defaultTheme.textSecondary; // 부가 설명 글자색
   static Color divider = defaultTheme.divider; // 옅은 구분선
 
+  // 메인 UI (MaterialApp)에서 사용하는 활성 색상 (테마 적용 시 업데이트)
+  static Color activeBackground = defaultTheme.background;
+  static Color activePrimary = defaultTheme.primary;
+  static Color activeWarmAccent = defaultTheme.warmAccent;
+  static Color activeTextPrimary = defaultTheme.textPrimary;
+
   // 테마와 무관한 고정 컬러
   static const Color defaultTaskOcher = Color(0xFFB58A32); // 더스티 옐로우 오커 (할일 기본)
   static const Color cardSurface = Colors.white;
@@ -126,6 +132,12 @@ class AppColors {
     divider: Color(0xFFE5E7EB),
   );
 
+    // 테마 키 상수 (settings_screen.dart에서 switch/case용으로 사용)
+  static const String themeDeepViolet = 'deep_violet';
+  static const String themeWidgetHabitBrown = 'widget_habit_brown';
+  static const String themeWidgetTaskOcher = 'widget_task_ocher';
+  static const String themeCustom = 'custom';
+
   static const List<ThemePreset> builtInThemes = [
     defaultTheme,
     ThemePreset(
@@ -175,6 +187,11 @@ class AppColors {
     textPrimary = theme.textPrimary;
     textSecondary = theme.textSecondary;
     divider = theme.divider;
+    // 메인 UI (MaterialApp)에서 사용하는 활성 색상
+    activeBackground = theme.background;
+    activePrimary = theme.primary;
+    activeWarmAccent = theme.warmAccent;
+    activeTextPrimary = theme.textPrimary;
   }
 
   /// 탭별 미니 테마 포인트 컬러 직접 주입
