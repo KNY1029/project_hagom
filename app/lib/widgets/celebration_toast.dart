@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
+
 import '../constants/app_colors.dart';
 import '../constants/app_assets.dart';
+import '../state/app_state_manager.dart';
 
 /// 🐻 [하곰이 축하 & 격려 토스트 (PRD 접점 3)]
-/// 
+///
 /// 복약 완료 또는 습관 완료 시 화면 하단에 앙증맞게 떠서
 /// 하곰이 얼굴과 함께 비처벌적 칭찬/축하 멘트를 건네는 스낵바 알림!
 /// [actionLabel] 및 [onAction] 전달 시 토스트 안에서 바로 1초 되돌리기 지원!
@@ -15,7 +17,10 @@ class CelebrationToast {
     String? actionLabel,
     VoidCallback? onAction,
     Duration duration = const Duration(milliseconds: 3200),
+    bool isCompletionFeedback = false,
   }) {
+    if (isCompletionFeedback && !AppStateManager().completionFeedbackEnabled)
+      return;
     ScaffoldMessenger.of(context).hideCurrentSnackBar();
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
@@ -30,7 +35,10 @@ class CelebrationToast {
           decoration: BoxDecoration(
             color: Colors.white,
             borderRadius: BorderRadius.circular(14),
-            border: Border.all(color: AppColors.primaryPurple.withOpacity(0.35), width: 1.2),
+            border: Border.all(
+              color: AppColors.primaryPurple.withOpacity(0.35),
+              width: 1.2,
+            ),
             boxShadow: [
               BoxShadow(
                 color: Colors.black.withOpacity(0.08),
@@ -48,7 +56,9 @@ class CelebrationToast {
                 decoration: BoxDecoration(
                   color: AppColors.lightLavender,
                   shape: BoxShape.circle,
-                  border: Border.all(color: AppColors.primaryPurple.withOpacity(0.2)),
+                  border: Border.all(
+                    color: AppColors.primaryPurple.withOpacity(0.2),
+                  ),
                 ),
                 child: ClipOval(
                   child: Image.asset(
@@ -68,7 +78,7 @@ class CelebrationToast {
                       children: [
                         Text(
                           title,
-                          style: TextStyle(
+                          style: const TextStyle(
                             fontSize: 13,
                             fontWeight: FontWeight.bold,
                             color: AppColors.primaryPurple,
@@ -79,7 +89,7 @@ class CelebrationToast {
                     const SizedBox(height: 2),
                     Text(
                       message,
-                      style: TextStyle(
+                      style: const TextStyle(
                         fontSize: 11.5,
                         color: AppColors.textPrimary,
                         fontWeight: FontWeight.w500,
@@ -95,10 +105,15 @@ class CelebrationToast {
                 TextButton(
                   style: TextButton.styleFrom(
                     backgroundColor: AppColors.warmBrown.withOpacity(0.1),
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 6,
+                    ),
                     minimumSize: Size.zero,
                     tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
                   ),
                   onPressed: () {
                     ScaffoldMessenger.of(context).hideCurrentSnackBar();
@@ -106,7 +121,7 @@ class CelebrationToast {
                   },
                   child: Text(
                     actionLabel,
-                    style: TextStyle(
+                    style: const TextStyle(
                       color: AppColors.warmBrown,
                       fontSize: 12,
                       fontWeight: FontWeight.bold,
