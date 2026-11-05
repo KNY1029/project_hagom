@@ -24,7 +24,7 @@ class AppAssets {
   static const String calendarEmptyState = _defaultHagom;
 
   /// 6. 동반자 인터랙션 룸 마스코트
-  static const String companionRoomMascot = _defaultHagom;
+  static const String companionRoomMascot = 'assets/images/Hagomroom.png';
 
   /// 7. 설정 화면 마스코트
   static const String settingsMascot = _defaultHagom;

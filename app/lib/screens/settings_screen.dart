@@ -358,7 +358,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     ),
                     SizedBox(height: 3),
                     Text(
-                      '정신약학 비처벌 복약 솔루션 · v0.86.146',
+                      '정신약학 비처벌 복약 솔루션 · v0.87.147',
                       style: TextStyle(
                         fontSize: 12,
                         color: AppColors.textSecondary,
