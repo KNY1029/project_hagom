@@ -358,7 +358,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     ),
                     SizedBox(height: 3),
                     Text(
-                      '정신약학 비처벌 복약 솔루션 · v0.85.145',
+                      '정신약학 비처벌 복약 솔루션 · v0.86.146',
                       style: TextStyle(
                         fontSize: 12,
                         color: AppColors.textSecondary,
@@ -786,6 +786,73 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   previewColors: [const Color(0xFFB58A32), const Color(0xFF8B5E3C), const Color(0xFFFBF6E9)],
                   setMState: setMState,
                 ),
+                const SizedBox(height: 16),
+                const Text(
+                  '🎨 탭별 미니 테마 (복약·습관·달력 고유 포인트)',
+                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
+                ),
+                const SizedBox(height: 4),
+                const Text(
+                  '기본 톤은 유지하면서 각 탭의 제목/아이콘/위젯 색상만 각각 커스텀해요.',
+                  style: TextStyle(fontSize: 11.5, color: AppColors.textSecondary),
+                ),
+                const SizedBox(height: 10),
+
+                // 미니 테마 스위치
+                SwitchListTile.adaptive(
+                  contentPadding: EdgeInsets.zero,
+                  activeColor: AppColors.primaryPurple,
+                  title: const Text('탭별 미니 테마 포인트 활성화', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
+                  value: AppColors.useTabMiniThemes,
+                  onChanged: (val) {
+                    _state.setTabMiniThemeColors(enabled: val);
+                    setMState(() {});
+                    setState(() {});
+                  },
+                ),
+
+                if (AppColors.useTabMiniThemes) ...[
+                  const SizedBox(height: 6),
+                  _buildMiniThemeColorRow(
+                    label: '복약 탭 & 위젯 포인트',
+                    color: AppColors.tabMedsColor,
+                    onTap: () => _showColorPickDialog(
+                      title: '복약 포인트 색상 변경',
+                      initial: AppColors.tabMedsColor,
+                      onPicked: (c) {
+                        _state.setTabMiniThemeColors(meds: c);
+                        setMState(() {});
+                        setState(() {});
+                      },
+                    ),
+                  ),
+                  _buildMiniThemeColorRow(
+                    label: '습관 탭 & 위젯 포인트',
+                    color: AppColors.tabHabitsColor,
+                    onTap: () => _showColorPickDialog(
+                      title: '습관 포인트 색상 변경',
+                      initial: AppColors.tabHabitsColor,
+                      onPicked: (c) {
+                        _state.setTabMiniThemeColors(habits: c);
+                        setMState(() {});
+                        setState(() {});
+                      },
+                    ),
+                  ),
+                  _buildMiniThemeColorRow(
+                    label: '달력/할일 탭 & 위젯 포인트',
+                    color: AppColors.tabCalendarColor,
+                    onTap: () => _showColorPickDialog(
+                      title: '달력/할일 포인트 색상 변경',
+                      initial: AppColors.tabCalendarColor,
+                      onPicked: (c) {
+                        _state.setTabMiniThemeColors(calendar: c);
+                        setMState(() {});
+                        setState(() {});
+                      },
+                    ),
+                  ),
+                ],
 
                 const SizedBox(height: 16),
                 SizedBox(
@@ -971,5 +1038,128 @@ class _SettingsScreenState extends State<SettingsScreen> {
       str = 'FF$str';
     }
     return Color(int.parse(str, radix: 16));
+  }
+
+  Widget _buildMiniThemeColorRow({
+    required String label,
+    required Color color,
+    required VoidCallback onTap,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(8),
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 6),
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+        decoration: BoxDecoration(
+          color: const Color(0xFFF9FAFB),
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(color: AppColors.divider),
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: 18,
+              height: 18,
+              decoration: BoxDecoration(
+                color: color,
+                shape: BoxShape.circle,
+                border: Border.all(color: Colors.black26),
+              ),
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Text(label, style: const TextStyle(fontSize: 12.5, fontWeight: FontWeight.w600, color: AppColors.textPrimary)),
+            ),
+            Text(
+              '#${color.value.toRadixString(16).padLeft(8, '0').substring(2).toUpperCase()}',
+              style: const TextStyle(fontSize: 11, fontFamily: 'monospace', color: AppColors.textSecondary),
+            ),
+            const SizedBox(width: 4),
+            const Icon(Icons.edit, size: 14, color: AppColors.textMuted),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showColorPickDialog({
+    required String title,
+    required Color initial,
+    required ValueChanged<Color> onPicked,
+  }) {
+    final hexCtl = TextEditingController(
+      text: '#${initial.value.toRadixString(16).padLeft(8, '0').substring(2).toUpperCase()}',
+    );
+    showDialog(
+      context: context,
+      builder: (dCtx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Text(title, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text('원하는 포인트 색상의 HEX 코드를 입력해 주세요.', style: TextStyle(fontSize: 11.5, color: AppColors.textSecondary)),
+            const SizedBox(height: 12),
+            TextField(
+              controller: hexCtl,
+              decoration: InputDecoration(
+                isDense: true,
+                contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                hintText: '#RRGGBB',
+              ),
+              style: const TextStyle(fontSize: 13, fontFamily: 'monospace'),
+            ),
+            const SizedBox(height: 12),
+            Wrap(
+              spacing: 6,
+              runSpacing: 6,
+              children: [
+                const Color(0xFF7B61A8), // 라벤더 퍼플
+                const Color(0xFF541D7A), // 딥 바이올렛
+                const Color(0xFF8B5E3C), // 웜 브라운
+                const Color(0xFFB58A32), // 더스티 오커
+                const Color(0xFF4A88B8), // 소프트 데님
+                const Color(0xFF557A5E), // 세이지 그린
+                const Color(0xFF475569), // 슬레이트
+              ].map((c) => InkWell(
+                onTap: () {
+                  hexCtl.text = '#${c.value.toRadixString(16).padLeft(8, '0').substring(2).toUpperCase()}';
+                },
+                child: Container(
+                  width: 24,
+                  height: 24,
+                  decoration: BoxDecoration(color: c, shape: BoxShape.circle, border: Border.all(color: Colors.black26)),
+                ),
+              )).toList(),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dCtx).pop(),
+            child: const Text('취소', style: TextStyle(color: AppColors.textSecondary)),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.primaryPurple,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+            ),
+            onPressed: () {
+              try {
+                final c = _parseHex(hexCtl.text.trim());
+                onPicked(c);
+                Navigator.of(dCtx).pop();
+              } catch (_) {
+                CelebrationToast.show(context, title: '형식 오류', message: '#RRGGBB 형식으로 입력해 주세요.');
+              }
+            },
+            child: const Text('적용', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+          ),
+        ],
+      ),
+    );
   }
 }

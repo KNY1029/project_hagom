@@ -51,6 +51,9 @@ class _MainNavigationShellState extends State<MainNavigationShell> {
 
   void _onStateChanged() {
     _checkWidgetDeepLinkRouting();
+    if (mounted) {
+      setState(() {});
+    }
   }
 
   void _checkWidgetDeepLinkRouting() {
@@ -139,8 +142,10 @@ class _MainNavigationShellState extends State<MainNavigationShell> {
         elevation: 0,
         title: Text(
           _tabTitles[_currentIndex],
-          style: const TextStyle(
-            color: AppColors.textPrimary,
+          style: TextStyle(
+            color: AppColors.useTabMiniThemes
+                ? _getTabColor(_currentIndex)
+                : AppColors.textPrimary,
             fontWeight: FontWeight.bold,
             fontSize: 20,
           ),
@@ -294,31 +299,46 @@ class _MainNavigationShellState extends State<MainNavigationShell> {
           },
           type: BottomNavigationBarType.fixed,
           enableFeedback: false,
-          selectedItemColor: AppColors.primaryPurple,
+          selectedItemColor: AppColors.useTabMiniThemes
+              ? _getTabColor(_currentIndex)
+              : AppColors.primaryPurple,
           unselectedItemColor: AppColors.textMuted,
           backgroundColor: Colors.white,
           elevation: 8,
           selectedLabelStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
           unselectedLabelStyle: const TextStyle(fontWeight: FontWeight.normal, fontSize: 12),
-          items: const [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.medication_outlined),
-            activeIcon: Icon(Icons.medication),
-            label: '복약',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.eco_outlined),
-            activeIcon: Icon(Icons.eco),
-            label: '습관', // '작은 습관' -> '습관' 깔끔하게 수정 완료
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.calendar_month_outlined),
-            activeIcon: Icon(Icons.calendar_month),
-            label: '달력',
-          ),
-        ],
+          items: [
+            BottomNavigationBarItem(
+              icon: const Icon(Icons.medication_outlined),
+              activeIcon: Icon(Icons.medication, color: AppColors.useTabMiniThemes ? AppColors.tabMedsColor : null),
+              label: '복약',
+            ),
+            BottomNavigationBarItem(
+              icon: const Icon(Icons.eco_outlined),
+              activeIcon: Icon(Icons.eco, color: AppColors.useTabMiniThemes ? AppColors.tabHabitsColor : null),
+              label: '습관',
+            ),
+            BottomNavigationBarItem(
+              icon: const Icon(Icons.calendar_month_outlined),
+              activeIcon: Icon(Icons.calendar_month, color: AppColors.useTabMiniThemes ? AppColors.tabCalendarColor : null),
+              label: '달력',
+            ),
+          ],
+        ),
       ),
-    ),
-  );
-}
+    );
+  }
+
+  Color _getTabColor(int idx) {
+    switch (idx) {
+      case 0:
+        return AppColors.tabMedsColor;
+      case 1:
+        return AppColors.tabHabitsColor;
+      case 2:
+        return AppColors.tabCalendarColor;
+      default:
+        return AppColors.primaryPurple;
+    }
+  }
 }

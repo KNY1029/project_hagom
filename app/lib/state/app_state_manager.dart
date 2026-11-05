@@ -219,6 +219,7 @@ class AppStateManager extends ChangeNotifier {
     currentThemeKey = themeKey;
     AppColors.applyPreset(themeKey);
     notifyListeners();
+    HagomNativeWidgetSync.updateNativeWidget(this);
   }
 
   void setCustomTheme({
@@ -244,6 +245,23 @@ class AppStateManager extends ChangeNotifier {
       'warmAccent': warmAccent.value.toRadixString(16),
     };
     notifyListeners();
+    HagomNativeWidgetSync.updateNativeWidget(this);
+  }
+
+  void setTabMiniThemeColors({
+    Color? meds,
+    Color? habits,
+    Color? calendar,
+    bool? enabled,
+  }) {
+    AppColors.setTabMiniColors(
+      meds: meds,
+      habits: habits,
+      calendar: calendar,
+      enabled: enabled,
+    );
+    notifyListeners();
+    HagomNativeWidgetSync.updateNativeWidget(this);
   }
   // --- 📅 앱 사용 및 기록 시작일 (시작일 이전 날짜는 달력 바 및 초록색 미표시) ---
   DateTime? _trackingStartDate;
@@ -650,6 +668,10 @@ class AppStateManager extends ChangeNotifier {
       await _prefs!.setString('hagom_routine_times', jsonEncode(routineTimes));
       await _prefs!.setString('hagom_theme_key', currentThemeKey);
       await _prefs!.setString('hagom_custom_theme', jsonEncode(customThemeColors));
+      await _prefs!.setBool('hagom_use_tab_mini_themes', AppColors.useTabMiniThemes);
+      await _prefs!.setString('hagom_tab_meds_color', AppColors.tabMedsColor.value.toRadixString(16));
+      await _prefs!.setString('hagom_tab_habits_color', AppColors.tabHabitsColor.value.toRadixString(16));
+      await _prefs!.setString('hagom_tab_calendar_color', AppColors.tabCalendarColor.value.toRadixString(16));
       await _prefs!.setInt('hagom_widget_month_offset', widgetMonthOffset);
       if (widgetSelectedDate != null) {
         await _prefs!.setString('hagom_widget_selected_date', _dateKey(widgetSelectedDate!));
@@ -686,6 +708,13 @@ class AppStateManager extends ChangeNotifier {
           AppColors.applyPreset(savedTheme);
         }
       }
+      AppColors.useTabMiniThemes = _prefs!.getBool('hagom_use_tab_mini_themes') ?? true;
+      final savedMedsC = _prefs!.getString('hagom_tab_meds_color');
+      final savedHabitsC = _prefs!.getString('hagom_tab_habits_color');
+      final savedCalC = _prefs!.getString('hagom_tab_calendar_color');
+      if (savedMedsC != null) AppColors.tabMedsColor = Color(int.parse(savedMedsC, radix: 16));
+      if (savedHabitsC != null) AppColors.tabHabitsColor = Color(int.parse(savedHabitsC, radix: 16));
+      if (savedCalC != null) AppColors.tabCalendarColor = Color(int.parse(savedCalC, radix: 16));
       widgetMonthOffset = _prefs!.getInt('hagom_widget_month_offset') ?? 0;
       final savedSelDate = _prefs!.getString('hagom_widget_selected_date');
       if (savedSelDate != null) {

@@ -3,13 +3,15 @@ import 'package:flutter/material.dart';
 /// 하곰이 앱의 핵심 테마 시스템
 ///
 /// 컴파일 타임 `const` 호환성을 100% 보장하는 기본 팔레트와,
-/// 개발자 모드에서 실시간으로 스위칭되는 동적 활성 테마(Active Theme)를 완벽하게 제공합니다.
+/// 개발자 모드에서 실시간으로 스위칭되는 동적 활성 테마(Active Theme) 및
+/// 탭별 미니 테마(복약/습관/달력 각각의 포인트 컬러)를 완벽하게 제공합니다.
 class AppColors {
   // -------------------------------------------------------------
   // 1. 기본 불변 정적 상수 (컴파일 타임 const 위젯 100% 지원)
   // -------------------------------------------------------------
   static const Color primaryPurple = Color(0xFF7B61A8); // 메인 라벤더 퍼플
-  static const Color warmBrown = Color(0xFF8B5E3C);     // 웜 브라운
+  static const Color warmBrown = Color(0xFF8B5E3C);     // 웜 브라운 (습관 기본)
+  static const Color defaultTaskOcher = Color(0xFFB58A32);     // 더스티 옐로우 오커 (할일 기본)
   static const Color lightLavender = Color(0xFFF3EFF8); // 연한 라벤더 배경색
   static const Color background = Color(0xFFFAF8F5);    // 웜 베이지 브라운 배경
   static const Color cardSurface = Colors.white;        // 카드 기본 흰색
@@ -19,7 +21,7 @@ class AppColors {
   static const Color textMuted = Color(0xFF9CA3AF);     // 비활성 보조 글자색
 
   // -------------------------------------------------------------
-  // 2. 동적 활성 테마 필드 (개발자 모드 실시간 스위칭 시 UI와 Theme에 반영)
+  // 2. 동적 활성 테마 필드 (실시간 테마 변경 시 전역 반영)
   // -------------------------------------------------------------
   static Color activePrimary = primaryPurple;
   static Color activeBackground = background;
@@ -30,7 +32,15 @@ class AppColors {
   static Color activeDivider = divider;
 
   // -------------------------------------------------------------
-  // 3. 상태 및 피드백 컬러
+  // 3. 탭별 미니 테마 포인트 컬러 (복약 / 습관 / 달력)
+  // -------------------------------------------------------------
+  static bool useTabMiniThemes = true; // 탭별 미니 테마 활성화 여부
+  static Color tabMedsColor = primaryPurple; // 복약 탭 포인트 (#7B61A8)
+  static Color tabHabitsColor = warmBrown;    // 습관 탭 포인트 (#8B5E3C)
+  static Color tabCalendarColor = defaultTaskOcher;  // 달력 탭 포인트 (#B58A32)
+
+  // -------------------------------------------------------------
+  // 4. 상태 및 피드백 컬러
   // -------------------------------------------------------------
   static const Color completedBg = Color(0xFFEAF8F1);    // 소프트 민트초록 틴트
   static const Color completedText = Color(0xFF1B6B46);  // 선명한 딥 그린 텍스트
@@ -45,7 +55,7 @@ class AppColors {
   static const Color missedRed = Color(0xFFEF4444);      // 약 미복용 경고 레드
 
   // -------------------------------------------------------------
-  // 4. 테마 프리셋 식별자
+  // 5. 테마 프리셋 식별자
   // -------------------------------------------------------------
   static const String themeDefault = 'default';
   static const String themeDeepViolet = 'deep_violet';
@@ -68,6 +78,7 @@ class AppColors {
         activeTextSecondary = const Color(0xFF755196);
         activeWarmAccent = const Color(0xFF8B5E3C);
         activeDivider = const Color(0xFFE6DCF5);
+        tabMedsColor = const Color(0xFF541D7A);
         break;
 
       case themeWidgetHabitBrown:
@@ -102,6 +113,9 @@ class AppColors {
         activeTextSecondary = textSecondary;
         activeWarmAccent = warmBrown;
         activeDivider = divider;
+        tabMedsColor = primaryPurple;
+        tabHabitsColor = warmBrown;
+        tabCalendarColor = defaultTaskOcher;
         break;
     }
   }
@@ -120,5 +134,18 @@ class AppColors {
     activeLightTint = lightTint;
     activeTextPrimary = textPrimary;
     activeWarmAccent = warmAccent;
+  }
+
+  /// 탭별 미니 테마 포인트 컬러 직접 주입
+  static void setTabMiniColors({
+    Color? meds,
+    Color? habits,
+    Color? calendar,
+    bool? enabled,
+  }) {
+    if (meds != null) tabMedsColor = meds;
+    if (habits != null) tabHabitsColor = habits;
+    if (calendar != null) tabCalendarColor = calendar;
+    if (enabled != null) useTabMiniThemes = enabled;
   }
 }

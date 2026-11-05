@@ -56,6 +56,8 @@ class HagomHabitsWidgetProvider : HomeWidgetProvider() {
                     setTextViewText(R.id.widget_habits_progress, WidgetBindings.text(widgetData, "habits_progress"))
                     setTextViewText(R.id.widget_habits_title, WidgetBindings.text(widgetData, "habits_title"))
 
+                    val habitsColorHex = widgetData.getString("theme_habits_color", "#8B5E3C") ?: "#8B5E3C"
+                    setTextColor(R.id.widget_habits_tag, Color.parseColor(habitsColorHex))
                     val sub = if (isNarrow) {
                         WidgetBindings.text(widgetData, "habits_subtitle_short").ifEmpty {
                             WidgetBindings.text(widgetData, "habits_subtitle")

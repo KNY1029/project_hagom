@@ -56,6 +56,8 @@ class HagomMedsWidgetProvider : HomeWidgetProvider() {
                     setTextViewText(R.id.widget_meds_progress, WidgetBindings.text(widgetData, "meds_progress"))
                     setTextViewText(R.id.widget_meds_title, WidgetBindings.text(widgetData, "meds_title"))
 
+                    val medsColorHex = widgetData.getString("theme_meds_color", "#7B61A8") ?: "#7B61A8"
+                    setTextColor(R.id.widget_meds_tag, Color.parseColor(medsColorHex))
                     val sub = if (isNarrow) {
                         WidgetBindings.text(widgetData, "meds_subtitle_short").ifEmpty {
                             WidgetBindings.text(widgetData, "meds_subtitle")

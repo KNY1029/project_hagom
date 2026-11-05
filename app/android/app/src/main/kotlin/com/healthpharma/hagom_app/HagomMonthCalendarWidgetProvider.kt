@@ -42,6 +42,16 @@ class HagomMonthCalendarWidgetProvider : HomeWidgetProvider() {
                 val taskLabel = widgetData.getString("month_tasks_label", "오늘의 할일") ?: "오늘의 할일"
                 setTextViewText(R.id.widget_month_tasks_label, taskLabel)
                 setTextViewText(R.id.widget_month_tasks, WidgetBindings.text(widgetData, "month_tasks"))
+                val medsColorHex = widgetData.getString("theme_meds_color", "#7B61A8") ?: "#7B61A8"
+                val habitsColorHex = widgetData.getString("theme_habits_color", "#8B5E3C") ?: "#8B5E3C"
+                val tasksColorHex = widgetData.getString("theme_tasks_color", "#B58A32") ?: "#B58A32"
+
+                setTextColor(R.id.widget_month_meds, Color.parseColor(medsColorHex))
+                setTextColor(R.id.widget_month_habits, Color.parseColor(habitsColorHex))
+                setTextColor(R.id.widget_month_prev_btn, Color.parseColor(medsColorHex))
+                setTextColor(R.id.widget_month_next_btn, Color.parseColor(medsColorHex))
+                setTextColor(R.id.widget_month_tasks, Color.parseColor(tasksColorHex))
+                setTextColor(R.id.widget_month_tasks_label, Color.parseColor(tasksColorHex))
 
                 // 🌟 [42개 셀(c_0 ~ c_41) 동적 매핑]: 실제 시작 요일 및 말일 반영!
                 for (i in 0 until 42) {
