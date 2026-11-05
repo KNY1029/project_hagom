@@ -62,14 +62,14 @@ class _SplashScreenState extends State<SplashScreen> {
       barrierDismissible: false,
       builder: (dCtx) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: const Row(
+        title: Row(
           children: [
             Icon(Icons.start, color: AppColors.primaryPurple, size: 24),
             SizedBox(width: 8),
             Text('시작 모드 선택', style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
           ],
         ),
-        content: const Column(
+        content: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -92,7 +92,7 @@ class _SplashScreenState extends State<SplashScreen> {
             child: OutlinedButton(
               style: OutlinedButton.styleFrom(
                 foregroundColor: AppColors.textPrimary,
-                side: const BorderSide(color: AppColors.divider),
+                side: BorderSide(color: AppColors.divider),
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                 padding: const EdgeInsets.symmetric(vertical: 11),
               ),
@@ -223,7 +223,7 @@ class _SplashScreenState extends State<SplashScreen> {
               const SizedBox(height: 20),
 
               // 🌟 2. 군더더기 없는 미니멀하고 따뜻한 한 줄 인사
-              const Text(
+              Text(
                 '오늘도 와줘서 고마워요',
                 style: TextStyle(
                   fontSize: 22,
@@ -294,7 +294,7 @@ class _SplashScreenState extends State<SplashScreen> {
               ),
             ),
             const SizedBox(height: 24),
-            const Text(
+            Text(
               '하곰이와 함께하는',
               style: TextStyle(
                 fontSize: 16,
@@ -303,7 +303,7 @@ class _SplashScreenState extends State<SplashScreen> {
               ),
             ),
             const SizedBox(height: 6),
-            const Text(
+            Text(
               '복약 & 습관 케어',
               style: TextStyle(
                 fontSize: 26,
@@ -313,7 +313,7 @@ class _SplashScreenState extends State<SplashScreen> {
               ),
             ),
             const SizedBox(height: 40),
-            const SizedBox(
+            SizedBox(
               width: 24,
               height: 24,
               child: CircularProgressIndicator(

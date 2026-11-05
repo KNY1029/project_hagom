@@ -133,7 +133,7 @@ class _MedsTabViewState extends State<MedsTabView> {
                         children: [
                           Text(
                             isEditing ? '약 정보 수정' : '새로운 약 추가',
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 17,
                               fontWeight: FontWeight.bold,
                               color: AppColors.textPrimary,
@@ -142,7 +142,7 @@ class _MedsTabViewState extends State<MedsTabView> {
                           const SizedBox(height: 2),
                           Text(
                             currentStep == 1 ? '1단계: 기본 정보 입력' : '2단계: 복용 시간 및 주기 설정',
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 12,
                               color: AppColors.primaryPurple,
                               fontWeight: FontWeight.w600,
@@ -271,7 +271,7 @@ class _MedsTabViewState extends State<MedsTabView> {
                   // ================= [2단계: 복용 시간 및 주기] =================
                   if (currentStep == 2) ...[
                     // 1. 복용 주기 (매일, 오늘만, N일마다, N시간마다, 필요 시)
-                    const Text('복용 주기', style: TextStyle(fontSize: 12.5, fontWeight: FontWeight.bold, color: AppColors.textSecondary)),
+                    Text('복용 주기', style: TextStyle(fontSize: 12.5, fontWeight: FontWeight.bold, color: AppColors.textSecondary)),
                     const SizedBox(height: 6),
                     Wrap(
                       spacing: 6,
@@ -372,7 +372,7 @@ class _MedsTabViewState extends State<MedsTabView> {
                             ),
                           ),
                           const SizedBox(width: 8),
-                          const Text('일마다 1회 복용', style: TextStyle(fontSize: 12, color: AppColors.textPrimary)),
+                          Text('일마다 1회 복용', style: TextStyle(fontSize: 12, color: AppColors.textPrimary)),
                         ],
                       ),
                     ],
@@ -421,11 +421,11 @@ class _MedsTabViewState extends State<MedsTabView> {
                       // 🌟 첫 복용 예정 시간만 설정받기 (나머지 회차는 복용 시점에 동적 계산!)
                       Row(
                         children: [
-                          const Text('첫 복용 예정 시각', style: TextStyle(fontSize: 12.5, fontWeight: FontWeight.bold, color: AppColors.textSecondary)),
+                          Text('첫 복용 예정 시각', style: TextStyle(fontSize: 12.5, fontWeight: FontWeight.bold, color: AppColors.textSecondary)),
                           const Spacer(),
                           OutlinedButton(
                             style: OutlinedButton.styleFrom(
-                              side: const BorderSide(color: AppColors.divider),
+                              side: BorderSide(color: AppColors.divider),
                               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                             ),
@@ -451,7 +451,7 @@ class _MedsTabViewState extends State<MedsTabView> {
                             },
                             child: Text(
                               currentSlots.isNotEmpty ? (currentSlots[0].scheduledTime ?? '오전 8:00') : '오전 8:00',
-                              style: const TextStyle(color: AppColors.primaryPurple, fontWeight: FontWeight.bold, fontSize: 13),
+                              style: TextStyle(color: AppColors.primaryPurple, fontWeight: FontWeight.bold, fontSize: 13),
                             ),
                           ),
                         ],
@@ -462,7 +462,7 @@ class _MedsTabViewState extends State<MedsTabView> {
 
                     // 2. 일반 복용 시간대 슬롯 선택 (시간 간격일 때는 숨김!)
                     if (recurrenceType != '필요 시' && recurrenceType != '시간 간격') ...[
-                      const Text('복용 시간대 선택', style: TextStyle(fontSize: 12.5, fontWeight: FontWeight.bold, color: AppColors.textSecondary)),
+                      Text('복용 시간대 선택', style: TextStyle(fontSize: 12.5, fontWeight: FontWeight.bold, color: AppColors.textSecondary)),
                       const SizedBox(height: 6),
                       Wrap(
                         spacing: 6,
@@ -541,10 +541,10 @@ class _MedsTabViewState extends State<MedsTabView> {
                           // [+ 기타] 추가 버튼 (다른 필터 칩들과 동일한 크기/디자인 적용)
                           FilterChip(
                             showCheckmark: false,
-                            avatar: const Icon(Icons.add, size: 14, color: AppColors.primaryPurple),
+                            avatar: Icon(Icons.add, size: 14, color: AppColors.primaryPurple),
                             label: const Text('기타'),
                             selected: false,
-                            labelStyle: const TextStyle(fontSize: 11.5, color: AppColors.primaryPurple),
+                            labelStyle: TextStyle(fontSize: 11.5, color: AppColors.primaryPurple),
                             onSelected: (_) async {
                               final textCtrl = TextEditingController();
                               final name = await showDialog<String>(
@@ -629,7 +629,7 @@ class _MedsTabViewState extends State<MedsTabView> {
                                     Row(
                                       children: [
                                         Text('${slot.label}: ', style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
-                                        Text(slot.scheduledTime ?? '시각 미지정', style: const TextStyle(fontSize: 12, color: AppColors.primaryPurple, fontWeight: FontWeight.w600)),
+                                        Text(slot.scheduledTime ?? '시각 미지정', style: TextStyle(fontSize: 12, color: AppColors.primaryPurple, fontWeight: FontWeight.w600)),
                                         const Spacer(),
                                         TextButton(
                                           style: TextButton.styleFrom(padding: EdgeInsets.zero, minimumSize: Size.zero),
@@ -665,7 +665,7 @@ class _MedsTabViewState extends State<MedsTabView> {
                                       const SizedBox(height: 2),
                                       Row(
                                         children: [
-                                          const Text('식사 타이밍: ', style: TextStyle(fontSize: 10.5, color: AppColors.textSecondary)),
+                                          Text('식사 타이밍: ', style: TextStyle(fontSize: 10.5, color: AppColors.textSecondary)),
                                           const SizedBox(width: 4),
                                           _buildMiniTimingChip(
                                             label: '상관없음',
@@ -713,7 +713,7 @@ class _MedsTabViewState extends State<MedsTabView> {
 
                     // 3. 복용 기간
                     if (recurrenceType != '오늘만') ...[
-                      const Text('복용 기간', style: TextStyle(fontSize: 12.5, fontWeight: FontWeight.bold, color: AppColors.textSecondary)),
+                      Text('복용 기간', style: TextStyle(fontSize: 12.5, fontWeight: FontWeight.bold, color: AppColors.textSecondary)),
                       const SizedBox(height: 6),
                       Row(
                         children: [
@@ -770,7 +770,7 @@ class _MedsTabViewState extends State<MedsTabView> {
                               ),
                             ),
                             const SizedBox(width: 8),
-                            const Text('일간 복용', style: TextStyle(fontSize: 12, color: AppColors.textPrimary)),
+                            Text('일간 복용', style: TextStyle(fontSize: 12, color: AppColors.textPrimary)),
                           ],
                         ),
                       ],
@@ -811,9 +811,9 @@ class _MedsTabViewState extends State<MedsTabView> {
                           },
                           style: OutlinedButton.styleFrom(
                             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                            side: const BorderSide(color: AppColors.divider),
+                            side: BorderSide(color: AppColors.divider),
                           ),
-                          child: const Text('이전', style: TextStyle(color: AppColors.textSecondary)),
+                          child: Text('이전', style: TextStyle(color: AppColors.textSecondary)),
                         ),
                         const SizedBox(width: 8),
                         Expanded(
@@ -952,7 +952,7 @@ class _MedsTabViewState extends State<MedsTabView> {
                       children: [
                         Text(
                           '${med.name} · ${slot.label} 복용 완료됨',
-                          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
+                          style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
                         ),
                         const SizedBox(height: 2),
                         Text(
@@ -972,9 +972,9 @@ class _MedsTabViewState extends State<MedsTabView> {
               ListTile(
                 dense: true,
                 contentPadding: EdgeInsets.zero,
-                leading: const Icon(Icons.access_time, color: AppColors.primaryPurple, size: 22),
+                leading: Icon(Icons.access_time, color: AppColors.primaryPurple, size: 22),
                 title: const Text('복용 시간 수정하기', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
-                subtitle: const Text('실제로 먹은 정확한 시간으로 변경합니다', style: TextStyle(fontSize: 11.5, color: AppColors.textSecondary)),
+                subtitle: Text('실제로 먹은 정확한 시간으로 변경합니다', style: TextStyle(fontSize: 11.5, color: AppColors.textSecondary)),
                 trailing: const Icon(Icons.chevron_right, size: 18, color: AppColors.textMuted),
                 onTap: () async {
                   Navigator.of(ctx).pop();
@@ -998,9 +998,9 @@ class _MedsTabViewState extends State<MedsTabView> {
               if (slot.isCompleted)
                 ListTile(
                   dense: true,
-                  leading: const Icon(Icons.undo, color: AppColors.warmBrown, size: 22),
-                  title: const Text('이 회차만 복약 취소하기', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: AppColors.warmBrown)),
-                  subtitle: const Text('점심/저녁 등 다른 회차는 그대로 유지됩니다', style: TextStyle(fontSize: 11.5, color: AppColors.textSecondary)),
+                  leading: Icon(Icons.undo, color: AppColors.warmBrown, size: 22),
+                  title: Text('이 회차만 복약 취소하기', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: AppColors.warmBrown)),
+                  subtitle: Text('점심/저녁 등 다른 회차는 그대로 유지됩니다', style: TextStyle(fontSize: 11.5, color: AppColors.textSecondary)),
                   trailing: const Icon(Icons.chevron_right, size: 18, color: AppColors.textMuted),
                   onTap: () {
                     Navigator.of(ctx).pop();
@@ -1013,9 +1013,9 @@ class _MedsTabViewState extends State<MedsTabView> {
                 ListTile(
                   dense: true,
                   contentPadding: EdgeInsets.zero,
-                  leading: const Icon(Icons.refresh, color: AppColors.primaryPurple, size: 22),
-                  title: const Text('건너뜀 복구하기', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: AppColors.primaryPurple)),
-                  subtitle: const Text('다시 복용 대기 상태로 되돌립니다', style: TextStyle(fontSize: 11.5, color: AppColors.textSecondary)),
+                  leading: Icon(Icons.refresh, color: AppColors.primaryPurple, size: 22),
+                  title: Text('건너뜀 복구하기', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: AppColors.primaryPurple)),
+                  subtitle: Text('다시 복용 대기 상태로 되돌립니다', style: TextStyle(fontSize: 11.5, color: AppColors.textSecondary)),
                   trailing: const Icon(Icons.chevron_right, size: 18, color: AppColors.textMuted),
                   onTap: () {
                     Navigator.of(ctx).pop();
@@ -1028,7 +1028,7 @@ class _MedsTabViewState extends State<MedsTabView> {
                 width: double.infinity,
                 child: TextButton(
                   onPressed: () => Navigator.of(ctx).pop(),
-                  child: const Text('닫기', style: TextStyle(color: AppColors.textSecondary, fontWeight: FontWeight.bold)),
+                  child: Text('닫기', style: TextStyle(color: AppColors.textSecondary, fontWeight: FontWeight.bold)),
                 ),
               ),
             ],
@@ -1051,7 +1051,7 @@ class _MedsTabViewState extends State<MedsTabView> {
         actions: [
           TextButton(
             onPressed: () => Navigator.of(dCtx).pop(),
-            child: const Text('취소', style: TextStyle(color: AppColors.textSecondary)),
+            child: Text('취소', style: TextStyle(color: AppColors.textSecondary)),
           ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(backgroundColor: AppColors.warmBrown),
@@ -1079,7 +1079,7 @@ class _MedsTabViewState extends State<MedsTabView> {
         actions: [
           TextButton(
             onPressed: () => Navigator.of(dCtx).pop(),
-            child: const Text('취소', style: TextStyle(color: AppColors.textSecondary)),
+            child: Text('취소', style: TextStyle(color: AppColors.textSecondary)),
           ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(backgroundColor: AppColors.neutralDark),
@@ -1120,7 +1120,7 @@ class _MedsTabViewState extends State<MedsTabView> {
           width: double.infinity,
           height: 42,
           child: OutlinedButton(
-            child: const Text(
+            child: Text(
               '새 복약 추가',
               style: TextStyle(
                 color: AppColors.primaryPurple,
@@ -1130,7 +1130,7 @@ class _MedsTabViewState extends State<MedsTabView> {
             ),
             onPressed: () => _showMedEditModal(),
             style: OutlinedButton.styleFrom(
-              side: const BorderSide(color: AppColors.primaryPurple, width: 1.0),
+              side: BorderSide(color: AppColors.primaryPurple, width: 1.0),
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
               backgroundColor: Colors.white,
             ),
@@ -1198,7 +1198,7 @@ class _MedsTabViewState extends State<MedsTabView> {
             Expanded(
               child: Text(
                 '${med.name} (${med.recurrenceSummary})',
-                style: const TextStyle(fontSize: 12, color: AppColors.textSecondary, fontWeight: FontWeight.w500),
+                style: TextStyle(fontSize: 12, color: AppColors.textSecondary, fontWeight: FontWeight.w500),
               ),
             ),
             Text(
@@ -1237,7 +1237,7 @@ class _MedsTabViewState extends State<MedsTabView> {
             children: [
               Row(
                 children: [
-                  const Text(
+                  Text(
                     '오늘 복약',
                     style: TextStyle(
                       fontSize: 13.5,
@@ -1273,7 +1273,7 @@ class _MedsTabViewState extends State<MedsTabView> {
               value: rate,
               minHeight: 6,
               backgroundColor: AppColors.lightLavender,
-              valueColor: const AlwaysStoppedAnimation<Color>(AppColors.primaryPurple),
+              valueColor: AlwaysStoppedAnimation<Color>(AppColors.primaryPurple),
             ),
           ),
         ],
@@ -1314,7 +1314,7 @@ class _MedsTabViewState extends State<MedsTabView> {
                 color: Color(0xFFF3F4F6),
                 borderRadius: BorderRadius.vertical(top: Radius.circular(12)),
               ),
-              child: const Row(
+              child: Row(
                 children: [
                   Icon(Icons.check_circle_outline, size: 13, color: AppColors.textSecondary),
                   SizedBox(width: 6),
@@ -1360,7 +1360,7 @@ class _MedsTabViewState extends State<MedsTabView> {
                           children: [
                             Text(
                               med.name,
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontSize: 14.5,
                                 fontWeight: FontWeight.bold,
                                 color: AppColors.textPrimary,
@@ -1374,7 +1374,7 @@ class _MedsTabViewState extends State<MedsTabView> {
                               ),
                               child: Text(
                                 med.recurrenceSummary,
-                                style: const TextStyle(fontSize: 9.5, color: AppColors.primaryPurple, fontWeight: FontWeight.bold),
+                                style: TextStyle(fontSize: 9.5, color: AppColors.primaryPurple, fontWeight: FontWeight.bold),
                               ),
                             ),
                             if (med.durationSummary != med.recurrenceSummary && med.recurrenceSummary != '오늘만')
@@ -1386,7 +1386,7 @@ class _MedsTabViewState extends State<MedsTabView> {
                                 ),
                                 child: Text(
                                   med.durationSummary,
-                                  style: const TextStyle(fontSize: 9.5, color: AppColors.textSecondary, fontWeight: FontWeight.w600),
+                                  style: TextStyle(fontSize: 9.5, color: AppColors.textSecondary, fontWeight: FontWeight.w600),
                                 ),
                               ),
                             if (med.isPrescription)
@@ -1396,7 +1396,7 @@ class _MedsTabViewState extends State<MedsTabView> {
                                   color: AppColors.warmBrown.withOpacity(0.12),
                                   borderRadius: BorderRadius.circular(3),
                                 ),
-                                child: const Text(
+                                child: Text(
                                   '처방',
                                   style: TextStyle(fontSize: 9.5, color: AppColors.warmBrown, fontWeight: FontWeight.bold),
                                 ),
@@ -1542,7 +1542,7 @@ class _MedsTabViewState extends State<MedsTabView> {
                       tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                     ),
                     onPressed: () => _showMedEditModal(med: med),
-                    child: const Text('정보 수정', style: TextStyle(color: AppColors.primaryPurple, fontSize: 12, fontWeight: FontWeight.w600)),
+                    child: Text('정보 수정', style: TextStyle(color: AppColors.primaryPurple, fontSize: 12, fontWeight: FontWeight.w600)),
                   ),
                   const Spacer(),
                   // 🌟 [건너뛰기] 버튼 복원 (남은 다음 회차 핀셋 건너뜀)
@@ -1554,7 +1554,7 @@ class _MedsTabViewState extends State<MedsTabView> {
                         tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                       ),
                       onPressed: () => _showSkipConfirmDialog(med),
-                      child: Text('${med.nextPendingSlot!.label} 건너뛰기', style: const TextStyle(color: AppColors.textSecondary, fontSize: 12, fontWeight: FontWeight.w500)),
+                      child: Text('${med.nextPendingSlot!.label} 건너뛰기', style: TextStyle(color: AppColors.textSecondary, fontSize: 12, fontWeight: FontWeight.w500)),
                     ),
                 ],
               ),

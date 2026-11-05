@@ -153,7 +153,7 @@ class _MainNavigationShellState extends State<MainNavigationShell> {
         actions: [
           // 설정 버튼
           IconButton(
-            icon: const Icon(Icons.settings_outlined, color: AppColors.textSecondary),
+            icon: Icon(Icons.settings_outlined, color: AppColors.textSecondary),
             onPressed: () {
               Navigator.of(context).push(
                 MaterialPageRoute(builder: (context) => const SettingsScreen()),
@@ -250,7 +250,7 @@ class _MainNavigationShellState extends State<MainNavigationShell> {
                           Flexible(
                             child: Text(
                               _currentBubbleMessage,
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontSize: 13,
                                 fontWeight: FontWeight.w600,
                                 color: AppColors.textPrimary,
@@ -258,7 +258,7 @@ class _MainNavigationShellState extends State<MainNavigationShell> {
                             ),
                           ),
                           const SizedBox(width: 6),
-                          const Icon(
+                          Icon(
                             Icons.chevron_right,
                             size: 16,
                             color: AppColors.primaryPurple,

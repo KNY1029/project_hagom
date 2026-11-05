@@ -72,10 +72,10 @@ class _WidgetSimulatorScreenState extends State<WidgetSimulatorScreen> {
         backgroundColor: Colors.transparent,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new, color: AppColors.textPrimary),
+          icon: Icon(Icons.arrow_back_ios_new, color: AppColors.textPrimary),
           onPressed: () => Navigator.of(context).pop(),
         ),
-        title: const Text(
+        title: Text(
           '홈 위젯 쇼룸 & 시뮬레이터',
           style: TextStyle(
             color: AppColors.textPrimary,
@@ -96,7 +96,7 @@ class _WidgetSimulatorScreenState extends State<WidgetSimulatorScreen> {
               borderRadius: BorderRadius.circular(12),
               border: Border.all(color: AppColors.divider.withOpacity(0.5)),
             ),
-            child: const Row(
+            child: Row(
               children: [
                 Icon(Icons.widgets_outlined, color: AppColors.primaryPurple, size: 28),
                 SizedBox(width: 12),
@@ -128,7 +128,7 @@ class _WidgetSimulatorScreenState extends State<WidgetSimulatorScreen> {
           // -------------------------------------------------------------
           // [그룹 1: 마스코트 의욕 & 미접속 4대 감정 위젯]
           // -------------------------------------------------------------
-          const Padding(
+          Padding(
             padding: EdgeInsets.only(left: 4, bottom: 6),
             child: Text(
               '그룹 1. 마스코트 감정 및 의욕 증진 위젯 (2×1)',
@@ -155,7 +155,7 @@ class _WidgetSimulatorScreenState extends State<WidgetSimulatorScreen> {
           // -------------------------------------------------------------
           // [그룹 2: 인체공학적 1-Tap 즉시 체크 통합 위젯 3종]
           // -------------------------------------------------------------
-          const Padding(
+          Padding(
             padding: EdgeInsets.only(left: 4, bottom: 4),
             child: Text(
               '그룹 2. 인체공학적 1-Tap 즉시 체크 위젯 (2×1)',
@@ -362,7 +362,7 @@ class _WidgetSimulatorScreenState extends State<WidgetSimulatorScreen> {
                 ),
                 Text(
                   mainQuote,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 12.5,
                     fontWeight: FontWeight.w600,
                     color: AppColors.textPrimary,
@@ -483,7 +483,7 @@ class _WidgetSimulatorScreenState extends State<WidgetSimulatorScreen> {
                         color: const Color(0xFFF3EDF9),
                         borderRadius: BorderRadius.circular(6),
                       ),
-                      child: const Text(
+                      child: Text(
                         '다음 복약',
                         style: TextStyle(
                           fontSize: 11,
@@ -495,7 +495,7 @@ class _WidgetSimulatorScreenState extends State<WidgetSimulatorScreen> {
                     const SizedBox(width: 8),
                     Text(
                       '$comp/$total 완료',
-                      style: const TextStyle(fontSize: 11.5, color: AppColors.textSecondary, fontWeight: FontWeight.w500),
+                      style: TextStyle(fontSize: 11.5, color: AppColors.textSecondary, fontWeight: FontWeight.w500),
                     ),
                   ],
                 ),
@@ -506,7 +506,7 @@ class _WidgetSimulatorScreenState extends State<WidgetSimulatorScreen> {
                       medName,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
                         color: AppColors.textPrimary,
@@ -515,7 +515,7 @@ class _WidgetSimulatorScreenState extends State<WidgetSimulatorScreen> {
                     const SizedBox(height: 3),
                     Text(
                       medDetail,
-                      style: const TextStyle(fontSize: 12, color: AppColors.textSecondary),
+                      style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
                     ),
                   ],
                 ),
@@ -528,7 +528,7 @@ class _WidgetSimulatorScreenState extends State<WidgetSimulatorScreen> {
                   ),
                   child: Text(
                     medType,
-                    style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w600, color: AppColors.textSecondary),
+                    style: TextStyle(fontSize: 10, fontWeight: FontWeight.w600, color: AppColors.textSecondary),
                   ),
                 ),
               ],
@@ -664,7 +664,7 @@ class _WidgetSimulatorScreenState extends State<WidgetSimulatorScreen> {
                     const SizedBox(width: 8),
                     Text(
                       '총 ${habitScore.toStringAsFixed(1)}/$habitTotal 실천 중',
-                      style: const TextStyle(fontSize: 11.5, color: AppColors.textSecondary, fontWeight: FontWeight.w500),
+                      style: TextStyle(fontSize: 11.5, color: AppColors.textSecondary, fontWeight: FontWeight.w500),
                     ),
                   ],
                 ),
@@ -675,7 +675,7 @@ class _WidgetSimulatorScreenState extends State<WidgetSimulatorScreen> {
                       habitTitle,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
                         color: AppColors.textPrimary,
@@ -686,7 +686,7 @@ class _WidgetSimulatorScreenState extends State<WidgetSimulatorScreen> {
                       habitSubtitle,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(fontSize: 12, color: AppColors.textSecondary),
+                      style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
                     ),
                   ],
                 ),
@@ -699,7 +699,7 @@ class _WidgetSimulatorScreenState extends State<WidgetSimulatorScreen> {
                   ),
                   child: Text(
                     '현재 상태: $statusLabel',
-                    style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w600, color: AppColors.textSecondary),
+                    style: TextStyle(fontSize: 10, fontWeight: FontWeight.w600, color: AppColors.textSecondary),
                   ),
                 ),
               ],
@@ -833,7 +833,7 @@ class _WidgetSimulatorScreenState extends State<WidgetSimulatorScreen> {
                     const SizedBox(width: 8),
                     Text(
                       taskTime,
-                      style: const TextStyle(fontSize: 11.5, color: AppColors.textSecondary, fontWeight: FontWeight.w500),
+                      style: TextStyle(fontSize: 11.5, color: AppColors.textSecondary, fontWeight: FontWeight.w500),
                     ),
                   ],
                 ),
@@ -854,7 +854,7 @@ class _WidgetSimulatorScreenState extends State<WidgetSimulatorScreen> {
                     const SizedBox(height: 3),
                     Text(
                       '반복: $taskRepeat',
-                      style: const TextStyle(fontSize: 12, color: AppColors.textSecondary),
+                      style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
                     ),
                   ],
                 ),
@@ -867,7 +867,7 @@ class _WidgetSimulatorScreenState extends State<WidgetSimulatorScreen> {
                   ),
                   child: Text(
                     isCompleted ? '상태: 완료됨' : '상태: 진행 대기',
-                    style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w600, color: AppColors.textSecondary),
+                    style: TextStyle(fontSize: 10, fontWeight: FontWeight.w600, color: AppColors.textSecondary),
                   ),
                 ),
               ],

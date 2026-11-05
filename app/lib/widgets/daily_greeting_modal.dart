@@ -58,7 +58,7 @@ class DailyGreetingModal extends StatelessWidget {
             const SizedBox(height: 18),
 
             // 🌟 2. 접속 축하 타이틀
-            const Text(
+            Text(
               '오늘도 와줘서 고마워요',
               style: TextStyle(
                 fontSize: 18,
@@ -69,7 +69,7 @@ class DailyGreetingModal extends StatelessWidget {
             const SizedBox(height: 8),
 
             // 💬 3. 비처벌적 지지 멘트 & 자가 모니터링 효능
-            const Text(
+            Text(
               '앱을 켜고 나를 마주한 것만으로도\n오늘 치료를 위한 큰 한 걸음을 내딛은 거예요.',
               textAlign: TextAlign.center,
               style: TextStyle(
@@ -90,7 +90,7 @@ class DailyGreetingModal extends StatelessWidget {
               ),
               child: Text(
                 '매일 $resetHourStr 기준 새 하루가 시작돼요',
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 11,
                   fontWeight: FontWeight.w600,
                   color: AppColors.primaryPurple,

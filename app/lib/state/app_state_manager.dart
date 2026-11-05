@@ -211,41 +211,65 @@ class AppStateManager extends ChangeNotifier {
   }
   // 🛠️ 개발자 모드(전체 예시 데이터 복원 상태) 여부
   bool isDevSimulationMode = true; // 기본값은 개발자 예시 모드 (발표 및 시연용)
-  // 🎨 개발자 모드 전용 동적 테마 관리
+  // 🎨 테마 관리 (기본 제공 프리셋 + 사용자가 추가한 커스텀 테마)
   String currentThemeKey = AppColors.themeDefault;
-  Map<String, String> customThemeColors = {};
+  final List<ThemePreset> customThemes = [];
 
-  void setTheme(String themeKey) {
-    currentThemeKey = themeKey;
-    AppColors.applyPreset(themeKey);
-    notifyListeners();
-    HagomNativeWidgetSync.updateNativeWidget(this);
+  /// 색상이 바뀔 때마다 증가 → 앱 전체 위젯 트리를 강제 재빌드하는 신호
+  int themeRevision = 0;
+
+  List<ThemePreset> get allThemes => [...AppColors.builtInThemes, ...customThemes];
+
+  ThemePreset get currentTheme => _findTheme(currentThemeKey) ?? AppColors.defaultTheme;
+
+  ThemePreset? _findTheme(String key) {
+    for (final t in allThemes) {
+      if (t.key == key) return t;
+    }
+    return null;
   }
 
-  void setCustomTheme({
+  void applyTheme(String themeKey) {
+    final theme = _findTheme(themeKey) ?? AppColors.defaultTheme;
+    currentThemeKey = theme.key;
+    AppColors.applyTheme(theme);
+    themeRevision++;
+    notifyListeners();
+  }
+
+  /// 사용자 지정 테마를 목록에 추가하고 생성된 키를 반환 (적용은 applyTheme 으로 별도 수행)
+  String addCustomTheme({
+    required String name,
     required Color primary,
     required Color background,
     required Color lightTint,
     required Color textPrimary,
-    required Color warmAccent,
   }) {
-    currentThemeKey = AppColors.themeCustom;
-    AppColors.applyCustomColors(
+    final key = 'custom_${DateTime.now().millisecondsSinceEpoch}';
+    customThemes.add(ThemePreset(
+      key: key,
+      name: name,
+      description: '사용자 지정 · ${AppColors.toHex(primary)} / ${AppColors.toHex(background)}',
       primary: primary,
       background: background,
       lightTint: lightTint,
       textPrimary: textPrimary,
-      warmAccent: warmAccent,
-    );
-    customThemeColors = {
-      'primary': primary.value.toRadixString(16),
-      'background': background.value.toRadixString(16),
-      'lightTint': lightTint.value.toRadixString(16),
-      'textPrimary': textPrimary.value.toRadixString(16),
-      'warmAccent': warmAccent.value.toRadixString(16),
-    };
+      textSecondary: Color.lerp(textPrimary, background, 0.35)!,
+      warmAccent: AppColors.defaultTheme.warmAccent,
+      divider: Color.lerp(lightTint, textPrimary, 0.08)!,
+      isCustom: true,
+    ));
     notifyListeners();
-    HagomNativeWidgetSync.updateNativeWidget(this);
+    return key;
+  }
+
+  void removeCustomTheme(String key) {
+    customThemes.removeWhere((t) => t.key == key);
+    if (currentThemeKey == key) {
+      applyTheme(AppColors.themeDefault);
+      return;
+    }
+    notifyListeners();
   }
 
   void setTabMiniThemeColors({
@@ -260,8 +284,14 @@ class AppStateManager extends ChangeNotifier {
       calendar: calendar,
       enabled: enabled,
     );
+    themeRevision++;
     notifyListeners();
-    HagomNativeWidgetSync.updateNativeWidget(this);
+  }
+
+  void resetTabMiniThemeColors() {
+    AppColors.resetTabMiniColors();
+    themeRevision++;
+    notifyListeners();
   }
   // --- 📅 앱 사용 및 기록 시작일 (시작일 이전 날짜는 달력 바 및 초록색 미표시) ---
   DateTime? _trackingStartDate;
@@ -667,7 +697,7 @@ class AppStateManager extends ChangeNotifier {
       await _prefs!.setStringList('hagom_custom_time_slots', customTimeSlots);
       await _prefs!.setString('hagom_routine_times', jsonEncode(routineTimes));
       await _prefs!.setString('hagom_theme_key', currentThemeKey);
-      await _prefs!.setString('hagom_custom_theme', jsonEncode(customThemeColors));
+      await _prefs!.setString('hagom_custom_themes', jsonEncode(customThemes.map((t) => t.toJson()).toList()));
       await _prefs!.setBool('hagom_use_tab_mini_themes', AppColors.useTabMiniThemes);
       await _prefs!.setString('hagom_tab_meds_color', AppColors.tabMedsColor.value.toRadixString(16));
       await _prefs!.setString('hagom_tab_habits_color', AppColors.tabHabitsColor.value.toRadixString(16));
@@ -686,28 +716,16 @@ class AppStateManager extends ChangeNotifier {
     if (_prefs == null) return;
     try {
       final medsRaw = _prefs!.getString('hagom_medications');
-      final savedTheme = _prefs!.getString('hagom_theme_key');
-      if (savedTheme != null) {
-        currentThemeKey = savedTheme;
-        if (savedTheme == AppColors.themeCustom) {
-          final customRaw = _prefs!.getString('hagom_custom_theme');
-          if (customRaw != null) {
-            final Map<String, dynamic> cMap = jsonDecode(customRaw);
-            customThemeColors = cMap.map((k, v) => MapEntry(k, v.toString()));
-            if (customThemeColors.containsKey('primary')) {
-              AppColors.applyCustomColors(
-                primary: Color(int.parse(customThemeColors['primary']!, radix: 16)),
-                background: Color(int.parse(customThemeColors['background']!, radix: 16)),
-                lightTint: Color(int.parse(customThemeColors['lightTint']!, radix: 16)),
-                textPrimary: Color(int.parse(customThemeColors['textPrimary']!, radix: 16)),
-                warmAccent: Color(int.parse(customThemeColors['warmAccent']!, radix: 16)),
-              );
-            }
-          }
-        } else {
-          AppColors.applyPreset(savedTheme);
-        }
+      final customThemesRaw = _prefs!.getString('hagom_custom_themes');
+      customThemes.clear();
+      if (customThemesRaw != null) {
+        final List<dynamic> decodedThemes = jsonDecode(customThemesRaw);
+        customThemes.addAll(decodedThemes.map((e) => ThemePreset.fromJson(e as Map<String, dynamic>)));
       }
+      currentThemeKey = _prefs!.getString('hagom_theme_key') ?? AppColors.themeDefault;
+      AppColors.applyTheme(currentTheme);
+      currentThemeKey = currentTheme.key;
+      themeRevision++;
       AppColors.useTabMiniThemes = _prefs!.getBool('hagom_use_tab_mini_themes') ?? true;
       final savedMedsC = _prefs!.getString('hagom_tab_meds_color');
       final savedHabitsC = _prefs!.getString('hagom_tab_habits_color');

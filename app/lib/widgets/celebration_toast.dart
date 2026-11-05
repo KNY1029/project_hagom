@@ -68,7 +68,7 @@ class CelebrationToast {
                       children: [
                         Text(
                           title,
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 13,
                             fontWeight: FontWeight.bold,
                             color: AppColors.primaryPurple,
@@ -79,7 +79,7 @@ class CelebrationToast {
                     const SizedBox(height: 2),
                     Text(
                       message,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 11.5,
                         color: AppColors.textPrimary,
                         fontWeight: FontWeight.w500,
@@ -106,7 +106,7 @@ class CelebrationToast {
                   },
                   child: Text(
                     actionLabel,
-                    style: const TextStyle(
+                    style: TextStyle(
                       color: AppColors.warmBrown,
                       fontSize: 12,
                       fontWeight: FontWeight.bold,

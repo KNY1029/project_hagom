@@ -125,7 +125,7 @@ class HagomMonthCalendarWidgetProvider : HomeWidgetProvider() {
                 // 중앙 하곰이 마스코트 & 헤더 탭 -> 하곰이의 방
                 setOnClickPendingIntent(
                     R.id.widget_month_header_center,
-                    WidgetBindings.openAppIntent(context, "hagomwidget://openroom", 1004)
+                    WidgetBindings.openAppIntent(context, "hagomwidget://opencalendar", 1004)
                 )
 
                 // 스마트 라우팅 (오늘 아닌 날짜가 선택되었을 땐 어디 눌러도 달력 탭 해당 날짜로 직행)

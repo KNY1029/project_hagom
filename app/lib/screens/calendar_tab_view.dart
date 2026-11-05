@@ -129,10 +129,10 @@ class _CalendarTabViewState extends State<CalendarTabView> {
                   children: [
                     Text(
                       '${_selectedDate.month}월 ${_selectedDate.day}일 $modalActionName',
-                      style: const TextStyle(fontSize: 17, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
+                      style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
                     ),
                     IconButton(
-                      icon: const Icon(Icons.close, color: AppColors.textSecondary),
+                      icon: Icon(Icons.close, color: AppColors.textSecondary),
                       onPressed: () => Navigator.of(ctx).pop(),
                     ),
                   ],
@@ -145,8 +145,8 @@ class _CalendarTabViewState extends State<CalendarTabView> {
                     hintText: '',
                     filled: true,
                     fillColor: const Color(0xFFF9FAFB),
-                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: const BorderSide(color: AppColors.divider)),
-                    focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: const BorderSide(color: AppColors.primaryPurple)),
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide(color: AppColors.divider)),
+                    focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide(color: AppColors.primaryPurple)),
                     contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
                   ),
                 ),
@@ -155,11 +155,11 @@ class _CalendarTabViewState extends State<CalendarTabView> {
                 // 시간 선택 버튼
                 Row(
                   children: [
-                    const Text('예정 시각', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.textPrimary)),
+                    Text('예정 시각', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.textPrimary)),
                     const Spacer(),
                     OutlinedButton(
                       style: OutlinedButton.styleFrom(
-                        side: const BorderSide(color: AppColors.divider),
+                        side: BorderSide(color: AppColors.divider),
                         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                       ),
@@ -174,7 +174,7 @@ class _CalendarTabViewState extends State<CalendarTabView> {
                           });
                         }
                       },
-                      child: Text(selectedTime, style: const TextStyle(color: AppColors.primaryPurple, fontWeight: FontWeight.bold, fontSize: 13)),
+                      child: Text(selectedTime, style: TextStyle(color: AppColors.primaryPurple, fontWeight: FontWeight.bold, fontSize: 13)),
                     ),
                   ],
                 ),
@@ -184,7 +184,7 @@ class _CalendarTabViewState extends State<CalendarTabView> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    const Text('알림 설정 (중복 선택 가능)', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.textPrimary)),
+                    Text('알림 설정 (중복 선택 가능)', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.textPrimary)),
                     TextButton(
                       style: TextButton.styleFrom(padding: EdgeInsets.zero, minimumSize: Size.zero),
                       onPressed: () {
@@ -285,7 +285,7 @@ class _CalendarTabViewState extends State<CalendarTabView> {
                               actions: [
                                 TextButton(
                                   onPressed: () => Navigator.of(dCtx).pop(),
-                                  child: const Text('취소', style: TextStyle(color: AppColors.textSecondary)),
+                                  child: Text('취소', style: TextStyle(color: AppColors.textSecondary)),
                                 ),
                                 ElevatedButton(
                                   style: ElevatedButton.styleFrom(
@@ -326,7 +326,7 @@ class _CalendarTabViewState extends State<CalendarTabView> {
                           ),
                         );
                       },
-                      child: const Text('직접 추가', style: TextStyle(fontSize: 12, color: AppColors.primaryPurple, fontWeight: FontWeight.bold)),
+                      child: Text('직접 추가', style: TextStyle(fontSize: 12, color: AppColors.primaryPurple, fontWeight: FontWeight.bold)),
                     ),
                   ],
                 ),
@@ -371,7 +371,7 @@ class _CalendarTabViewState extends State<CalendarTabView> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    const Text('반복 설정', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.textPrimary)),
+                    Text('반복 설정', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.textPrimary)),
                     Switch(
                       value: isRepeated,
                       activeColor: AppColors.primaryPurple,
@@ -518,7 +518,7 @@ class _CalendarTabViewState extends State<CalendarTabView> {
           children: [
             Text('${_selectedDate.month}월 ${_selectedDate.day}일에 이 약을 언제 복용하셨나요?'),
             const SizedBox(height: 8),
-            const Text(
+            Text(
               '정확한 시간이 기억나지 않아도 괜찮아요.\n알고 계신 만큼만 기록해도 충분해요.',
               style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
             ),
@@ -536,7 +536,7 @@ class _CalendarTabViewState extends State<CalendarTabView> {
                 message: '${med.name} ${slot.label} 복용을 기록했어요 (복용 시간 미지정).',
               );
             },
-            child: const Text('기억 안 남 (모름)', style: TextStyle(color: AppColors.textSecondary)),
+            child: Text('기억 안 남 (모름)', style: TextStyle(color: AppColors.textSecondary)),
           ),
           // 2) 예정 시각 그대로 복용 버튼
           TextButton(
@@ -549,7 +549,7 @@ class _CalendarTabViewState extends State<CalendarTabView> {
                 message: '${med.name} ${slot.label} 예정 시각에 잘 챙겨 드셨어요.',
               );
             },
-            child: Text('${slot.scheduledTime ?? '예정 시각'}에 복용', style: const TextStyle(color: AppColors.primaryPurple, fontWeight: FontWeight.bold)),
+            child: Text('${slot.scheduledTime ?? '예정 시각'}에 복용', style: TextStyle(color: AppColors.primaryPurple, fontWeight: FontWeight.bold)),
           ),
           // 3) 직접 시간 선택 버튼
           ElevatedButton(
@@ -587,7 +587,7 @@ class _CalendarTabViewState extends State<CalendarTabView> {
         actions: [
           TextButton(
             onPressed: () => Navigator.of(dCtx).pop(),
-            child: const Text('취소', style: TextStyle(color: AppColors.textSecondary)),
+            child: Text('취소', style: TextStyle(color: AppColors.textSecondary)),
           ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(
@@ -620,7 +620,7 @@ class _CalendarTabViewState extends State<CalendarTabView> {
         actions: [
           TextButton(
             onPressed: () => Navigator.of(dCtx).pop(),
-            child: const Text('취소', style: TextStyle(color: AppColors.textSecondary)),
+            child: Text('취소', style: TextStyle(color: AppColors.textSecondary)),
           ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(
@@ -661,7 +661,7 @@ class _CalendarTabViewState extends State<CalendarTabView> {
                 message: '\'${habit.title}\'을(를) 대기로 변경했어요.',
               );
             },
-            child: const Text('대기 (미실천)', style: TextStyle(color: AppColors.textSecondary)),
+            child: Text('대기 (미실천)', style: TextStyle(color: AppColors.textSecondary)),
           ),
           // 2) 조금 실천
           TextButton(
@@ -724,17 +724,17 @@ class _CalendarTabViewState extends State<CalendarTabView> {
               children: [
                 Text(
                   '${_currentMonth.year}년 ${_currentMonth.month}월',
-                  style: const TextStyle(fontSize: 19, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
+                  style: TextStyle(fontSize: 19, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
                 ),
                 const SizedBox(width: 6),
                 IconButton(
-                  icon: const Icon(Icons.chevron_left, size: 22, color: AppColors.textSecondary),
+                  icon: Icon(Icons.chevron_left, size: 22, color: AppColors.textSecondary),
                   onPressed: () => _changeMonth(-1),
                   padding: EdgeInsets.zero,
                   constraints: const BoxConstraints(),
                 ),
                 IconButton(
-                  icon: const Icon(Icons.chevron_right, size: 22, color: AppColors.textSecondary),
+                  icon: Icon(Icons.chevron_right, size: 22, color: AppColors.textSecondary),
                   onPressed: () => _changeMonth(1),
                   padding: EdgeInsets.zero,
                   constraints: const BoxConstraints(),
@@ -743,8 +743,8 @@ class _CalendarTabViewState extends State<CalendarTabView> {
             ),
             TextButton.icon(
               style: TextButton.styleFrom(padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4)),
-              icon: const Icon(Icons.today, size: 16, color: AppColors.primaryPurple),
-              label: const Text('오늘', style: TextStyle(color: AppColors.primaryPurple, fontWeight: FontWeight.bold, fontSize: 13)),
+              icon: Icon(Icons.today, size: 16, color: AppColors.primaryPurple),
+              label: Text('오늘', style: TextStyle(color: AppColors.primaryPurple, fontWeight: FontWeight.bold, fontSize: 13)),
               onPressed: _goToToday,
             ),
           ],
@@ -765,7 +765,7 @@ class _CalendarTabViewState extends State<CalendarTabView> {
           child: Column(
             children: [
               // 요일 헤더 (안티-슬롭 폰트 웨이트 정돈: w600으로 단정하게)
-              const Padding(
+              Padding(
                 padding: EdgeInsets.only(bottom: 8),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceAround,
@@ -939,7 +939,7 @@ class _CalendarTabViewState extends State<CalendarTabView> {
                     children: [
                       Text(
                         '${_selectedDate.month}월 ${_selectedDate.day}일',
-                        style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
+                        style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
                       ),
                       const SizedBox(width: 8),
                       Container(
@@ -967,11 +967,11 @@ class _CalendarTabViewState extends State<CalendarTabView> {
                       padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
                       child: Row(
                         children: [
-                          const Icon(Icons.add, size: 16, color: AppColors.primaryPurple),
+                          Icon(Icons.add, size: 16, color: AppColors.primaryPurple),
                           const SizedBox(width: 2),
                           Text(
                             isSelectedDatePast ? '한일 추가' : '할일 추가',
-                            style: const TextStyle(fontSize: 12.5, color: AppColors.primaryPurple, fontWeight: FontWeight.bold),
+                            style: TextStyle(fontSize: 12.5, color: AppColors.primaryPurple, fontWeight: FontWeight.bold),
                           ),
                         ],
                       ),
@@ -998,18 +998,18 @@ class _CalendarTabViewState extends State<CalendarTabView> {
                     children: [
                       Row(
                         children: [
-                          Text(taskHeaderTitle, style: const TextStyle(fontSize: 13.5, fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
+                          Text(taskHeaderTitle, style: TextStyle(fontSize: 13.5, fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
                           const SizedBox(width: 6),
                           Text(
                             '(${selectedDayTasks.length}건)',
-                            style: const TextStyle(fontSize: 12, color: AppColors.textSecondary, fontWeight: FontWeight.w600),
+                            style: TextStyle(fontSize: 12, color: AppColors.textSecondary, fontWeight: FontWeight.w600),
                           ),
                         ],
                       ),
                       if (selectedDayTasks.isNotEmpty)
                         Text(
                           '${selectedDayTasks.where((t) => t.isCompleted).length}/${selectedDayTasks.length} 완료',
-                          style: const TextStyle(fontSize: 11.5, color: AppColors.primaryPurple, fontWeight: FontWeight.bold),
+                          style: TextStyle(fontSize: 11.5, color: AppColors.primaryPurple, fontWeight: FontWeight.bold),
                         ),
                     ],
                   );
@@ -1093,7 +1093,7 @@ class _CalendarTabViewState extends State<CalendarTabView> {
                                               if (t.reminders.isNotEmpty) t.reminderSummary,
                                               if (t.isRepeated) t.repeatSummary,
                                             ].join(' · '),
-                                            style: const TextStyle(fontSize: 11, color: AppColors.textSecondary),
+                                            style: TextStyle(fontSize: 11, color: AppColors.textSecondary),
                                           ),
                                       ],
                                     ),
@@ -1117,7 +1117,7 @@ class _CalendarTabViewState extends State<CalendarTabView> {
                                       tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                                     ),
                                     onPressed: () => _showTaskModal(task: t),
-                                    child: const Text('정보 수정', style: TextStyle(color: AppColors.primaryPurple, fontSize: 12, fontWeight: FontWeight.w600)),
+                                    child: Text('정보 수정', style: TextStyle(color: AppColors.primaryPurple, fontSize: 12, fontWeight: FontWeight.w600)),
                                   ),
                                   const SizedBox(width: 8),
                                   TextButton(
@@ -1127,7 +1127,7 @@ class _CalendarTabViewState extends State<CalendarTabView> {
                                       tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                                     ),
                                     onPressed: () => _state.moveTask(t.id, -1, _selectedDate),
-                                    child: const Text('위로', style: TextStyle(color: AppColors.textSecondary, fontSize: 12, fontWeight: FontWeight.w600)),
+                                    child: Text('위로', style: TextStyle(color: AppColors.textSecondary, fontSize: 12, fontWeight: FontWeight.w600)),
                                   ),
                                   const SizedBox(width: 4),
                                   TextButton(
@@ -1137,7 +1137,7 @@ class _CalendarTabViewState extends State<CalendarTabView> {
                                       tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                                     ),
                                     onPressed: () => _state.moveTask(t.id, 1, _selectedDate),
-                                    child: const Text('아래로', style: TextStyle(color: AppColors.textSecondary, fontSize: 12, fontWeight: FontWeight.w600)),
+                                    child: Text('아래로', style: TextStyle(color: AppColors.textSecondary, fontSize: 12, fontWeight: FontWeight.w600)),
                                   ),
                                   const Spacer(),
                                   TextButton(
@@ -1186,7 +1186,7 @@ class _CalendarTabViewState extends State<CalendarTabView> {
                     children: [
                       Row(
                         children: [
-                          const Text('복약 현황', style: TextStyle(fontSize: 13.5, fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
+                          Text('복약 현황', style: TextStyle(fontSize: 13.5, fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
                           const SizedBox(width: 8),
                           // 전체 완료 여부 뱃지
                           Container(
@@ -1218,7 +1218,7 @@ class _CalendarTabViewState extends State<CalendarTabView> {
                       if (isSelectedDatePast || isSelectedDateToday)
                         Text(
                           _isMedDetailsExpanded ? '접기' : (isSelectedDatePast ? '수정하기' : '확인하기'),
-                          style: const TextStyle(fontSize: 12, color: AppColors.primaryPurple, fontWeight: FontWeight.bold),
+                          style: TextStyle(fontSize: 12, color: AppColors.primaryPurple, fontWeight: FontWeight.bold),
                         ),
                     ],
                   ),
@@ -1243,11 +1243,11 @@ class _CalendarTabViewState extends State<CalendarTabView> {
                             children: [
                               Text(
                                 med.name,
-                                style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
+                                style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
                               ),
                               Text(
                                 med.dosage,
-                                style: const TextStyle(fontSize: 11, color: AppColors.textSecondary),
+                                style: TextStyle(fontSize: 11, color: AppColors.textSecondary),
                               ),
                             ],
                           ),
@@ -1332,7 +1332,7 @@ class _CalendarTabViewState extends State<CalendarTabView> {
                     children: [
                       Row(
                         children: [
-                          const Text('습관 현황', style: TextStyle(fontSize: 13.5, fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
+                          Text('습관 현황', style: TextStyle(fontSize: 13.5, fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
                           const SizedBox(width: 8),
                           // 습관 완료 여부 뱃지
                           Container(
@@ -1368,7 +1368,7 @@ class _CalendarTabViewState extends State<CalendarTabView> {
                       if (isSelectedDatePast || isSelectedDateToday)
                         Text(
                           _isHabitDetailsExpanded ? '접기' : (isSelectedDatePast ? '수정하기' : '확인하기'),
-                          style: const TextStyle(fontSize: 12, color: AppColors.primaryPurple, fontWeight: FontWeight.bold),
+                          style: TextStyle(fontSize: 12, color: AppColors.primaryPurple, fontWeight: FontWeight.bold),
                         ),
                     ],
                   ),
@@ -1413,12 +1413,12 @@ class _CalendarTabViewState extends State<CalendarTabView> {
                               children: [
                                 Text(
                                   habit.title,
-                                  style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
+                                  style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
                                 ),
                                 const SizedBox(height: 2),
                                 Text(
                                   habit.subtitle,
-                                  style: const TextStyle(fontSize: 11, color: AppColors.textSecondary),
+                                  style: TextStyle(fontSize: 11, color: AppColors.textSecondary),
                                 ),
                               ],
                             ),

@@ -99,11 +99,11 @@ class _TutorialOverlayState extends State<TutorialOverlay> {
       barrierDismissible: false,
       builder: (ctx) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: const Text(
+        title: Text(
           '튜토리얼 완료',
           style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
         ),
-        content: const Text(
+        content: Text(
           '직접 만져보며 모든 기능을 둘러보셨어요!\n\n이제 나만의 복약과 습관을 자유롭게 등록할 수 있도록, 예시 복약과 할일은 비우고 습관들은 [대기] 상태로 깨끗하게 준비해 드릴게요.',
           style: TextStyle(fontSize: 13, height: 1.5, color: AppColors.textPrimary),
         ),
@@ -164,7 +164,7 @@ class _TutorialOverlayState extends State<TutorialOverlay> {
                     ),
                     child: Text(
                       step['badge'] as String,
-                      style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.primaryPurple),
+                      style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.primaryPurple),
                     ),
                   ),
                   const Spacer(),
@@ -180,12 +180,12 @@ class _TutorialOverlayState extends State<TutorialOverlay> {
               const SizedBox(height: 10),
               Text(
                 step['title'] as String,
-                style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
+                style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
               ),
               const SizedBox(height: 6),
               Text(
                 step['body'] as String,
-                style: const TextStyle(fontSize: 12, height: 1.5, color: AppColors.textSecondary),
+                style: TextStyle(fontSize: 12, height: 1.5, color: AppColors.textSecondary),
               ),
               const SizedBox(height: 14),
               SizedBox(

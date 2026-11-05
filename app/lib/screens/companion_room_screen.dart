@@ -35,10 +35,10 @@ class _CompanionRoomScreenState extends State<CompanionRoomScreen> {
         backgroundColor: Colors.transparent,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new, color: AppColors.textPrimary),
+          icon: Icon(Icons.arrow_back_ios_new, color: AppColors.textPrimary),
           onPressed: () => Navigator.of(context).pop(),
         ),
-        title: const Text(
+        title: Text(
           '하곰이의 방',
           style: TextStyle(
             color: AppColors.textPrimary,
@@ -62,7 +62,7 @@ class _CompanionRoomScreenState extends State<CompanionRoomScreen> {
                   borderRadius: BorderRadius.circular(20),
                   border: Border.all(color: AppColors.primaryPurple.withOpacity(0.3)),
                 ),
-                child: const Row(
+                child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Text('●', style: TextStyle(color: AppColors.successGreen, fontSize: 10)),
@@ -110,7 +110,7 @@ class _CompanionRoomScreenState extends State<CompanionRoomScreen> {
                       ),
                     ),
                     const SizedBox(height: 8),
-                    const Text(
+                    Text(
                       '하곰이를 톡톡 터치해 보세요',
                       style: TextStyle(
                         fontSize: 12,
@@ -180,7 +180,7 @@ class _CompanionRoomScreenState extends State<CompanionRoomScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
+                    Text(
                       '하곰이와 함께한 소중한 발걸음',
                       style: TextStyle(
                         fontSize: 14,
@@ -203,8 +203,8 @@ class _CompanionRoomScreenState extends State<CompanionRoomScreen> {
               const SizedBox(height: 32),
               // 돌아가기 버튼
               OutlinedButton.icon(
-                icon: const Icon(Icons.arrow_back, size: 16, color: AppColors.primaryPurple),
-                label: const Text(
+                icon: Icon(Icons.arrow_back, size: 16, color: AppColors.primaryPurple),
+                label: Text(
                   '홈으로 돌아가기',
                   style: TextStyle(
                     color: AppColors.primaryPurple,
@@ -213,7 +213,7 @@ class _CompanionRoomScreenState extends State<CompanionRoomScreen> {
                 ),
                 onPressed: () => Navigator.of(context).pop(),
                 style: OutlinedButton.styleFrom(
-                  side: const BorderSide(color: AppColors.primaryPurple),
+                  side: BorderSide(color: AppColors.primaryPurple),
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                   padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
                 ),
@@ -239,7 +239,7 @@ class _CompanionRoomScreenState extends State<CompanionRoomScreen> {
         const SizedBox(height: 4),
         Text(
           label,
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 12,
             color: AppColors.textSecondary,
           ),

@@ -47,7 +47,7 @@ class _HabitsTabViewState extends State<HabitsTabView> {
         actions: [
           TextButton(
             onPressed: () => Navigator.of(dCtx).pop(),
-            child: const Text('취소', style: TextStyle(color: AppColors.textSecondary)),
+            child: Text('취소', style: TextStyle(color: AppColors.textSecondary)),
           ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(backgroundColor: AppColors.neutralDark),
@@ -122,7 +122,7 @@ class _HabitsTabViewState extends State<HabitsTabView> {
                     children: [
                       Text(
                         isEditing ? '습관 정보 수정' : '새로운 습관 추가',
-                        style: const TextStyle(fontSize: 17, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
+                        style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
                       ),
                       IconButton(
                         icon: const Icon(Icons.close, color: AppColors.textMuted, size: 20),
@@ -183,7 +183,7 @@ class _HabitsTabViewState extends State<HabitsTabView> {
                   const SizedBox(height: 14),
 
                   // 3. 실천 주기 (매일, 요일 선택, 주 N회, 오늘만)
-                  const Text('실천 주기', style: TextStyle(fontSize: 12.5, fontWeight: FontWeight.bold, color: AppColors.textSecondary)),
+                  Text('실천 주기', style: TextStyle(fontSize: 12.5, fontWeight: FontWeight.bold, color: AppColors.textSecondary)),
                   const SizedBox(height: 6),
                   Wrap(
                     spacing: 6,
@@ -293,11 +293,11 @@ class _HabitsTabViewState extends State<HabitsTabView> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      const Text('알림 시각', style: TextStyle(fontSize: 12.5, fontWeight: FontWeight.bold, color: AppColors.textSecondary)),
+                      Text('알림 시각', style: TextStyle(fontSize: 12.5, fontWeight: FontWeight.bold, color: AppColors.textSecondary)),
                       TextButton.icon(
                         style: TextButton.styleFrom(padding: EdgeInsets.zero, minimumSize: Size.zero),
-                        icon: const Icon(Icons.add, size: 14, color: AppColors.primaryPurple),
-                        label: const Text('시각 추가', style: TextStyle(fontSize: 12, color: AppColors.primaryPurple, fontWeight: FontWeight.bold)),
+                        icon: Icon(Icons.add, size: 14, color: AppColors.primaryPurple),
+                        label: Text('시각 추가', style: TextStyle(fontSize: 12, color: AppColors.primaryPurple, fontWeight: FontWeight.bold)),
                         onPressed: () async {
                           final time = await AppTimePicker.show(
                             context,
@@ -335,7 +335,7 @@ class _HabitsTabViewState extends State<HabitsTabView> {
                           child: Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              Text(t, style: const TextStyle(fontSize: 11.5, color: AppColors.primaryPurple, fontWeight: FontWeight.bold)),
+                              Text(t, style: TextStyle(fontSize: 11.5, color: AppColors.primaryPurple, fontWeight: FontWeight.bold)),
                               const SizedBox(width: 4),
                               GestureDetector(
                                 onTap: () {
@@ -343,7 +343,7 @@ class _HabitsTabViewState extends State<HabitsTabView> {
                                     scheduledTimes.remove(t);
                                   });
                                 },
-                                child: const Icon(Icons.close, size: 13, color: AppColors.primaryPurple),
+                                child: Icon(Icons.close, size: 13, color: AppColors.primaryPurple),
                               ),
                             ],
                           ),
@@ -468,7 +468,7 @@ class _HabitsTabViewState extends State<HabitsTabView> {
           width: double.infinity,
           height: 42,
           child: OutlinedButton(
-            child: const Text(
+            child: Text(
               '작은 습관 추가',
               style: TextStyle(
                 color: AppColors.primaryPurple,
@@ -478,7 +478,7 @@ class _HabitsTabViewState extends State<HabitsTabView> {
             ),
             onPressed: () => _showHabitEditModal(),
             style: OutlinedButton.styleFrom(
-              side: const BorderSide(color: AppColors.primaryPurple, width: 1.0),
+              side: BorderSide(color: AppColors.primaryPurple, width: 1.0),
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
               backgroundColor: Colors.white,
             ),
@@ -516,7 +516,7 @@ class _HabitsTabViewState extends State<HabitsTabView> {
             Expanded(
               child: Text(
                 '${habit.title} (${habit.recurrenceSummary})',
-                style: const TextStyle(fontSize: 12, color: AppColors.textSecondary, fontWeight: FontWeight.w500),
+                style: TextStyle(fontSize: 12, color: AppColors.textSecondary, fontWeight: FontWeight.w500),
               ),
             ),
             const Text(
@@ -565,7 +565,7 @@ class _HabitsTabViewState extends State<HabitsTabView> {
             children: [
               Row(
                 children: [
-                  const Text(
+                  Text(
                     '오늘 습관',
                     style: TextStyle(
                       fontSize: 13.5,
@@ -576,7 +576,7 @@ class _HabitsTabViewState extends State<HabitsTabView> {
                   const SizedBox(width: 6),
                   Text(
                     '$total개 중 ${formatScore(score)}개',
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 13.5,
                       fontWeight: FontWeight.w600,
                       color: AppColors.primaryPurple,
@@ -586,7 +586,7 @@ class _HabitsTabViewState extends State<HabitsTabView> {
               ),
               Text(
                 '${(rate * 100).toInt()}%',
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 13,
                   fontWeight: FontWeight.bold,
                   color: AppColors.primaryPurple,
@@ -601,7 +601,7 @@ class _HabitsTabViewState extends State<HabitsTabView> {
               value: rate,
               minHeight: 6,
               backgroundColor: AppColors.lightLavender,
-              valueColor: const AlwaysStoppedAnimation<Color>(AppColors.primaryPurple),
+              valueColor: AlwaysStoppedAnimation<Color>(AppColors.primaryPurple),
             ),
           ),
         ],
@@ -676,7 +676,7 @@ class _HabitsTabViewState extends State<HabitsTabView> {
                               ),
                               child: Text(
                                 habit.recurrenceSummary,
-                                style: const TextStyle(fontSize: 10.5, color: AppColors.primaryPurple, fontWeight: FontWeight.bold),
+                                style: TextStyle(fontSize: 10.5, color: AppColors.primaryPurple, fontWeight: FontWeight.bold),
                               ),
                             ),
                             if (habit.targetPerDay > 1)
@@ -688,7 +688,7 @@ class _HabitsTabViewState extends State<HabitsTabView> {
                                 ),
                                 child: Text(
                                   '하루 ${habit.targetPerDay}회',
-                                  style: const TextStyle(fontSize: 10.5, color: AppColors.warmBrown, fontWeight: FontWeight.bold),
+                                  style: TextStyle(fontSize: 10.5, color: AppColors.warmBrown, fontWeight: FontWeight.bold),
                                 ),
                               ),
                             ...habit.scheduledTimes.map((t) => Container(
@@ -699,7 +699,7 @@ class _HabitsTabViewState extends State<HabitsTabView> {
                                   ),
                                   child: Text(
                                     t,
-                                    style: const TextStyle(fontSize: 10.5, color: AppColors.textSecondary, fontWeight: FontWeight.w600),
+                                    style: TextStyle(fontSize: 10.5, color: AppColors.textSecondary, fontWeight: FontWeight.w600),
                                   ),
                                 )),
                           ],
@@ -707,7 +707,7 @@ class _HabitsTabViewState extends State<HabitsTabView> {
                         const SizedBox(height: 3),
                         Text(
                           habit.subtitle,
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 12.5,
                             color: AppColors.textSecondary,
                           ),
@@ -799,7 +799,7 @@ class _HabitsTabViewState extends State<HabitsTabView> {
                       tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                     ),
                     onPressed: () => _showHabitEditModal(habit: habit),
-                    child: const Text('정보 수정', style: TextStyle(color: AppColors.primaryPurple, fontSize: 12, fontWeight: FontWeight.w600)),
+                    child: Text('정보 수정', style: TextStyle(color: AppColors.primaryPurple, fontSize: 12, fontWeight: FontWeight.w600)),
                   ),
                   const SizedBox(width: 8),
                   TextButton(
@@ -809,7 +809,7 @@ class _HabitsTabViewState extends State<HabitsTabView> {
                       tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                     ),
                     onPressed: () => _state.moveHabit(habit.id, -1),
-                    child: const Text('위로', style: TextStyle(color: AppColors.textSecondary, fontSize: 12, fontWeight: FontWeight.w600)),
+                    child: Text('위로', style: TextStyle(color: AppColors.textSecondary, fontSize: 12, fontWeight: FontWeight.w600)),
                   ),
                   const SizedBox(width: 4),
                   TextButton(
@@ -819,7 +819,7 @@ class _HabitsTabViewState extends State<HabitsTabView> {
                       tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                     ),
                     onPressed: () => _state.moveHabit(habit.id, 1),
-                    child: const Text('아래로', style: TextStyle(color: AppColors.textSecondary, fontSize: 12, fontWeight: FontWeight.w600)),
+                    child: Text('아래로', style: TextStyle(color: AppColors.textSecondary, fontSize: 12, fontWeight: FontWeight.w600)),
                   ),
                   const Spacer(),
                   if (habit.score > 0.0)
@@ -837,7 +837,7 @@ class _HabitsTabViewState extends State<HabitsTabView> {
                           message: '\'${habit.title}\' 실천 상태를 대기로 되돌렸어요.',
                         );
                       },
-                      child: const Text('되돌리기', style: TextStyle(color: AppColors.warmBrown, fontSize: 12, fontWeight: FontWeight.w600)),
+                      child: Text('되돌리기', style: TextStyle(color: AppColors.warmBrown, fontSize: 12, fontWeight: FontWeight.w600)),
                     ),
                 ],
               ),
