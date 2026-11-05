@@ -1,6 +1,8 @@
 import 'dart:io';
+
 import 'package:flutter/services.dart';
 import 'package:flutter/material.dart';
+
 import '../constants/app_colors.dart';
 import '../constants/app_assets.dart';
 import '../state/app_state_manager.dart';
@@ -37,7 +39,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
     if (mounted) setState(() {});
   }
 
-  static const MethodChannel _exportChannel = MethodChannel('com.healthpharma.hagom_app/export');
+  static const MethodChannel _exportChannel = MethodChannel(
+    'com.healthpharma.hagom_app/export',
+  );
 
   // 📥 [보건약학 임상/교수님 자문용] 4대 영역 맞춤형 CSV 엑셀 다운로드 & 공유 모달
   Future<void> _exportMedicalCsv() async {
@@ -77,35 +81,63 @@ class _SettingsScreenState extends State<SettingsScreen> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text(
+                  const Text(
                     '건강 기록 데이터 추출 및 다운로드',
-                    style: TextStyle(fontSize: 16.5, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
+                    style: TextStyle(
+                      fontSize: 16.5,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.textPrimary,
+                    ),
                   ),
                   IconButton(
-                    icon: const Icon(Icons.close, color: AppColors.textMuted, size: 20),
+                    icon: const Icon(
+                      Icons.close,
+                      color: AppColors.textMuted,
+                      size: 20,
+                    ),
                     onPressed: () => Navigator.of(mCtx).pop(),
                   ),
                 ],
               ),
               const SizedBox(height: 2),
-              Text(
+              const Text(
                 '다운로드할 카테고리를 선택해 주세요. 앱에 기록된 모든 로우 데이터가 엑셀(CSV) 스프레드시트로 생성돼요.',
-                style: TextStyle(fontSize: 12, color: AppColors.textSecondary, height: 1.4),
+                style: TextStyle(
+                  fontSize: 12,
+                  color: AppColors.textSecondary,
+                  height: 1.4,
+                ),
               ),
 
               // 체크박스 4대 영역
-              _buildCategoryCheckbox('처방약 데이터 (필수 복용약, 용법/용량, 복용 시각, 엄수 여부)', includePrescription, (val) {
-                setModalState(() => includePrescription = val ?? false);
-              }),
-              _buildCategoryCheckbox('일반약 및 영양제 데이터 (비처방약, 일일 루틴, 복약 이행률)', includeOtc, (val) {
-                setModalState(() => includeOtc = val ?? false);
-              }),
-              _buildCategoryCheckbox('작은 습관 데이터 (일일 실천 횟수, 주간 완료율, 비처벌 점수)', includeHabits, (val) {
-                setModalState(() => includeHabits = val ?? false);
-              }),
-              _buildCategoryCheckbox('할일 및 진료 일정 데이터 (병원 방문, 복약 점검, 완료 현황)', includeTasks, (val) {
-                setModalState(() => includeTasks = val ?? false);
-              }),
+              _buildCategoryCheckbox(
+                '처방약 데이터 (필수 복용약, 용법/용량, 복용 시각, 엄수 여부)',
+                includePrescription,
+                (val) {
+                  setModalState(() => includePrescription = val ?? false);
+                },
+              ),
+              _buildCategoryCheckbox(
+                '일반약 및 영양제 데이터 (비처방약, 일일 루틴, 복약 이행률)',
+                includeOtc,
+                (val) {
+                  setModalState(() => includeOtc = val ?? false);
+                },
+              ),
+              _buildCategoryCheckbox(
+                '작은 습관 데이터 (일일 실천 횟수, 주간 완료율, 비처벌 점수)',
+                includeHabits,
+                (val) {
+                  setModalState(() => includeHabits = val ?? false);
+                },
+              ),
+              _buildCategoryCheckbox(
+                '할일 및 진료 일정 데이터 (병원 방문, 복약 점검, 완료 현황)',
+                includeTasks,
+                (val) {
+                  setModalState(() => includeTasks = val ?? false);
+                },
+              ),
 
               const SizedBox(height: 20),
               Row(
@@ -115,10 +147,16 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     child: OutlinedButton(
                       style: OutlinedButton.styleFrom(
                         padding: const EdgeInsets.symmetric(vertical: 13),
-                        side: BorderSide(color: AppColors.primaryPurple),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                        side: const BorderSide(color: AppColors.primaryPurple),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
                       ),
-                      onPressed: (!includePrescription && !includeOtc && !includeHabits && !includeTasks)
+                      onPressed:
+                          (!includePrescription &&
+                              !includeOtc &&
+                              !includeHabits &&
+                              !includeTasks)
                           ? null
                           : () async {
                               Navigator.of(mCtx).pop();
@@ -130,7 +168,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                 isShare: false,
                               );
                             },
-                      child: Text('다운로드 폴더 저장', style: TextStyle(color: AppColors.primaryPurple, fontWeight: FontWeight.bold, fontSize: 13.5)),
+                      child: const Text(
+                        '다운로드 폴더 저장',
+                        style: TextStyle(
+                          color: AppColors.primaryPurple,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 13.5,
+                        ),
+                      ),
                     ),
                   ),
                   const SizedBox(width: 10),
@@ -140,9 +185,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       style: ElevatedButton.styleFrom(
                         padding: const EdgeInsets.symmetric(vertical: 13),
                         backgroundColor: AppColors.primaryPurple,
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
                       ),
-                      onPressed: (!includePrescription && !includeOtc && !includeHabits && !includeTasks)
+                      onPressed:
+                          (!includePrescription &&
+                              !includeOtc &&
+                              !includeHabits &&
+                              !includeTasks)
                           ? null
                           : () async {
                               Navigator.of(mCtx).pop();
@@ -154,7 +205,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                 isShare: true,
                               );
                             },
-                      child: const Text('파일 공유 및 전송', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13.5)),
+                      child: const Text(
+                        '파일 공유 및 전송',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 13.5,
+                        ),
+                      ),
                     ),
                   ),
                 ],
@@ -166,7 +224,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
-  Widget _buildCategoryCheckbox(String title, bool value, ValueChanged<bool?> onChanged) {
+  Widget _buildCategoryCheckbox(
+    String title,
+    bool value,
+    ValueChanged<bool?> onChanged,
+  ) {
     return InkWell(
       onTap: () => onChanged(!value),
       borderRadius: BorderRadius.circular(8),
@@ -181,14 +243,20 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 value: value,
                 onChanged: onChanged,
                 activeColor: AppColors.primaryPurple,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(4),
+                ),
               ),
             ),
             const SizedBox(width: 10),
             Expanded(
               child: Text(
                 title,
-                style: TextStyle(fontSize: 12.5, color: AppColors.textPrimary, fontWeight: FontWeight.w500),
+                style: const TextStyle(
+                  fontSize: 12.5,
+                  color: AppColors.textPrimary,
+                  fontWeight: FontWeight.w500,
+                ),
               ),
             ),
           ],
@@ -213,7 +281,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
       );
 
       final now = DateTime.now();
-      final dateStr = '${now.year}${now.month.toString().padLeft(2, '0')}${now.day.toString().padLeft(2, '0')}_${now.hour.toString().padLeft(2, '0')}${now.minute.toString().padLeft(2, '0')}';
+      final dateStr =
+          '${now.year}${now.month.toString().padLeft(2, '0')}${now.day.toString().padLeft(2, '0')}_${now.hour.toString().padLeft(2, '0')}${now.minute.toString().padLeft(2, '0')}';
       final fileName = '하곰이_종합건강기록_$dateStr.csv';
 
       if (isShare) {
@@ -233,7 +302,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
           showDialog(
             context: context,
             builder: (dCtx) => AlertDialog(
-              title: const Text('다운로드 완료', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+              title: const Text(
+                '다운로드 완료',
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              ),
               content: Text(
                 '스마트폰의 [다운로드] 폴더에 실제 엑셀(CSV) 파일이 성공적으로 저장되었어요!\n\n파일명: $fileName\n\n내 파일 앱의 [다운로드] 카테고리나 엑셀 앱에서 바로 열어보실 수 있어요.',
                 style: const TextStyle(fontSize: 13, height: 1.4),
@@ -242,10 +314,18 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 ElevatedButton(
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppColors.primaryPurple,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
                   ),
                   onPressed: () => Navigator.of(dCtx).pop(),
-                  child: const Text('확인', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                  child: const Text(
+                    '확인',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
                 ),
               ],
             ),
@@ -268,7 +348,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
     showDialog(
       context: context,
       builder: (dCtx) => AlertDialog(
-        title: const Text('모든 데이터 초기화', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.missedRed)),
+        title: const Text(
+          '모든 데이터 초기화',
+          style: TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.bold,
+            color: AppColors.missedRed,
+          ),
+        ),
         content: const Text(
           '등록된 모든 복약, 습관, 일정 기록이 완전히 삭제되고 초기 상태로 되돌아갑니다. 정말 초기화할까요?',
           style: TextStyle(fontSize: 13, height: 1.4),
@@ -276,12 +363,17 @@ class _SettingsScreenState extends State<SettingsScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.of(dCtx).pop(),
-            child: Text('취소', style: TextStyle(color: AppColors.textSecondary)),
+            child: const Text(
+              '취소',
+              style: TextStyle(color: AppColors.textSecondary),
+            ),
           ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(
               backgroundColor: AppColors.missedRed,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
             ),
             onPressed: () async {
               Navigator.of(dCtx).pop();
@@ -294,7 +386,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 );
               }
             },
-            child: const Text('초기화 확정', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+            child: const Text(
+              '초기화 확정',
+              style: TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
           ),
         ],
       ),
@@ -309,10 +407,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
         backgroundColor: Colors.transparent,
         elevation: 0,
         leading: IconButton(
-          icon: Icon(Icons.arrow_back_ios_new, color: AppColors.textPrimary),
+          icon: const Icon(
+            Icons.arrow_back_ios_new,
+            color: AppColors.textPrimary,
+          ),
           onPressed: () => Navigator.of(context).pop(),
         ),
-        title: Text(
+        title: const Text(
           '설정',
           style: TextStyle(
             color: AppColors.textPrimary,
@@ -345,7 +446,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   ),
                 ),
                 const SizedBox(width: 14),
-                Column(
+                const Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
@@ -358,7 +459,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     ),
                     SizedBox(height: 3),
                     Text(
-                      '정신약학 비처벌 복약 솔루션 · v0.87.148',
+                      '정신약학 비처벌 복약 솔루션 · v0.87.151',
                       style: TextStyle(
                         fontSize: 12,
                         color: AppColors.textSecondary,
@@ -372,11 +473,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
           const SizedBox(height: 18),
 
           // 🔔 1. 알림 통합 설정 시스템 (Notification Matrix)
-          Padding(
+          const Padding(
             padding: EdgeInsets.only(left: 4, bottom: 8),
             child: Text(
               '알림 및 임상 안전',
-              style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: AppColors.textSecondary),
+              style: TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.bold,
+                color: AppColors.textSecondary,
+              ),
             ),
           ),
           Container(
@@ -389,15 +494,32 @@ class _SettingsScreenState extends State<SettingsScreen> {
               children: [
                 // 1) 알림 빈도 강도 조절 (최소 / 기본 / 적극적)
                 Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 14,
+                  ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Text('알림 반복 빈도', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: AppColors.textPrimary)),
-                          Text(_state.notificationFrequency, style: TextStyle(fontSize: 12.5, fontWeight: FontWeight.bold, color: AppColors.primaryPurple)),
+                          const Text(
+                            '알림 반복 빈도',
+                            style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                              color: AppColors.textPrimary,
+                            ),
+                          ),
+                          Text(
+                            _state.notificationFrequency,
+                            style: const TextStyle(
+                              fontSize: 12.5,
+                              fontWeight: FontWeight.bold,
+                              color: AppColors.primaryPurple,
+                            ),
+                          ),
                         ],
                       ),
                       const SizedBox(height: 6),
@@ -405,9 +527,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         _state.notificationFrequency == '최소'
                             ? '정시에 딱 1번만 알리고 재알림을 보내지 않아요.'
                             : (_state.notificationFrequency == '기본'
-                                ? '15분 전 사전 예고 + 정시 + 미복용 시 30분 뒤 1회 추가 리마인드해요.'
-                                : '30분 전 사전 예고 + 정시 + 복용 완료할 때까지 15분 간격으로 계속 알려요.'),
-                        style: const TextStyle(fontSize: 11.5, color: AppColors.textMuted),
+                                  ? '15분 전 사전 예고 + 정시 + 미복용 시 30분 뒤 1회 추가 리마인드해요.'
+                                  : '30분 전 사전 예고 + 정시 + 복용 완료할 때까지 15분 간격으로 계속 알려요.'),
+                        style: const TextStyle(
+                          fontSize: 11.5,
+                          color: AppColors.textMuted,
+                        ),
                       ),
                       const SizedBox(height: 10),
                       Row(
@@ -415,7 +540,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                           final isSel = _state.notificationFrequency == freq;
                           return Expanded(
                             child: Padding(
-                              padding: const EdgeInsets.symmetric(horizontal: 3),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 3,
+                              ),
                               child: ChoiceChip(
                                 label: Center(child: Text(freq)),
                                 selected: isSel,
@@ -423,15 +550,24 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                 selectedColor: AppColors.lightLavender,
                                 labelStyle: TextStyle(
                                   fontSize: 12,
-                                  fontWeight: isSel ? FontWeight.bold : FontWeight.w500,
-                                  color: isSel ? AppColors.primaryPurple : AppColors.textSecondary,
+                                  fontWeight: isSel
+                                      ? FontWeight.bold
+                                      : FontWeight.w500,
+                                  color: isSel
+                                      ? AppColors.primaryPurple
+                                      : AppColors.textSecondary,
                                 ),
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(8),
-                                  side: BorderSide(color: isSel ? AppColors.primaryPurple : AppColors.divider),
+                                  side: BorderSide(
+                                    color: isSel
+                                        ? AppColors.primaryPurple
+                                        : AppColors.divider,
+                                  ),
                                 ),
                                 onSelected: (val) {
-                                  if (val) _state.setNotificationFrequency(freq);
+                                  if (val)
+                                    _state.setNotificationFrequency(freq);
                                 },
                               ),
                             ),
@@ -445,16 +581,28 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
                 // 2) 💊 복약 알림 (처방약 상시 켜짐 스마트 토글!)
                 SwitchListTile(
-                  contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 4,
+                  ),
                   activeColor: AppColors.primaryPurple,
-                  title: Text('복약 알림', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: AppColors.textPrimary)),
+                  title: const Text(
+                    '복약 알림',
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.textPrimary,
+                    ),
+                  ),
                   subtitle: Text(
                     _state.medsNotificationEnabled
                         ? '일반약 및 필수 처방약 알림 수신 중'
                         : '일반약 알림 OFF (처방약은 안전을 위해 켜짐 유지)',
                     style: TextStyle(
                       fontSize: 11.5,
-                      color: _state.medsNotificationEnabled ? AppColors.textSecondary : AppColors.missedRed,
+                      color: _state.medsNotificationEnabled
+                          ? AppColors.textSecondary
+                          : AppColors.missedRed,
                     ),
                   ),
                   value: _state.medsNotificationEnabled,
@@ -464,7 +612,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       showDialog(
                         context: context,
                         builder: (ctx) => AlertDialog(
-                          title: const Text('복약 알림 안내', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                          title: const Text(
+                            '복약 알림 안내',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
                           content: const Text(
                             '일반약 알림만 꺼지며, 처방약은 안전을 위해 켜짐이 유지돼요.',
                             style: TextStyle(fontSize: 13, height: 1.4),
@@ -473,13 +627,21 @@ class _SettingsScreenState extends State<SettingsScreen> {
                             ElevatedButton(
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: AppColors.primaryPurple,
-                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
                               ),
                               onPressed: () {
                                 Navigator.of(ctx).pop();
                                 _state.setMedsNotification(false);
                               },
-                              child: const Text('확인', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                              child: const Text(
+                                '확인',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
                             ),
                           ],
                         ),
@@ -493,10 +655,26 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
                 // 3) 🌱 작은 습관 알림
                 SwitchListTile(
-                  contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 4,
+                  ),
                   activeColor: AppColors.primaryPurple,
-                  title: Text('작은 습관 알림', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: AppColors.textPrimary)),
-                  subtitle: Text('물 마시기, 산책 등 데일리 루틴 실천 리마인드', style: TextStyle(fontSize: 11.5, color: AppColors.textSecondary)),
+                  title: const Text(
+                    '작은 습관 알림',
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.textPrimary,
+                    ),
+                  ),
+                  subtitle: const Text(
+                    '물 마시기, 산책 등 데일리 루틴 실천 리마인드',
+                    style: TextStyle(
+                      fontSize: 11.5,
+                      color: AppColors.textSecondary,
+                    ),
+                  ),
                   value: _state.habitNotificationEnabled,
                   onChanged: (val) => _state.setHabitNotification(val),
                 ),
@@ -504,10 +682,26 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
                 // 4) 🗓️ 할일 및 일정 알림
                 SwitchListTile(
-                  contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 4,
+                  ),
                   activeColor: AppColors.primaryPurple,
-                  title: Text('일정 및 할일 알림', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: AppColors.textPrimary)),
-                  subtitle: Text('병원 예약, 과제 마감 등 등록된 일정 사전 알림', style: TextStyle(fontSize: 11.5, color: AppColors.textSecondary)),
+                  title: const Text(
+                    '일정 및 할일 알림',
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.textPrimary,
+                    ),
+                  ),
+                  subtitle: const Text(
+                    '병원 예약, 과제 마감 등 등록된 일정 사전 알림',
+                    style: TextStyle(
+                      fontSize: 11.5,
+                      color: AppColors.textSecondary,
+                    ),
+                  ),
                   value: _state.tasksNotificationEnabled,
                   onChanged: (val) => _state.setTasksNotification(val),
                 ),
@@ -515,37 +709,104 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
                 // 5) 🐻 하곰이 응원 및 넛지 알림
                 SwitchListTile(
-                  contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 4,
+                  ),
                   activeColor: AppColors.primaryPurple,
-                  title: Text('하곰이 따뜻한 응원 알림', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: AppColors.textPrimary)),
-                  subtitle: Text('비처벌적 힐링과 응원의 한마디', style: TextStyle(fontSize: 11.5, color: AppColors.textSecondary)),
+                  title: const Text(
+                    '하곰이 따뜻한 응원 알림',
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.textPrimary,
+                    ),
+                  ),
+                  subtitle: const Text(
+                    '비처벌적 힐링과 응원의 한마디',
+                    style: TextStyle(
+                      fontSize: 11.5,
+                      color: AppColors.textSecondary,
+                    ),
+                  ),
                   value: _state.mascotNotificationEnabled,
                   onChanged: (val) => _state.setMascotNotification(val),
                 ),
                 const Divider(height: 1, color: Color(0xFFF3F4F6)),
 
                 // 6) ☀️ 하루 갱신 기준 시각 (기본 오전 8:00)
+                SwitchListTile(
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 4,
+                  ),
+                  activeColor: AppColors.primaryPurple,
+                  title: const Text(
+                    '팝업 켜기',
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.textPrimary,
+                    ),
+                  ),
+                  subtitle: const Text(
+                    '복약·습관·할 일 기록 완료 안내 팝업을 표시합니다',
+                    style: TextStyle(
+                      fontSize: 11.5,
+                      color: AppColors.textSecondary,
+                    ),
+                  ),
+                  value: _state.completionFeedbackEnabled,
+                  onChanged: (val) => _state.setCompletionFeedbackEnabled(val),
+                ),
+                const Divider(height: 1, color: Color(0xFFF3F4F6)),
                 ListTile(
-                  contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-                  leading: Icon(Icons.wb_sunny_outlined, color: AppColors.primaryPurple),
-                  title: Text('하루 갱신 기준 시각', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: AppColors.textPrimary)),
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 4,
+                  ),
+                  leading: const Icon(
+                    Icons.wb_sunny_outlined,
+                    color: AppColors.primaryPurple,
+                  ),
+                  title: const Text(
+                    '하루 갱신 기준 시각',
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.textPrimary,
+                    ),
+                  ),
                   subtitle: Text(
                     '매일 ${_state.dailyResetTimeString} 기준 새 하루가 시작돼요',
-                    style: TextStyle(fontSize: 11.5, color: AppColors.textSecondary),
+                    style: const TextStyle(
+                      fontSize: 11.5,
+                      color: AppColors.textSecondary,
+                    ),
                   ),
                   trailing: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 4,
+                    ),
                     decoration: BoxDecoration(
                       color: AppColors.lightLavender,
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Text(
                       _state.dailyResetTimeString,
-                      style: TextStyle(fontSize: 12.5, fontWeight: FontWeight.bold, color: AppColors.primaryPurple),
+                      style: const TextStyle(
+                        fontSize: 12.5,
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.primaryPurple,
+                      ),
                     ),
                   ),
                   onTap: () async {
-                    final currentTime = TimeOfDay(hour: _state.dailyResetHour, minute: _state.dailyResetMinute);
+                    final currentTime = TimeOfDay(
+                      hour: _state.dailyResetHour,
+                      minute: _state.dailyResetMinute,
+                    );
                     final picked = await AppTimePicker.show(
                       context,
                       initialTime: currentTime,
@@ -556,7 +817,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       CelebrationToast.show(
                         context,
                         title: '갱신 시각 변경',
-                        message: '하루 갱신 기준 시각이 ${_state.dailyResetTimeString}으로 설정되었어요.',
+                        message:
+                            '하루 갱신 기준 시각이 ${_state.dailyResetTimeString}으로 설정되었어요.',
                       );
                     }
                   },
@@ -567,11 +829,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
           const SizedBox(height: 18),
 
           // 📊 2. 데이터 내보내기 & 의료진 리포트
-          Padding(
+          const Padding(
             padding: EdgeInsets.only(left: 4, bottom: 8),
             child: Text(
               '데이터 및 의료진 상담',
-              style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: AppColors.textSecondary),
+              style: TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.bold,
+                color: AppColors.textSecondary,
+              ),
             ),
           ),
           Container(
@@ -583,33 +849,94 @@ class _SettingsScreenState extends State<SettingsScreen> {
             child: Column(
               children: [
                 ListTile(
-                  contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-                  leading: Icon(Icons.help_outline, color: AppColors.primaryPurple),
-                  title: Text('앱 사용 가이드 다시 보기', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: AppColors.textPrimary)),
-                  subtitle: Text('복약, 습관, 달력 탭의 핵심 기능 및 색상 요약', style: TextStyle(fontSize: 11.5, color: AppColors.textSecondary)),
-                  trailing: const Icon(Icons.arrow_forward_ios, size: 14, color: AppColors.textMuted),
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 4,
+                  ),
+                  leading: const Icon(
+                    Icons.help_outline,
+                    color: AppColors.primaryPurple,
+                  ),
+                  title: const Text(
+                    '앱 사용 가이드 다시 보기',
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.textPrimary,
+                    ),
+                  ),
+                  subtitle: const Text(
+                    '복약, 습관, 달력 탭의 핵심 기능 및 색상 요약',
+                    style: TextStyle(
+                      fontSize: 11.5,
+                      color: AppColors.textSecondary,
+                    ),
+                  ),
+                  trailing: const Icon(
+                    Icons.arrow_forward_ios,
+                    size: 14,
+                    color: AppColors.textMuted,
+                  ),
                   onTap: () {
                     showDialog(
                       context: context,
                       builder: (gCtx) => AlertDialog(
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-                        title: const Text('하곰이 헬스케어 가이드', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-                        content: SingleChildScrollView(
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(14),
+                        ),
+                        title: const Text(
+                          '하곰이 헬스케어 가이드',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        content: const SingleChildScrollView(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              Text('💊 복약 관리', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: AppColors.primaryPurple)),
+                              Text(
+                                '💊 복약 관리',
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 13,
+                                  color: AppColors.primaryPurple,
+                                ),
+                              ),
                               SizedBox(height: 4),
-                              Text('• [지금 복용]을 누르면 예정 시각이 실제 복약 시각으로 기록돼요.\n• 카드를 누르면 [정보 수정]이나 자책 없이 넘기는 [건너뛰기]를 할 수 있어요.', style: TextStyle(fontSize: 12, height: 1.4)),
+                              Text(
+                                '• [지금 복용]을 누르면 예정 시각이 실제 복약 시각으로 기록돼요.\n• 카드를 누르면 [정보 수정]이나 자책 없이 넘기는 [건너뛰기]를 할 수 있어요.',
+                                style: TextStyle(fontSize: 12, height: 1.4),
+                              ),
                               SizedBox(height: 12),
-                              Text('🌱 습관 관리', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: AppColors.primaryPurple)),
+                              Text(
+                                '🌱 습관 관리',
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 13,
+                                  color: AppColors.primaryPurple,
+                                ),
+                              ),
                               SizedBox(height: 4),
-                              Text('• [대기] ➔ [조금 실천(0.5점)] ➔ [완료(1.0점)] 3단계로 유연하게 인정돼요.\n• 4잔 중 1잔만 마셔도 상단 게이지에 정확하게 실천 점수가 반영돼요.', style: TextStyle(fontSize: 12, height: 1.4)),
+                              Text(
+                                '• [대기] ➔ [조금 실천(0.5점)] ➔ [완료(1.0점)] 3단계로 유연하게 인정돼요.\n• 4잔 중 1잔만 마셔도 상단 게이지에 정확하게 실천 점수가 반영돼요.',
+                                style: TextStyle(fontSize: 12, height: 1.4),
+                              ),
                               SizedBox(height: 12),
-                              Text('📅 기록 달력', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: AppColors.primaryPurple)),
+                              Text(
+                                '📅 기록 달력',
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 13,
+                                  color: AppColors.primaryPurple,
+                                ),
+                              ),
                               SizedBox(height: 4),
-                              Text('• 연초록 파스텔 셀: 복약과 습관 100% 완료.\n• 빨간 바: 처방약 누락 안전 경고.\n• 갈색 바: 일반약 또는 습관 부분 실천 상태.\n• 과거 날짜를 눌러 소급 체크해도 하곰이가 똑같이 축하해 드려요.', style: TextStyle(fontSize: 12, height: 1.4)),
+                              Text(
+                                '• 연초록 파스텔 셀: 복약과 습관 100% 완료.\n• 빨간 바: 처방약 누락 안전 경고.\n• 갈색 바: 일반약 또는 습관 부분 실천 상태.\n• 과거 날짜를 눌러 소급 체크해도 하곰이가 똑같이 축하해 드려요.',
+                                style: TextStyle(fontSize: 12, height: 1.4),
+                              ),
                             ],
                           ),
                         ),
@@ -617,10 +944,18 @@ class _SettingsScreenState extends State<SettingsScreen> {
                           ElevatedButton(
                             style: ElevatedButton.styleFrom(
                               backgroundColor: AppColors.primaryPurple,
-                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(8),
+                              ),
                             ),
                             onPressed: () => Navigator.of(gCtx).pop(),
-                            child: const Text('확인', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                            child: const Text(
+                              '확인',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
                           ),
                         ],
                       ),
@@ -629,48 +964,143 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 ),
                 const Divider(height: 1, color: Color(0xFFF3F4F6)),
                 ListTile(
-                  contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-                  leading: Icon(Icons.widgets_outlined, color: AppColors.primaryPurple),
-                  title: Text('스마트폰 홈 위젯 쇼룸', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: AppColors.textPrimary)),
-                  subtitle: Text('2×1 마스코트 4대 감정 및 1-Tap 즉시 체크 위젯 시뮬레이터', style: TextStyle(fontSize: 11.5, color: AppColors.textSecondary)),
-                  trailing: const Icon(Icons.arrow_forward_ios, size: 14, color: AppColors.textMuted),
-                  onTap: () {
-                    Navigator.of(context).push(
-                      MaterialPageRoute(builder: (ctx) => const WidgetSimulatorScreen()),
-                    );
-                  },
-                ),
-                const Divider(height: 1, color: Color(0xFFF3F4F6)),
-                ListTile(
-                  contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-                  leading: Icon(Icons.celebration_outlined, color: AppColors.primaryPurple),
-                  title: Text('일일 첫 접속 환영 애니메이션 다시 보기', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: AppColors.textPrimary)),
-                  subtitle: Text('하곰이 출석 지지 환영 GIF 전체 화면 체험', style: TextStyle(fontSize: 11.5, color: AppColors.textSecondary)),
-                  trailing: const Icon(Icons.arrow_forward_ios, size: 14, color: AppColors.textMuted),
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 4,
+                  ),
+                  leading: const Icon(
+                    Icons.widgets_outlined,
+                    color: AppColors.primaryPurple,
+                  ),
+                  title: const Text(
+                    '스마트폰 홈 위젯 쇼룸',
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.textPrimary,
+                    ),
+                  ),
+                  subtitle: const Text(
+                    '2×1 마스코트 4대 감정 및 1-Tap 즉시 체크 위젯 시뮬레이터',
+                    style: TextStyle(
+                      fontSize: 11.5,
+                      color: AppColors.textSecondary,
+                    ),
+                  ),
+                  trailing: const Icon(
+                    Icons.arrow_forward_ios,
+                    size: 14,
+                    color: AppColors.textMuted,
+                  ),
                   onTap: () {
                     Navigator.of(context).push(
                       MaterialPageRoute(
-                        builder: (ctx) => const SplashScreen(forceGreetingPreview: true),
+                        builder: (ctx) => const WidgetSimulatorScreen(),
                       ),
                     );
                   },
                 ),
                 const Divider(height: 1, color: Color(0xFFF3F4F6)),
                 ListTile(
-                  contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-                  leading: Icon(Icons.table_view_outlined, color: AppColors.primaryPurple),
-                  title: Text('복약 기록 엑셀(CSV) 다운로드', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: AppColors.textPrimary)),
-                  subtitle: Text('의료진 진료 상담용 스프레드시트 파일 저장', style: TextStyle(fontSize: 11.5, color: AppColors.textSecondary)),
-                  trailing: const Icon(Icons.arrow_forward_ios, size: 14, color: AppColors.textMuted),
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 4,
+                  ),
+                  leading: const Icon(
+                    Icons.celebration_outlined,
+                    color: AppColors.primaryPurple,
+                  ),
+                  title: const Text(
+                    '일일 첫 접속 환영 애니메이션 다시 보기',
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.textPrimary,
+                    ),
+                  ),
+                  subtitle: const Text(
+                    '하곰이 출석 지지 환영 GIF 전체 화면 체험',
+                    style: TextStyle(
+                      fontSize: 11.5,
+                      color: AppColors.textSecondary,
+                    ),
+                  ),
+                  trailing: const Icon(
+                    Icons.arrow_forward_ios,
+                    size: 14,
+                    color: AppColors.textMuted,
+                  ),
+                  onTap: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (ctx) =>
+                            const SplashScreen(forceGreetingPreview: true),
+                      ),
+                    );
+                  },
+                ),
+                const Divider(height: 1, color: Color(0xFFF3F4F6)),
+                ListTile(
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 4,
+                  ),
+                  leading: const Icon(
+                    Icons.table_view_outlined,
+                    color: AppColors.primaryPurple,
+                  ),
+                  title: const Text(
+                    '복약 기록 엑셀(CSV) 다운로드',
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.textPrimary,
+                    ),
+                  ),
+                  subtitle: const Text(
+                    '의료진 진료 상담용 스프레드시트 파일 저장',
+                    style: TextStyle(
+                      fontSize: 11.5,
+                      color: AppColors.textSecondary,
+                    ),
+                  ),
+                  trailing: const Icon(
+                    Icons.arrow_forward_ios,
+                    size: 14,
+                    color: AppColors.textMuted,
+                  ),
                   onTap: _exportMedicalCsv,
                 ),
                 const Divider(height: 1, color: Color(0xFFF3F4F6)),
                 ListTile(
-                  contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-                  leading: Icon(Icons.restart_alt_outlined, color: AppColors.primaryPurple),
-                  title: Text('시작 모드 선택 초기화', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: AppColors.textPrimary)),
-                  subtitle: Text('앱을 다시 열었을 때 시작 모드(바로 시작/온보딩/개발자) 선택창 다시 띄우기', style: TextStyle(fontSize: 11.5, color: AppColors.textSecondary)),
-                  trailing: const Icon(Icons.arrow_forward_ios, size: 14, color: AppColors.textMuted),
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 4,
+                  ),
+                  leading: const Icon(
+                    Icons.restart_alt_outlined,
+                    color: AppColors.primaryPurple,
+                  ),
+                  title: const Text(
+                    '시작 모드 선택 초기화',
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.textPrimary,
+                    ),
+                  ),
+                  subtitle: const Text(
+                    '앱을 다시 열었을 때 시작 모드(바로 시작/온보딩/개발자) 선택창 다시 띄우기',
+                    style: TextStyle(
+                      fontSize: 11.5,
+                      color: AppColors.textSecondary,
+                    ),
+                  ),
+                  trailing: const Icon(
+                    Icons.arrow_forward_ios,
+                    size: 14,
+                    color: AppColors.textMuted,
+                  ),
                   onTap: () async {
                     await _state.resetInitialModeSelection();
                     CelebrationToast.show(
@@ -682,19 +1112,61 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 ),
                 const Divider(height: 1, color: Color(0xFFF3F4F6)),
                 ListTile(
-                  contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-                  leading: Icon(Icons.palette_outlined, color: AppColors.primaryPurple),
-                  title: Text('테마 및 색상 설정 (개발자)', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: AppColors.primaryPurple)),
-                  subtitle: Text('현재: ${_themeName(_state.currentThemeKey)} · 딥 바이올렛/위젯 미니 테마', style: TextStyle(fontSize: 11.5, color: AppColors.textSecondary)),
-                  trailing: Icon(Icons.arrow_forward_ios, size: 14, color: AppColors.primaryPurple),
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 4,
+                  ),
+                  leading: const Icon(
+                    Icons.palette_outlined,
+                    color: AppColors.primaryPurple,
+                  ),
+                  title: const Text(
+                    '테마 및 색상 설정 (개발자)',
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.primaryPurple,
+                    ),
+                  ),
+                  subtitle: Text(
+                    '현재: ${_themeName(_state.currentThemeKey)} · 딥 바이올렛/위젯 미니 테마',
+                    style: const TextStyle(
+                      fontSize: 11.5,
+                      color: AppColors.textSecondary,
+                    ),
+                  ),
+                  trailing: const Icon(
+                    Icons.arrow_forward_ios,
+                    size: 14,
+                    color: AppColors.primaryPurple,
+                  ),
                   onTap: _showDeveloperThemeModal,
                 ),
                 const Divider(height: 1, color: Color(0xFFF3F4F6)),
                 ListTile(
-                  contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-                  leading: const Icon(Icons.delete_outline, color: AppColors.missedRed),
-                  title: const Text('모든 데이터 초기화', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: AppColors.missedRed)),
-                  subtitle: Text('복약, 습관, 일정 기록을 모두 비우고 초기화', style: TextStyle(fontSize: 11.5, color: AppColors.textSecondary)),
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 4,
+                  ),
+                  leading: const Icon(
+                    Icons.delete_outline,
+                    color: AppColors.missedRed,
+                  ),
+                  title: const Text(
+                    '모든 데이터 초기화',
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.missedRed,
+                    ),
+                  ),
+                  subtitle: const Text(
+                    '복약, 습관, 일정 기록을 모두 비우고 초기화',
+                    style: TextStyle(
+                      fontSize: 11.5,
+                      color: AppColors.textSecondary,
+                    ),
+                  ),
                   onTap: _confirmResetAllData,
                 ),
               ],
@@ -705,6 +1177,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       ),
     );
   }
+
   String _themeName(String key) {
     switch (key) {
       case AppColors.themeDeepViolet:
@@ -742,18 +1215,28 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   child: Container(
                     width: 36,
                     height: 4,
-                    decoration: BoxDecoration(color: Colors.grey[300], borderRadius: BorderRadius.circular(2)),
+                    decoration: BoxDecoration(
+                      color: Colors.grey[300],
+                      borderRadius: BorderRadius.circular(2),
+                    ),
                   ),
                 ),
                 const SizedBox(height: 16),
-                Text(
+                const Text(
                   '🛠️ 개발자 모드: 테마 및 색상 실시간 전환',
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.textPrimary,
+                  ),
                 ),
                 const SizedBox(height: 6),
-                Text(
+                const Text(
                   '선택 즉시 앱 전체 폰트·배경·포인트 컬러가 실시간으로 재렌더링돼요.',
-                  style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: AppColors.textSecondary,
+                  ),
                 ),
                 const SizedBox(height: 16),
 
@@ -762,39 +1245,62 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   title: '기본 테마',
                   subtitle: '오리지널 라벤더 퍼플 (#7B61A8) & 웜 브라운',
                   key: AppColors.themeDefault,
-                  previewColors: [const Color(0xFF7B61A8), const Color(0xFF8B5E3C), const Color(0xFFF3EFF8)],
+                  previewColors: [
+                    const Color(0xFF7B61A8),
+                    const Color(0xFF8B5E3C),
+                    const Color(0xFFF3EFF8),
+                  ],
                   setMState: setMState,
                 ),
                 _buildThemeRadio(
                   title: '딥 바이올렛 테마 (#EAE2FB / #541D7A)',
                   subtitle: '#EAE2FB 연보라 메인 배경과 #541D7A 또렷한 딥 퍼플 글씨',
                   key: AppColors.themeDeepViolet,
-                  previewColors: [const Color(0xFF541D7A), const Color(0xFFEAE2FB), const Color(0xFFF7F3FD)],
+                  previewColors: [
+                    const Color(0xFF541D7A),
+                    const Color(0xFFEAE2FB),
+                    const Color(0xFFF7F3FD),
+                  ],
                   setMState: setMState,
                 ),
                 _buildThemeRadio(
                   title: '습관 위젯 미니 테마 (웜 브라운)',
                   subtitle: '습관 위젯의 따뜻한 웜 브라운 톤앤매너를 앱 전체 포인트로 적용',
                   key: AppColors.themeWidgetHabitBrown,
-                  previewColors: [const Color(0xFF8B5E3C), const Color(0xFF6B4226), const Color(0xFFF7F3EE)],
+                  previewColors: [
+                    const Color(0xFF8B5E3C),
+                    const Color(0xFF6B4226),
+                    const Color(0xFFF7F3EE),
+                  ],
                   setMState: setMState,
                 ),
                 _buildThemeRadio(
                   title: '할일 위젯 미니 테마 (더스티 오커)',
                   subtitle: '할일 위젯의 차분한 황토 골드 톤앤매너를 앱 전체 포인트로 적용',
                   key: AppColors.themeWidgetTaskOcher,
-                  previewColors: [const Color(0xFFB58A32), const Color(0xFF8B5E3C), const Color(0xFFFBF6E9)],
+                  previewColors: [
+                    const Color(0xFFB58A32),
+                    const Color(0xFF8B5E3C),
+                    const Color(0xFFFBF6E9),
+                  ],
                   setMState: setMState,
                 ),
                 const SizedBox(height: 16),
-                Text(
+                const Text(
                   '🎨 탭별 미니 테마 (복약·습관·달력 고유 포인트)',
-                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.textPrimary,
+                  ),
                 ),
                 const SizedBox(height: 4),
-                Text(
+                const Text(
                   '기본 톤은 유지하면서 각 탭의 제목/아이콘/위젯 색상만 각각 커스텀해요.',
-                  style: TextStyle(fontSize: 11.5, color: AppColors.textSecondary),
+                  style: TextStyle(
+                    fontSize: 11.5,
+                    color: AppColors.textSecondary,
+                  ),
                 ),
                 const SizedBox(height: 10),
 
@@ -802,7 +1308,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 SwitchListTile.adaptive(
                   contentPadding: EdgeInsets.zero,
                   activeColor: AppColors.primaryPurple,
-                  title: const Text('탭별 미니 테마 포인트 활성화', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
+                  title: const Text(
+                    '탭별 미니 테마 포인트 활성화',
+                    style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
+                  ),
                   value: AppColors.useTabMiniThemes,
                   onChanged: (val) {
                     _state.setTabMiniThemeColors(enabled: val);
@@ -860,13 +1369,23 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   child: OutlinedButton.icon(
                     style: OutlinedButton.styleFrom(
                       padding: const EdgeInsets.symmetric(vertical: 12),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
                       side: BorderSide(color: AppColors.primaryPurple),
                     ),
-                    icon: Icon(Icons.colorize, size: 16, color: AppColors.primaryPurple),
+                    icon: Icon(
+                      Icons.colorize,
+                      size: 16,
+                      color: AppColors.primaryPurple,
+                    ),
                     label: Text(
                       '사용자 지정 색상 코드 직접 입력',
-                      style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: AppColors.primaryPurple),
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.primaryPurple,
+                      ),
                     ),
                     onPressed: () {
                       Navigator.of(ctx).pop();
@@ -901,7 +1420,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
         margin: const EdgeInsets.only(bottom: 8),
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
         decoration: BoxDecoration(
-          color: isSelected ? AppColors.lightLavender.withOpacity(0.5) : const Color(0xFFF9FAFB),
+          color: isSelected
+              ? AppColors.lightLavender.withOpacity(0.5)
+              : const Color(0xFFF9FAFB),
           borderRadius: BorderRadius.circular(10),
           border: Border.all(
             color: isSelected ? AppColors.primaryPurple : AppColors.divider,
@@ -912,28 +1433,55 @@ class _SettingsScreenState extends State<SettingsScreen> {
           children: [
             // 컬러 팔레트 스와치 3색 프리뷰
             Row(
-              children: previewColors.map((c) => Container(
-                width: 14,
-                height: 14,
-                margin: const EdgeInsets.only(right: 3),
-                decoration: BoxDecoration(color: c, shape: BoxShape.circle, border: Border.all(color: Colors.black12)),
-              )).toList(),
+              children: previewColors
+                  .map(
+                    (c) => Container(
+                      width: 14,
+                      height: 14,
+                      margin: const EdgeInsets.only(right: 3),
+                      decoration: BoxDecoration(
+                        color: c,
+                        shape: BoxShape.circle,
+                        border: Border.all(color: Colors.black12),
+                      ),
+                    ),
+                  )
+                  .toList(),
             ),
             const SizedBox(width: 10),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(title, style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: isSelected ? AppColors.primaryPurple : AppColors.textPrimary)),
+                  Text(
+                    title,
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.bold,
+                      color: isSelected
+                          ? AppColors.primaryPurple
+                          : AppColors.textPrimary,
+                    ),
+                  ),
                   const SizedBox(height: 2),
-                  Text(subtitle, style: TextStyle(fontSize: 11, color: AppColors.textSecondary)),
+                  Text(
+                    subtitle,
+                    style: const TextStyle(
+                      fontSize: 11,
+                      color: AppColors.textSecondary,
+                    ),
+                  ),
                 ],
               ),
             ),
             if (isSelected)
               Icon(Icons.check_circle, size: 18, color: AppColors.primaryPurple)
             else
-              const Icon(Icons.radio_button_unchecked, size: 18, color: AppColors.textMuted),
+              const Icon(
+                Icons.radio_button_unchecked,
+                size: 18,
+                color: AppColors.textMuted,
+              ),
           ],
         ),
       ),
@@ -950,12 +1498,25 @@ class _SettingsScreenState extends State<SettingsScreen> {
       context: context,
       builder: (dCtx) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: Text('사용자 테마 색상 직접 지정', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
+        title: const Text(
+          '사용자 테마 색상 직접 지정',
+          style: TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.bold,
+            color: AppColors.textPrimary,
+          ),
+        ),
         content: SingleChildScrollView(
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Text('원하는 HEX 색상 코드를 입력하면 변수에 실시간 반영돼요.', style: TextStyle(fontSize: 11.5, color: AppColors.textSecondary)),
+              const Text(
+                '원하는 HEX 색상 코드를 입력하면 변수에 실시간 반영돼요.',
+                style: TextStyle(
+                  fontSize: 11.5,
+                  color: AppColors.textSecondary,
+                ),
+              ),
               const SizedBox(height: 14),
               _buildHexField('메인 브랜드 컬러 (Primary)', primaryCtl),
               _buildHexField('앱 배경 컬러 (Background)', bgCtl),
@@ -967,12 +1528,17 @@ class _SettingsScreenState extends State<SettingsScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.of(dCtx).pop(),
-            child: Text('취소', style: TextStyle(color: AppColors.textSecondary)),
+            child: const Text(
+              '취소',
+              style: TextStyle(color: AppColors.textSecondary),
+            ),
           ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(
               backgroundColor: AppColors.primaryPurple,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
             ),
             onPressed: () {
               try {
@@ -1003,7 +1569,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 );
               }
             },
-            child: const Text('적용하기', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+            child: const Text(
+              '적용하기',
+              style: TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
           ),
         ],
       ),
@@ -1016,14 +1588,26 @@ class _SettingsScreenState extends State<SettingsScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(label, style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
+          Text(
+            label,
+            style: const TextStyle(
+              fontSize: 11.5,
+              fontWeight: FontWeight.bold,
+              color: AppColors.textPrimary,
+            ),
+          ),
           const SizedBox(height: 4),
           TextField(
             controller: ctl,
             decoration: InputDecoration(
               isDense: true,
-              contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-              border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: 10,
+                vertical: 8,
+              ),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
             ),
             style: const TextStyle(fontSize: 12, fontFamily: 'monospace'),
           ),
@@ -1069,11 +1653,22 @@ class _SettingsScreenState extends State<SettingsScreen> {
             ),
             const SizedBox(width: 10),
             Expanded(
-              child: Text(label, style: TextStyle(fontSize: 12.5, fontWeight: FontWeight.w600, color: AppColors.textPrimary)),
+              child: Text(
+                label,
+                style: const TextStyle(
+                  fontSize: 12.5,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.textPrimary,
+                ),
+              ),
             ),
             Text(
               '#${color.value.toRadixString(16).padLeft(8, '0').substring(2).toUpperCase()}',
-              style: TextStyle(fontSize: 11, fontFamily: 'monospace', color: AppColors.textSecondary),
+              style: const TextStyle(
+                fontSize: 11,
+                fontFamily: 'monospace',
+                color: AppColors.textSecondary,
+              ),
             ),
             const SizedBox(width: 4),
             const Icon(Icons.edit, size: 14, color: AppColors.textMuted),
@@ -1089,25 +1684,41 @@ class _SettingsScreenState extends State<SettingsScreen> {
     required ValueChanged<Color> onPicked,
   }) {
     final hexCtl = TextEditingController(
-      text: '#${initial.value.toRadixString(16).padLeft(8, '0').substring(2).toUpperCase()}',
+      text:
+          '#${initial.value.toRadixString(16).padLeft(8, '0').substring(2).toUpperCase()}',
     );
     showDialog(
       context: context,
       builder: (dCtx) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: Text(title, style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
+        title: Text(
+          title,
+          style: const TextStyle(
+            fontSize: 15,
+            fontWeight: FontWeight.bold,
+            color: AppColors.textPrimary,
+          ),
+        ),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('원하는 포인트 색상의 HEX 코드를 입력해 주세요.', style: TextStyle(fontSize: 11.5, color: AppColors.textSecondary)),
+            const Text(
+              '원하는 포인트 색상의 HEX 코드를 입력해 주세요.',
+              style: TextStyle(fontSize: 11.5, color: AppColors.textSecondary),
+            ),
             const SizedBox(height: 12),
             TextField(
               controller: hexCtl,
               decoration: InputDecoration(
                 isDense: true,
-                contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                contentPadding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 8,
+                ),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
                 hintText: '#RRGGBB',
               ),
               style: const TextStyle(fontSize: 13, fontFamily: 'monospace'),
@@ -1116,36 +1727,51 @@ class _SettingsScreenState extends State<SettingsScreen> {
             Wrap(
               spacing: 6,
               runSpacing: 6,
-              children: [
-                const Color(0xFF7B61A8), // 라벤더 퍼플
-                const Color(0xFF541D7A), // 딥 바이올렛
-                const Color(0xFF8B5E3C), // 웜 브라운
-                const Color(0xFFB58A32), // 더스티 오커
-                const Color(0xFF4A88B8), // 소프트 데님
-                const Color(0xFF557A5E), // 세이지 그린
-                const Color(0xFF475569), // 슬레이트
-              ].map((c) => InkWell(
-                onTap: () {
-                  hexCtl.text = '#${c.value.toRadixString(16).padLeft(8, '0').substring(2).toUpperCase()}';
-                },
-                child: Container(
-                  width: 24,
-                  height: 24,
-                  decoration: BoxDecoration(color: c, shape: BoxShape.circle, border: Border.all(color: Colors.black26)),
-                ),
-              )).toList(),
+              children:
+                  [
+                        const Color(0xFF7B61A8), // 라벤더 퍼플
+                        const Color(0xFF541D7A), // 딥 바이올렛
+                        const Color(0xFF8B5E3C), // 웜 브라운
+                        const Color(0xFFB58A32), // 더스티 오커
+                        const Color(0xFF4A88B8), // 소프트 데님
+                        const Color(0xFF557A5E), // 세이지 그린
+                        const Color(0xFF475569), // 슬레이트
+                      ]
+                      .map(
+                        (c) => InkWell(
+                          onTap: () {
+                            hexCtl.text =
+                                '#${c.value.toRadixString(16).padLeft(8, '0').substring(2).toUpperCase()}';
+                          },
+                          child: Container(
+                            width: 24,
+                            height: 24,
+                            decoration: BoxDecoration(
+                              color: c,
+                              shape: BoxShape.circle,
+                              border: Border.all(color: Colors.black26),
+                            ),
+                          ),
+                        ),
+                      )
+                      .toList(),
             ),
           ],
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(dCtx).pop(),
-            child: Text('취소', style: TextStyle(color: AppColors.textSecondary)),
+            child: const Text(
+              '취소',
+              style: TextStyle(color: AppColors.textSecondary),
+            ),
           ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(
               backgroundColor: AppColors.primaryPurple,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
             ),
             onPressed: () {
               try {
@@ -1153,10 +1779,20 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 onPicked(c);
                 Navigator.of(dCtx).pop();
               } catch (_) {
-                CelebrationToast.show(context, title: '형식 오류', message: '#RRGGBB 형식으로 입력해 주세요.');
+                CelebrationToast.show(
+                  context,
+                  title: '형식 오류',
+                  message: '#RRGGBB 형식으로 입력해 주세요.',
+                );
               }
             },
-            child: const Text('적용', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+            child: const Text(
+              '적용',
+              style: TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
           ),
         ],
       ),
