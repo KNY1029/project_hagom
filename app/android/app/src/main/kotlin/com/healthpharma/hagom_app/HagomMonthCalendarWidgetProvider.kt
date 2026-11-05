@@ -68,6 +68,7 @@ class HagomMonthCalendarWidgetProvider : HomeWidgetProvider() {
                         val bgRes = if (isDaySelected) {
                             if (status.contains("pin")) R.drawable.hagom_widget_selected_pin else R.drawable.hagom_widget_selected_bg
                         } else {
+                            when (status) {
                                 "today" -> R.drawable.hagom_widget_today_bg
                                 "today_pin" -> R.drawable.hagom_widget_today_pin
                                 "today_done" -> R.drawable.hagom_widget_today_done_bg
@@ -138,3 +139,4 @@ class HagomMonthCalendarWidgetProvider : HomeWidgetProvider() {
             appWidgetManager.updateAppWidget(appWidgetId, views)
         }
     }
+}
