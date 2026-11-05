@@ -104,9 +104,9 @@ class _CompanionRoomScreenState extends State<CompanionRoomScreen> {
                       ),
                       child: ClipOval(
                         child: Image.asset(
-                          AppAssets.companionRoomMascot,
-                          fit: BoxFit.contain,
-                        ),
+  AppAssets.companionRoomMascot,
+  fit: BoxFit.contain,
+),
                       ),
                     ),
                     const SizedBox(height: 8),
