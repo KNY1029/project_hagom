@@ -31,7 +31,14 @@ class HagomMonthCalendarWidgetProvider : HomeWidgetProvider() {
         for (appWidgetId in appWidgetIds) {
             val opts = appWidgetManager.getAppWidgetOptions(appWidgetId)
             val minH = opts.getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_HEIGHT, 240)
-            val taskLines = if (minH > 275) ((minH - 265) / 22).coerceIn(1, 5) else 0
+            // Show up to three real task rows only when the widget is tall enough;
+            // otherwise preserve the calendar grid and keep only the task summary.
+            val taskLines = when {
+                minH >= 340 -> 3
+                minH >= 310 -> 2
+                minH >= 285 -> 1
+                else -> 0
+            }
             val selectedDateStr = widgetData.getString("month_selected_date", "") ?: ""
             val inspectingIso = widgetData.getString("month_inspecting_iso", "") ?: ""
             val hasSelectedOtherDay = inspectingIso.isNotEmpty()
@@ -52,19 +59,24 @@ class HagomMonthCalendarWidgetProvider : HomeWidgetProvider() {
                 setTextColor(R.id.widget_month_next_btn, Color.parseColor(medsColorHex))
                 setTextColor(R.id.widget_month_tasks, Color.parseColor(tasksColorHex))
                 setTextColor(R.id.widget_month_tasks_label, Color.parseColor(tasksColorHex))
-                // 🌟 개별 할일 리스트 바인딩 (최대 4개)
-                for (tIdx in 1..4) {
+                // Row count depends only on widget height. Invisible empty rows reserve the same
+                // space for every selected date so the weighted calendar grid never jumps.
+                for (tIdx in 1..3) {
                     val viewId = context.resources.getIdentifier("month_task_$tIdx", "id", context.packageName)
                     if (viewId != 0) {
                         val taskText = widgetData.getString("month_today_task_$tIdx", "") ?: ""
-                        if (taskText.isNotEmpty()) {
-                            setTextViewText(viewId, taskText)
-                            setViewVisibility(viewId, View.VISIBLE)
-                        } else {
-                            setViewVisibility(viewId, View.GONE)
-                        }
+                        setTextViewText(viewId, taskText)
+                        setViewVisibility(
+                            viewId,
+                            when {
+                                tIdx > taskLines -> View.GONE
+                                taskText.isEmpty() -> View.INVISIBLE
+                                else -> View.VISIBLE
+                            }
+                        )
                     }
                 }
+                setViewVisibility(R.id.widget_month_tasks_list, if (taskLines > 0) View.VISIBLE else View.GONE)
 
                 // 🌟 [42개 셀(c_0 ~ c_41) 동적 매핑]: 실제 시작 요일 및 말일 반영!
                 for (i in 0 until 42) {

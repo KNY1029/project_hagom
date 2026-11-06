@@ -425,17 +425,14 @@ class HagomNativeWidgetSync {
         await HomeWidget.saveWidgetData<String>('cell_${i}_date', dateIso);
       }
 
-      // 달력 위젯에 선택된 날짜(또는 오늘) 할일 전체 목록 전달 (최대 5개)
-      for (int i = 0; i < 5; i++) {
+      // 달력 위젯에 선택된 날짜(또는 오늘) 실제 할일 목록 전달 (최대 3개, 없으면 빈값)
+      for (int i = 0; i < 3; i++) {
         final n = i + 1;
         if (i < targetTasks.length) {
           final t = targetTasks[i];
           final timeStr = t.time != null ? ' (${t.time})' : '';
           final check = t.isCompleted ? '완료' : '예정';
-          await HomeWidget.saveWidgetData<String>(
-            'month_today_task_$n',
-            '${t.title}$timeStr - $check',
-          );
+          await HomeWidget.saveWidgetData<String>('month_today_task_$n', '${t.title}$timeStr - $check');
         } else {
           await HomeWidget.saveWidgetData<String>('month_today_task_$n', '');
         }
