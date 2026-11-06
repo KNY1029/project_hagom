@@ -20,6 +20,7 @@ class HagomNativeWidgetSync {
     if (kIsWeb) return;
 
     try {
+      // Save accent colors before providers refresh from HomeWidget preferences.
       // -------------------------------------------------------------
       // 1) 마스코트 응원 위젯
       // -------------------------------------------------------------
@@ -303,14 +304,7 @@ class HagomNativeWidgetSync {
         }
       }
       await HomeWidget.updateWidget(name: calendarProvider, androidName: calendarProvider);
-      // 🎨 테마 및 탭 미니 테마 색상 위젯 동기화 (#RRGGBB 형태)
-      final medsHex = '#${(AppColors.useTabMiniThemes ? AppColors.tabMedsColor : AppColors.activePrimary).value.toRadixString(16).padLeft(8, '0').substring(2).toUpperCase()}';
-      final habitsHex = '#${(AppColors.useTabMiniThemes ? AppColors.tabHabitsColor : AppColors.activeWarmAccent).value.toRadixString(16).padLeft(8, '0').substring(2).toUpperCase()}';
-      final tasksHex = '#${(AppColors.useTabMiniThemes ? AppColors.tabCalendarColor : AppColors.activePrimary).value.toRadixString(16).padLeft(8, '0').substring(2).toUpperCase()}';
 
-      await HomeWidget.saveWidgetData<String>('theme_meds_color', medsHex);
-      await HomeWidget.saveWidgetData<String>('theme_habits_color', habitsHex);
-      await HomeWidget.saveWidgetData<String>('theme_tasks_color', tasksHex);
 
       // -------------------------------------------------------------
       // 5) 4x4 한 달 기록 달력 위젯

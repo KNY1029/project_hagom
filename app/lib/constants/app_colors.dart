@@ -76,7 +76,7 @@ class AppColors {
   static Color textSecondary = defaultTheme.textSecondary; // 부가 설명 글자색
   static Color divider = defaultTheme.divider; // 옅은 구분선
 
-  // 메인 UI (MaterialApp)에서 사용하는 활성 색상 (테마 적용 시 업데이트)
+  // 위젯 색상 모드 ('default_theme' | 'mini_theme' | 'custom')
   static Color activeBackground = defaultTheme.background;
   static Color activePrimary = defaultTheme.primary;
   static Color activeWarmAccent = defaultTheme.warmAccent;
@@ -94,14 +94,6 @@ class AppColors {
   static const Color defaultTabHabitsColor = Color(0xFF8B5E3C);
   static const Color defaultTabCalendarColor = defaultTaskOcher;
 
-  static bool useTabMiniThemes = true;
-  static Color tabMedsColor = defaultTabMedsColor;
-  static Color tabHabitsColor = defaultTabHabitsColor;
-  static Color tabCalendarColor = defaultTabCalendarColor;
-
-  // -------------------------------------------------------------
-  // 3. 상태 및 피드백 컬러 (테마와 무관)
-  // -------------------------------------------------------------
   static const Color completedBg = Color(0xFFEAF8F1);
   static const Color completedText = Color(0xFF1B6B46);
   static const Color completedBorder = Color(0xFFA3DBC0);
@@ -134,9 +126,40 @@ class AppColors {
 
     // 테마 키 상수 (settings_screen.dart에서 switch/case용으로 사용)
   static const String themeDeepViolet = 'deep_violet';
-  static const String themeWidgetHabitBrown = 'widget_habit_brown';
-  static const String themeWidgetTaskOcher = 'widget_task_ocher';
   static const String themeCustom = 'custom';
+
+  // 기본 테마별 HEX 코드 (설정 화면에 표시용)
+  static const String hexDefaultPrimary = '7B61A8';
+  static const String hexDefaultBackground = 'FAF8F5';
+  static const String hexDefaultLightTint = 'F3EFF8';
+  static const String hexDefaultTextPrimary = '1F2937';
+  static const String hexDefaultTextSecondary = '6B7280';
+  static const String hexDefaultWarmAccent = '8B5E3C';
+  static const String hexDefaultDivider = 'E5E7EB';
+
+  static const String hexDeepVioletPrimary = '541D7A';
+  static const String hexDeepVioletBackground = 'F7F3FD';
+  static const String hexDeepVioletLightTint = 'EAE2FB';
+  static const String hexDeepVioletTextPrimary = '541D7A';
+  static const String hexDeepVioletTextSecondary = '755196';
+  static const String hexDeepVioletWarmAccent = '8B5E3C';
+  static const String hexDeepVioletDivider = 'E6DCF5';
+
+  static const String hexWarmBrownPrimary = '8B5E3C';
+  static const String hexWarmBrownBackground = 'FAF8F5';
+  static const String hexWarmBrownLightTint = 'F7F3EE';
+  static const String hexWarmBrownTextPrimary = '2C1E14';
+  static const String hexWarmBrownTextSecondary = '735845';
+  static const String hexWarmBrownWarmAccent = '6B4226';
+  static const String hexWarmBrownDivider = 'E5DDD0';
+
+  static const String hexOcherPrimary = 'B58A32';
+  static const String hexOcherBackground = 'FCF9F2';
+  static const String hexOcherLightTint = 'FBF6E9';
+  static const String hexOcherTextPrimary = '2B210C';
+  static const String hexOcherTextSecondary = '6E5C35';
+  static const String hexOcherWarmAccent = '8B5E3C';
+  static const String hexOcherDivider = 'E8DFCE';
 
   static const List<ThemePreset> builtInThemes = [
     defaultTheme,
@@ -194,28 +217,7 @@ class AppColors {
     activeTextPrimary = theme.textPrimary;
   }
 
-  /// 탭별 미니 테마 포인트 컬러 직접 주입
-  static void setTabMiniColors({
-    Color? meds,
-    Color? habits,
-    Color? calendar,
-    bool? enabled,
-  }) {
-    if (meds != null) tabMedsColor = meds;
-    if (habits != null) tabHabitsColor = habits;
-    if (calendar != null) tabCalendarColor = calendar;
-    if (enabled != null) useTabMiniThemes = enabled;
-  }
 
-  /// 미니 테마를 기본 포인트 색상으로 되돌림
-  static void resetTabMiniColors() {
-    useTabMiniThemes = true;
-    tabMedsColor = defaultTabMedsColor;
-    tabHabitsColor = defaultTabHabitsColor;
-    tabCalendarColor = defaultTabCalendarColor;
-  }
-
-  /// #RRGGBB 문자열
   static String toHex(Color c) =>
       '#${(c.toARGB32() & 0xFFFFFF).toRadixString(16).padLeft(6, '0').toUpperCase()}';
 }

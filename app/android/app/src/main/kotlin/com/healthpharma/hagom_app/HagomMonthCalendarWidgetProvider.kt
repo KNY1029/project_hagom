@@ -43,8 +43,8 @@ class HagomMonthCalendarWidgetProvider : HomeWidgetProvider() {
                 setTextViewText(R.id.widget_month_tasks_label, taskLabel)
                 setTextViewText(R.id.widget_month_tasks, WidgetBindings.text(widgetData, "month_tasks"))
                 val medsColorHex = widgetData.getString("theme_meds_color", "#7B61A8") ?: "#7B61A8"
-                val habitsColorHex = widgetData.getString("theme_habits_color", "#8B5E3C") ?: "#8B5E3C"
-                val tasksColorHex = widgetData.getString("theme_tasks_color", "#B58A32") ?: "#B58A32"
+                val habitsColorHex = widgetData.getString("theme_habits_color", "#7B61A8") ?: "#8B5E3C"
+                val tasksColorHex = widgetData.getString("theme_tasks_color", "#7B61A8") ?: "#B58A32"
 
                 setTextColor(R.id.widget_month_meds, Color.parseColor(medsColorHex))
                 setTextColor(R.id.widget_month_habits, Color.parseColor(habitsColorHex))

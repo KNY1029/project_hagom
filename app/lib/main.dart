@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:home_widget/home_widget.dart';
 import 'constants/app_colors.dart';
 import 'screens/splash_screen.dart';
+import 'services/hagom_native_widget_sync.dart';
 import 'state/app_state_manager.dart';
 
 final GlobalKey<NavigatorState> hagomNavigatorKey = GlobalKey<NavigatorState>();
@@ -136,6 +137,12 @@ void main() async {
   }
 
   runApp(const HagomApp());
+  if (!kIsWeb) {
+    final state = AppStateManager();
+    state.ensureInitialized().then((_) {
+      HagomNativeWidgetSync.updateNativeWidget(state);
+    });
+  }
 }
 
 class HagomApp extends StatefulWidget {

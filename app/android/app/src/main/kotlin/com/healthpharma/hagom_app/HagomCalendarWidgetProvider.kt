@@ -41,7 +41,7 @@ class HagomCalendarWidgetProvider : HomeWidgetProvider() {
                 setTextViewText(R.id.widget_calendar_progress, WidgetBindings.text(widgetData, "calendar_progress"))
                 setTextViewText(R.id.widget_calendar_title, WidgetBindings.text(widgetData, "calendar_title"))
 
-                val tasksColorHex = widgetData.getString("theme_tasks_color", "#B58A32") ?: "#B58A32"
+                val tasksColorHex = widgetData.getString("theme_tasks_color", "#7B61A8") ?: "#B58A32"
                 setTextColor(R.id.widget_calendar_tag, Color.parseColor(tasksColorHex))
                 val sub = if (isNarrow) {
                     WidgetBindings.text(widgetData, "calendar_subtitle_short").ifEmpty {

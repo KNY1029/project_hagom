@@ -143,9 +143,7 @@ class _MainNavigationShellState extends State<MainNavigationShell> {
         title: Text(
           _tabTitles[_currentIndex],
           style: TextStyle(
-            color: AppColors.useTabMiniThemes
-                ? _getTabColor(_currentIndex)
-                : AppColors.textPrimary,
+            color: AppColors.textPrimary,
             fontWeight: FontWeight.bold,
             fontSize: 20,
           ),
@@ -299,9 +297,7 @@ class _MainNavigationShellState extends State<MainNavigationShell> {
           },
           type: BottomNavigationBarType.fixed,
           enableFeedback: false,
-          selectedItemColor: AppColors.useTabMiniThemes
-              ? _getTabColor(_currentIndex)
-              : AppColors.primaryPurple,
+    selectedItemColor: AppColors.primaryPurple,
           unselectedItemColor: AppColors.textMuted,
           backgroundColor: Colors.white,
           elevation: 8,
@@ -310,17 +306,17 @@ class _MainNavigationShellState extends State<MainNavigationShell> {
           items: [
             BottomNavigationBarItem(
               icon: const Icon(Icons.medication_outlined),
-              activeIcon: Icon(Icons.medication, color: AppColors.useTabMiniThemes ? AppColors.tabMedsColor : null),
+              activeIcon: Icon(Icons.medication, color: AppColors.primaryPurple),
               label: '복약',
             ),
             BottomNavigationBarItem(
               icon: const Icon(Icons.eco_outlined),
-              activeIcon: Icon(Icons.eco, color: AppColors.useTabMiniThemes ? AppColors.tabHabitsColor : null),
+              activeIcon: Icon(Icons.eco, color: AppColors.primaryPurple),
               label: '습관',
             ),
             BottomNavigationBarItem(
               icon: const Icon(Icons.calendar_month_outlined),
-              activeIcon: Icon(Icons.calendar_month, color: AppColors.useTabMiniThemes ? AppColors.tabCalendarColor : null),
+              activeIcon: Icon(Icons.calendar_month, color: AppColors.primaryPurple),
               label: '달력',
             ),
           ],
@@ -329,16 +325,4 @@ class _MainNavigationShellState extends State<MainNavigationShell> {
     );
   }
 
-  Color _getTabColor(int idx) {
-    switch (idx) {
-      case 0:
-        return AppColors.tabMedsColor;
-      case 1:
-        return AppColors.tabHabitsColor;
-      case 2:
-        return AppColors.tabCalendarColor;
-      default:
-        return AppColors.primaryPurple;
-    }
-  }
 }
