@@ -113,11 +113,12 @@ class _HabitsTabViewState extends State<HabitsTabView> {
                   BoxShadow(color: Colors.black.withOpacity(0.12), blurRadius: 16, offset: const Offset(0, -4)),
                 ],
               ),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
+              child: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(
@@ -433,7 +434,8 @@ class _HabitsTabViewState extends State<HabitsTabView> {
                       ),
                     ],
                   ),
-                ],
+                  ],
+                ),
               ),
             );
           },

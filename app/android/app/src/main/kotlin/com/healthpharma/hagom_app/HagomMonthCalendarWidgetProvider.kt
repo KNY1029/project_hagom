@@ -52,6 +52,19 @@ class HagomMonthCalendarWidgetProvider : HomeWidgetProvider() {
                 setTextColor(R.id.widget_month_next_btn, Color.parseColor(medsColorHex))
                 setTextColor(R.id.widget_month_tasks, Color.parseColor(tasksColorHex))
                 setTextColor(R.id.widget_month_tasks_label, Color.parseColor(tasksColorHex))
+                // 🌟 개별 할일 리스트 바인딩 (최대 4개)
+                for (tIdx in 1..4) {
+                    val viewId = context.resources.getIdentifier("month_task_$tIdx", "id", context.packageName)
+                    if (viewId != 0) {
+                        val taskText = widgetData.getString("month_today_task_$tIdx", "") ?: ""
+                        if (taskText.isNotEmpty()) {
+                            setTextViewText(viewId, taskText)
+                            setViewVisibility(viewId, View.VISIBLE)
+                        } else {
+                            setViewVisibility(viewId, View.GONE)
+                        }
+                    }
+                }
 
                 // 🌟 [42개 셀(c_0 ~ c_41) 동적 매핑]: 실제 시작 요일 및 말일 반영!
                 for (i in 0 until 42) {

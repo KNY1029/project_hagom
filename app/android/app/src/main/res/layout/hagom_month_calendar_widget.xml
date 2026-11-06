@@ -214,7 +214,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginEnd="4dp"
                 android:layout_weight="1"
-                android:background="@drawable/hagom_widget_habit_tag_bg"
+                android:background="@drawable/hagom_widget_tag_bg"
                 android:gravity="center"
                 android:paddingHorizontal="8dp"
                 android:paddingVertical="5dp">
@@ -224,7 +224,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text=""
-                    android:textColor="#8B5E3C"
+                    android:textColor="#7B61A8"
                     android:textSize="11sp"
                     android:textStyle="bold" />
             </LinearLayout>
@@ -251,13 +251,13 @@
             </LinearLayout>
         </LinearLayout>
 
-        <!-- 오늘 할일 섹션 헤더: 코지 스카이블루 톤앤매너 완벽 정렬 -->
+        <!-- 오늘 할일 섹션 헤더: 라벤더 퍼플 톤앤매너 완벽 정렬 -->
         <LinearLayout
             android:id="@+id/widget_month_tasks_header"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="5dp"
-            android:background="@drawable/hagom_widget_task_tag_bg"
+            android:background="@drawable/hagom_widget_tag_bg"
             android:gravity="center_vertical"
             android:orientation="horizontal"
             android:paddingHorizontal="10dp"
@@ -268,7 +268,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="오늘의 할일"
-                android:textColor="#8A671F"
+                android:textColor="#7B61A8"
                 android:textSize="11sp"
                 android:textStyle="bold" />
 
@@ -282,9 +282,70 @@
                 android:gravity="end"
                 android:maxLines="1"
                 android:text=""
-                android:textColor="#B58A32"
+                android:textColor="#7B61A8"
                 android:textSize="10.5sp"
                 android:textStyle="bold" />
+        </LinearLayout>
+
+        <!-- 개별 할일 리스트 행들 (세로 확장 시 자동 노출) -->
+        <LinearLayout
+            android:id="@+id/widget_month_tasks_list"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="3dp"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/month_task_1"
+                android:layout_width="match_parent"
+                android:layout_height="20dp"
+                android:ellipsize="end"
+                android:gravity="center_vertical"
+                android:maxLines="1"
+                android:paddingHorizontal="4dp"
+                android:text=""
+                android:textColor="#1F2937"
+                android:textSize="11sp"
+                android:visibility="gone" />
+
+            <TextView
+                android:id="@+id/month_task_2"
+                android:layout_width="match_parent"
+                android:layout_height="20dp"
+                android:ellipsize="end"
+                android:gravity="center_vertical"
+                android:maxLines="1"
+                android:paddingHorizontal="4dp"
+                android:text=""
+                android:textColor="#1F2937"
+                android:textSize="11sp"
+                android:visibility="gone" />
+
+            <TextView
+                android:id="@+id/month_task_3"
+                android:layout_width="match_parent"
+                android:layout_height="20dp"
+                android:ellipsize="end"
+                android:gravity="center_vertical"
+                android:maxLines="1"
+                android:paddingHorizontal="4dp"
+                android:text=""
+                android:textColor="#1F2937"
+                android:textSize="11sp"
+                android:visibility="gone" />
+
+            <TextView
+                android:id="@+id/month_task_4"
+                android:layout_width="match_parent"
+                android:layout_height="20dp"
+                android:ellipsize="end"
+                android:gravity="center_vertical"
+                android:maxLines="1"
+                android:paddingHorizontal="4dp"
+                android:text=""
+                android:textColor="#1F2937"
+                android:textSize="11sp"
+                android:visibility="gone" />
         </LinearLayout>
     </LinearLayout>
 </LinearLayout>

@@ -605,103 +605,47 @@ class _MedsTabViewState extends State<MedsTabView> {
                               final idx = entry.key;
                               final slot = entry.value;
 
-                              // 아침/점심/저녁 슬롯인 경우 [상관없음] · [식전] · [식후] 타이밍 원터치 선택 지원
-                              String basePrefix = '';
-                              for (final p in ['아침', '점심', '저녁']) {
-                                if (slot.label.startsWith(p)) {
-                                  basePrefix = p;
-                                  break;
-                                }
-                              }
-
-                              String currentTiming = 'none';
-                              if (slot.label.contains('식전')) {
-                                currentTiming = 'before';
-                              } else if (slot.label.contains('식후')) {
-                                currentTiming = 'after';
-                              }
-
                               return Padding(
-                                padding: const EdgeInsets.symmetric(vertical: 4.0),
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                padding: const EdgeInsets.symmetric(vertical: 1.0),
+                                child: Row(
                                   children: [
-                                    Row(
-                                      children: [
-                                        Text('${slot.label}: ', style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
-                                        Text(slot.scheduledTime ?? '시각 미지정', style: TextStyle(fontSize: 12, color: AppColors.primaryPurple, fontWeight: FontWeight.w600)),
-                                        const Spacer(),
-                                        TextButton(
-                                          style: TextButton.styleFrom(padding: EdgeInsets.zero, minimumSize: Size.zero),
-                                          onPressed: () async {
-                                            final time = await AppTimePicker.show(
-                                              context,
-                                              initialTime: TimeOfDay.now(),
-                                              title: '${slot.label} 알림 예정 시각 변경',
-                                            );
-                                            if (time != null) {
-                                              final period = time.period == DayPeriod.am ? '오전' : '오후';
-                                              final hour = time.hourOfPeriod == 0 ? 12 : time.hourOfPeriod;
-                                              final min = time.minute.toString().padLeft(2, '0');
-                                              setModalState(() {
-                                                slot.scheduledTime = '$period $hour:$min';
-                                              });
-                                            }
-                                          },
-                                          child: const Text('시각 변경', style: TextStyle(fontSize: 11.5)),
-                                        ),
-                                        const SizedBox(width: 4),
-                                        IconButton(
-                                          icon: const Icon(Icons.close, size: 15, color: AppColors.textMuted),
-                                          onPressed: () {
-                                            setModalState(() {
-                                              currentSlots.removeAt(idx);
-                                            });
-                                          },
-                                        ),
-                                      ],
-                                    ),
-                                    if (basePrefix.isNotEmpty) ...[
-                                      const SizedBox(height: 2),
-                                      Row(
-                                        children: [
-                                          Text('식사 타이밍: ', style: TextStyle(fontSize: 10.5, color: AppColors.textSecondary)),
-                                          const SizedBox(width: 4),
-                                          _buildMiniTimingChip(
-                                            label: '상관없음',
-                                            isSelected: currentTiming == 'none',
-                                            onTap: () {
-                                              setModalState(() {
-                                                slot.label = basePrefix;
-                                                slot.scheduledTime = _state.routineTimes[basePrefix] ?? slot.scheduledTime;
-                                              });
-                                            },
-                                          ),
-                                          const SizedBox(width: 4),
-                                          _buildMiniTimingChip(
-                                            label: '식전',
-                                            isSelected: currentTiming == 'before',
-                                            onTap: () {
-                                              setModalState(() {
-                                                slot.label = '$basePrefix 식전';
-                                                slot.scheduledTime = _state.routineTimes['$basePrefix 식전'] ?? slot.scheduledTime;
-                                              });
-                                            },
-                                          ),
-                                          const SizedBox(width: 4),
-                                          _buildMiniTimingChip(
-                                            label: '식후',
-                                            isSelected: currentTiming == 'after',
-                                            onTap: () {
-                                              setModalState(() {
-                                                slot.label = '$basePrefix 식후';
-                                                slot.scheduledTime = _state.routineTimes['$basePrefix 식후'] ?? slot.scheduledTime;
-                                              });
-                                            },
-                                          ),
-                                        ],
+                                    Text('${slot.label}: ', style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+                                    Text(slot.scheduledTime ?? '시각 미지정', style: TextStyle(fontSize: 12, color: AppColors.primaryPurple, fontWeight: FontWeight.w600)),
+                                    const Spacer(),
+                                    TextButton(
+                                      style: TextButton.styleFrom(
+                                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                        minimumSize: Size.zero,
+                                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                                       ),
-                                    ],
+                                      onPressed: () async {
+                                        final time = await AppTimePicker.show(
+                                          context,
+                                          initialTime: TimeOfDay.now(),
+                                          title: '${slot.label} 알림 예정 시각 변경',
+                                        );
+                                        if (time != null) {
+                                          final period = time.period == DayPeriod.am ? '오전' : '오후';
+                                          final hour = time.hourOfPeriod == 0 ? 12 : time.hourOfPeriod;
+                                          final min = time.minute.toString().padLeft(2, '0');
+                                          setModalState(() {
+                                            slot.scheduledTime = '$period $hour:$min';
+                                          });
+                                        }
+                                      },
+                                      child: const Text('시각 변경', style: TextStyle(fontSize: 11.5)),
+                                    ),
+                                    const SizedBox(width: 2),
+                                    IconButton(
+                                      padding: EdgeInsets.zero,
+                                      constraints: const BoxConstraints(),
+                                      icon: const Icon(Icons.close, size: 15, color: AppColors.textMuted),
+                                      onPressed: () {
+                                        setModalState(() {
+                                          currentSlots.removeAt(idx);
+                                        });
+                                      },
+                                    ),
                                   ],
                                 ),
                               );
@@ -1141,35 +1085,6 @@ class _MedsTabViewState extends State<MedsTabView> {
     );
   }
 
-  Widget _buildMiniTimingChip({
-    required String label,
-    required bool isSelected,
-    required VoidCallback onTap,
-  }) {
-    return InkWell(
-      borderRadius: BorderRadius.circular(4),
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
-        decoration: BoxDecoration(
-          color: isSelected ? AppColors.primaryPurple.withOpacity(0.15) : const Color(0xFFF3F4F6),
-          borderRadius: BorderRadius.circular(4),
-          border: Border.all(
-            color: isSelected ? AppColors.primaryPurple : Colors.transparent,
-            width: 1,
-          ),
-        ),
-        child: Text(
-          label,
-          style: TextStyle(
-            fontSize: 10.5,
-            fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-            color: isSelected ? AppColors.primaryPurple : AppColors.textSecondary,
-          ),
-        ),
-      ),
-    );
-  }
 
   // 🌟 오늘은 아닌 약들을 위한 극도로 슬림하고 절제된 1줄 미니멀 표시
   Widget _buildCompactOtherMedCard(MedicationItem med) {

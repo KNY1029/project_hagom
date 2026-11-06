@@ -84,29 +84,12 @@ class _CompanionRoomScreenState extends State<CompanionRoomScreen> {
                 onTap: _nextQuote,
                 child: Column(
                   children: [
-                    Container(
-                      width: 170,
-                      height: 170,
-                      decoration: BoxDecoration(
-                        color: AppColors.lightLavender,
-                        shape: BoxShape.circle,
-                        border: Border.all(
-                          color: AppColors.primaryPurple.withOpacity(0.25),
-                          width: 3,
-                        ),
-                        boxShadow: [
-                          BoxShadow(
-                            color: AppColors.primaryPurple.withOpacity(0.1),
-                            blurRadius: 16,
-                            offset: const Offset(0, 6),
-                          ),
-                        ],
-                      ),
-                      child: ClipOval(
-                        child: Image.asset(
-  AppAssets.companionRoomMascot,
-  fit: BoxFit.contain,
-),
+                    SizedBox(
+                      width: 190,
+                      height: 190,
+                      child: Image.asset(
+                        AppAssets.companionRoomMascot,
+                        fit: BoxFit.contain,
                       ),
                     ),
                     const SizedBox(height: 8),
