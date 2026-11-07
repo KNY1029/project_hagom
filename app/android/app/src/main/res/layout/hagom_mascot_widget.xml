@@ -13,8 +13,8 @@
         android:id="@+id/widget_mascot_img"
         android:layout_width="72dp"
         android:layout_height="72dp"
-        android:src="@drawable/hagomi_mascot"
-        android:contentDescription="하곰이"
+        android:src="@drawable/hagom_mascot"
+        android:contentDescription="하곰"
         android:scaleType="fitCenter" />
 
     <!-- 우측 따뜻한 응원 텍스트 영역 -->

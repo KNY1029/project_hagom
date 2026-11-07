@@ -40,8 +40,7 @@
                 android:layout_marginEnd="6dp"
                 android:contentDescription="하곰이의 방"
                 android:scaleType="fitCenter"
-                android:src="@drawable/hagomi_mascot" />
-
+                android:src="@drawable/hagom_mascot" />
             <TextView
                 android:id="@+id/widget_month_title"
                 android:layout_width="wrap_content"
