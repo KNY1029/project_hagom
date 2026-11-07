@@ -151,17 +151,17 @@ class _CelebrationOverlayContentState extends State<_CelebrationOverlayContent> 
         child: Stack(
           alignment: Alignment.center,
           children: [
-            // 🎈 1. 하곰이 뒤편 중심에서 가볍게 팡 터지는 은은한 파스텔 꽃가루 파티클
+            // 🎈 1. 하곰이 뒤편 중심에서 시원하게 팡 터지는 77개 파스텔 꽃가루 파티클
             Align(
               alignment: Alignment.center,
               child: ConfettiWidget(
                 confettiController: _confettiController,
                 blastDirectionality: BlastDirectionality.explosive,
-                emissionFrequency: 0.0, // 🌟 1회 단발성 버스트: 지속 발사 확률을 0으로 고정하여 항상 균일하게 방출!
-                numberOfParticles: 55,   // 🌟 22개에서 55개로 풍성하게 증량! 하곰이 춤추는 동안 화면 가득 나풀나풀 흩날림
-                gravity: 0.10,           // 공기 중에 더 오래 머물며 천천히 떨어지도록 중력 최적화
-                maxBlastForce: 22,       // 화면 사방으로 시원하고 풍성하게 퍼지는 확산력
-                minBlastForce: 7,
+                emissionFrequency: 0.0, // 🌟 1회 단발성 버스트: 지속 발사 확률 0 고정으로 항상 일정한 양 방출!
+                numberOfParticles: 77,   // 🌟 요청하신 행운의 77개 파티클 풍성하게 발사!
+                gravity: 0.08,           // 위로 높이 솟구친 후 화면 전체로 나풀나풀 아주 천천히 내려오도록 중력 최적화
+                maxBlastForce: 32,       // 🌟 화면 상단 위쪽까지 힘차게 솟구쳐 오르는 강력한 발사력!
+                minBlastForce: 12,       // 최소 힘도 높여 뭉치지 않고 사방 위아래로 시원하게 확산
                 colors: const [
                   Color(0xFF7B61A8), // 라벤더 퍼플
                   Color(0xFFB39DDB), // 연보라
