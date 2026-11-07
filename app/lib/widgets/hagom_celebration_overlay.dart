@@ -18,8 +18,8 @@ class HagomCelebrationOverlay {
       context: context,
       barrierDismissible: true,
       barrierLabel: '축하 오버레이 닫기',
-      barrierColor: Colors.black.withValues(alpha: 0.35),
-      transitionDuration: const Duration(milliseconds: 300),
+      barrierColor: Colors.black.withValues(alpha: 0.12),
+      transitionDuration: const Duration(milliseconds: 250),
       pageBuilder: (dialogCtx, anim1, anim2) {
         Timer? autoCloseTimer;
         autoCloseTimer = Timer(duration, () {
@@ -39,59 +39,55 @@ class HagomCelebrationOverlay {
           child: Material(
             color: Colors.transparent,
             child: Center(
-              child: Container(
-                margin: const EdgeInsets.symmetric(horizontal: 32),
-                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
-                decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.94),
-                  borderRadius: BorderRadius.circular(28),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.12),
-                      blurRadius: 24,
-                      offset: const Offset(0, 10),
+              // 🌟 창/박스(Container) 테두리 완전 제거! 하곰이가 화면 위에 직접 떠서 춤춤
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  // 🐻 투명 애니메이션 하곰이 (화면 위에 직접 크게 노출)
+                  SizedBox(
+                    width: 260,
+                    height: 260,
+                    child: Image.asset(
+                      assetPath,
+                      fit: BoxFit.contain,
                     ),
-                  ],
-                ),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    // 🐻 투명 애니메이션 하곰이 (전체 프레임 재생)
-                    SizedBox(
-                      width: 220,
-                      height: 220,
-                      child: Image.asset(
-                        assetPath,
-                        fit: BoxFit.contain,
-                      ),
-                    ),
-                    const SizedBox(height: 12),
+                  ),
+                  const SizedBox(height: 10),
 
-                    // 🎉 축하 타이틀
-                    Text(
-                      title,
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                        color: AppColors.textPrimary,
-                        letterSpacing: -0.5,
-                      ),
+                  // 축하 문구 (배경 박스 없이 텍스트만 자연스럽게 떠있음)
+                  Text(
+                    title,
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: 21,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.textPrimary,
+                      letterSpacing: -0.5,
+                      shadows: [
+                        Shadow(
+                          color: Colors.white,
+                          blurRadius: 8,
+                        ),
+                      ],
                     ),
-                    const SizedBox(height: 6),
-
-                    // 따뜻한 격려 서브타이틀
-                    Text(
-                      subtitle,
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        fontSize: 13,
-                        color: AppColors.textSecondary,
-                        height: 1.35,
-                      ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    subtitle,
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.textSecondary,
+                      shadows: [
+                        Shadow(
+                          color: Colors.white,
+                          blurRadius: 6,
+                        ),
+                      ],
                     ),
-                  ],
-                ),
+                  ),
+                ],
               ),
             ),
           ),
