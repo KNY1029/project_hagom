@@ -133,9 +133,9 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   if (!kIsWeb) {
-    HomeWidget.registerInteractivityCallback(backgroundCallback);
+    // 🌟 백그라운드 위젯 터치 핸들러가 SharedPreferences에 완전히 각인될 때까지 await 보장!
+    await HomeWidget.registerInteractivityCallback(backgroundCallback);
   }
-
   runApp(const HagomApp());
   if (!kIsWeb) {
     final state = AppStateManager();
