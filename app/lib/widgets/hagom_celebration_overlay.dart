@@ -87,9 +87,10 @@ class _CelebrationOverlayContentState extends State<_CelebrationOverlayContent> 
   void initState() {
     super.initState();
     _animKey = widget.uniquePlayKey;
-    _confettiController = ConfettiController(duration: const Duration(milliseconds: 1500));
+    // 🌟 폭죽을 프레임 확률로 여러 번 터뜨리는 대신 단 1회 버스트(단발 팡!) 모드로 설정하여
+    // 뜰 때마다 파티클 개수가 들쑥날쑥하지 않고 항상 정확하고 균일한 양(약 22개)이 나오도록 보장합니다!
+    _confettiController = ConfettiController(duration: const Duration(milliseconds: 100));
     _confettiController.play();
-
     if (widget.isDevPreview) {
       // 🌟 개발자 모드 시안 둘러보기: 4.6초마다 다음 시안으로 자동 전환
       _currentMode = 0;
@@ -156,10 +157,10 @@ class _CelebrationOverlayContentState extends State<_CelebrationOverlayContent> 
               child: ConfettiWidget(
                 confettiController: _confettiController,
                 blastDirectionality: BlastDirectionality.explosive,
-                emissionFrequency: 0.03, // 빈도를 낮춰 조용하게 팡!
-                numberOfParticles: 16,    // 딱 16조각만 소량 생성
-                gravity: 0.12,            // 천천히 나풀나풀 떨어지는 중력
-                maxBlastForce: 14,        // 너무 멀리 퍼지지 않는 아담한 반경
+                emissionFrequency: 0.0, // 🌟 1회 단발성 버스트: 지속 발사 확률을 0으로 고정하여 항상 동일한 양 방출!
+                numberOfParticles: 22,   // 🌟 뜰 때마다 항상 일정하게 22개 파티클 방출 (각 파티클의 방향/속도/색상은 자연스럽게 랜덤)
+                gravity: 0.12,           // 천천히 나풀나풀 떨어지는 부드러운 중력
+                maxBlastForce: 15,       // 자연스러운 방사형 확산 반경
                 minBlastForce: 6,
                 colors: const [
                   Color(0xFF7B61A8), // 라벤더 퍼플
