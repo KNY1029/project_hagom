@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:home_widget/home_widget.dart';
 import '../models/medication_item.dart';
+import '../models/task_item.dart';
 import '../state/app_state_manager.dart';
 import '../constants/app_colors.dart';
 
@@ -355,9 +356,11 @@ class HagomNativeWidgetSync {
         taskSectionLabel = '오늘의 할일';
       }
 
+      // 할일 요약도 복약/습관처럼 '완료수/전체수 완료' 형식으로 완벽 통일
+      final targetDoneTasks = targetTasks.where((t) => t.isCompleted).length;
       final monthTasks = targetTasks.isEmpty
           ? '0개'
-          : (isTargetFuture ? '${targetTasks.length}개 예정' : (targetPendingTasks > 0 ? '$targetPendingTasks개 남음' : '모두 완료'));
+          : (isTargetFuture ? '${targetTasks.length}개 예정' : '$targetDoneTasks/${targetTasks.length} 완료');
 
       await HomeWidget.saveWidgetData<String>('month_title', monthStr);
       await HomeWidget.saveWidgetData<String>('month_meds', monthMeds);
@@ -425,19 +428,34 @@ class HagomNativeWidgetSync {
         await HomeWidget.saveWidgetData<String>('cell_${i}_date', dateIso);
       }
 
-      // 달력 위젯에 선택된 날짜(또는 오늘) 실제 할일 목록 전달 (최대 3개, 없으면 빈값)
-      for (int i = 0; i < 3; i++) {
+      // 🌟 [할일 정렬 및 전달]:
+      // 1) 미완료(false) 항목을 완료(true) 항목보다 최우선 정렬
+      // 2) 중요 정보인 '(시간) - 상태'를 보존하며 긴 제목만 스마트하게 말줄임(...)
+      final sortedTasks = List<TaskItem>.from(targetTasks)..sort((a, b) {
+        if (a.isCompleted != b.isCompleted) {
+          return a.isCompleted ? 1 : -1; // 미완료 우선!
+        }
+        return 0;
+      });
+
+      for (int i = 0; i < 4; i++) {
         final n = i + 1;
-        if (i < targetTasks.length) {
-          final t = targetTasks[i];
+        if (i < sortedTasks.length) {
+          final t = sortedTasks[i];
           final timeStr = t.time != null ? ' (${t.time})' : '';
           final check = t.isCompleted ? '완료' : '예정';
-          await HomeWidget.saveWidgetData<String>('month_today_task_$n', '${t.title}$timeStr - $check');
+          final suffix = '$timeStr - $check';
+
+          // 제목이 너무 길면 (시간)-상태를 지키고 앞 제목만 스마트하게 말줄임(...)
+          String title = t.title.trim();
+          if (title.length > 10) {
+            title = '${title.substring(0, 9)}...';
+          }
+          await HomeWidget.saveWidgetData<String>('month_today_task_$n', '$title$suffix');
         } else {
           await HomeWidget.saveWidgetData<String>('month_today_task_$n', '');
         }
       }
-
       await HomeWidget.updateWidget(name: monthCalendarProvider, androidName: monthCalendarProvider);
     } catch (e) {
       debugPrint('Native widget update error: $e');

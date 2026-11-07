@@ -193,68 +193,109 @@
         </LinearLayout>
     </LinearLayout>
 
-    <!-- 4) 실제 할일 목록과 일정 요약 -->
+    <!-- 4) 실제 할일 목록과 일정 요약 (하나의 연보라 일체형 카드 상자) -->
     <LinearLayout
         android:id="@+id/month_tasks_panel"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
-        android:orientation="vertical">
+        android:layout_marginTop="6dp"
+        android:background="@drawable/hagom_widget_tag_bg"
+        android:orientation="vertical"
+        android:paddingHorizontal="8dp"
+        android:paddingVertical="4dp">
 
+        <!-- 2열(좌/우) 반응형 할일 목록 (위젯 세로 공간이 넉넉할 때만 노출) -->
         <LinearLayout
             android:id="@+id/widget_month_tasks_list"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical">
+            android:layout_marginBottom="3dp"
+            android:orientation="horizontal"
+            android:visibility="gone">
 
-            <TextView
-                android:id="@+id/month_task_1"
-                android:layout_width="match_parent"
-                android:layout_height="18dp"
-                android:ellipsize="end"
-                android:gravity="center_vertical"
-                android:maxLines="1"
-                android:paddingHorizontal="4dp"
-                android:text=""
-                android:textColor="#374151"
-                android:textSize="10.5sp" />
+            <!-- 좌측 열 (1번, 2번 할일 우선 채움) -->
+            <LinearLayout
+                android:id="@+id/month_tasks_col_left"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="4dp"
+                android:layout_weight="1"
+                android:orientation="vertical">
 
-            <TextView
-                android:id="@+id/month_task_2"
-                android:layout_width="match_parent"
-                android:layout_height="18dp"
-                android:ellipsize="end"
-                android:gravity="center_vertical"
-                android:maxLines="1"
-                android:paddingHorizontal="4dp"
-                android:text=""
-                android:textColor="#6B7280"
-                android:textSize="10.5sp" />
+                <TextView
+                    android:id="@+id/month_task_1"
+                    android:layout_width="match_parent"
+                    android:layout_height="18dp"
+                    android:ellipsize="end"
+                    android:gravity="center_vertical"
+                    android:maxLines="1"
+                    android:paddingHorizontal="2dp"
+                    android:text=""
+                    android:textColor="#374151"
+                    android:textSize="10sp"
+                    android:visibility="gone" />
 
-            <TextView
-                android:id="@+id/month_task_3"
-                android:layout_width="match_parent"
-                android:layout_height="18dp"
-                android:ellipsize="end"
-                android:gravity="center_vertical"
-                android:maxLines="1"
-                android:paddingHorizontal="4dp"
-                android:text=""
-                android:textColor="#6B7280"
-                android:textSize="10.5sp" />
+                <TextView
+                    android:id="@+id/month_task_2"
+                    android:layout_width="match_parent"
+                    android:layout_height="18dp"
+                    android:ellipsize="end"
+                    android:gravity="center_vertical"
+                    android:maxLines="1"
+                    android:paddingHorizontal="2dp"
+                    android:text=""
+                    android:textColor="#374151"
+                    android:textSize="10sp"
+                    android:visibility="gone" />
+            </LinearLayout>
+
+            <!-- 우측 열 (넘치는 3번, 4번 할일 채움) -->
+            <LinearLayout
+                android:id="@+id/month_tasks_col_right"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="4dp"
+                android:layout_weight="1"
+                android:orientation="vertical"
+                android:visibility="gone">
+
+                <TextView
+                    android:id="@+id/month_task_3"
+                    android:layout_width="match_parent"
+                    android:layout_height="18dp"
+                    android:ellipsize="end"
+                    android:gravity="center_vertical"
+                    android:maxLines="1"
+                    android:paddingHorizontal="2dp"
+                    android:text=""
+                    android:textColor="#374151"
+                    android:textSize="10sp"
+                    android:visibility="gone" />
+
+                <TextView
+                    android:id="@+id/month_task_4"
+                    android:layout_width="match_parent"
+                    android:layout_height="18dp"
+                    android:ellipsize="end"
+                    android:gravity="center_vertical"
+                    android:maxLines="1"
+                    android:paddingHorizontal="2dp"
+                    android:text=""
+                    android:textColor="#374151"
+                    android:textSize="10sp"
+                    android:visibility="gone" />
+            </LinearLayout>
         </LinearLayout>
 
-        <!-- 선택 날짜의 할일 요약 헤더 -->
+        <!-- 선택 날짜의 할일 요약 헤더 (항상 고정 위치) -->
         <LinearLayout
             android:id="@+id/widget_month_tasks_header"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="3dp"
-            android:background="@drawable/hagom_widget_tag_bg"
             android:gravity="center_vertical"
             android:orientation="horizontal"
-            android:paddingHorizontal="10dp"
-            android:paddingVertical="5dp">
+            android:paddingHorizontal="2dp"
+            android:paddingVertical="1dp">
 
             <TextView
                 android:id="@+id/widget_month_tasks_label"
