@@ -12,8 +12,12 @@ class HagomCelebrationOverlay {
     required String assetPath,
     required String title,
     required String subtitle,
-    Duration duration = const Duration(milliseconds: 3200),
+    Duration duration = const Duration(milliseconds: 4500),
   }) {
+    // 🌟 플러터 이미지 캐시에서 해당 WebP를 비워주어, 다시 열었을 때 항상 1프레임부터 완벽하게 다시 재생되도록 보장!
+    AssetImage(assetPath).evict();
+    final uniquePlayKey = UniqueKey();
+
     showGeneralDialog(
       context: context,
       barrierDismissible: true,
@@ -49,6 +53,7 @@ class HagomCelebrationOverlay {
                     height: 260,
                     child: Image.asset(
                       assetPath,
+                      key: uniquePlayKey,
                       fit: BoxFit.contain,
                     ),
                   ),
