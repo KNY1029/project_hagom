@@ -74,25 +74,24 @@ class _CelebrationOverlayContentState extends State<_CelebrationOverlayContent> 
   Timer? _modeCycleTimer;
   int _currentMode = 0;
   static const int _totalModes = 11;
+  late Key _animKey;
 
   @override
   void initState() {
     super.initState();
-    // 🌟 과하지 않고 은은하게 1.5초 동안만 가볍게 터지도록 설정!
+    _animKey = widget.uniquePlayKey;
     _confettiController = ConfettiController(duration: const Duration(milliseconds: 1500));
     _confettiController.play();
 
-    // 🌟 2.2초마다 순서대로 자동 전환 (화면 탭하면 즉시 다음 모드로 전환)
-    _modeCycleTimer = Timer.periodic(const Duration(milliseconds: 2200), (timer) {
+    // 🌟 원래 애니메이션 재생 시간(약 4.5초) 동안 하곰이가 춤을 끝까지 다 추고 나서 다음 안으로 넘어가도록 맞춤!
+    _modeCycleTimer = Timer.periodic(const Duration(milliseconds: 4600), (timer) {
       if (mounted) {
-        setState(() {
-          _currentMode = (_currentMode + 1) % _totalModes;
-        });
+        _switchMode((_currentMode + 1) % _totalModes);
       }
     });
 
-    // 11개 시안을 충분히 볼 수 있도록 총 26초 후 자동 종료
-    _autoCloseTimer = Timer(const Duration(milliseconds: 26000), () {
+    // 11개 시안을 충분히 볼 수 있도록 넉넉하게 유지 (탭하면 바로 닫거나 다음으로 넘김)
+    _autoCloseTimer = Timer(const Duration(milliseconds: 55000), () {
       if (mounted && Navigator.of(context).canPop()) {
         Navigator.of(context).pop();
       }
@@ -106,12 +105,22 @@ class _CelebrationOverlayContentState extends State<_CelebrationOverlayContent> 
     _confettiController.dispose();
     super.dispose();
   }
+  void _switchMode(int nextMode) {
+    // 🌟 플러터 이미지 캐시를 비우고 새 UniqueKey를 주어 하곰이 춤이 1프레임부터 완벽하게 다시 시작되도록 함!
+    AssetImage(widget.assetPath).evict();
+    setState(() {
+      _currentMode = nextMode;
+      _animKey = UniqueKey();
+    });
+    // 🌟 각 안으로 넘어갈 때마다 파티클도 새롭게 팡!
+    _confettiController.stop();
+    _confettiController.play();
+  }
 
   void _onTapNextOrClose() {
-    setState(() {
-      _currentMode = (_currentMode + 1) % _totalModes;
-    });
+    _switchMode((_currentMode + 1) % _totalModes);
   }
+
   void _closeImmediately() {
     _autoCloseTimer?.cancel();
     if (mounted && Navigator.of(context).canPop()) {
@@ -159,36 +168,43 @@ class _CelebrationOverlayContentState extends State<_CelebrationOverlayContent> 
                   height: 260,
                   child: Image.asset(
                     widget.assetPath,
-                    key: widget.uniquePlayKey,
+                    key: _animKey,
                     fit: BoxFit.contain,
                   ),
                 ),
-                const SizedBox(height: 12),
+                const SizedBox(height: 14),
 
-                // 🌟 현재 보고 있는 스타일 라벨 (비교용)
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
-                  margin: const EdgeInsets.only(bottom: 8),
-                  decoration: BoxDecoration(
-                    color: Colors.black.withValues(alpha: 0.4),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Text(
-                    _getModeLabel(_currentMode),
-                    style: const TextStyle(
-                      fontSize: 11,
-                      color: Colors.white,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ),
-
-                // 🌟 선택된 스타일 렌더링
+                // 🌟 선택된 스타일 렌더링 (하곰이 바로 아래)
                 AnimatedSwitcher(
                   duration: const Duration(milliseconds: 350),
                   child: _buildTextContent(_currentMode),
                 ),
               ],
+            ),
+
+            // 🌟 3. 화면 우측 상단 구석으로 옮긴 시안 라벨 (하곰이와 텍스트를 전혀 가리지 않음!)
+            Positioned(
+              top: MediaQuery.of(context).padding.top + 16,
+              right: 16,
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                decoration: BoxDecoration(
+                  color: Colors.black.withValues(alpha: 0.55),
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(
+                    color: Colors.white.withValues(alpha: 0.3),
+                    width: 0.8,
+                  ),
+                ),
+                child: Text(
+                  _getModeLabel(_currentMode),
+                  style: const TextStyle(
+                    fontSize: 11,
+                    color: Colors.white,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
             ),
           ],
         ),
