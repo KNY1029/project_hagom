@@ -7,7 +7,7 @@ import 'splash_screen.dart';
 import 'widget_simulator_screen.dart';
 import '../widgets/app_time_picker.dart';
 import '../widgets/celebration_toast.dart';
-
+import '../widgets/hagom_celebration_overlay.dart';
 /// ⚙️ 실제 작동하는 하곰이 설정 화면 (PRD 5.4절 준수)
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -34,9 +34,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   void _onStateChange() {
     if (mounted) setState(() {});
   }
-
   static const MethodChannel _exportChannel = MethodChannel('com.healthpharma.hagom_app/export');
-
   // 🔔 [알림 테스트 발송 기능]
   Future<void> _sendTestNotification() async {
     String message;
@@ -376,7 +374,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     ),
                     SizedBox(height: 3),
                     Text(
-                      '정신약학 비처벌 복약 솔루션 · v0.90.184',
+                      '정신약학 비처벌 복약 솔루션 · v0.90.185',
                       style: TextStyle(
                         fontSize: 12,
                         color: AppColors.textSecondary,
@@ -673,6 +671,38 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       MaterialPageRoute(
                         builder: (ctx) => const SplashScreen(forceGreetingPreview: true),
                       ),
+                    );
+                  },
+                ),
+                const Divider(height: 1, color: Color(0xFFF3F4F6)),
+                ListTile(
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                  leading: Icon(Icons.medication_outlined, color: AppColors.primaryPurple),
+                  title: Text('복약 올클리어 축하 애니메이션 미리보기', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: AppColors.textPrimary)),
+                  subtitle: Text('오늘 복약 100% 달성 시 플로팅 축하 오버레이 팝업', style: TextStyle(fontSize: 11.5, color: AppColors.textSecondary)),
+                  trailing: Icon(Icons.play_circle_outline, size: 20, color: AppColors.primaryPurple),
+                  onTap: () {
+                    HagomCelebrationOverlay.show(
+                      context,
+                      assetPath: AppAssets.medsAllDoneWebp,
+                      title: '오늘 복약 모두 완료!',
+                      subtitle: '정말 대단해요! 오늘 복약을 전부 챙기셨어요 👏',
+                    );
+                  },
+                ),
+                const Divider(height: 1, color: Color(0xFFF3F4F6)),
+                ListTile(
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                  leading: Icon(Icons.favorite_border, color: AppColors.primaryPurple),
+                  title: Text('습관 올클리어 축하 애니메이션 미리보기', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: AppColors.textPrimary)),
+                  subtitle: Text('오늘 습관 100% 달성 시 플로팅 축하 오버레이 팝업', style: TextStyle(fontSize: 11.5, color: AppColors.textSecondary)),
+                  trailing: Icon(Icons.play_circle_outline, size: 20, color: AppColors.primaryPurple),
+                  onTap: () {
+                    HagomCelebrationOverlay.show(
+                      context,
+                      assetPath: AppAssets.habitsAllDoneWebp,
+                      title: '오늘 습관 모두 실천 완료!',
+                      subtitle: '스스로와의 약속을 멋지게 지켜내셨어요! 🌟',
                     );
                   },
                 ),

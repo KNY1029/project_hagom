@@ -3,8 +3,10 @@ import '../constants/app_colors.dart';
 import '../models/medication_item.dart';
 import '../state/app_state_manager.dart';
 import '../constants/hagom_dialogue.dart';
+import '../constants/app_assets.dart';
 import '../widgets/celebration_toast.dart';
 import '../widgets/app_time_picker.dart';
+import '../widgets/hagom_celebration_overlay.dart';
 /// 
 /// 1. 한눈에 쏙 들어오는 2단계 마법사 UX:
 ///    - 1단계 (기본 정보): 약 이름 + 용량/복용법 + 처방 여부
@@ -1333,13 +1335,26 @@ class _MedsTabViewState extends State<MedsTabView> {
                                 behavior: HitTestBehavior.opaque,
                                 onTap: () {
                                   if (!slot.isCompleted && !slot.isSkipped) {
+                                    final wasAllDoneBefore = (_state.getMedRateForDay(DateTime.now()) ?? 0.0) >= 1.0;
                                     _state.completeSlot(med.id, idx);
-                                    final toast = HagomDialogue.getRandomMedToast('${med.name} ${slot.label}');
-                                    CelebrationToast.show(
-                                      context,
-                                      title: toast['title']!,
-                                      message: toast['message']!,
-                                    );
+                                    final isAllDoneNow = (_state.getMedRateForDay(DateTime.now()) ?? 0.0) >= 1.0;
+
+                                    if (!wasAllDoneBefore && isAllDoneNow) {
+                                      // 🎉 오늘 복약 100% 올클리어! 투명 플로팅 하곰이 축하 오버레이 팝업 등장!
+                                      HagomCelebrationOverlay.show(
+                                        context,
+                                        assetPath: AppAssets.medsAllDoneWebp,
+                                        title: '오늘 복약 모두 완료!',
+                                        subtitle: '정말 대단해요! 오늘 복약을 전부 챙기셨어요 👏',
+                                      );
+                                    } else {
+                                      final toast = HagomDialogue.getRandomMedToast('${med.name} ${slot.label}');
+                                      CelebrationToast.show(
+                                        context,
+                                        title: toast['title']!,
+                                        message: toast['message']!,
+                                      );
+                                    }
                                   } else {
                                     _showSlotActionSheet(med, idx, slot);
                                   }
@@ -1388,13 +1403,26 @@ class _MedsTabViewState extends State<MedsTabView> {
                   GestureDetector(
                     onTap: () {
                       if (!isAllDone) {
+                        final wasAllDoneBefore = (_state.getMedRateForDay(DateTime.now()) ?? 0.0) >= 1.0;
                         _state.completeNextSlot(med.id);
-                        final toast = HagomDialogue.getRandomMedToast(med.name);
-                        CelebrationToast.show(
-                          context,
-                          title: toast['title']!,
-                          message: toast['message']!,
-                        );
+                        final isAllDoneNow = (_state.getMedRateForDay(DateTime.now()) ?? 0.0) >= 1.0;
+
+                        if (!wasAllDoneBefore && isAllDoneNow) {
+                          // 🎉 오늘 복약 100% 올클리어! 투명 플로팅 하곰이 축하 오버레이 팝업 등장!
+                          HagomCelebrationOverlay.show(
+                            context,
+                            assetPath: AppAssets.medsAllDoneWebp,
+                            title: '오늘 복약 모두 완료!',
+                            subtitle: '정말 대단해요! 오늘 복약을 전부 챙기셨어요 👏',
+                          );
+                        } else {
+                          final toast = HagomDialogue.getRandomMedToast(med.name);
+                          CelebrationToast.show(
+                            context,
+                            title: toast['title']!,
+                            message: toast['message']!,
+                          );
+                        }
                       } else {
                         // 이미 모든 회차가 완료된 상태에서 탭했을 때 토스트에서 바로 마지막 회차 되돌리기 지원!
                         CelebrationToast.show(

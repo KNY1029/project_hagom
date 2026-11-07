@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 import '../constants/app_colors.dart';
 import '../models/habit_item.dart';
 import '../state/app_state_manager.dart';
+import '../constants/app_assets.dart';
 import '../widgets/celebration_toast.dart';
 import '../widgets/app_time_picker.dart';
+import '../widgets/hagom_celebration_overlay.dart';
 /// 
 /// 1. 다중 알림 시각 지원:
 ///    - 하루 여러 번 하는 습관에 맞춰 [+ 시각 추가]로 여러 알림 시각을 등록 및 삭제 가능!
@@ -723,9 +725,19 @@ class _HabitsTabViewState extends State<HabitsTabView> {
                   // 🔒 [우측 상태 칩: 76x32dp 복약 탭과 칼정렬]
                   GestureDetector(
                     onTap: () {
+                      final wasAllDoneBefore = (_state.getHabitRateForDay(DateTime.now()) ?? 0.0) >= 1.0;
                       final advanced = _state.advanceHabitProgress(habit.id);
                       if (advanced) {
-                        if (habit.score >= 1.0) {
+                        final isAllDoneNow = (_state.getHabitRateForDay(DateTime.now()) ?? 0.0) >= 1.0;
+                        if (!wasAllDoneBefore && isAllDoneNow) {
+                          // 🎉 오늘 습관 100% 올클리어! 투명 플로팅 하곰이 축하 오버레이 팝업 등장!
+                          HagomCelebrationOverlay.show(
+                            context,
+                            assetPath: AppAssets.habitsAllDoneWebp,
+                            title: '오늘 습관 모두 실천 완료!',
+                            subtitle: '스스로와의 약속을 멋지게 지켜내셨어요! 🌟',
+                          );
+                        } else if (habit.score >= 1.0) {
                           CelebrationToast.show(
                             context,
                             title: '습관 실천 완료',

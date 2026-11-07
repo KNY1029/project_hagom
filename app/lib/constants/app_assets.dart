@@ -29,4 +29,10 @@ class AppAssets {
   static const String settingsMascot = _defaultHagom;
   /// 8. 그날 처음 접속 시 나타나는 하곰 인사 애니메이션 (고화질 투명 WebP)
   static const String dailyGreetingGif = 'assets/images/hagom_daily_greeting.webp';
+
+  /// 9. 오늘 복약 100% 달성 시 축하 애니메이션 (약축하.webp)
+  static const String medsAllDoneWebp = 'assets/images/hagom_meds_all_done.webp';
+
+  /// 10. 오늘 습관 100% 달성 시 축하 애니메이션 (습관축하.webp)
+  static const String habitsAllDoneWebp = 'assets/images/hagom_habits_all_done.webp';
 }
