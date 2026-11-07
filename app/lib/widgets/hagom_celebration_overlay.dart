@@ -157,11 +157,11 @@ class _CelebrationOverlayContentState extends State<_CelebrationOverlayContent> 
               child: ConfettiWidget(
                 confettiController: _confettiController,
                 blastDirectionality: BlastDirectionality.explosive,
-                emissionFrequency: 0.0, // 🌟 1회 단발성 버스트: 지속 발사 확률을 0으로 고정하여 항상 동일한 양 방출!
-                numberOfParticles: 22,   // 🌟 뜰 때마다 항상 일정하게 22개 파티클 방출 (각 파티클의 방향/속도/색상은 자연스럽게 랜덤)
-                gravity: 0.12,           // 천천히 나풀나풀 떨어지는 부드러운 중력
-                maxBlastForce: 15,       // 자연스러운 방사형 확산 반경
-                minBlastForce: 6,
+                emissionFrequency: 0.0, // 🌟 1회 단발성 버스트: 지속 발사 확률을 0으로 고정하여 항상 균일하게 방출!
+                numberOfParticles: 55,   // 🌟 22개에서 55개로 풍성하게 증량! 하곰이 춤추는 동안 화면 가득 나풀나풀 흩날림
+                gravity: 0.10,           // 공기 중에 더 오래 머물며 천천히 떨어지도록 중력 최적화
+                maxBlastForce: 22,       // 화면 사방으로 시원하고 풍성하게 퍼지는 확산력
+                minBlastForce: 7,
                 colors: const [
                   Color(0xFF7B61A8), // 라벤더 퍼플
                   Color(0xFFB39DDB), // 연보라
