@@ -220,7 +220,7 @@ class _CelebrationOverlayContentState extends State<_CelebrationOverlayContent> 
       case 1:
         return '1-A안: 화이트 밀크 글래스 배지';
       case 2:
-        return '1-B안: 라벤더 틴트 글래스 배지 (테마 퍼플)';
+        return '1-B안: 라벤더 틴트 글래스 배지 (글자 검정)';
       case 3:
         return '1-C안: 웜 크림 글래스 배지 (테마 웜브라운)';
       // 2안 계열 (방사형 빛무리 헤일로)
@@ -290,14 +290,14 @@ class _CelebrationOverlayContentState extends State<_CelebrationOverlayContent> 
         );
 
       case 2:
-        // 💜 1-B안: 라벤더 틴트 글래스 배지 (테마 퍼플 프레임)
+        // 💜 1-B안: 라벤더 틴트 글래스 배지 (글자색 검정/짙은먹색)
         return _buildCapsuleBadge(
           keyInt: 2,
           bgColor: AppColors.lightLavender.withValues(alpha: 0.85),
           borderColor: AppColors.primaryPurple.withValues(alpha: 0.35),
           shadowColor: AppColors.primaryPurple.withValues(alpha: 0.20),
-          titleColor: AppColors.primaryPurple,
-          subtitleColor: AppColors.textSecondary,
+          titleColor: Colors.black87, // 선명한 검정/먹색
+          subtitleColor: const Color(0xFF424242), // 짙은 회색 계열
         );
 
       case 3:
