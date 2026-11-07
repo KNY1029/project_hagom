@@ -326,7 +326,7 @@ class HagomNativeWidgetSync {
       final offset = state.widgetMonthOffset;
       final displayMonth = DateTime(now.year, now.month + offset, 1);
       final monthStr = '${displayMonth.year}년 ${displayMonth.month}월 기록 달력';
-
+      final monthShortStr = '${displayMonth.month}월';
       // 🌟 [핵심 UX]: 위젯에서 특정 날짜를 탭해 선택 중인 경우 해당 날짜의 복약/습관/할일 요약 표시, 아니면 오늘치 표시
       final selDate = state.widgetSelectedDate;
       final targetDate = selDate ?? now;
@@ -375,6 +375,7 @@ class HagomNativeWidgetSync {
           : (isTargetFuture ? '${targetTasks.length}개 예정' : '$targetDoneTasks/${targetTasks.length} 완료');
 
       await HomeWidget.saveWidgetData<String>('month_title', monthStr);
+      await HomeWidget.saveWidgetData<String>('month_title_short', monthShortStr);
       await HomeWidget.saveWidgetData<String>('month_meds', monthMeds);
       await HomeWidget.saveWidgetData<String>('month_habits', monthHabits);
       await HomeWidget.saveWidgetData<String>('month_tasks', monthTasks);
@@ -490,7 +491,7 @@ class HagomNativeWidgetSync {
       final offset = state.widgetMonthOffset;
       final displayMonth = DateTime(now.year, now.month + offset, 1);
       final monthStr = '${displayMonth.year}년 ${displayMonth.month}월 기록 달력';
-
+      final monthShortStr = '${displayMonth.month}월';
       final selDate = state.widgetSelectedDate;
       final targetDate = selDate ?? now;
       final isInspectingOtherDay = (targetDate.year != now.year || targetDate.month != now.month || targetDate.day != now.day);
@@ -536,6 +537,7 @@ class HagomNativeWidgetSync {
           : (isTargetFuture ? '${targetTasks.length}개 예정' : '$targetDoneTasks/${targetTasks.length} 완료');
 
       await HomeWidget.saveWidgetData<String>('month_title', monthStr);
+      await HomeWidget.saveWidgetData<String>('month_title_short', monthShortStr);
       await HomeWidget.saveWidgetData<String>('month_meds', monthMeds);
       await HomeWidget.saveWidgetData<String>('month_habits', monthHabits);
       await HomeWidget.saveWidgetData<String>('month_tasks', monthTasks);

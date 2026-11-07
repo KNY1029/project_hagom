@@ -41,7 +41,20 @@ class HagomMonthCalendarWidgetProvider : HomeWidgetProvider() {
             val inspectingIso = widgetData.getString("month_inspecting_iso", "") ?: ""
             val hasSelectedOtherDay = inspectingIso.isNotEmpty()
             val views = RemoteViews(context.packageName, R.layout.hagom_month_calendar_widget).apply {
-                setTextViewText(R.id.widget_month_title, WidgetBindings.text(widgetData, "month_title"))
+                // 🌟 [세로 높이 반응형 3단계 헤더]:
+                // 1) minH >= 240 (대형): 전체 타이틀 ("2026년 11월 기록 달력")
+                // 2) 180 <= minH < 240 (중형): 슬림 타이틀 ("11월")
+                // 3) minH < 180 (소형): 헤더 전체 숨김(GONE)으로 달력 공간 100% 확보!
+                if (minH < 180) {
+                    setViewVisibility(R.id.widget_month_header, View.GONE)
+                } else {
+                    setViewVisibility(R.id.widget_month_header, View.VISIBLE)
+                    val fullTitle = WidgetBindings.text(widgetData, "month_title")
+                    val shortTitle = WidgetBindings.text(widgetData, "month_title_short").ifEmpty { "11월" }
+                    val finalTitle = if (minH < 240) shortTitle else fullTitle
+                    setTextViewText(R.id.widget_month_title, finalTitle)
+                }
+
                 setTextViewText(R.id.widget_month_meds, WidgetBindings.text(widgetData, "month_meds"))
                 setTextViewText(R.id.widget_month_habits, WidgetBindings.text(widgetData, "month_habits"))
                 val taskLabel = widgetData.getString("month_tasks_label", "오늘의 할일") ?: "오늘의 할일"
@@ -50,7 +63,6 @@ class HagomMonthCalendarWidgetProvider : HomeWidgetProvider() {
                 val medsColorHex = widgetData.getString("theme_meds_color", "#7B61A8") ?: "#7B61A8"
                 val habitsColorHex = widgetData.getString("theme_habits_color", "#7B61A8") ?: "#8B5E3C"
                 val tasksColorHex = widgetData.getString("theme_tasks_color", "#7B61A8") ?: "#B58A32"
-
                 setTextColor(R.id.widget_month_meds, Color.parseColor(medsColorHex))
                 setTextColor(R.id.widget_month_habits, Color.parseColor(habitsColorHex))
                 setTextColor(R.id.widget_month_prev_btn, Color.parseColor(medsColorHex))
