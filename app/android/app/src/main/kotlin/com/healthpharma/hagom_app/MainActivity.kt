@@ -1,5 +1,9 @@
 package com.healthpharma.hagom_app
 
+import android.Manifest
+import android.app.Notification
+import android.app.NotificationChannel
+import android.app.NotificationManager
 import android.content.ClipData
 import android.content.ContentValues
 import android.content.Intent
@@ -18,12 +22,16 @@ import java.io.FileOutputStream
 class MainActivity : FlutterActivity() {
 
     private val CHANNEL = "com.healthpharma.hagom_app/export"
+    private val testNotificationChannelId = "hagom_test_notifications"
+    private val notificationPermissionRequestCode = 3007
+    private var pendingNotificationResult: MethodChannel.Result? = null
 
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
 
         MethodChannel(flutterEngine.dartExecutor.binaryMessenger, CHANNEL).setMethodCallHandler { call, result ->
             when (call.method) {
+                "showTestNotification" -> showTestNotification(result)
                 "downloadCsv" -> {
                     val fileName = call.argument<String>("fileName") ?: "하곰이_건강기록.csv"
                     val content = call.argument<String>("content") ?: ""
@@ -115,6 +123,63 @@ class MainActivity : FlutterActivity() {
 
                 else -> result.notImplemented()
             }
+        }
+    }
+
+    private fun showTestNotification(result: MethodChannel.Result) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
+            checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED
+        ) {
+            pendingNotificationResult = result
+            requestPermissions(
+                arrayOf(Manifest.permission.POST_NOTIFICATIONS),
+                notificationPermissionRequestCode
+            )
+            return
+        }
+        result.success(postTestNotification())
+    }
+
+    private fun postTestNotification(): Boolean {
+        val manager = getSystemService(NotificationManager::class.java) ?: return false
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            manager.createNotificationChannel(
+                NotificationChannel(
+                    testNotificationChannelId,
+                    "하곰이 알림 테스트",
+                    NotificationManager.IMPORTANCE_HIGH
+                )
+            )
+        }
+
+        val builder = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            Notification.Builder(this, testNotificationChannelId)
+        } else {
+            Notification.Builder(this).setPriority(Notification.PRIORITY_HIGH)
+        }
+        builder
+            .setSmallIcon(R.drawable.hagom_notification)
+            .setContentTitle("하곰이 알림 테스트")
+            .setContentText("설정한 알림이 이렇게 표시됩니다.")
+            .setStyle(Notification.BigTextStyle().bigText("복약·습관·할 일 알림이 휴대폰에 도착하는 모습을 확인해 보세요."))
+            .setCategory(Notification.CATEGORY_REMINDER)
+            .setAutoCancel(true)
+
+        manager.notify(3007, builder.build())
+        return true
+    }
+
+    override fun onRequestPermissionsResult(
+        requestCode: Int,
+        permissions: Array<out String>,
+        grantResults: IntArray
+    ) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        if (requestCode == notificationPermissionRequestCode) {
+            val result = pendingNotificationResult
+            pendingNotificationResult = null
+            val granted = grantResults.firstOrNull() == PackageManager.PERMISSION_GRANTED
+            result?.success(granted && postTestNotification())
         }
     }
 

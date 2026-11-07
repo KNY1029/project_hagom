@@ -37,6 +37,26 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   static const MethodChannel _exportChannel = MethodChannel('com.healthpharma.hagom_app/export');
 
+  // 🔔 [알림 테스트 발송 기능]
+  Future<void> _sendTestNotification() async {
+    String message;
+    try {
+      final sent = await _exportChannel.invokeMethod<bool>('showTestNotification');
+      message = sent == true
+          ? '테스트 알림을 보냈어요.'
+          : '알림 권한이 꺼져 있어요. 권한을 허용한 뒤 다시 눌러 주세요.';
+    } on PlatformException catch (error) {
+      message = '테스트 알림을 보내지 못했어요: ${error.message ?? error.code}';
+    } on MissingPluginException {
+      message = '이 기기에서는 알림 테스트를 지원하지 않아요.';
+    }
+
+    if (!mounted) return;
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(SnackBar(content: Text(message)));
+  }
+
   // 📥 [보건약학 임상/교수님 자문용] 4대 영역 맞춤형 CSV 엑셀 다운로드 & 공유 모달
   Future<void> _exportMedicalCsv() async {
     bool includePrescription = true;
@@ -356,7 +376,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     ),
                     SizedBox(height: 3),
                     Text(
-                      '정신약학 비처벌 복약 솔루션 · v0.90.179',
+                      '정신약학 비처벌 복약 솔루션 · v0.90.180',
                       style: TextStyle(
                         fontSize: 12,
                         color: AppColors.textSecondary,
@@ -522,6 +542,40 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 ),
                 const Divider(height: 1, color: Color(0xFFF3F4F6)),
 
+                // 🌟 [완료 기록 안내 팝업(토스트) 켜기/끄기 스위치]
+                SwitchListTile(
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                  activeThumbColor: AppColors.primaryPurple,
+                  title: Text('기록 완료 안내 팝업 켜기', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: AppColors.textPrimary)),
+                  subtitle: Text('복약·습관·할 일 기록 완료 시 하단에 뜨는 축하 안내 팝업을 표시해요', style: TextStyle(fontSize: 11.5, color: AppColors.textSecondary)),
+                  value: _state.completionFeedbackEnabled,
+                  onChanged: (val) => _state.setCompletionFeedbackEnabled(val),
+                ),
+                const Divider(height: 1, color: Color(0xFFF3F4F6)),
+
+                // 🌟 [알림 테스트 (개발자 모드용)]
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('알림 테스트 (개발자)', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: AppColors.textPrimary)),
+                      const SizedBox(height: 4),
+                      Text('실제 기기에 하곰이 테스트 푸시 알림을 한 번 보냅니다.', style: TextStyle(fontSize: 11.5, color: AppColors.textSecondary)),
+                      const SizedBox(height: 8),
+                      OutlinedButton.icon(
+                        onPressed: _sendTestNotification,
+                        icon: Icon(Icons.notifications_active_outlined, color: AppColors.primaryPurple),
+                        label: Text('테스트 알림 보내기', style: TextStyle(color: AppColors.primaryPurple, fontWeight: FontWeight.bold)),
+                        style: OutlinedButton.styleFrom(
+                          side: BorderSide(color: AppColors.primaryPurple),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const Divider(height: 1, color: Color(0xFFF3F4F6)),
                 // 6) ☀️ 하루 갱신 기준 시각 (기본 오전 8:00)
                 ListTile(
                   contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../constants/app_colors.dart';
 import '../constants/app_assets.dart';
+import '../state/app_state_manager.dart';
 
 /// 🐻 [하곰이 축하 & 격려 토스트 (PRD 접점 3)]
 /// 
@@ -15,7 +16,13 @@ class CelebrationToast {
     String? actionLabel,
     VoidCallback? onAction,
     Duration duration = const Duration(milliseconds: 3200),
+    bool isCompletionNotice = true,
   }) {
+    // 🌟 사용자가 설정에서 '완료 팝업 끄기'를 설정한 경우, 완료 축하 안내 팝업을 표시하지 않음!
+    if (isCompletionNotice && !AppStateManager().completionFeedbackEnabled) {
+      return;
+    }
+
     ScaffoldMessenger.of(context).hideCurrentSnackBar();
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(

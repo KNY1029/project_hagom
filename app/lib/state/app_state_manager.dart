@@ -74,8 +74,8 @@ class AppStateManager extends ChangeNotifier {
   bool habitNotificationEnabled = true;    // 습관 알림
   bool tasksNotificationEnabled = true;    // 일정/할일 알림
   bool mascotNotificationEnabled = true;   // 하곰이 응원/넛지 알림
+  bool completionFeedbackEnabled = true;   // 완료 기록 안내 토스트 팝업 표시 여부
   String notificationFrequency = '기본';    // '최소' (정시 1회), '기본' (정시+30분), '적극적' (15분 간격 3회)
-
   void setMedsNotification(bool value) {
     medsNotificationEnabled = value;
     notifyListeners();
@@ -93,6 +93,12 @@ class AppStateManager extends ChangeNotifier {
 
   void setMascotNotification(bool value) {
     mascotNotificationEnabled = value;
+    notifyListeners();
+  }
+
+  void setCompletionFeedbackEnabled(bool value) {
+    completionFeedbackEnabled = value;
+    _prefs?.setBool('hagom_completion_feedback', value);
     notifyListeners();
   }
 
@@ -701,6 +707,7 @@ class AppStateManager extends ChangeNotifier {
       await _prefs!.setBool('hagom_habit_noti', habitNotificationEnabled);
       await _prefs!.setBool('hagom_tasks_noti', tasksNotificationEnabled);
       await _prefs!.setBool('hagom_mascot_noti', mascotNotificationEnabled);
+      await _prefs!.setBool('hagom_completion_feedback', completionFeedbackEnabled);
       await _prefs!.setString('hagom_noti_freq', notificationFrequency);
       await _prefs!.setInt('hagom_daily_reset_hour', dailyResetHour);
       await _prefs!.setInt('hagom_daily_reset_minute', dailyResetMinute);
@@ -816,6 +823,7 @@ class AppStateManager extends ChangeNotifier {
       habitNotificationEnabled = _prefs!.getBool('hagom_habit_noti') ?? true;
       tasksNotificationEnabled = _prefs!.getBool('hagom_tasks_noti') ?? true;
       mascotNotificationEnabled = _prefs!.getBool('hagom_mascot_noti') ?? true;
+      completionFeedbackEnabled = _prefs!.getBool('hagom_completion_feedback') ?? true;
       notificationFrequency = _prefs!.getString('hagom_noti_freq') ?? '기본';
       dailyResetHour = _prefs!.getInt('hagom_daily_reset_hour') ?? 8;
       dailyResetMinute = _prefs!.getInt('hagom_daily_reset_minute') ?? 0;
