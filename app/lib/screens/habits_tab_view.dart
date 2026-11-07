@@ -735,7 +735,7 @@ class _HabitsTabViewState extends State<HabitsTabView> {
                             context,
                             assetPath: AppAssets.habitsAllDoneWebp,
                             title: '오늘 습관 모두 실천 완료!',
-                            subtitle: '스스로와의 약속을 멋지게 지켜내셨어요! 🌟',
+                            subtitle: '스스로와의 약속을 멋지게 지켜내셨어요.',
                           );
                         } else if (habit.score >= 1.0) {
                           CelebrationToast.show(

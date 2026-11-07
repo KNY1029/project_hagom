@@ -374,7 +374,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     ),
                     SizedBox(height: 3),
                     Text(
-                      '정신약학 비처벌 복약 솔루션 · v0.90.186',
+                      '정신약학 비처벌 복약 솔루션 · v0.90.188',
                       style: TextStyle(
                         fontSize: 12,
                         color: AppColors.textSecondary,
@@ -686,7 +686,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       context,
                       assetPath: AppAssets.medsAllDoneWebp,
                       title: '오늘 복약 모두 완료!',
-                      subtitle: '정말 대단해요! 오늘 복약을 전부 챙기셨어요 👏',
+                      subtitle: '정말 대단해요! 오늘 복약을 전부 챙기셨어요.',
                     );
                   },
                 ),
@@ -702,7 +702,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       context,
                       assetPath: AppAssets.habitsAllDoneWebp,
                       title: '오늘 습관 모두 실천 완료!',
-                      subtitle: '스스로와의 약속을 멋지게 지켜내셨어요! 🌟',
+                      subtitle: '스스로와의 약속을 멋지게 지켜내셨어요.',
                     );
                   },
                 ),

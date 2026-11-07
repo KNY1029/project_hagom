@@ -1345,7 +1345,7 @@ class _MedsTabViewState extends State<MedsTabView> {
                                         context,
                                         assetPath: AppAssets.medsAllDoneWebp,
                                         title: '오늘 복약 모두 완료!',
-                                        subtitle: '정말 대단해요! 오늘 복약을 전부 챙기셨어요 👏',
+                                        subtitle: '정말 대단해요! 오늘 복약을 전부 챙기셨어요.',
                                       );
                                     } else {
                                       final toast = HagomDialogue.getRandomMedToast('${med.name} ${slot.label}');
@@ -1413,7 +1413,7 @@ class _MedsTabViewState extends State<MedsTabView> {
                             context,
                             assetPath: AppAssets.medsAllDoneWebp,
                             title: '오늘 복약 모두 완료!',
-                            subtitle: '정말 대단해요! 오늘 복약을 전부 챙기셨어요 👏',
+                            subtitle: '정말 대단해요! 오늘 복약을 전부 챙기셨어요.',
                           );
                         } else {
                           final toast = HagomDialogue.getRandomMedToast(med.name);
