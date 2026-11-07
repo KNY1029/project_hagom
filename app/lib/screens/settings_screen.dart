@@ -374,7 +374,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     ),
                     SizedBox(height: 3),
                     Text(
-                      '정신약학 비처벌 복약 솔루션 · v0.90.200',
+                      '정신약학 비처벌 복약 솔루션 · v0.90.201',
                       style: TextStyle(
                         fontSize: 12,
                         color: AppColors.textSecondary,
@@ -565,6 +565,28 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         onPressed: _sendTestNotification,
                         icon: Icon(Icons.notifications_active_outlined, color: AppColors.primaryPurple),
                         label: Text('테스트 알림 보내기', style: TextStyle(color: AppColors.primaryPurple, fontWeight: FontWeight.bold)),
+                        style: OutlinedButton.styleFrom(
+                          side: BorderSide(color: AppColors.primaryPurple),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      Text('올클리어 축하 오버레이 시안 프리뷰 (개발자)', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: AppColors.textPrimary)),
+                      const SizedBox(height: 4),
+                      Text('기존에 제작된 11가지 축하 오버레이 시안(0안~5안)을 직접 둘러봅니다.', style: TextStyle(fontSize: 11.5, color: AppColors.textSecondary)),
+                      const SizedBox(height: 8),
+                      OutlinedButton.icon(
+                        onPressed: () {
+                          HagomCelebrationOverlay.show(
+                            context,
+                            assetPath: AppAssets.medsAllDoneWebp,
+                            title: '오늘의 복약 완료!',
+                            subtitle: '하곰이가 정성껏 준비한 응원이에요',
+                            isDevPreview: true,
+                          );
+                        },
+                        icon: Icon(Icons.auto_awesome, color: AppColors.primaryPurple),
+                        label: Text('축하 오버레이 11종 시안 둘러보기', style: TextStyle(color: AppColors.primaryPurple, fontWeight: FontWeight.bold)),
                         style: OutlinedButton.styleFrom(
                           side: BorderSide(color: AppColors.primaryPurple),
                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),

@@ -9,14 +9,18 @@ import '../constants/app_colors.dart';
 /// - 애니메이션 길이(약 2.9초) 동안 하곰이가 끝까지 춤추며 응원
 /// - 끝나면 자동으로 부드럽게 닫히며, 화면 어디든 탭해도 즉시 닫기 가능
 class HagomCelebrationOverlay {
+  /// 🎉 [최종 확정 1-B안 기본 적용]
+  /// - 춤추는 투명 하곰이 + 은은한 파스텔 꽃가루 파티클
+  /// - 1-B안: 몽글몽글 라벤더 틴트 글래스 배지 (테마 시그니처 퍼플 텍스트)
+  /// - 애니메이션(약 4.5초) 후 자동 종료, 화면 탭하면 즉시 닫힘
   static void show(
     BuildContext context, {
     required String assetPath,
     required String title,
     required String subtitle,
     Duration duration = const Duration(milliseconds: 4500),
+    bool isDevPreview = false,
   }) {
-    // 🌟 플러터 이미지 캐시에서 해당 WebP를 비워주어, 다시 열었을 때 항상 1프레임부터 완벽하게 다시 재생되도록 보장!
     AssetImage(assetPath).evict();
     final uniquePlayKey = UniqueKey();
 
@@ -33,6 +37,7 @@ class HagomCelebrationOverlay {
           title: title,
           subtitle: subtitle,
           duration: duration,
+          isDevPreview: isDevPreview,
         );
       },
       transitionBuilder: (context, anim1, anim2, child) {
@@ -55,6 +60,7 @@ class _CelebrationOverlayContent extends StatefulWidget {
   final String title;
   final String subtitle;
   final Duration duration;
+  final bool isDevPreview;
 
   const _CelebrationOverlayContent({
     required this.assetPath,
@@ -62,6 +68,7 @@ class _CelebrationOverlayContent extends StatefulWidget {
     required this.title,
     required this.subtitle,
     required this.duration,
+    this.isDevPreview = false,
   });
 
   @override
@@ -72,7 +79,7 @@ class _CelebrationOverlayContentState extends State<_CelebrationOverlayContent> 
   late ConfettiController _confettiController;
   Timer? _autoCloseTimer;
   Timer? _modeCycleTimer;
-  int _currentMode = 0;
+  int _currentMode = 2; // 2: 1-B안 (라벤더 틴트 글래스 배지 + 테마 퍼플 텍스트)
   static const int _totalModes = 11;
   late Key _animKey;
 
@@ -83,19 +90,20 @@ class _CelebrationOverlayContentState extends State<_CelebrationOverlayContent> 
     _confettiController = ConfettiController(duration: const Duration(milliseconds: 1500));
     _confettiController.play();
 
-    // 🌟 원래 애니메이션 재생 시간(약 4.5초) 동안 하곰이가 춤을 끝까지 다 추고 나서 다음 안으로 넘어가도록 맞춤!
-    _modeCycleTimer = Timer.periodic(const Duration(milliseconds: 4600), (timer) {
-      if (mounted) {
-        _switchMode((_currentMode + 1) % _totalModes);
-      }
-    });
-
-    // 11개 시안을 충분히 볼 수 있도록 넉넉하게 유지 (탭하면 바로 닫거나 다음으로 넘김)
-    _autoCloseTimer = Timer(const Duration(milliseconds: 55000), () {
-      if (mounted && Navigator.of(context).canPop()) {
-        Navigator.of(context).pop();
-      }
-    });
+    if (widget.isDevPreview) {
+      // 🌟 개발자 모드 시안 둘러보기: 4.6초마다 다음 시안으로 자동 전환
+      _currentMode = 0;
+      _modeCycleTimer = Timer.periodic(const Duration(milliseconds: 4600), (timer) {
+        if (mounted) {
+          _switchMode((_currentMode + 1) % _totalModes);
+        }
+      });
+      _autoCloseTimer = Timer(const Duration(milliseconds: 60000), _closeImmediately);
+    } else {
+      // 🌟 실사용 모드: 1-B안 고정 (춤이 끝나고 약 4.5초 뒤 자동 종료)
+      _currentMode = 2;
+      _autoCloseTimer = Timer(widget.duration, _closeImmediately);
+    }
   }
 
   @override
@@ -105,24 +113,28 @@ class _CelebrationOverlayContentState extends State<_CelebrationOverlayContent> 
     _confettiController.dispose();
     super.dispose();
   }
+
   void _switchMode(int nextMode) {
-    // 🌟 플러터 이미지 캐시를 비우고 새 UniqueKey를 주어 하곰이 춤이 1프레임부터 완벽하게 다시 시작되도록 함!
     AssetImage(widget.assetPath).evict();
     setState(() {
       _currentMode = nextMode;
       _animKey = UniqueKey();
     });
-    // 🌟 각 안으로 넘어갈 때마다 파티클도 새롭게 팡!
     _confettiController.stop();
     _confettiController.play();
   }
 
-  void _onTapNextOrClose() {
-    _switchMode((_currentMode + 1) % _totalModes);
+  void _onTapAction() {
+    if (widget.isDevPreview) {
+      _switchMode((_currentMode + 1) % _totalModes);
+    } else {
+      _closeImmediately();
+    }
   }
 
   void _closeImmediately() {
     _autoCloseTimer?.cancel();
+    _modeCycleTimer?.cancel();
     if (mounted && Navigator.of(context).canPop()) {
       Navigator.of(context).pop();
     }
@@ -131,7 +143,7 @@ class _CelebrationOverlayContentState extends State<_CelebrationOverlayContent> 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: _onTapNextOrClose,
+      onTap: _onTapAction,
       behavior: HitTestBehavior.opaque,
       child: Material(
         color: Colors.transparent,
@@ -159,7 +171,7 @@ class _CelebrationOverlayContentState extends State<_CelebrationOverlayContent> 
               ),
             ),
 
-            // 🐻 2. 전면에서 춤추는 투명 하곰이 & 비교 테스트 축하 텍스트
+            // 🐻 2. 전면에서 춤추는 투명 하곰이 & 1-B안 라벤더 틴트 글래스 배지
             Column(
               mainAxisSize: MainAxisSize.min,
               children: [
@@ -182,30 +194,31 @@ class _CelebrationOverlayContentState extends State<_CelebrationOverlayContent> 
               ],
             ),
 
-            // 🌟 3. 화면 우측 상단 구석으로 옮긴 시안 라벨 (하곰이와 텍스트를 전혀 가리지 않음!)
-            Positioned(
-              top: MediaQuery.of(context).padding.top + 16,
-              right: 16,
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                decoration: BoxDecoration(
-                  color: Colors.black.withValues(alpha: 0.55),
-                  borderRadius: BorderRadius.circular(14),
-                  border: Border.all(
-                    color: Colors.white.withValues(alpha: 0.3),
-                    width: 0.8,
+            // 🌟 3. 개발자 프리뷰 모드에서만 표시되는 우측 상단 시안 라벨
+            if (widget.isDevPreview)
+              Positioned(
+                top: MediaQuery.of(context).padding.top + 16,
+                right: 16,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                  decoration: BoxDecoration(
+                    color: Colors.black.withValues(alpha: 0.55),
+                    borderRadius: BorderRadius.circular(14),
+                    border: Border.all(
+                      color: Colors.white.withValues(alpha: 0.3),
+                      width: 0.8,
+                    ),
                   ),
-                ),
-                child: Text(
-                  _getModeLabel(_currentMode),
-                  style: const TextStyle(
-                    fontSize: 11,
-                    color: Colors.white,
-                    fontWeight: FontWeight.w600,
+                  child: Text(
+                    _getModeLabel(_currentMode),
+                    style: const TextStyle(
+                      fontSize: 11,
+                      color: Colors.white,
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
                 ),
               ),
-            ),
           ],
         ),
       ),
@@ -220,7 +233,7 @@ class _CelebrationOverlayContentState extends State<_CelebrationOverlayContent> 
       case 1:
         return '1-A안: 화이트 밀크 글래스 배지';
       case 2:
-        return '1-B안: 라벤더 틴트 글래스 배지 (글자 검정)';
+        return '1-B안: 라벤더 틴트 글래스 배지 (테마 시그니처 퍼플)';
       case 3:
         return '1-C안: 웜 크림 글래스 배지 (테마 웜브라운)';
       // 2안 계열 (방사형 빛무리 헤일로)
@@ -290,14 +303,14 @@ class _CelebrationOverlayContentState extends State<_CelebrationOverlayContent> 
         );
 
       case 2:
-        // 💜 1-B안: 라벤더 틴트 글래스 배지 (글자색 검정/짙은먹색)
+        // 💜 1-B안: 라벤더 틴트 글래스 배지 (최종 확정: 테마 시그니처 퍼플)
         return _buildCapsuleBadge(
           keyInt: 2,
           bgColor: AppColors.lightLavender.withValues(alpha: 0.85),
           borderColor: AppColors.primaryPurple.withValues(alpha: 0.35),
           shadowColor: AppColors.primaryPurple.withValues(alpha: 0.20),
-          titleColor: Colors.black87, // 선명한 검정/먹색
-          subtitleColor: const Color(0xFF424242), // 짙은 회색 계열
+          titleColor: AppColors.primaryPurple, // 테마 시그니처 라벤더 퍼플
+          subtitleColor: AppColors.textSecondary,
         );
 
       case 3:
