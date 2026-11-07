@@ -28,6 +28,6 @@ class AppAssets {
 
   /// 7. 설정 화면 마스코트
   static const String settingsMascot = _defaultHagom;
-  /// 8. 그날 처음 접속 시 나타나는 하곰이 인사 애니메이션 GIF
-  static const String dailyGreetingGif = 'assets/images/hagomi_daily_greeting.gif';
+  /// 8. 그날 처음 접속 시 나타나는 하곰이 인사 애니메이션 (고화질 투명 WebP)
+  static const String dailyGreetingGif = 'assets/images/hagomi_daily_greeting.webp';
 }
