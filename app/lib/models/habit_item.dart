@@ -95,7 +95,7 @@ class HabitItem {
   String get statusLabel {
     if (targetPerDay > 1) {
       if (currentCount >= targetPerDay) return '완료';
-      if (currentCount > 0) return '$currentCount/${targetPerDay}회';
+      if (currentCount > 0) return '$currentCount/$targetPerDay회';
       return '대기';
     } else {
       if (currentCount >= 2) return '완료';

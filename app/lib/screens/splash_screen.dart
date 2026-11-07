@@ -38,14 +38,15 @@ class _SplashScreenState extends State<SplashScreen> {
   }
 
   Future<void> _initStartFlow() async {
-    // SharedPreferences 로드 보장 대기
-    await Future.delayed(const Duration(milliseconds: 300));
     if (!mounted) return;
-
     if (widget.forceGreetingPreview) {
       setState(() => _isFirstLaunchToday = true);
       return;
     }
+
+    // 🌟 SharedPreferences 디스크 로딩이 완료될 때까지 확실히 기다린 후 모드 선택 여부 판정!
+    await _state.ensureInitialized();
+    if (!mounted) return;
 
     // 1. 처음 한 번만 묻는 시작 모드 선택 여부 확인
     if (!_state.isInitialModeSelected) {
@@ -166,8 +167,7 @@ class _SplashScreenState extends State<SplashScreen> {
       // 접속 완료 기록 저장
       await _state.markDailyGreetingShown();
     } else {
-      // 이미 오늘 환영을 본 경우: 1초 후 부드럽게 메인으로 이동
-      await Future.delayed(const Duration(milliseconds: 1000));
+      // 이미 오늘 환영을 본 경우: 지연 없이 즉시 메인으로 부드럽게 진입!
       _proceedToMain();
     }
   }
@@ -280,7 +280,7 @@ class _SplashScreenState extends State<SplashScreen> {
                 shape: BoxShape.circle,
                 boxShadow: [
                   BoxShadow(
-                    color: AppColors.primaryPurple.withOpacity(0.12),
+                    color: AppColors.primaryPurple.withValues(alpha: 0.12),
                     blurRadius: 20,
                     offset: const Offset(0, 8),
                   ),

@@ -1,6 +1,7 @@
 package com.healthpharma.hagom_app
 
 import android.appwidget.AppWidgetManager
+import android.content.ComponentName
 import android.content.Context
 import android.content.SharedPreferences
 import android.graphics.Color
@@ -28,11 +29,16 @@ class HagomMedsWidgetProvider : HomeWidgetProvider() {
         appWidgetIds: IntArray,
         widgetData: SharedPreferences
     ) {
-        for (appWidgetId in appWidgetIds) {
+        val targetIds = if (appWidgetIds.isEmpty()) {
+            appWidgetManager.getAppWidgetIds(ComponentName(context, HagomMedsWidgetProvider::class.java))
+        } else {
+            appWidgetIds
+        }
+
+        for (appWidgetId in targetIds) {
             val isNarrow = WidgetBindings.isNarrowWidth(appWidgetManager, appWidgetId)
             val maxRows = WidgetBindings.maxFittingRows(appWidgetManager, appWidgetId)
             val allDone = widgetData.getString("meds_all_done", "false") == "true"
-
             val views = RemoteViews(context.packageName, R.layout.hagom_meds_widget).apply {
                 val openMedsIntent = WidgetBindings.openAppIntent(context, "hagomwidget://openmeds", 1001)
                 // 위젯 전체 영역(버튼 제외) 어디를 탭해도 복약 탭으로 부드럽게 이동

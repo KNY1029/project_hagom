@@ -110,7 +110,7 @@ class _HabitsTabViewState extends State<HabitsTabView> {
                 color: Colors.white,
                 borderRadius: BorderRadius.circular(20),
                 boxShadow: [
-                  BoxShadow(color: Colors.black.withOpacity(0.12), blurRadius: 16, offset: const Offset(0, -4)),
+                  BoxShadow(color: Colors.black.withValues(alpha: 0.12), blurRadius: 16, offset: const Offset(0, -4)),
                 ],
               ),
               child: SingleChildScrollView(
@@ -331,7 +331,7 @@ class _HabitsTabViewState extends State<HabitsTabView> {
                           decoration: BoxDecoration(
                             color: AppColors.lightLavender,
                             borderRadius: BorderRadius.circular(8),
-                            border: Border.all(color: AppColors.primaryPurple.withOpacity(0.3)),
+                            border: Border.all(color: AppColors.primaryPurple.withValues(alpha: 0.3)),
                           ),
                           child: Row(
                             mainAxisSize: MainAxisSize.min,
@@ -470,6 +470,12 @@ class _HabitsTabViewState extends State<HabitsTabView> {
           width: double.infinity,
           height: 42,
           child: OutlinedButton(
+            onPressed: () => _showHabitEditModal(),
+            style: OutlinedButton.styleFrom(
+              side: BorderSide(color: AppColors.primaryPurple, width: 1.0),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+              backgroundColor: Colors.white,
+            ),
             child: Text(
               '작은 습관 추가',
               style: TextStyle(
@@ -477,12 +483,6 @@ class _HabitsTabViewState extends State<HabitsTabView> {
                 fontWeight: FontWeight.bold,
                 fontSize: 14,
               ),
-            ),
-            onPressed: () => _showHabitEditModal(),
-            style: OutlinedButton.styleFrom(
-              side: BorderSide(color: AppColors.primaryPurple, width: 1.0),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-              backgroundColor: Colors.white,
             ),
           ),
         ),
@@ -551,10 +551,10 @@ class _HabitsTabViewState extends State<HabitsTabView> {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppColors.divider.withOpacity(0.6)),
+        border: Border.all(color: AppColors.divider.withValues(alpha: 0.6)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.02),
+            color: Colors.black.withValues(alpha: 0.02),
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),
@@ -632,12 +632,12 @@ class _HabitsTabViewState extends State<HabitsTabView> {
         color: Colors.white,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: habit.isExpanded ? AppColors.primaryPurple.withOpacity(0.35) : AppColors.divider.withOpacity(0.6),
+          color: habit.isExpanded ? AppColors.primaryPurple.withValues(alpha: 0.35) : AppColors.divider.withValues(alpha: 0.6),
           width: 1.0,
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.015),
+            color: Colors.black.withValues(alpha: 0.015),
             blurRadius: 6,
             offset: const Offset(0, 1.5),
           ),
@@ -685,7 +685,7 @@ class _HabitsTabViewState extends State<HabitsTabView> {
                               Container(
                                 padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                                 decoration: BoxDecoration(
-                                  color: AppColors.warmBrown.withOpacity(0.12),
+                                  color: AppColors.warmBrown.withValues(alpha: 0.12),
                                   borderRadius: BorderRadius.circular(4),
                                 ),
                                 child: Text(

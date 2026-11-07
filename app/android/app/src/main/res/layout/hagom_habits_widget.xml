@@ -89,11 +89,11 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginEnd="6dp"
-                        android:background="@drawable/hagom_widget_habit_tag_bg"
+                        android:background="@drawable/hagom_widget_tag_bg"
                         android:paddingHorizontal="6dp"
                         android:paddingVertical="1.5dp"
                         android:text="오늘의 습관"
-                        android:textColor="#8B5E3C"
+                        android:textColor="#7B61A8"
                         android:textSize="10sp"
                         android:textStyle="bold" />
 

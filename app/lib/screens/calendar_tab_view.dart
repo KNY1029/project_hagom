@@ -110,7 +110,7 @@ class _CalendarTabViewState extends State<CalendarTabView> {
             color: Colors.white,
             borderRadius: BorderRadius.circular(20),
             boxShadow: [
-              BoxShadow(color: Colors.black.withOpacity(0.12), blurRadius: 16, offset: const Offset(0, -4)),
+              BoxShadow(color: Colors.black.withValues(alpha: 0.12), blurRadius: 16, offset: const Offset(0, -4)),
             ],
           ),
           padding: EdgeInsets.only(
@@ -350,7 +350,7 @@ class _CalendarTabViewState extends State<CalendarTabView> {
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(8),
                         side: BorderSide(
-                          color: isChecked ? AppColors.primaryPurple.withOpacity(0.5) : AppColors.divider,
+                          color: isChecked ? AppColors.primaryPurple.withValues(alpha: 0.5) : AppColors.divider,
                         ),
                       ),
                       onSelected: (val) {
@@ -374,7 +374,7 @@ class _CalendarTabViewState extends State<CalendarTabView> {
                     Text('반복 설정', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.textPrimary)),
                     Switch(
                       value: isRepeated,
-                      activeColor: AppColors.primaryPurple,
+                      activeThumbColor: AppColors.primaryPurple,
                       onChanged: (val) => setMState(() => isRepeated = val),
                     ),
                   ],
@@ -399,7 +399,7 @@ class _CalendarTabViewState extends State<CalendarTabView> {
                         backgroundColor: const Color(0xFFF9FAFB),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(8),
-                          side: BorderSide(color: isSel ? AppColors.primaryPurple.withOpacity(0.5) : AppColors.divider),
+                          side: BorderSide(color: isSel ? AppColors.primaryPurple.withValues(alpha: 0.5) : AppColors.divider),
                         ),
                         onSelected: (val) {
                           if (val) setMState(() => repeatCycle = cycle);
@@ -757,9 +757,9 @@ class _CalendarTabViewState extends State<CalendarTabView> {
           decoration: BoxDecoration(
             color: Colors.white,
             borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: AppColors.divider.withOpacity(0.6)),
+            border: Border.all(color: AppColors.divider.withValues(alpha: 0.6)),
             boxShadow: [
-              BoxShadow(color: Colors.black.withOpacity(0.02), blurRadius: 8, offset: const Offset(0, 2)),
+              BoxShadow(color: Colors.black.withValues(alpha: 0.02), blurRadius: 8, offset: const Offset(0, 2)),
             ],
           ),
           child: Column(
@@ -832,7 +832,7 @@ class _CalendarTabViewState extends State<CalendarTabView> {
                         border: Border.all(
                           color: isSelected
                               ? AppColors.primaryPurple
-                              : (isToday ? AppColors.primaryPurple.withOpacity(0.5) : Colors.transparent),
+                              : (isToday ? AppColors.primaryPurple.withValues(alpha: 0.5) : Colors.transparent),
                           width: isSelected ? 1.8 : (isToday ? 1.2 : 0),
                         ),
                       ),
@@ -900,7 +900,7 @@ class _CalendarTabViewState extends State<CalendarTabView> {
                                 child: Container(
                                   height: 2.5,
                                   decoration: BoxDecoration(
-                                    color: AppColors.warmBrown.withOpacity(0.6), // 일반약이든 습관이든 뭔가 덜 한 날 웜브라운 바
+                                    color: AppColors.warmBrown.withValues(alpha: 0.6), // 일반약이든 습관이든 뭔가 덜 한 날 웜브라운 바
                                     borderRadius: BorderRadius.circular(2),
                                   ),
                                 ),
@@ -923,9 +923,9 @@ class _CalendarTabViewState extends State<CalendarTabView> {
           decoration: BoxDecoration(
             color: Colors.white,
             borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: AppColors.divider.withOpacity(0.6)),
+            border: Border.all(color: AppColors.divider.withValues(alpha: 0.6)),
             boxShadow: [
-              BoxShadow(color: Colors.black.withOpacity(0.02), blurRadius: 8, offset: const Offset(0, 2)),
+              BoxShadow(color: Colors.black.withValues(alpha: 0.02), blurRadius: 8, offset: const Offset(0, 2)),
             ],
           ),
           child: Column(
@@ -938,7 +938,7 @@ class _CalendarTabViewState extends State<CalendarTabView> {
                   Row(
                     children: [
                       Text(
-                        '${_selectedDate.month}월 ${_selectedDate.day}일',
+                        '${_selectedDate.month.toString().padLeft(2, '0')}/${_selectedDate.day.toString().padLeft(2, '0')}',
                         style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
                       ),
                       const SizedBox(width: 8),
@@ -1035,7 +1035,7 @@ class _CalendarTabViewState extends State<CalendarTabView> {
                         color: const Color(0xFFF9FAFB),
                         borderRadius: BorderRadius.circular(10),
                         border: Border.all(
-                          color: t.isExpanded ? AppColors.primaryPurple.withOpacity(0.3) : AppColors.divider.withOpacity(0.5),
+                          color: t.isExpanded ? AppColors.primaryPurple.withValues(alpha: 0.3) : AppColors.divider.withValues(alpha: 0.5),
                         ),
                       ),
                       child: Column(
@@ -1195,7 +1195,7 @@ class _CalendarTabViewState extends State<CalendarTabView> {
                               color: selectedMedRate != null && selectedMedRate >= 1.0
                                   ? AppColors.completedBg
                                   : (selectedMedRate != null && selectedMedRate > 0.0
-                                      ? AppColors.partialOrange.withOpacity(0.12)
+                                      ? AppColors.partialOrange.withValues(alpha: 0.12)
                                       : const Color(0xFFF3F4F6)),
                               borderRadius: BorderRadius.circular(5),
                               border: selectedMedRate != null && selectedMedRate >= 1.0 ? Border.all(color: AppColors.completedBorder) : null,
@@ -1279,7 +1279,7 @@ class _CalendarTabViewState extends State<CalendarTabView> {
                                     color: isDone ? AppColors.successBg : Colors.white,
                                     borderRadius: BorderRadius.circular(6),
                                     border: Border.all(
-                                      color: isDone ? AppColors.successGreen.withOpacity(0.4) : AppColors.divider,
+                                      color: isDone ? AppColors.successGreen.withValues(alpha: 0.4) : AppColors.divider,
                                       width: isDone ? 1.2 : 1.0,
                                     ),
                                   ),
@@ -1341,7 +1341,7 @@ class _CalendarTabViewState extends State<CalendarTabView> {
                               color: selectedHabitRate != null && selectedHabitRate >= 1.0
                                   ? AppColors.completedBg
                                   : (selectedHabitRate != null && selectedHabitRate > 0.0
-                                      ? AppColors.partialOrange.withOpacity(0.12)
+                                      ? AppColors.partialOrange.withValues(alpha: 0.12)
                                       : const Color(0xFFF3F4F6)),
                               borderRadius: BorderRadius.circular(5),
                               border: selectedHabitRate != null && selectedHabitRate >= 1.0 ? Border.all(color: AppColors.completedBorder) : null,

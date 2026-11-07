@@ -1,6 +1,7 @@
 package com.healthpharma.hagom_app
 
 import android.appwidget.AppWidgetManager
+import android.content.ComponentName
 import android.content.Context
 import android.content.SharedPreferences
 import android.graphics.Color
@@ -28,7 +29,13 @@ class HagomCalendarWidgetProvider : HomeWidgetProvider() {
         appWidgetIds: IntArray,
         widgetData: SharedPreferences
     ) {
-        for (appWidgetId in appWidgetIds) {
+        val targetIds = if (appWidgetIds.isEmpty()) {
+            appWidgetManager.getAppWidgetIds(ComponentName(context, HagomCalendarWidgetProvider::class.java))
+        } else {
+            appWidgetIds
+        }
+
+        for (appWidgetId in targetIds) {
             val isNarrow = WidgetBindings.isNarrowWidth(appWidgetManager, appWidgetId)
             val maxRows = WidgetBindings.maxFittingRows(appWidgetManager, appWidgetId)
 

@@ -99,7 +99,7 @@ Future<void> handleWidgetUriAction(Uri? uri) async {
       final parsed = DateTime.tryParse(dateParam);
       if (parsed != null) {
         state.selectWidgetDate(parsed);
-        await state.flushForWidget();
+        await state.flushForCalendarWidgetOnly();
       }
     } else {
       final dayStr = uri.queryParameters['day'];
@@ -109,16 +109,16 @@ Future<void> handleWidgetUriAction(Uri? uri) async {
           final now = DateTime.now();
           final displayMonth = DateTime(now.year, now.month + state.widgetMonthOffset, 1);
           state.selectWidgetDate(DateTime(displayMonth.year, displayMonth.month, day));
-          await state.flushForWidget();
+          await state.flushForCalendarWidgetOnly();
         }
       }
     }
   } else if (action == 'prevmonth') {
     state.changeWidgetMonthOffset(-1);
-    await state.flushForWidget();
+    await state.flushForCalendarWidgetOnly();
   } else if (action == 'nextmonth') {
     state.changeWidgetMonthOffset(1);
-    await state.flushForWidget();
+    await state.flushForCalendarWidgetOnly();
   } else if (action == 'openroom') {
     state.setTargetTab(0, openRoom: true);
   }

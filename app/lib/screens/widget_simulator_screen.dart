@@ -94,7 +94,7 @@ class _WidgetSimulatorScreenState extends State<WidgetSimulatorScreen> {
             decoration: BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: AppColors.divider.withOpacity(0.5)),
+              border: Border.all(color: AppColors.divider.withValues(alpha: 0.5)),
             ),
             child: Row(
               children: [
@@ -286,7 +286,7 @@ class _WidgetSimulatorScreenState extends State<WidgetSimulatorScreen> {
         border: Border.all(color: border, width: 1.5),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.04),
+            color: Colors.black.withValues(alpha: 0.04),
             blurRadius: 12,
             offset: const Offset(0, 4),
           ),
@@ -458,10 +458,10 @@ class _WidgetSimulatorScreenState extends State<WidgetSimulatorScreen> {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppColors.divider.withOpacity(0.8), width: 1.5),
+        border: Border.all(color: AppColors.divider.withValues(alpha: 0.8), width: 1.5),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.04),
+            color: Colors.black.withValues(alpha: 0.04),
             blurRadius: 10,
             offset: const Offset(0, 3),
           ),
@@ -570,7 +570,7 @@ class _WidgetSimulatorScreenState extends State<WidgetSimulatorScreen> {
                 ),
                 boxShadow: [
                   BoxShadow(
-                    color: (isCompleted ? AppColors.completedBorder : AppColors.primaryPurple).withOpacity(0.3),
+                    color: (isCompleted ? AppColors.completedBorder : AppColors.primaryPurple).withValues(alpha: 0.3),
                     blurRadius: 8,
                     offset: const Offset(0, 3),
                   ),
@@ -593,7 +593,7 @@ class _WidgetSimulatorScreenState extends State<WidgetSimulatorScreen> {
                     style: TextStyle(
                       fontSize: 10.5,
                       fontWeight: FontWeight.w600,
-                      color: isCompleted ? AppColors.completedText.withOpacity(0.8) : Colors.white.withOpacity(0.9),
+                      color: isCompleted ? AppColors.completedText.withValues(alpha: 0.8) : Colors.white.withValues(alpha: 0.9),
                     ),
                   ),
                 ],
@@ -627,10 +627,10 @@ class _WidgetSimulatorScreenState extends State<WidgetSimulatorScreen> {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppColors.divider.withOpacity(0.8), width: 1.5),
+        border: Border.all(color: AppColors.divider.withValues(alpha: 0.8), width: 1.5),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.04),
+            color: Colors.black.withValues(alpha: 0.04),
             blurRadius: 10,
             offset: const Offset(0, 3),
           ),
@@ -741,7 +741,7 @@ class _WidgetSimulatorScreenState extends State<WidgetSimulatorScreen> {
                 ),
                 boxShadow: [
                   BoxShadow(
-                    color: (isAllDone ? AppColors.completedBorder : const Color(0xFF10B981)).withOpacity(0.3),
+                    color: (isAllDone ? AppColors.completedBorder : const Color(0xFF10B981)).withValues(alpha: 0.3),
                     blurRadius: 8,
                     offset: const Offset(0, 3),
                   ),
@@ -764,7 +764,7 @@ class _WidgetSimulatorScreenState extends State<WidgetSimulatorScreen> {
                     style: TextStyle(
                       fontSize: 10.5,
                       fontWeight: FontWeight.w600,
-                      color: isAllDone ? AppColors.completedText.withOpacity(0.8) : Colors.white.withOpacity(0.9),
+                      color: isAllDone ? AppColors.completedText.withValues(alpha: 0.8) : Colors.white.withValues(alpha: 0.9),
                     ),
                   ),
                 ],
@@ -796,10 +796,10 @@ class _WidgetSimulatorScreenState extends State<WidgetSimulatorScreen> {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppColors.divider.withOpacity(0.8), width: 1.5),
+        border: Border.all(color: AppColors.divider.withValues(alpha: 0.8), width: 1.5),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.04),
+            color: Colors.black.withValues(alpha: 0.04),
             blurRadius: 10,
             offset: const Offset(0, 3),
           ),
@@ -899,7 +899,7 @@ class _WidgetSimulatorScreenState extends State<WidgetSimulatorScreen> {
                 ),
                 boxShadow: [
                   BoxShadow(
-                    color: (isCompleted ? AppColors.completedBorder : const Color(0xFFD97706)).withOpacity(0.3),
+                    color: (isCompleted ? AppColors.completedBorder : const Color(0xFFD97706)).withValues(alpha: 0.3),
                     blurRadius: 8,
                     offset: const Offset(0, 3),
                   ),
@@ -922,7 +922,7 @@ class _WidgetSimulatorScreenState extends State<WidgetSimulatorScreen> {
                     style: TextStyle(
                       fontSize: 10.5,
                       fontWeight: FontWeight.w600,
-                      color: isCompleted ? AppColors.completedText.withOpacity(0.8) : Colors.white.withOpacity(0.9),
+                      color: isCompleted ? AppColors.completedText.withValues(alpha: 0.8) : Colors.white.withValues(alpha: 0.9),
                     ),
                   ),
                 ],

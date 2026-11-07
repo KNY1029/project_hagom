@@ -144,7 +144,7 @@ class _TutorialOverlayState extends State<TutorialOverlay> {
             border: Border.all(color: AppColors.primaryPurple, width: 1.5),
             boxShadow: [
               BoxShadow(
-                color: AppColors.primaryPurple.withOpacity(0.18),
+                color: AppColors.primaryPurple.withValues(alpha: 0.18),
                 blurRadius: 18,
                 offset: const Offset(0, 6),
               ),

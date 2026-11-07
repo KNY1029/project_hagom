@@ -122,7 +122,7 @@ class _SwipeableActionCardState extends State<SwipeableActionCard> {
 
                       // 구분선
                       if (widget.onRevert != null)
-                        Container(height: 1, color: Colors.white.withOpacity(0.2)),
+                        Container(height: 1, color: Colors.white.withValues(alpha: 0.2)),
 
                       // 2. 아래쪽: [↩️ 되돌리기] 영역 (틈새까지 웜브라운으로 일체형!)
                       if (widget.onRevert != null)

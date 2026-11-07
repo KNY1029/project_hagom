@@ -1,4 +1,3 @@
-import 'dart:io';
 import 'package:flutter/services.dart';
 import 'package:flutter/material.dart';
 import '../constants/app_colors.dart';
@@ -6,7 +5,6 @@ import '../constants/app_assets.dart';
 import '../state/app_state_manager.dart';
 import 'splash_screen.dart';
 import 'widget_simulator_screen.dart';
-import '../widgets/daily_greeting_modal.dart';
 import '../widgets/app_time_picker.dart';
 import '../widgets/celebration_toast.dart';
 
@@ -64,7 +62,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             borderRadius: BorderRadius.circular(20),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.12),
+                color: Colors.black.withValues(alpha: 0.12),
                 blurRadius: 16,
                 offset: const Offset(0, -4),
               ),
@@ -331,7 +329,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             decoration: BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: AppColors.divider.withOpacity(0.5)),
+              border: Border.all(color: AppColors.divider.withValues(alpha: 0.5)),
             ),
             child: Row(
               children: [
@@ -358,7 +356,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     ),
                     SizedBox(height: 3),
                     Text(
-                      '정신약학 비처벌 복약 솔루션 · v0.90.163',
+                      '정신약학 비처벌 복약 솔루션 · v0.90.178',
                       style: TextStyle(
                         fontSize: 12,
                         color: AppColors.textSecondary,
@@ -383,7 +381,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             decoration: BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: AppColors.divider.withOpacity(0.5)),
+              border: Border.all(color: AppColors.divider.withValues(alpha: 0.5)),
             ),
             child: Column(
               children: [
@@ -446,7 +444,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 // 2) 💊 복약 알림 (처방약 상시 켜짐 스마트 토글!)
                 SwitchListTile(
                   contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-                  activeColor: AppColors.primaryPurple,
+                  activeThumbColor: AppColors.primaryPurple,
                   title: Text('복약 알림', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: AppColors.textPrimary)),
                   subtitle: Text(
                     _state.medsNotificationEnabled
@@ -494,7 +492,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 // 3) 🌱 작은 습관 알림
                 SwitchListTile(
                   contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-                  activeColor: AppColors.primaryPurple,
+                  activeThumbColor: AppColors.primaryPurple,
                   title: Text('작은 습관 알림', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: AppColors.textPrimary)),
                   subtitle: Text('물 마시기, 산책 등 데일리 루틴 실천 리마인드', style: TextStyle(fontSize: 11.5, color: AppColors.textSecondary)),
                   value: _state.habitNotificationEnabled,
@@ -505,7 +503,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 // 4) 🗓️ 할일 및 일정 알림
                 SwitchListTile(
                   contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-                  activeColor: AppColors.primaryPurple,
+                  activeThumbColor: AppColors.primaryPurple,
                   title: Text('일정 및 할일 알림', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: AppColors.textPrimary)),
                   subtitle: Text('병원 예약, 과제 마감 등 등록된 일정 사전 알림', style: TextStyle(fontSize: 11.5, color: AppColors.textSecondary)),
                   value: _state.tasksNotificationEnabled,
@@ -516,7 +514,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 // 5) 🐻 하곰이 응원 및 넛지 알림
                 SwitchListTile(
                   contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-                  activeColor: AppColors.primaryPurple,
+                  activeThumbColor: AppColors.primaryPurple,
                   title: Text('하곰이 따뜻한 응원 알림', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: AppColors.textPrimary)),
                   subtitle: Text('비처벌적 힐링과 응원의 한마디', style: TextStyle(fontSize: 11.5, color: AppColors.textSecondary)),
                   value: _state.mascotNotificationEnabled,
@@ -578,7 +576,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             decoration: BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: AppColors.divider.withOpacity(0.5)),
+              border: Border.all(color: AppColors.divider.withValues(alpha: 0.5)),
             ),
             child: Column(
               children: [

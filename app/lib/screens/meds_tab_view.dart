@@ -116,7 +116,7 @@ class _MedsTabViewState extends State<MedsTabView> {
                 color: Colors.white,
                 borderRadius: BorderRadius.circular(20),
                 boxShadow: [
-                  BoxShadow(color: Colors.black.withOpacity(0.12), blurRadius: 16, offset: const Offset(0, -4)),
+                  BoxShadow(color: Colors.black.withValues(alpha: 0.12), blurRadius: 16, offset: const Offset(0, -4)),
                 ],
               ),
               child: SingleChildScrollView(
@@ -474,7 +474,7 @@ class _MedsTabViewState extends State<MedsTabView> {
                               showCheckmark: false,
                               label: Text(label),
                               selected: isSel,
-                              selectedColor: AppColors.primaryPurple.withOpacity(0.2),
+                              selectedColor: AppColors.primaryPurple.withValues(alpha: 0.2),
                               labelStyle: TextStyle(
                                 fontSize: 12,
                                 color: isSel ? AppColors.primaryPurple : AppColors.textPrimary,
@@ -499,7 +499,7 @@ class _MedsTabViewState extends State<MedsTabView> {
                             return FilterChip(
                               showCheckmark: false,
                               selected: isSel,
-                              selectedColor: AppColors.primaryPurple.withOpacity(0.2),
+                              selectedColor: AppColors.primaryPurple.withValues(alpha: 0.2),
                               label: Row(
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
@@ -872,7 +872,7 @@ class _MedsTabViewState extends State<MedsTabView> {
             color: Colors.white,
             borderRadius: BorderRadius.circular(20),
             boxShadow: [
-              BoxShadow(color: Colors.black.withOpacity(0.12), blurRadius: 16, offset: const Offset(0, -4)),
+              BoxShadow(color: Colors.black.withValues(alpha: 0.12), blurRadius: 16, offset: const Offset(0, -4)),
             ],
           ),
           child: Column(
@@ -1064,6 +1064,12 @@ class _MedsTabViewState extends State<MedsTabView> {
           width: double.infinity,
           height: 42,
           child: OutlinedButton(
+            onPressed: () => _showMedEditModal(),
+            style: OutlinedButton.styleFrom(
+              side: BorderSide(color: AppColors.primaryPurple, width: 1.0),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+              backgroundColor: Colors.white,
+            ),
             child: Text(
               '새 복약 추가',
               style: TextStyle(
@@ -1071,12 +1077,6 @@ class _MedsTabViewState extends State<MedsTabView> {
                 fontWeight: FontWeight.bold,
                 fontSize: 14,
               ),
-            ),
-            onPressed: () => _showMedEditModal(),
-            style: OutlinedButton.styleFrom(
-              side: BorderSide(color: AppColors.primaryPurple, width: 1.0),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-              backgroundColor: Colors.white,
             ),
           ),
         ),
@@ -1136,10 +1136,10 @@ class _MedsTabViewState extends State<MedsTabView> {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppColors.divider.withOpacity(0.6)),
+        border: Border.all(color: AppColors.divider.withValues(alpha: 0.6)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.02),
+            color: Colors.black.withValues(alpha: 0.02),
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),
@@ -1207,12 +1207,12 @@ class _MedsTabViewState extends State<MedsTabView> {
         color: isSkipped ? const Color(0xFFF9FAFB) : Colors.white,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: med.isExpanded ? AppColors.primaryPurple.withOpacity(0.35) : AppColors.divider.withOpacity(0.6),
+          color: med.isExpanded ? AppColors.primaryPurple.withValues(alpha: 0.35) : AppColors.divider.withValues(alpha: 0.6),
           width: 1.0,
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.015),
+            color: Colors.black.withValues(alpha: 0.015),
             blurRadius: 6,
             offset: const Offset(0, 1.5),
           ),
@@ -1308,7 +1308,7 @@ class _MedsTabViewState extends State<MedsTabView> {
                               Container(
                                 padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
                                 decoration: BoxDecoration(
-                                  color: AppColors.warmBrown.withOpacity(0.12),
+                                  color: AppColors.warmBrown.withValues(alpha: 0.12),
                                   borderRadius: BorderRadius.circular(3),
                                 ),
                                 child: Text(
@@ -1354,7 +1354,7 @@ class _MedsTabViewState extends State<MedsTabView> {
                                     border: Border.all(
                                       color: slot.isCompleted
                                           ? AppColors.completedBorder
-                                          : (slot.isSkipped ? AppColors.divider.withOpacity(0.3) : AppColors.divider),
+                                          : (slot.isSkipped ? AppColors.divider.withValues(alpha: 0.3) : AppColors.divider),
                                     ),
                                   ),
                                   child: Text(
@@ -1369,7 +1369,7 @@ class _MedsTabViewState extends State<MedsTabView> {
                                       fontWeight: slot.isCompleted ? FontWeight.bold : FontWeight.w500,
                                       color: slot.isCompleted
                                           ? AppColors.completedText
-                                          : (slot.isSkipped ? AppColors.textMuted.withOpacity(0.6) : AppColors.textPrimary),
+                                          : (slot.isSkipped ? AppColors.textMuted.withValues(alpha: 0.6) : AppColors.textPrimary),
                                       decoration: slot.isSkipped ? TextDecoration.lineThrough : null,
                                     ),
                                   ),

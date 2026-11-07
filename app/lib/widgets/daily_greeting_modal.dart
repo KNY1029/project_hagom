@@ -45,7 +45,7 @@ class DailyGreetingModal extends StatelessWidget {
               decoration: BoxDecoration(
                 color: const Color(0xFFFAF7F2),
                 borderRadius: BorderRadius.circular(20),
-                border: Border.all(color: AppColors.divider.withOpacity(0.5)),
+                border: Border.all(color: AppColors.divider.withValues(alpha: 0.5)),
               ),
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(20),

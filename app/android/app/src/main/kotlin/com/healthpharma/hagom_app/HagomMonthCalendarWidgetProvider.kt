@@ -31,9 +31,12 @@ class HagomMonthCalendarWidgetProvider : HomeWidgetProvider() {
         for (appWidgetId in appWidgetIds) {
             val opts = appWidgetManager.getAppWidgetOptions(appWidgetId)
             val minH = opts.getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_HEIGHT, 240)
-            // 위젯 세로 높이가 충분할 때만(minH >= 310) 2열 목록을 펼치고,
-            // 좁을 때는(작은 위젯) 달력을 보호하기 위해 목록을 접고 요약 헤더만 깔끔하게 노출!
-            val canShowTaskList = (minH >= 310)
+            val minW = opts.getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_WIDTH, 200)
+
+            // 🌟 사용자 요청: 달력이 줄어들지 않도록 한 열당 무조건 "최대 3줄(58dp)"로 엄격 고정!
+            val canShowTaskList = (minH >= 240)
+            // 가로 폭이 너무 좁으면(minW < 280) 2열로 쪼개지 않고 1열만 단독 사용!
+            val canSupportTwoCol = (minW >= 280)
             val selectedDateStr = widgetData.getString("month_selected_date", "") ?: ""
             val inspectingIso = widgetData.getString("month_inspecting_iso", "") ?: ""
             val hasSelectedOtherDay = inspectingIso.isNotEmpty()
@@ -54,40 +57,77 @@ class HagomMonthCalendarWidgetProvider : HomeWidgetProvider() {
                 setTextColor(R.id.widget_month_next_btn, Color.parseColor(medsColorHex))
                 setTextColor(R.id.widget_month_tasks, Color.parseColor(tasksColorHex))
                 setTextColor(R.id.widget_month_tasks_label, Color.parseColor(tasksColorHex))
-                // 🌟 [2열(좌/우) 반응형 할일 목록 바인딩]:
-                // 1) 좌측 열 먼저 1번, 2번 채우고, 넘치는 3번, 4번은 우측 열로!
-                // 2) 위젯 크기가 작을 땐 목록 전체를 숨겨서 달력 크기 완벽 보존
-                val task1 = widgetData.getString("month_today_task_1", "") ?: ""
-                val task2 = widgetData.getString("month_today_task_2", "") ?: ""
-                val task3 = widgetData.getString("month_today_task_3", "") ?: ""
-                val task4 = widgetData.getString("month_today_task_4", "") ?: ""
+                // 🌟 [할일 목록 바인딩: 4개일 때 좌2 + 우2 완벽 분할]:
+                // 1) 1~3개: 좌측 1열(1~3개)에만 표시
+                // 2) 4개: 좌측 2개(1,2) + 우측 2개(3,4) 균등 분할!
+                // 3) 5~6개: 좌측 3개(1,2,3) + 우측 나머지(4,5,6) 분할
+                val taskTexts = (1..6).map { widgetData.getString("month_today_task_$it", "") ?: "" }
+                val activeTaskCount = taskTexts.count { it.isNotEmpty() }
 
-                val hasAnyTask = task1.isNotEmpty() || task2.isNotEmpty() || task3.isNotEmpty() || task4.isNotEmpty()
+                if (canShowTaskList) {
+                    if (activeTaskCount > 0) {
+                        setViewVisibility(R.id.widget_month_tasks_list, View.VISIBLE)
 
-                if (canShowTaskList && hasAnyTask) {
-                    setViewVisibility(R.id.widget_month_tasks_list, View.VISIBLE)
-                    setViewVisibility(R.id.month_tasks_col_left, View.VISIBLE)
+                        // 3개 초과 & 가로 넉넉할 때 2열 모드 가동!
+                        val isTwoCol = canSupportTwoCol && (activeTaskCount > 3)
 
-                    // 좌측 열 (1, 2)
-                    setTextViewText(R.id.month_task_1, task1)
-                    setViewVisibility(R.id.month_task_1, if (task1.isNotEmpty()) View.VISIBLE else View.GONE)
+                        setViewVisibility(R.id.month_tasks_col_left, View.VISIBLE)
+                        setViewVisibility(R.id.month_tasks_col_right, if (isTwoCol) View.VISIBLE else View.GONE)
 
-                    setTextViewText(R.id.month_task_2, task2)
-                    setViewVisibility(R.id.month_task_2, if (task2.isNotEmpty()) View.VISIBLE else View.GONE)
+                        val leftColTasks = mutableListOf<String>()
+                        val rightColTasks = mutableListOf<String>()
 
-                    // 우측 열 (3, 4) - 3번 또는 4번이 있을 때만 열 오픈!
-                    val hasRightCol = task3.isNotEmpty() || task4.isNotEmpty()
-                    setViewVisibility(R.id.month_tasks_col_right, if (hasRightCol) View.VISIBLE else View.GONE)
+                        if (isTwoCol) {
+                            if (activeTaskCount == 4) {
+                                // 🌟 사용자 요청: 4개일 때는 좌측 2개, 우측 2개로 예쁘게 대칭 분할!
+                                leftColTasks.add(taskTexts[0])
+                                leftColTasks.add(taskTexts[1])
+                                rightColTasks.add(taskTexts[2])
+                                rightColTasks.add(taskTexts[3])
+                            } else {
+                                // 5개 또는 6개일 때: 좌측 3개 + 우측 나머지
+                                for (i in 0 until 3) leftColTasks.add(taskTexts[i])
+                                for (i in 3 until activeTaskCount) rightColTasks.add(taskTexts[i])
+                            }
+                        } else {
+                            // 1열 모드 (1~3개 또는 좁은 화면)
+                            for (i in 0 until activeTaskCount.coerceAtMost(3)) {
+                                leftColTasks.add(taskTexts[i])
+                            }
+                        }
 
-                    setTextViewText(R.id.month_task_3, task3)
-                    setViewVisibility(R.id.month_task_3, if (task3.isNotEmpty()) View.VISIBLE else View.GONE)
+                        // 좌측 열 바인딩 (1, 2, 3)
+                        for (i in 0 until 3) {
+                            val viewId = context.resources.getIdentifier("month_task_${i + 1}", "id", context.packageName)
+                            if (viewId != 0) {
+                                val tText = if (i < leftColTasks.size) leftColTasks[i] else ""
+                                setTextViewText(viewId, tText)
+                                setViewVisibility(viewId, if (tText.isNotEmpty()) View.VISIBLE else View.GONE)
+                            }
+                        }
 
-                    setTextViewText(R.id.month_task_4, task4)
-                    setViewVisibility(R.id.month_task_4, if (task4.isNotEmpty()) View.VISIBLE else View.GONE)
+                        // 우측 열 바인딩 (4, 5, 6)
+                        for (i in 0 until 3) {
+                            val viewId = context.resources.getIdentifier("month_task_${i + 4}", "id", context.packageName)
+                            if (viewId != 0) {
+                                val tText = if (isTwoCol && i < rightColTasks.size) rightColTasks[i] else ""
+                                setTextViewText(viewId, tText)
+                                setViewVisibility(viewId, if (isTwoCol && tText.isNotEmpty()) View.VISIBLE else View.GONE)
+                            }
+                        }
+                    } else {
+                        // 할일이 없는 날: INVISIBLE로 58dp 투명 유지!
+                        setViewVisibility(R.id.widget_month_tasks_list, View.INVISIBLE)
+                    }
                 } else {
                     setViewVisibility(R.id.widget_month_tasks_list, View.GONE)
                 }
                 // 🌟 [42개 셀(c_0 ~ c_41) 동적 매핑]: 실제 시작 요일 및 말일 반영!
+                // 🌟 6주차(c_35~c_41)에 날짜가 하나도 없는 달(11월 등)은 6주차 행을 GONE으로 접어 5개 주가 훨씬 큼직하게 확장!
+                val hasWeek6 = (35 until 42).any {
+                    (widgetData.getString("cell_${it}_text", "") ?: "").isNotEmpty()
+                }
+                setViewVisibility(R.id.month_week_row_6, if (hasWeek6) View.VISIBLE else View.GONE)
                 for (i in 0 until 42) {
                     val resId = context.resources.getIdentifier("c_$i", "id", context.packageName)
                     if (resId != 0) {

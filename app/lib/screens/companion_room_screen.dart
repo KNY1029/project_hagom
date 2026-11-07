@@ -60,7 +60,7 @@ class _CompanionRoomScreenState extends State<CompanionRoomScreen> {
                 decoration: BoxDecoration(
                   color: AppColors.lightLavender,
                   borderRadius: BorderRadius.circular(20),
-                  border: Border.all(color: AppColors.primaryPurple.withOpacity(0.3)),
+                  border: Border.all(color: AppColors.primaryPurple.withValues(alpha: 0.3)),
                 ),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
@@ -116,7 +116,7 @@ class _CompanionRoomScreenState extends State<CompanionRoomScreen> {
                   border: Border.all(color: AppColors.divider),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withOpacity(0.04),
+                      color: Colors.black.withValues(alpha: 0.04),
                       blurRadius: 12,
                       offset: const Offset(0, 4),
                     ),

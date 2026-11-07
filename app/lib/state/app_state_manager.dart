@@ -33,6 +33,11 @@ class AppStateManager extends ChangeNotifier {
     await HagomNativeWidgetSync.updateNativeWidget(this);
   }
 
+  /// ⚡ [초고속 Fast-path]: 달력 날짜 탭 시 불필요한 전체 위젯/디스크 연산을 건너뛰고 달력만 즉시 갱신!
+  Future<void> flushForCalendarWidgetOnly() async {
+    await HagomNativeWidgetSync.updateMonthCalendarOnly(this);
+  }
+
   /// 앱이 포그라운드로 돌아올 때 위젯에서 변경한 최신 상태를 디스크에서 다시 읽어옴
   Future<void> reloadFromDisk() async {
     _prefs ??= await SharedPreferences.getInstance();
@@ -947,32 +952,48 @@ class AppStateManager extends ChangeNotifier {
       ),
     ]);
     // 기본 예시 일정 (PRD 5.3절 명세: 보고서 작성, 병원 진료 등)
+    // 🌟 [할일 검증용]: 11월 1일(1개), 2일(2개), 3일(3개), 4일(4개), 5일(5개), 6일(6개)
     final now = DateTime.now();
+    final y = now.year;
+    final m = now.month;
+
     _tasks.addAll([
-      TaskItem(
-        id: 'task_1',
-        title: '약학 실습 보고서 작성',
-        date: DateTime(now.year, now.month, now.day),
-        time: '오후 6:00',
-        reminder: '30분 전',
-        isCompleted: false,
-      ),
-      TaskItem(
-        id: 'task_2',
-        title: '병원 정기 상담 및 처방전 받기',
-        date: DateTime(now.year, now.month, now.day + 2),
-        time: '오후 2:30',
-        reminder: '1시간 전',
-        isCompleted: false,
-      ),
-      TaskItem(
-        id: 'task_3',
-        title: '지난주 복약 상담 일지 정리',
-        date: DateTime(now.year, now.month, now.day - 3),
-        time: '오전 11:00',
-        reminder: '정시',
-        isCompleted: true,
-      ),
+      // 11/01 (1개)
+      TaskItem(id: 't_nov1_1', title: '산책하며 햇볕 쬐기', date: DateTime(y, m, 1), time: '오후 2:00', isCompleted: true),
+
+      // 11/02 (2개)
+      TaskItem(id: 't_nov2_1', title: '약국에서 비타민 구매', date: DateTime(y, m, 2), time: '오전 10:30', isCompleted: true),
+      TaskItem(id: 't_nov2_2', title: '스트레칭 10분 하기', date: DateTime(y, m, 2), time: '오후 7:00', isCompleted: false),
+
+      // 11/03 (3개)
+      TaskItem(id: 't_nov3_1', title: '병원 정기 상담 및 처방전', date: DateTime(y, m, 3), time: '오전 11:00', isCompleted: true),
+      TaskItem(id: 't_nov3_2', title: '복약 상담 일지 정리', date: DateTime(y, m, 3), time: '오후 3:00', isCompleted: false),
+      TaskItem(id: 't_nov3_3', title: '따뜻한 차 마시며 쉬기', date: DateTime(y, m, 3), time: '오후 9:00', isCompleted: false),
+
+      // 11/04 (4개: 2x2 대칭 분할 테스트)
+      TaskItem(id: 't_nov4_1', title: '유기화학 과제 12장 예제 풀기', date: DateTime(y, m, 4), time: '오후 1:00', isCompleted: false),
+      TaskItem(id: 't_nov4_2', title: '도서관 책 반납하기', date: DateTime(y, m, 4), time: '오후 3:30', isCompleted: false),
+      TaskItem(id: 't_nov4_3', title: '약학 실습 예습 리포트', date: DateTime(y, m, 4), time: '오후 5:00', isCompleted: true),
+      TaskItem(id: 't_nov4_4', title: '가벼운 저녁 러닝', date: DateTime(y, m, 4), time: '오후 8:00', isCompleted: false),
+
+      // 11/05 (5개: 좌3 + 우2 분할 테스트)
+      TaskItem(id: 't_nov5_1', title: '정신건강의학과 진료 방문', date: DateTime(y, m, 5), time: '오전 10:00', isCompleted: true),
+      TaskItem(id: 't_nov5_2', title: '영양제 재고 확인하기', date: DateTime(y, m, 5), time: '오후 12:30', isCompleted: false),
+      TaskItem(id: 't_nov5_3', title: '동기들과 스터디 모임', date: DateTime(y, m, 5), time: '오후 3:00', isCompleted: false),
+      TaskItem(id: 't_nov5_4', title: '식물 물 주기', date: DateTime(y, m, 5), time: '오후 6:00', isCompleted: true),
+      TaskItem(id: 't_nov5_5', title: '하루 마무리 일기 쓰기', date: DateTime(y, m, 5), time: '오후 10:00', isCompleted: false),
+
+      // 11/06 (6개: 좌3 + 우3 꽉 찬 분할 테스트)
+      TaskItem(id: 't_nov6_1', title: '약물 치료학 수업 필기 정리', date: DateTime(y, m, 6), time: '오전 9:30', isCompleted: false),
+      TaskItem(id: 't_nov6_2', title: '혈압 및 맥박 체크하기', date: DateTime(y, m, 6), time: '오후 1:30', isCompleted: true),
+      TaskItem(id: 't_nov6_3', title: '동네 한 바퀴 산책', date: DateTime(y, m, 6), time: '오후 4:00', isCompleted: false),
+      TaskItem(id: 't_nov6_4', title: '수면 위생 체크리스트 확인', date: DateTime(y, m, 6), time: '오후 7:00', isCompleted: false),
+      TaskItem(id: 't_nov6_5', title: '내일 복약 파우치 미리 챙기기', date: DateTime(y, m, 6), time: '오후 9:30', isCompleted: true),
+      TaskItem(id: 't_nov6_6', title: '잠들기 전 스마트폰 멀리 두기', date: DateTime(y, m, 6), time: '오후 11:00', isCompleted: false),
+
+      // 오늘 날짜 기본 예시
+      TaskItem(id: 'task_today_1', title: '약학 실습 보고서 작성', date: DateTime(y, m, now.day), time: '오후 6:00', isCompleted: false),
+      TaskItem(id: 'task_today_2', title: '병원 정기 상담 및 처방전 받기', date: DateTime(y, m, now.day), time: '오후 2:30', isCompleted: false),
     ]);
   }
 
@@ -1048,7 +1069,7 @@ class AppStateManager extends ChangeNotifier {
       } else {
         // 이미 있는 슬롯이 모두 완료되었으므로, 다음 회차를 새로 추가!
         final nextIndex = med.doseSlots.length + 1;
-        med.doseSlots.add(DoseSlot(label: '${nextIndex}회차', scheduledTime: nextTimeStr));
+        med.doseSlots.add(DoseSlot(label: '$nextIndex회차', scheduledTime: nextTimeStr));
       }
     }
   }

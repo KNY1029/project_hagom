@@ -10,7 +10,6 @@ import 'companion_room_screen.dart';
 import 'settings_screen.dart';
 import '../state/app_state_manager.dart';
 import '../widgets/tutorial_overlay.dart';
-import '../widgets/daily_greeting_modal.dart';
 /// 메인 화면 셸 (Shell):
 /// - 상단 헤더: 타이틀 + 설정 버튼 + 하곰이 미니 아바타
 /// - 하단 탭 바: 복약 / 습관 / 달력
@@ -176,7 +175,7 @@ class _MainNavigationShellState extends State<MainNavigationShell> {
                   color: AppColors.lightLavender,
                   shape: BoxShape.circle,
                   border: Border.all(
-                    color: AppColors.primaryPurple.withOpacity(0.5),
+                    color: AppColors.primaryPurple.withValues(alpha: 0.5),
                     width: 1.5,
                   ),
                 ),
@@ -233,10 +232,10 @@ class _MainNavigationShellState extends State<MainNavigationShell> {
                       decoration: BoxDecoration(
                         color: Colors.white,
                         borderRadius: BorderRadius.circular(14),
-                        border: Border.all(color: AppColors.primaryPurple.withOpacity(0.25)),
+                        border: Border.all(color: AppColors.primaryPurple.withValues(alpha: 0.25)),
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.black.withOpacity(0.08),
+                            color: Colors.black.withValues(alpha: 0.08),
                             blurRadius: 10,
                             offset: const Offset(0, 4),
                           ),

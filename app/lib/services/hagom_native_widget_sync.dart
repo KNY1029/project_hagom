@@ -3,7 +3,6 @@ import 'package:home_widget/home_widget.dart';
 import '../models/medication_item.dart';
 import '../models/task_item.dart';
 import '../state/app_state_manager.dart';
-import '../constants/app_colors.dart';
 
 /// 안드로이드 홈 화면 위젯과 앱 데이터를 1:1로 동기화하는 서비스.
 ///
@@ -51,8 +50,11 @@ class HagomNativeWidgetSync {
       await HomeWidget.saveWidgetData<String>('mascot_badge', mascotBadge);
       await HomeWidget.saveWidgetData<String>('mascot_quote', mascotQuote);
       await HomeWidget.saveWidgetData<String>('mascot_sub', mascotSub);
-      await HomeWidget.updateWidget(name: mascotProvider, androidName: mascotProvider);
-
+      await HomeWidget.updateWidget(
+        name: mascotProvider,
+        androidName: mascotProvider,
+        qualifiedAndroidName: 'com.healthpharma.hagom_app.$mascotProvider',
+      );
       // -------------------------------------------------------------
       // 2) 복약 관리 위젯
       // -------------------------------------------------------------
@@ -146,8 +148,11 @@ class HagomNativeWidgetSync {
           await HomeWidget.saveWidgetData<String>('meds_row_${n}_action', '');
         }
       }
-      await HomeWidget.updateWidget(name: medsProvider, androidName: medsProvider);
-
+      await HomeWidget.updateWidget(
+        name: medsProvider,
+        androidName: medsProvider,
+        qualifiedAndroidName: 'com.healthpharma.hagom_app.$medsProvider',
+      );
       // -------------------------------------------------------------
       // 3) 습관 관리 위젯
       // -------------------------------------------------------------
@@ -233,8 +238,11 @@ class HagomNativeWidgetSync {
           await HomeWidget.saveWidgetData<String>('habits_row_${n}_action', '');
         }
       }
-      await HomeWidget.updateWidget(name: habitsProvider, androidName: habitsProvider);
-
+      await HomeWidget.updateWidget(
+        name: habitsProvider,
+        androidName: habitsProvider,
+        qualifiedAndroidName: 'com.healthpharma.hagom_app.$habitsProvider',
+      );
       // -------------------------------------------------------------
       // 4) 할일 / 일정 위젯
       // -------------------------------------------------------------
@@ -304,8 +312,11 @@ class HagomNativeWidgetSync {
           await HomeWidget.saveWidgetData<String>('cal_row_${n}_action', '');
         }
       }
-      await HomeWidget.updateWidget(name: calendarProvider, androidName: calendarProvider);
-
+      await HomeWidget.updateWidget(
+        name: calendarProvider,
+        androidName: calendarProvider,
+        qualifiedAndroidName: 'com.healthpharma.hagom_app.$calendarProvider',
+      );
 
       // -------------------------------------------------------------
       // 5) 4x4 한 달 기록 달력 위젯
@@ -336,24 +347,25 @@ class HagomNativeWidgetSync {
       final targetTasks = state.getTasksForDay(targetDate);
       final targetPendingTasks = targetTasks.where((t) => !t.isCompleted).length;
 
-      final datePrefix = isInspectingOtherDay ? '${targetDate.month}/${targetDate.day} ' : '';
       final monthMeds = isTargetFuture
-          ? '${datePrefix}복약 ${targetSlots.length}개 예정'
-          : '${datePrefix}복약 $targetCompMeds/${targetSlots.length} 완료';
+          ? '복약 ${targetSlots.length}개 예정'
+          : '복약 $targetCompMeds/${targetSlots.length} 완료';
       final monthHabits = isTargetFuture
-          ? '${datePrefix}습관 ${targetDueHabits.length}개 예정'
-          : '${datePrefix}습관 $targetDoneHabits/${targetDueHabits.length} 완료';
+          ? '습관 ${targetDueHabits.length}개 예정'
+          : '습관 $targetDoneHabits/${targetDueHabits.length} 완료';
 
-      // 🌟 [할일 라벨 및 상태 세분화]: 과거: 그날의 한일, 오늘: 오늘의 할일, 미래: 그날의 할일
+      // 🌟 [할일 라벨 통일]: MM/dd 두 자리(01/30, 11/07 등) 고정 폭 표기로 텍스트 덜컹거림 원천 차단!
       final todayOnly = DateTime(now.year, now.month, now.day);
       final targetDateOnly = DateTime(targetDate.year, targetDate.month, targetDate.day);
+      final mStr = targetDate.month.toString().padLeft(2, '0');
+      final dStr = targetDate.day.toString().padLeft(2, '0');
       final String taskSectionLabel;
       if (targetDateOnly.isBefore(todayOnly)) {
-        taskSectionLabel = isInspectingOtherDay ? '${targetDate.month}/${targetDate.day} 그날의 한일' : '그날의 한일';
+        taskSectionLabel = '$mStr/$dStr 그날의 한일';
       } else if (targetDateOnly.isAfter(todayOnly)) {
-        taskSectionLabel = isInspectingOtherDay ? '${targetDate.month}/${targetDate.day} 그날의 할일' : '그날의 할일';
+        taskSectionLabel = '$mStr/$dStr 그날의 할일';
       } else {
-        taskSectionLabel = '오늘의 할일';
+        taskSectionLabel = '$mStr/$dStr 오늘의 할일';
       }
 
       // 할일 요약도 복약/습관처럼 '완료수/전체수 완료' 형식으로 완벽 통일
@@ -376,14 +388,16 @@ class HagomNativeWidgetSync {
       final firstDayWeekday = DateTime(displayMonth.year, displayMonth.month, 1).weekday % 7; // 일요일=0
       final daysInMonth = DateTime(displayMonth.year, displayMonth.month + 1, 0).day; // 이번달 말일
 
+      // 🌟 [성능 극대화]: 168개의 saveWidgetData를 직렬 await 하지 않고 Future.wait 병렬 배치 처리!
+      final List<Future<bool?>> batchSaves = [];
+
       for (int i = 0; i < 42; i++) {
         final dayNum = i - firstDayWeekday + 1;
         if (dayNum < 1 || dayNum > daysInMonth) {
-          // 이전달/다음달 빈 셀
-          await HomeWidget.saveWidgetData<String>('cell_${i}_text', '');
-          await HomeWidget.saveWidgetData<String>('cell_${i}_status', 'empty');
-          await HomeWidget.saveWidgetData<String>('cell_${i}_day', '');
-          await HomeWidget.saveWidgetData<String>('cell_${i}_date', '');
+          batchSaves.add(HomeWidget.saveWidgetData<String>('cell_${i}_text', ''));
+          batchSaves.add(HomeWidget.saveWidgetData<String>('cell_${i}_status', 'empty'));
+          batchSaves.add(HomeWidget.saveWidgetData<String>('cell_${i}_day', ''));
+          batchSaves.add(HomeWidget.saveWidgetData<String>('cell_${i}_date', ''));
           continue;
         }
 
@@ -422,11 +436,13 @@ class HagomNativeWidgetSync {
         }
 
         final dateIso = '${cellDate.year}-${cellDate.month.toString().padLeft(2, '0')}-${cellDate.day.toString().padLeft(2, '0')}';
-        await HomeWidget.saveWidgetData<String>('cell_${i}_text', dayNum.toString());
-        await HomeWidget.saveWidgetData<String>('cell_${i}_status', status);
-        await HomeWidget.saveWidgetData<String>('cell_${i}_day', dayNum.toString());
-        await HomeWidget.saveWidgetData<String>('cell_${i}_date', dateIso);
+        batchSaves.add(HomeWidget.saveWidgetData<String>('cell_${i}_text', dayNum.toString()));
+        batchSaves.add(HomeWidget.saveWidgetData<String>('cell_${i}_status', status));
+        batchSaves.add(HomeWidget.saveWidgetData<String>('cell_${i}_day', dayNum.toString()));
+        batchSaves.add(HomeWidget.saveWidgetData<String>('cell_${i}_date', dateIso));
       }
+
+      await Future.wait(batchSaves);
 
       // 🌟 [할일 정렬 및 전달]:
       // 1) 미완료(false) 항목을 완료(true) 항목보다 최우선 정렬
@@ -438,7 +454,7 @@ class HagomNativeWidgetSync {
         return 0;
       });
 
-      for (int i = 0; i < 4; i++) {
+      for (int i = 0; i < 10; i++) {
         final n = i + 1;
         if (i < sortedTasks.length) {
           final t = sortedTasks[i];
@@ -448,17 +464,173 @@ class HagomNativeWidgetSync {
 
           // 제목이 너무 길면 (시간)-상태를 지키고 앞 제목만 스마트하게 말줄임(...)
           String title = t.title.trim();
-          if (title.length > 10) {
-            title = '${title.substring(0, 9)}...';
+          if (title.length > 20) {
+            title = '${title.substring(0, 18)}...';
           }
           await HomeWidget.saveWidgetData<String>('month_today_task_$n', '$title$suffix');
         } else {
           await HomeWidget.saveWidgetData<String>('month_today_task_$n', '');
         }
       }
-      await HomeWidget.updateWidget(name: monthCalendarProvider, androidName: monthCalendarProvider);
+      await HomeWidget.updateWidget(
+        name: monthCalendarProvider,
+        androidName: monthCalendarProvider,
+        qualifiedAndroidName: 'com.healthpharma.hagom_app.$monthCalendarProvider',
+      );
     } catch (e) {
       debugPrint('Native widget update error: $e');
+    }
+  }
+
+  /// ⚡ [초고속 단독 갱신]: 달력 날짜 탭 또는 월 이동 시 다른 4개 위젯 연산을 건너뛰고 달력 위젯만 즉시 갱신!
+  static Future<void> updateMonthCalendarOnly(AppStateManager state) async {
+    if (kIsWeb) return;
+    try {
+      final now = DateTime.now();
+      final offset = state.widgetMonthOffset;
+      final displayMonth = DateTime(now.year, now.month + offset, 1);
+      final monthStr = '${displayMonth.year}년 ${displayMonth.month}월 기록 달력';
+
+      final selDate = state.widgetSelectedDate;
+      final targetDate = selDate ?? now;
+      final isInspectingOtherDay = (targetDate.year != now.year || targetDate.month != now.month || targetDate.day != now.day);
+      final isTargetFuture = targetDate.isAfter(DateTime(now.year, now.month, now.day));
+
+      final targetSlots = <_MedSlotEntry>[];
+      for (final med in state.medications) {
+        if (!med.isDueOn(targetDate)) continue;
+        for (int i = 0; i < med.doseSlots.length; i++) {
+          final isDone = state.isSlotCompletedForDay(targetDate, med.id, i);
+          targetSlots.add(_MedSlotEntry(med: med, slotIndex: i, slot: DoseSlot(label: med.doseSlots[i].label, scheduledTime: med.doseSlots[i].scheduledTime, isCompleted: isDone)));
+        }
+      }
+      final targetCompMeds = isTargetFuture ? 0 : targetSlots.where((e) => e.slot.isCompleted).length;
+      final targetDueHabits = state.habits.where((h) => h.isDueOn(targetDate)).toList();
+      final targetDoneHabits = isTargetFuture ? 0 : targetDueHabits.where((h) => (state.getHabitScoreForDay(targetDate, h.id) ?? 0.0) >= 1.0).length;
+      final targetTasks = state.getTasksForDay(targetDate);
+      final targetPendingTasks = targetTasks.where((t) => !t.isCompleted).length;
+
+      final monthMeds = isTargetFuture
+          ? '복약 ${targetSlots.length}개 예정'
+          : '복약 $targetCompMeds/${targetSlots.length} 완료';
+      final monthHabits = isTargetFuture
+          ? '습관 ${targetDueHabits.length}개 예정'
+          : '습관 $targetDoneHabits/${targetDueHabits.length} 완료';
+
+      final todayOnly = DateTime(now.year, now.month, now.day);
+      final targetDateOnly = DateTime(targetDate.year, targetDate.month, targetDate.day);
+      final mStr = targetDate.month.toString().padLeft(2, '0');
+      final dStr = targetDate.day.toString().padLeft(2, '0');
+      final String taskSectionLabel;
+      if (targetDateOnly.isBefore(todayOnly)) {
+        taskSectionLabel = '$mStr/$dStr 그날의 한일';
+      } else if (targetDateOnly.isAfter(todayOnly)) {
+        taskSectionLabel = '$mStr/$dStr 그날의 할일';
+      } else {
+        taskSectionLabel = '$mStr/$dStr 오늘의 할일';
+      }
+
+      final targetDoneTasks = targetTasks.where((t) => t.isCompleted).length;
+      final monthTasks = targetTasks.isEmpty
+          ? '0개'
+          : (isTargetFuture ? '${targetTasks.length}개 예정' : '$targetDoneTasks/${targetTasks.length} 완료');
+
+      await HomeWidget.saveWidgetData<String>('month_title', monthStr);
+      await HomeWidget.saveWidgetData<String>('month_meds', monthMeds);
+      await HomeWidget.saveWidgetData<String>('month_habits', monthHabits);
+      await HomeWidget.saveWidgetData<String>('month_tasks', monthTasks);
+      await HomeWidget.saveWidgetData<String>('month_tasks_label', taskSectionLabel);
+      final targetDateIso = '${targetDate.year}-${targetDate.month.toString().padLeft(2, '0')}-${targetDate.day.toString().padLeft(2, '0')}';
+      await HomeWidget.saveWidgetData<String>('month_inspecting_iso', isInspectingOtherDay ? targetDateIso : '');
+      await HomeWidget.saveWidgetData<String>('month_selected_date', selDate != null ? targetDateIso : '');
+      await HomeWidget.saveWidgetData<String>('month_selected_day', selDate != null ? selDate.day.toString() : '');
+
+      final firstDayWeekday = DateTime(displayMonth.year, displayMonth.month, 1).weekday % 7;
+      final daysInMonth = DateTime(displayMonth.year, displayMonth.month + 1, 0).day;
+
+      final List<Future<bool?>> batchSaves = [];
+      for (int i = 0; i < 42; i++) {
+        final dayNum = i - firstDayWeekday + 1;
+        if (dayNum < 1 || dayNum > daysInMonth) {
+          batchSaves.add(HomeWidget.saveWidgetData<String>('cell_${i}_text', ''));
+          batchSaves.add(HomeWidget.saveWidgetData<String>('cell_${i}_status', 'empty'));
+          batchSaves.add(HomeWidget.saveWidgetData<String>('cell_${i}_day', ''));
+          batchSaves.add(HomeWidget.saveWidgetData<String>('cell_${i}_date', ''));
+          continue;
+        }
+
+        final cellDate = DateTime(displayMonth.year, displayMonth.month, dayNum);
+        final isTodayCell = (cellDate.year == now.year && cellDate.month == now.month && cellDate.day == now.day);
+        final isFutureCell = cellDate.isAfter(todayOnly);
+        final isBeforeTrack = state.isBeforeTrackingStart(cellDate);
+        final tasks = state.getTasksForDay(cellDate);
+        final hasT = tasks.isNotEmpty;
+
+        String status = '';
+        if (isTodayCell) {
+          final mRate = state.getMedRateForDay(cellDate);
+          final hRate = state.getHabitRateForDay(cellDate);
+          if (!isBeforeTrack && mRate != null && mRate >= 1.0 && hRate != null && hRate >= 1.0) {
+            status = hasT ? 'today_done_pin' : 'today_done';
+          } else {
+            status = hasT ? 'today_pin' : 'today';
+          }
+        } else if (!isBeforeTrack && !isFutureCell) {
+          final mRate = state.getMedRateForDay(cellDate);
+          final hRate = state.getHabitRateForDay(cellDate);
+          final isMissedP = state.hasMissedPrescriptionForDay(cellDate);
+
+          if (mRate != null && mRate >= 1.0 && hRate != null && hRate >= 1.0) {
+            status = hasT ? 'all_done_pin' : 'all_done';
+          } else if (isMissedP) {
+            status = hasT ? 'missed_med_pin' : 'missed_med';
+          } else if (mRate != null && mRate > 0.0) {
+            status = hasT ? 'partial_pin' : 'partial';
+          } else if (hasT) {
+            status = 'pin_only';
+          }
+        } else if (hasT) {
+          status = 'pin_only';
+        }
+
+        final dateIso = '${cellDate.year}-${cellDate.month.toString().padLeft(2, '0')}-${cellDate.day.toString().padLeft(2, '0')}';
+        batchSaves.add(HomeWidget.saveWidgetData<String>('cell_${i}_text', dayNum.toString()));
+        batchSaves.add(HomeWidget.saveWidgetData<String>('cell_${i}_status', status));
+        batchSaves.add(HomeWidget.saveWidgetData<String>('cell_${i}_day', dayNum.toString()));
+        batchSaves.add(HomeWidget.saveWidgetData<String>('cell_${i}_date', dateIso));
+      }
+      await Future.wait(batchSaves);
+
+      final sortedTasks = [
+        ...targetTasks.where((t) => !t.isCompleted),
+        ...targetTasks.where((t) => t.isCompleted),
+      ];
+
+      for (int i = 0; i < 6; i++) {
+        final n = i + 1;
+        if (i < sortedTasks.length) {
+          final t = sortedTasks[i];
+          final timeStr = t.time != null ? ' (${t.time})' : '';
+          final check = t.isCompleted ? '완료' : '예정';
+          final suffix = '$timeStr - $check';
+
+          String title = t.title.trim();
+          if (title.length > 20) {
+            title = '${title.substring(0, 18)}...';
+          }
+          await HomeWidget.saveWidgetData<String>('month_today_task_$n', '$title$suffix');
+        } else {
+          await HomeWidget.saveWidgetData<String>('month_today_task_$n', '');
+        }
+      }
+
+      await HomeWidget.updateWidget(
+        name: monthCalendarProvider,
+        androidName: monthCalendarProvider,
+        qualifiedAndroidName: 'com.healthpharma.hagom_app.$monthCalendarProvider',
+      );
+    } catch (e) {
+      debugPrint('Fast month calendar update error: $e');
     }
   }
 }

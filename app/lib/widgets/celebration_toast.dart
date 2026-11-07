@@ -30,10 +30,10 @@ class CelebrationToast {
           decoration: BoxDecoration(
             color: Colors.white,
             borderRadius: BorderRadius.circular(14),
-            border: Border.all(color: AppColors.primaryPurple.withOpacity(0.35), width: 1.2),
+            border: Border.all(color: AppColors.primaryPurple.withValues(alpha: 0.35), width: 1.2),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.08),
+                color: Colors.black.withValues(alpha: 0.08),
                 blurRadius: 16,
                 offset: const Offset(0, 4),
               ),
@@ -48,7 +48,7 @@ class CelebrationToast {
                 decoration: BoxDecoration(
                   color: AppColors.lightLavender,
                   shape: BoxShape.circle,
-                  border: Border.all(color: AppColors.primaryPurple.withOpacity(0.2)),
+                  border: Border.all(color: AppColors.primaryPurple.withValues(alpha: 0.2)),
                 ),
                 child: ClipOval(
                   child: Image.asset(
@@ -94,7 +94,7 @@ class CelebrationToast {
                 const SizedBox(width: 8),
                 TextButton(
                   style: TextButton.styleFrom(
-                    backgroundColor: AppColors.warmBrown.withOpacity(0.1),
+                    backgroundColor: AppColors.warmBrown.withValues(alpha: 0.1),
                     padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                     minimumSize: Size.zero,
                     tapTargetSize: MaterialTapTargetSize.shrinkWrap,

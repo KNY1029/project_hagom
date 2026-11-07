@@ -1,6 +1,7 @@
 package com.healthpharma.hagom_app
 
 import android.appwidget.AppWidgetManager
+import android.content.ComponentName
 import android.content.Context
 import android.content.SharedPreferences
 import android.graphics.Color
@@ -28,11 +29,16 @@ class HagomHabitsWidgetProvider : HomeWidgetProvider() {
         appWidgetIds: IntArray,
         widgetData: SharedPreferences
     ) {
-        for (appWidgetId in appWidgetIds) {
+        val targetIds = if (appWidgetIds.isEmpty()) {
+            appWidgetManager.getAppWidgetIds(ComponentName(context, HagomHabitsWidgetProvider::class.java))
+        } else {
+            appWidgetIds
+        }
+
+        for (appWidgetId in targetIds) {
             val isNarrow = WidgetBindings.isNarrowWidth(appWidgetManager, appWidgetId)
             val maxRows = WidgetBindings.maxFittingRows(appWidgetManager, appWidgetId)
             val allDone = widgetData.getString("habits_all_done", "false") == "true"
-
             val views = RemoteViews(context.packageName, R.layout.hagom_habits_widget).apply {
                 val openHabitsIntent = WidgetBindings.openAppIntent(context, "hagomwidget://openhabits", 1002)
                 // 위젯 전체 영역(버튼 제외) 어디를 탭해도 습관 탭으로 부드럽게 이동
