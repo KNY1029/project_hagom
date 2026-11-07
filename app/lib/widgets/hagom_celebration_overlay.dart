@@ -176,10 +176,10 @@ class _CelebrationOverlayContentState extends State<_CelebrationOverlayContent> 
                   ),
                   child: Text(
                     _currentMode == 0
-                        ? '1안: 몽글몽글 캡슐 글래스 배지'
+                        ? '3-A안: 테마 퍼플 글씨 + 앰비언트 글로우'
                         : _currentMode == 1
-                            ? '2안: 은은한 방사형 빛무리(헤일로)'
-                            : '3안: 다크 소프트 섀도우(배경 없음)',
+                            ? '3-B안: 테마 딥브라운 텍스트 + 테마 섀도우'
+                            : '3-C안: 소프트 화이트 + 테마 퍼플/브라운 윤곽 섀도우',
                     style: const TextStyle(
                       fontSize: 11,
                       color: Colors.white,
@@ -204,127 +204,31 @@ class _CelebrationOverlayContentState extends State<_CelebrationOverlayContent> 
   Widget _buildTextContent(int mode) {
     switch (mode) {
       case 0:
-        // 🫧 1안: 프로스티드 알약 글래스 배지 (블러 + 반투명 밀크톤 + 둥근 캡슐)
-        return ClipRRect(
-          key: const ValueKey(0),
-          borderRadius: BorderRadius.circular(24),
-          child: BackdropFilter(
-            filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-              decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.88),
-                borderRadius: BorderRadius.circular(24),
-                border: Border.all(
-                  color: Colors.white.withValues(alpha: 0.95),
-                  width: 1.2,
-                ),
-                boxShadow: [
-                  BoxShadow(
-                    color: const Color(0xFF7B61A8).withValues(alpha: 0.12),
-                    blurRadius: 16,
-                    offset: const Offset(0, 4),
-                  ),
-                ],
-              ),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    widget.title,
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.textPrimary,
-                      letterSpacing: -0.5,
-                    ),
-                  ),
-                  const SizedBox(height: 3),
-                  Text(
-                    widget.subtitle,
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w600,
-                      color: AppColors.textSecondary,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        );
-
-      case 1:
-        // 🌫️ 2안: 은은한 방사형 빛무리(헤일로) (경계선 없이 부드럽게 퍼지는 후광)
-        return Container(
-          key: const ValueKey(1),
-          padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 14),
-          decoration: BoxDecoration(
-            shape: BoxShape.rectangle,
-            borderRadius: BorderRadius.circular(30),
-            gradient: RadialGradient(
-              colors: [
-                Colors.white.withValues(alpha: 0.96),
-                Colors.white.withValues(alpha: 0.80),
-                Colors.white.withValues(alpha: 0.0),
-              ],
-              stops: const [0.0, 0.65, 1.0],
-              radius: 0.85,
-            ),
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                widget.title,
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: 21,
-                  fontWeight: FontWeight.bold,
-                  color: AppColors.textPrimary,
-                  letterSpacing: -0.5,
-                ),
-              ),
-              const SizedBox(height: 3),
-              Text(
-                widget.subtitle,
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w600,
-                  color: AppColors.textSecondary,
-                ),
-              ),
-            ],
-          ),
-        );
-
-      case 2:
-      default:
-        // 🖤 3안: 배경 도형 없이 텍스트 다크 소프트 섀도우 강화
+        // 💜 3-A안: 테마 시그니처 퍼플(AppColors.primaryPurple) + 부드러운 화이트/라벤더 헤일로
         return Column(
-          key: const ValueKey(2),
+          key: const ValueKey(0),
           mainAxisSize: MainAxisSize.min,
           children: [
             Text(
               widget.title,
               textAlign: TextAlign.center,
               style: TextStyle(
-                fontSize: 21,
+                fontSize: 22,
                 fontWeight: FontWeight.bold,
-                color: Colors.white, // 흰색 글씨 + 진한 퍼플 섀도우로 선명 대비
+                color: AppColors.primaryPurple, // 테마 메인 퍼플 (#7B61A8)
                 letterSpacing: -0.5,
                 shadows: [
                   Shadow(
-                    color: const Color(0xFF3E2723).withValues(alpha: 0.75),
-                    blurRadius: 10,
-                    offset: const Offset(0, 2),
+                    color: Colors.white,
+                    blurRadius: 14,
                   ),
                   Shadow(
-                    color: const Color(0xFF7B61A8).withValues(alpha: 0.8),
-                    blurRadius: 16,
+                    color: Colors.white.withValues(alpha: 0.9),
+                    blurRadius: 6,
+                  ),
+                  Shadow(
+                    color: AppColors.lightLavender.withValues(alpha: 0.8),
+                    blurRadius: 20,
                   ),
                 ],
               ),
@@ -336,11 +240,108 @@ class _CelebrationOverlayContentState extends State<_CelebrationOverlayContent> 
               style: TextStyle(
                 fontSize: 13,
                 fontWeight: FontWeight.bold,
-                color: const Color(0xFFFFF9C4), // 따뜻한 크림빛
+                color: AppColors.warmBrown, // 보조 웜 브라운 포인트 (#795548)
+                shadows: const [
+                  Shadow(
+                    color: Colors.white,
+                    blurRadius: 10,
+                  ),
+                  Shadow(
+                    color: Colors.white,
+                    blurRadius: 4,
+                  ),
+                ],
+              ),
+            ),
+          ],
+        );
+
+      case 1:
+        // 🤎 3-B안: 테마 textPrimary(따뜻한 딥브라운) + 테마 퍼플 섀도우(AppColors.primaryPurple)
+        return Column(
+          key: const ValueKey(1),
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              widget.title,
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 22,
+                fontWeight: FontWeight.bold,
+                color: AppColors.textPrimary, // 테마 주요 텍스트 (#3E2723)
+                letterSpacing: -0.5,
                 shadows: [
                   Shadow(
-                    color: Colors.black.withValues(alpha: 0.8),
+                    color: Colors.white.withValues(alpha: 0.95),
+                    blurRadius: 12,
+                  ),
+                  Shadow(
+                    color: AppColors.primaryPurple.withValues(alpha: 0.35),
+                    blurRadius: 16,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              widget.subtitle,
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w600,
+                color: AppColors.textSecondary, // 테마 보조 텍스트
+                shadows: const [
+                  Shadow(
+                    color: Colors.white,
                     blurRadius: 8,
+                  ),
+                ],
+              ),
+            ),
+          ],
+        );
+
+      case 2:
+      default:
+        // 🔮 3-C안: 선명한 화이트 글씨 + 테마 퍼플(AppColors.primaryPurple) 및 딥브라운 외곽 섀도우
+        return Column(
+          key: const ValueKey(2),
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              widget.title,
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 22,
+                fontWeight: FontWeight.bold,
+                color: Colors.white, // 흰색 글자
+                letterSpacing: -0.5,
+                shadows: [
+                  Shadow(
+                    color: AppColors.primaryPurple, // 테마 퍼플 림라이트
+                    blurRadius: 12,
+                  ),
+                  Shadow(
+                    color: AppColors.textPrimary.withValues(alpha: 0.85), // 테마 딥브라운 윤곽
+                    blurRadius: 8,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              widget.subtitle,
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.bold,
+                color: AppColors.lightLavender, // 연보라 테마 틴트
+                shadows: [
+                  Shadow(
+                    color: AppColors.textPrimary.withValues(alpha: 0.9),
+                    blurRadius: 6,
                     offset: const Offset(0, 1),
                   ),
                 ],
