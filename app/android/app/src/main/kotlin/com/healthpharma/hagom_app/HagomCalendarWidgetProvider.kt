@@ -36,13 +36,28 @@ class HagomCalendarWidgetProvider : HomeWidgetProvider() {
         }
 
         for (appWidgetId in targetIds) {
-            val isNarrow = WidgetBindings.isNarrowWidth(appWidgetManager, appWidgetId)
-            val maxRows = WidgetBindings.maxFittingRows(appWidgetManager, appWidgetId)
+            val opts = appWidgetManager.getAppWidgetOptions(appWidgetId)
+            val minW = opts.getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_WIDTH, 180)
+            val is1x1 = (minW in 1..110)
+            val openCalIntent = WidgetBindings.openAppIntent(context, "hagomwidget://opencalendar", 1003)
 
-            val views = RemoteViews(context.packageName, R.layout.hagom_calendar_widget).apply {
-                setViewVisibility(R.id.calendar_celebration_view, View.GONE)
-                setViewVisibility(R.id.calendar_normal_view, View.VISIBLE)
+            val views = if (is1x1) {
+                // 🌟 1x1 모드: 오늘 할일 몇 개 중 몇 개 완료했는지 표시 & 탭 시 달력(할일) 탭 열기
+                RemoteViews(context.packageName, R.layout.hagom_calendar_widget_1x1).apply {
+                    val progress = WidgetBindings.text(widgetData, "calendar_progress")
+                    val state = WidgetBindings.text(widgetData, "calendar_state")
+                    setTextViewText(R.id.widget_calendar_tag, "할일")
+                    setTextViewText(R.id.widget_calendar_progress, progress)
+                    setTextViewText(R.id.widget_calendar_status, if (state == "done") "완료" else "진행 중")
+                    setOnClickPendingIntent(R.id.widget_calendar_container, openCalIntent)
+                }
+            } else {
+                val isNarrow = WidgetBindings.isNarrowWidth(appWidgetManager, appWidgetId)
+                val maxRows = WidgetBindings.maxFittingRows(appWidgetManager, appWidgetId)
 
+                RemoteViews(context.packageName, R.layout.hagom_calendar_widget).apply {
+                    setViewVisibility(R.id.calendar_celebration_view, View.GONE)
+                    setViewVisibility(R.id.calendar_normal_view, View.VISIBLE)
                 setViewVisibility(R.id.widget_calendar_tag, if (isNarrow) View.GONE else View.VISIBLE)
                 setTextViewText(R.id.widget_calendar_tag, WidgetBindings.text(widgetData, "calendar_tag"))
                 setTextViewText(R.id.widget_calendar_progress, WidgetBindings.text(widgetData, "calendar_progress"))
@@ -116,6 +131,7 @@ class HagomCalendarWidgetProvider : HomeWidgetProvider() {
                         allowShow = idx < maxRows
                     )
                 }
+            }
             }
             appWidgetManager.updateAppWidget(appWidgetId, views)
         }

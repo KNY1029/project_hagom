@@ -8,6 +8,16 @@ import es.antonborri.home_widget.HomeWidgetProvider
 
 class HagomMascotWidgetProvider : HomeWidgetProvider() {
 
+    override fun onAppWidgetOptionsChanged(
+        context: Context,
+        appWidgetManager: AppWidgetManager,
+        appWidgetId: Int,
+        newOptions: android.os.Bundle
+    ) {
+        super.onAppWidgetOptionsChanged(context, appWidgetManager, appWidgetId, newOptions)
+        onUpdate(context, appWidgetManager, intArrayOf(appWidgetId), es.antonborri.home_widget.HomeWidgetPlugin.getData(context))
+    }
+
     override fun onUpdate(
         context: Context,
         appWidgetManager: AppWidgetManager,
@@ -23,35 +33,50 @@ class HagomMascotWidgetProvider : HomeWidgetProvider() {
         }
 
         for (appWidgetId in targetIds) {
-            val views = RemoteViews(context.packageName, R.layout.hagom_mascot_widget).apply {
-                val badge = widgetData.getString("mascot_badge", "1. 기대")
-                val quote = widgetData.getString("mascot_quote", "유저가 접속해서 기록을 이어갈 것이라 믿고 웃어주는 모습")
-                val sub = widgetData.getString("mascot_sub", "다정한 응원 푸시")
-                val imageName = widgetData.getString("mascot_image", "hagom_widget_stage_1")
+            val opts = appWidgetManager.getAppWidgetOptions(appWidgetId)
+            val minW = opts.getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_WIDTH, 180)
+            val is1x1 = (minW in 1..110) // 1x1 크기 판정 (110dp 이하)
 
-                setTextViewText(R.id.widget_mascot_badge, badge)
-                setTextViewText(R.id.widget_mascot_quote, quote)
-                setTextViewText(R.id.widget_mascot_sub, sub)
+            val imageName = widgetData.getString("mascot_image", "hagom_widget_stage_1")
+            val imageRes = when (imageName) {
+                "hagom_widget_stage_1" -> R.drawable.hagom_widget_stage_1
+                "hagom_widget_stage_2" -> R.drawable.hagom_widget_stage_2
+                "hagom_widget_stage_3" -> R.drawable.hagom_widget_stage_3
+                "hagom_widget_stage_4" -> R.drawable.hagom_widget_stage_4
+                "hagom_widget_stage_5" -> R.drawable.hagom_widget_stage_5
+                "hagom_widget_stage_6" -> R.drawable.hagom_widget_stage_6
+                "hagom_widget_stage_7" -> R.drawable.hagom_widget_stage_7
+                "hagom_widget_stage_8" -> R.drawable.hagom_widget_stage_8
+                "hagom_widget_stage_9" -> R.drawable.hagom_widget_stage_9
+                else -> R.drawable.hagom_widget_stage_1
+            }
 
-                val imageRes = when (imageName) {
-                    "hagom_widget_stage_1" -> R.drawable.hagom_widget_stage_1
-                    "hagom_widget_stage_2" -> R.drawable.hagom_widget_stage_2
-                    "hagom_widget_stage_3" -> R.drawable.hagom_widget_stage_3
-                    "hagom_widget_stage_4" -> R.drawable.hagom_widget_stage_4
-                    "hagom_widget_stage_5" -> R.drawable.hagom_widget_stage_5
-                    "hagom_widget_stage_6" -> R.drawable.hagom_widget_stage_6
-                    "hagom_widget_stage_7" -> R.drawable.hagom_widget_stage_7
-                    "hagom_widget_stage_8" -> R.drawable.hagom_widget_stage_8
-                    "hagom_widget_stage_9" -> R.drawable.hagom_widget_stage_9
-                    else -> R.drawable.hagom_widget_stage_1
+            val views = if (is1x1) {
+                // 🌟 1x1 모드: 앱 아이콘 느낌으로 꽉 찬 하곰이 캐릭터 노출 & 터치 시 앱 메인 열기
+                RemoteViews(context.packageName, R.layout.hagom_mascot_widget_1x1).apply {
+                    setImageViewResource(R.id.widget_mascot_img_1x1, imageRes)
+                    setOnClickPendingIntent(
+                        R.id.widget_mascot_container_1x1,
+                        WidgetBindings.openAppIntent(context, "hagomwidget://openroom", 5002)
+                    )
                 }
-                setImageViewResource(R.id.widget_mascot_img, imageRes)
+            } else {
+                // 🌟 3x1 기본 모드: 캐릭터 + 3단 응원 대사 + 탭하여 다음 표정 전환
+                RemoteViews(context.packageName, R.layout.hagom_mascot_widget).apply {
+                    val badge = widgetData.getString("mascot_badge", "1. 기대")
+                    val quote = widgetData.getString("mascot_quote", "유저가 접속해서 기록을 이어갈 것이라 믿고 웃어주는 모습")
+                    val sub = widgetData.getString("mascot_sub", "비처벌적 푸시")
 
-                // 🌟 위젯 터치 시 백그라운드로 다음 단계(1~9단계 순환)로 즉시 전환!
-                setOnClickPendingIntent(
-                    R.id.widget_mascot_container,
-                    WidgetBindings.actionIntent(context, "hagomwidget://next_mascot_stage", 5001)
-                )
+                    setTextViewText(R.id.widget_mascot_badge, badge)
+                    setTextViewText(R.id.widget_mascot_quote, quote)
+                    setTextViewText(R.id.widget_mascot_sub, sub)
+                    setImageViewResource(R.id.widget_mascot_img, imageRes)
+
+                    setOnClickPendingIntent(
+                        R.id.widget_mascot_container,
+                        WidgetBindings.actionIntent(context, "hagomwidget://next_mascot_stage", 5001)
+                    )
+                }
             }
             appWidgetManager.updateAppWidget(appWidgetId, views)
         }

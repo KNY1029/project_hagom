@@ -36,13 +36,27 @@ class HagomMedsWidgetProvider : HomeWidgetProvider() {
         }
 
         for (appWidgetId in targetIds) {
-            val isNarrow = WidgetBindings.isNarrowWidth(appWidgetManager, appWidgetId)
-            val maxRows = WidgetBindings.maxFittingRows(appWidgetManager, appWidgetId)
+            val opts = appWidgetManager.getAppWidgetOptions(appWidgetId)
+            val minW = opts.getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_WIDTH, 180)
+            val is1x1 = (minW in 1..110) // 1x1 모드 판정
             val allDone = widgetData.getString("meds_all_done", "false") == "true"
-            val views = RemoteViews(context.packageName, R.layout.hagom_meds_widget).apply {
-                val openMedsIntent = WidgetBindings.openAppIntent(context, "hagomwidget://openmeds", 1001)
-                // 위젯 전체 영역(버튼 제외) 어디를 탭해도 복약 탭으로 부드럽게 이동
-                setOnClickPendingIntent(R.id.widget_meds_container, openMedsIntent)
+            val openMedsIntent = WidgetBindings.openAppIntent(context, "hagomwidget://openmeds", 1001)
+
+            val views = if (is1x1) {
+                // 🌟 1x1 모드: "몇 개 중 몇 개 했는지" 심플 표시 & 탭 시 복약 탭 열기
+                RemoteViews(context.packageName, R.layout.hagom_meds_widget_1x1).apply {
+                    val progress = WidgetBindings.text(widgetData, "meds_progress")
+                    setTextViewText(R.id.widget_meds_tag, "복약")
+                    setTextViewText(R.id.widget_meds_progress, progress)
+                    setTextViewText(R.id.widget_meds_status, if (allDone) "완료" else "복용 중")
+                    setOnClickPendingIntent(R.id.widget_meds_container, openMedsIntent)
+                }
+            } else {
+                val isNarrow = WidgetBindings.isNarrowWidth(appWidgetManager, appWidgetId)
+                val maxRows = WidgetBindings.maxFittingRows(appWidgetManager, appWidgetId)
+                RemoteViews(context.packageName, R.layout.hagom_meds_widget).apply {
+                    // 위젯 전체 영역(버튼 제외) 어디를 탭해도 복약 탭으로 부드럽게 이동
+                    setOnClickPendingIntent(R.id.widget_meds_container, openMedsIntent)
                 setOnClickPendingIntent(R.id.widget_meds_info_area, openMedsIntent)
                 setOnClickPendingIntent(R.id.widget_meds_title, openMedsIntent)
                 setOnClickPendingIntent(R.id.widget_meds_tag, openMedsIntent)
@@ -122,6 +136,7 @@ class HagomMedsWidgetProvider : HomeWidgetProvider() {
                         )
                     }
                 }
+            }
             }
             appWidgetManager.updateAppWidget(appWidgetId, views)
         }

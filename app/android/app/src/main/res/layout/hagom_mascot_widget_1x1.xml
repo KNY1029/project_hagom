@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/widget_mascot_container_1x1"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/hagom_widget_bg"
+    android:padding="6dp">
+
+    <ImageView
+        android:id="@+id/widget_mascot_img_1x1"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_gravity="center"
+        android:src="@drawable/hagom_mascot"
+        android:contentDescription="하곰"
+        android:scaleType="fitCenter" />
+</FrameLayout>

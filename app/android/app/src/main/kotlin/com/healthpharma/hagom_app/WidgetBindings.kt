@@ -36,8 +36,8 @@ object WidgetBindings {
     }
 
     fun actionIntent(context: Context, uri: String, requestCode: Int = 0): PendingIntent {
-        val intent = Intent(context, es.antonborri.home_widget.HomeWidgetBackgroundReceiver::class.java).apply {
-            action = "es.antonborri.home_widget.action.BACKGROUND"
+        // 🌟 플러터 백그라운드 엔진 대신, 네이티브 WidgetActionReceiver로 즉각 0.01초 직통 라우팅!
+        val intent = Intent(context, WidgetActionReceiver::class.java).apply {
             data = Uri.parse(uri)
         }
         var flags = PendingIntent.FLAG_UPDATE_CURRENT

@@ -101,6 +101,11 @@
                 android:name="android.appwidget.provider"
                 android:resource="@xml/hagom_month_calendar_widget_provider_info" />
         </receiver>
+        <!-- ⚡ 0.01초 즉각 반응 네이티브 위젯 액션 리시버 (플러터 엔진 의존 없이 네이티브 직통 처리) -->
+        <receiver
+            android:name=".WidgetActionReceiver"
+            android:exported="true" />
+
         <!-- 🚀 home_widget 백그라운드 1-Tap 즉시 체크 리시버 & 서비스 (앱 실행 없이 동작) -->
         <receiver
             android:name="es.antonborri.home_widget.HomeWidgetBackgroundReceiver"

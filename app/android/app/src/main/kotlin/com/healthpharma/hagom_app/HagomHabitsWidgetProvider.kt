@@ -36,13 +36,27 @@ class HagomHabitsWidgetProvider : HomeWidgetProvider() {
         }
 
         for (appWidgetId in targetIds) {
-            val isNarrow = WidgetBindings.isNarrowWidth(appWidgetManager, appWidgetId)
-            val maxRows = WidgetBindings.maxFittingRows(appWidgetManager, appWidgetId)
+            val opts = appWidgetManager.getAppWidgetOptions(appWidgetId)
+            val minW = opts.getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_WIDTH, 180)
+            val is1x1 = (minW in 1..110)
             val allDone = widgetData.getString("habits_all_done", "false") == "true"
-            val views = RemoteViews(context.packageName, R.layout.hagom_habits_widget).apply {
-                val openHabitsIntent = WidgetBindings.openAppIntent(context, "hagomwidget://openhabits", 1002)
-                // 위젯 전체 영역(버튼 제외) 어디를 탭해도 습관 탭으로 부드럽게 이동
-                setOnClickPendingIntent(R.id.widget_habits_container, openHabitsIntent)
+            val openHabitsIntent = WidgetBindings.openAppIntent(context, "hagomwidget://openhabits", 1002)
+
+            val views = if (is1x1) {
+                // 🌟 1x1 모드: 습관 몇 개 중 몇 개 실천했는지 표시 & 탭 시 습관 탭 열기
+                RemoteViews(context.packageName, R.layout.hagom_habits_widget_1x1).apply {
+                    val progress = WidgetBindings.text(widgetData, "habits_progress")
+                    setTextViewText(R.id.widget_habits_tag, "습관")
+                    setTextViewText(R.id.widget_habits_progress, progress)
+                    setTextViewText(R.id.widget_habits_status, if (allDone) "완료" else "실천 중")
+                    setOnClickPendingIntent(R.id.widget_habits_container, openHabitsIntent)
+                }
+            } else {
+                val isNarrow = WidgetBindings.isNarrowWidth(appWidgetManager, appWidgetId)
+                val maxRows = WidgetBindings.maxFittingRows(appWidgetManager, appWidgetId)
+                RemoteViews(context.packageName, R.layout.hagom_habits_widget).apply {
+                    // 위젯 전체 영역(버튼 제외) 어디를 탭해도 습관 탭으로 부드럽게 이동
+                    setOnClickPendingIntent(R.id.widget_habits_container, openHabitsIntent)
                 setOnClickPendingIntent(R.id.widget_habits_info_area, openHabitsIntent)
                 setOnClickPendingIntent(R.id.widget_habits_title, openHabitsIntent)
                 setOnClickPendingIntent(R.id.widget_habits_tag, openHabitsIntent)
@@ -128,6 +142,7 @@ class HagomHabitsWidgetProvider : HomeWidgetProvider() {
                         )
                     }
                 }
+            }
             }
             appWidgetManager.updateAppWidget(appWidgetId, views)
         }
