@@ -16,6 +16,7 @@ Future<void> handleWidgetUriAction(Uri? uri) async {
   if (uri == null) return;
 
   final state = AppStateManager();
+  state.suspendWidgetSync = true; // 🌟 백그라운드 위젯 역주행 덮어쓰기 원천 봉쇄!
   await state.ensureInitialized();
   await state.reloadFromDisk();
 

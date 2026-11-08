@@ -147,7 +147,16 @@ class WidgetActionReceiver : BroadcastReceiver() {
                 for (n in 1..6) {
                     val actionStr = prefs.getString("habits_row_${n}_action", "") ?: ""
                     if (id != null && actionStr.contains("id=$id")) {
-                        val curVal = curParam ?: 0
+                        val currentLabel = prefs.getString("habits_row_${n}_btn_label", "") ?: ""
+                        val parsedCur = if (currentLabel.contains("/")) {
+                            currentLabel.split("/").firstOrNull()?.filter { it.isDigit() }?.toIntOrNull()
+                        } else if (currentLabel == "조금 실천") {
+                            1
+                        } else if (currentLabel == "대기") {
+                            0
+                        } else null
+
+                        val curVal = parsedCur ?: curParam ?: 0
                         val nextVal = curVal + 1
                         val isTargetMulti = targetParam > 1
 
@@ -183,7 +192,6 @@ class WidgetActionReceiver : BroadcastReceiver() {
                         if (isDone) {
                             editor.putString("habits_row_${n}_action", "")
                         } else {
-                            // 다음 번 탭을 위한 uri 파라미터 갱신
                             editor.putString("habits_row_${n}_action", "hagomwidget://checkhabit?id=$id&cur=$nextVal&target=$targetParam")
                         }
                         break
@@ -193,7 +201,16 @@ class WidgetActionReceiver : BroadcastReceiver() {
                 // 2) 메인 헤더 대표 습관 버튼 즉시 갱신
                 val mainAction = prefs.getString("habits_action", "") ?: ""
                 if (mainAction.isNotEmpty() && (id == null || mainAction.contains("id=$id"))) {
-                    val curVal = curParam ?: 0
+                    val currentLabel = prefs.getString("habits_btn_title", "") ?: ""
+                    val parsedCur = if (currentLabel.contains("/")) {
+                        currentLabel.split("/").firstOrNull()?.filter { it.isDigit() }?.toIntOrNull()
+                    } else if (currentLabel == "조금 실천") {
+                        1
+                    } else if (currentLabel == "대기") {
+                        0
+                    } else null
+
+                    val curVal = parsedCur ?: curParam ?: 0
                     val nextVal = curVal + 1
                     val isTargetMulti = targetParam > 1
 

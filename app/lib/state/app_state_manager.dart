@@ -51,13 +51,16 @@ class AppStateManager extends ChangeNotifier {
     await _loadDataFromDisk();
   }
 
+  bool suspendWidgetSync = false;
+
   @override
   void notifyListeners() {
     super.notifyListeners();
     _saveDataToDisk(); // 상태 변경 시마다 로컬 DB에 자동 영구 저장!
-    HagomNativeWidgetSync.updateNativeWidget(this);
+    if (!suspendWidgetSync) {
+      HagomNativeWidgetSync.updateNativeWidget(this);
+    }
   }
-
   // --- 💊 복약 데이터 ---
   final List<MedicationItem> _medications = [];
   List<MedicationItem> get medications => _medications;
