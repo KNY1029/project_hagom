@@ -38,7 +38,13 @@ Future<void> handleWidgetUriAction(Uri? uri) async {
         final slot = med.doseSlots[slotIdx];
         if (!slot.isCompleted) {
           state.completeSlot(med.id, slotIdx);
-          await state.flushDataToDiskOnly();
+          // 🌟 완료되었을 때만 0.8초 딜레이 뒤에 실제로 하단으로 재정렬되도록 위젯 갱신!
+          if (med.isAllCompleted) {
+            state.suspendWidgetSync = false;
+            await state.flushForWidget();
+          } else {
+            await state.flushDataToDiskOnly();
+          }
         }
         return;
       }
@@ -49,7 +55,12 @@ Future<void> handleWidgetUriAction(Uri? uri) async {
         final slot = med.doseSlots[i];
         if (!slot.isCompleted && !slot.isSkipped) {
           state.completeSlot(med.id, i);
-          await state.flushDataToDiskOnly();
+          if (med.isAllCompleted) {
+            state.suspendWidgetSync = false;
+            await state.flushForWidget();
+          } else {
+            await state.flushDataToDiskOnly();
+          }
           return;
         }
       }
@@ -59,7 +70,14 @@ Future<void> handleWidgetUriAction(Uri? uri) async {
       final habit = state.habits.firstWhere((h) => h.id == id);
       if (habit.score < 1.0) {
         state.advanceHabitProgress(habit.id);
-        await state.flushDataToDiskOnly();
+        // 🌟 [핵심 해결]: 완료(score >= 1.0)에 도달했을 때만 0.8초 딜레이 뒤에 완료 항목이 아래로 내려가도록 위젯 재정렬 실행!
+        // 진행 중(1/4회, 조금 실천 등)일 때는 재정렬 없이 제자리에서 숫자만 전진!
+        if (habit.score >= 1.0) {
+          state.suspendWidgetSync = false;
+          await state.flushForWidget();
+        } else {
+          await state.flushDataToDiskOnly();
+        }
       }
       return;
     }
@@ -67,7 +85,12 @@ Future<void> handleWidgetUriAction(Uri? uri) async {
     for (final habit in todayHabits) {
       if (habit.score < 1.0) {
         state.advanceHabitProgress(habit.id);
-        await state.flushDataToDiskOnly();
+        if (habit.score >= 1.0) {
+          state.suspendWidgetSync = false;
+          await state.flushForWidget();
+        } else {
+          await state.flushDataToDiskOnly();
+        }
         return;
       }
     }

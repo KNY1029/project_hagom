@@ -55,13 +55,10 @@ class HagomHabitsWidgetProvider : HomeWidgetProvider() {
                 val isNarrow = WidgetBindings.isNarrowWidth(appWidgetManager, appWidgetId)
                 val maxRows = WidgetBindings.maxFittingRows(appWidgetManager, appWidgetId)
                 RemoteViews(context.packageName, R.layout.hagom_habits_widget).apply {
-                    // 위젯 전체 영역(버튼 제외) 어디를 탭해도 습관 탭으로 부드럽게 이동
-                    setOnClickPendingIntent(R.id.widget_habits_container, openHabitsIntent)
-                setOnClickPendingIntent(R.id.widget_habits_info_area, openHabitsIntent)
-                setOnClickPendingIntent(R.id.widget_habits_title, openHabitsIntent)
-                setOnClickPendingIntent(R.id.widget_habits_tag, openHabitsIntent)
-                setOnClickPendingIntent(R.id.habits_celebration_view, openHabitsIntent)
-
+                    // 🌟 [터치 오작동 방지]: 위젯 전체(container)에 걸려있던 전체 클릭을 제거하고,
+                    // 버튼 주변 빈 공간을 눌러도 앱으로 튀지 않도록 오직 좌측 텍스트 정보 영역(info_area)을 눌렀을 때만 앱으로 이동!
+                    setOnClickPendingIntent(R.id.widget_habits_info_area, openHabitsIntent)
+                    setOnClickPendingIntent(R.id.habits_celebration_view, openHabitsIntent)
                 if (allDone) {
                     setViewVisibility(R.id.habits_celebration_view, View.VISIBLE)
                     setViewVisibility(R.id.habits_normal_view, View.GONE)

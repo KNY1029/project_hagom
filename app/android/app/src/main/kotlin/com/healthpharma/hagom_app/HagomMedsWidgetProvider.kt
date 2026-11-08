@@ -55,13 +55,10 @@ class HagomMedsWidgetProvider : HomeWidgetProvider() {
                 val isNarrow = WidgetBindings.isNarrowWidth(appWidgetManager, appWidgetId)
                 val maxRows = WidgetBindings.maxFittingRows(appWidgetManager, appWidgetId)
                 RemoteViews(context.packageName, R.layout.hagom_meds_widget).apply {
-                    // 위젯 전체 영역(버튼 제외) 어디를 탭해도 복약 탭으로 부드럽게 이동
-                    setOnClickPendingIntent(R.id.widget_meds_container, openMedsIntent)
-                setOnClickPendingIntent(R.id.widget_meds_info_area, openMedsIntent)
-                setOnClickPendingIntent(R.id.widget_meds_title, openMedsIntent)
-                setOnClickPendingIntent(R.id.widget_meds_tag, openMedsIntent)
-                setOnClickPendingIntent(R.id.meds_celebration_view, openMedsIntent)
-
+                    // 🌟 [터치 오작동 방지]: 위젯 전체(container)에 걸려있던 전체 클릭을 제거하고,
+                    // 버튼 주변 빈 공간을 눌러도 앱으로 튀지 않도록 오직 좌측 텍스트 정보 영역(info_area)을 눌렀을 때만 앱으로 이동!
+                    setOnClickPendingIntent(R.id.widget_meds_info_area, openMedsIntent)
+                    setOnClickPendingIntent(R.id.meds_celebration_view, openMedsIntent)
                 if (allDone) {
                     setViewVisibility(R.id.meds_celebration_view, View.VISIBLE)
                     setViewVisibility(R.id.meds_normal_view, View.GONE)

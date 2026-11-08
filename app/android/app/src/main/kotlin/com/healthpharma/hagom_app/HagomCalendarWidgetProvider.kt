@@ -90,12 +90,8 @@ class HagomCalendarWidgetProvider : HomeWidgetProvider() {
                 setTextColor(R.id.widget_calendar_btn_compact_title, txtColor)
 
                 val openCalIntent = WidgetBindings.openAppIntent(context, "hagomwidget://opencalendar", 1003)
-                // 위젯 전체 영역(버튼 제외) 어디를 탭해도 달력 탭으로 부드럽게 이동
-                setOnClickPendingIntent(R.id.widget_calendar_container, openCalIntent)
+                // 🌟 [터치 오작동 방지]: 버튼 주변을 눌렀을 때 앱으로 튀지 않도록 오직 좌측 텍스트 정보 영역(info_area)에만 앱 오픈 인텐트 바인딩!
                 setOnClickPendingIntent(R.id.widget_calendar_info_area, openCalIntent)
-                setOnClickPendingIntent(R.id.widget_calendar_title, openCalIntent)
-                setOnClickPendingIntent(R.id.widget_calendar_tag, openCalIntent)
-
                 val mainAction = WidgetBindings.text(widgetData, "calendar_action")
                 val btnPending = if (mainAction.isNotEmpty()) {
                     WidgetBindings.actionIntent(context, mainAction)
