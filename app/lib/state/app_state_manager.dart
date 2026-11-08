@@ -1174,7 +1174,9 @@ class AppStateManager extends ChangeNotifier {
         break;
       }
     }
+    suspendWidgetSync = false;
     notifyListeners();
+    HagomNativeWidgetSync.updateNativeWidget(this);
   }
 
   // cancelLastCompletedSlot 별칭
@@ -1286,7 +1288,9 @@ class AppStateManager extends ChangeNotifier {
   void resetHabitProgress(String id) {
     final habit = _habits.firstWhere((h) => h.id == id);
     habit.resetProgress();
+    suspendWidgetSync = false;
     notifyListeners();
+    HagomNativeWidgetSync.updateNativeWidget(this);
   }
 
   void toggleHabitExpanded(String id) {

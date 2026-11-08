@@ -108,20 +108,33 @@ class WidgetActionReceiver : BroadcastReceiver() {
                 val id = uri.getQueryParameter("id")
                 val slot = uri.getQueryParameter("slot")
                 
-                // 1) row 일치 항목 체크
+                // 1) row 일치 항목 체크 (반드시 id와 slot 번호가 둘 다 일치해야 함!)
                 for (n in 1..6) {
                     val actionStr = prefs.getString("meds_row_${n}_action", "") ?: ""
-                    if ((id != null && slot != null && actionStr.contains("id=$id") && actionStr.contains("slot=$slot")) ||
-                        (id != null && actionStr.contains("id=$id"))) {
+                    val isMatch = if (id != null && slot != null) {
+                        actionStr.contains("id=$id") && actionStr.contains("slot=$slot")
+                    } else if (id != null) {
+                        actionStr.contains("id=$id")
+                    } else false
+
+                    if (isMatch) {
                         editor.putString("meds_row_${n}_done", "true")
                         editor.putString("meds_row_${n}_action", "")
                         break
                     }
                 }
                 
-                // 2) 메인 헤더 복용 버튼 체크 (primary med 탭인 경우)
+                // 2) 메인 헤더 복용 버튼 체크 (primary med와 id 및 slot까지 모두 일치할 때만 완료 처리!)
                 val mainAction = prefs.getString("meds_action", "") ?: ""
-                if (mainAction.isNotEmpty() && (id == null || mainAction.contains("id=$id"))) {
+                val isMainMatch = if (mainAction.isNotEmpty()) {
+                    if (id != null && slot != null) {
+                        mainAction.contains("id=$id") && mainAction.contains("slot=$slot")
+                    } else if (id != null) {
+                        mainAction.contains("id=$id")
+                    } else true
+                } else false
+
+                if (isMainMatch) {
                     editor.putString("meds_btn_title", "완료")
                     editor.putString("meds_action", "")
                 }

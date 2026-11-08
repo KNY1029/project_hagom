@@ -38,13 +38,9 @@ Future<void> handleWidgetUriAction(Uri? uri) async {
         final slot = med.doseSlots[slotIdx];
         if (!slot.isCompleted) {
           state.completeSlot(med.id, slotIdx);
-          // 🌟 완료되었을 때만 0.8초 딜레이 뒤에 실제로 하단으로 재정렬되도록 위젯 갱신!
-          if (med.isAllCompleted) {
-            state.suspendWidgetSync = false;
-            await state.flushForWidget();
-          } else {
-            await state.flushDataToDiskOnly();
-          }
+          // 🌟 복약 회차 완료 시 0.8초 딜레이 뒤에 즉시 위젯을 재정렬하여 완료된 회차가 아래로 내려가도록 갱신!
+          state.suspendWidgetSync = false;
+          await state.flushForWidget();
         }
         return;
       }
@@ -55,12 +51,8 @@ Future<void> handleWidgetUriAction(Uri? uri) async {
         final slot = med.doseSlots[i];
         if (!slot.isCompleted && !slot.isSkipped) {
           state.completeSlot(med.id, i);
-          if (med.isAllCompleted) {
-            state.suspendWidgetSync = false;
-            await state.flushForWidget();
-          } else {
-            await state.flushDataToDiskOnly();
-          }
+          state.suspendWidgetSync = false;
+          await state.flushForWidget();
           return;
         }
       }
@@ -206,11 +198,21 @@ class _HagomAppState extends State<HagomApp> with WidgetsBindingObserver {
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState lifecycleState) {
-    if (lifecycleState == AppLifecycleState.resumed && !kIsWeb) {
-      AppStateManager().reloadFromDisk();
+    if (!kIsWeb) {
+      if (lifecycleState == AppLifecycleState.resumed) {
+        AppStateManager().reloadFromDisk();
+      } else if (lifecycleState == AppLifecycleState.paused ||
+                 lifecycleState == AppLifecycleState.inactive ||
+                 lifecycleState == AppLifecycleState.hidden) {
+        // 🌟 [앱 내 되돌리기/취소 즉시 위젯 반영]:
+        // 앱 안에서 복약/습관 '되돌리기'를 누른 후 홈 화면으로 나가면(paused/inactive/hidden)
+        // 위젯을 즉시 최신 상태로 강제 동기화하여 앱 재시작 없이도 취소 내역이 위젯에 100% 반영!
+        final state = AppStateManager();
+        state.suspendWidgetSync = false;
+        HagomNativeWidgetSync.updateNativeWidget(state);
+      }
     }
   }
-
   @override
   Widget build(BuildContext context) {
     final state = AppStateManager();
