@@ -6,8 +6,9 @@ import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
+import android.os.Handler
+import android.os.Looper
 import es.antonborri.home_widget.HomeWidgetPlugin
-
 /**
  * ⚡ [초고속 네이티브 위젯 인터랙션 리시버]
  *
@@ -248,15 +249,22 @@ class WidgetActionReceiver : BroadcastReceiver() {
             }
         }
 
-        // 🌟 안드로이드 네이티브 UI를 0.01초 만에 바꾼 뒤, 플러터 엔진에도 백그라운드 동기화 전달!
-        try {
-            val bgIntent = Intent(context, es.antonborri.home_widget.HomeWidgetBackgroundReceiver::class.java).apply {
-                this.action = "es.antonborri.home_widget.action.BACKGROUND"
-                this.data = uri
+        // 🌟 [B안 구현: 완료 확인 인지 0.8초 딜레이]:
+        // 사용자가 완료 버튼을 눌렀을 때 그 자리에서 '초록 완료' 버튼 상태를 0.8초 동안 확실하게 보여주고,
+        // 0.8초 뒤에 백그라운드 동기화(플러터 재정렬)를 트리거하여 완료된 항목이 자연스럽게 하단으로 이동하도록 연출!
+        val shouldDelayReposition = (action == "checkmed" || action == "checkhabit" || action == "checktask")
+        val delayMs = if (shouldDelayReposition) 800L else 0L
+
+        Handler(Looper.getMainLooper()).postDelayed({
+            try {
+                val bgIntent = Intent(context, es.antonborri.home_widget.HomeWidgetBackgroundReceiver::class.java).apply {
+                    this.action = "es.antonborri.home_widget.action.BACKGROUND"
+                    this.data = uri
+                }
+                context.sendBroadcast(bgIntent)
+            } catch (_: Exception) {
+                // 플러터 엔진이 죽어있어도 위젯 화면은 이미 네이티브가 100% 갱신 완료했으므로 문제없음!
             }
-            context.sendBroadcast(bgIntent)
-        } catch (_: Exception) {
-            // 플러터 엔진이 죽어있어도 위젯 화면은 이미 네이티브가 100% 갱신 완료했으므로 문제없음!
-        }
+        }, delayMs)
     }
 }
