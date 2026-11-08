@@ -124,56 +124,32 @@ class _SettingsScreenState extends State<SettingsScreen> {
               }),
 
               const SizedBox(height: 20),
-              Row(
-                children: [
-                  // 1) 스마트폰 공용 Download 폴더에 진짜 파일 저장
-                  Expanded(
-                    child: OutlinedButton(
-                      style: OutlinedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(vertical: 13),
-                        side: BorderSide(color: AppColors.primaryPurple),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                      ),
-                      onPressed: (!includePrescription && !includeOtc && !includeHabits && !includeTasks)
-                          ? null
-                          : () async {
-                              Navigator.of(mCtx).pop();
-                              await _performCsvDownload(
-                                includePrescription: includePrescription,
-                                includeOtc: includeOtc,
-                                includeHabits: includeHabits,
-                                includeTasks: includeTasks,
-                                isShare: false,
-                              );
-                            },
-                      child: Text('다운로드 폴더 저장', style: TextStyle(color: AppColors.primaryPurple, fontWeight: FontWeight.bold, fontSize: 13.5)),
-                    ),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton.icon(
+                  style: ElevatedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    backgroundColor: AppColors.primaryPurple,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                    elevation: 0,
                   ),
-                  const SizedBox(width: 10),
-                  // 2) 카카오톡 / 메일 / 드라이브로 즉시 파일 내보내기 & 공유
-                  Expanded(
-                    child: ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(vertical: 13),
-                        backgroundColor: AppColors.primaryPurple,
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                      ),
-                      onPressed: (!includePrescription && !includeOtc && !includeHabits && !includeTasks)
-                          ? null
-                          : () async {
-                              Navigator.of(mCtx).pop();
-                              await _performCsvDownload(
-                                includePrescription: includePrescription,
-                                includeOtc: includeOtc,
-                                includeHabits: includeHabits,
-                                includeTasks: includeTasks,
-                                isShare: true,
-                              );
-                            },
-                      child: Text('파일 공유 및 전송', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13.5)),
-                    ),
+                  onPressed: (!includePrescription && !includeOtc && !includeHabits && !includeTasks)
+                      ? null
+                      : () async {
+                          Navigator.of(mCtx).pop();
+                          await _performCsvDownload(
+                            includePrescription: includePrescription,
+                            includeOtc: includeOtc,
+                            includeHabits: includeHabits,
+                            includeTasks: includeTasks,
+                          );
+                        },
+                  icon: const Icon(Icons.download_rounded, color: Colors.white, size: 19),
+                  label: const Text(
+                    '엑셀(CSV) 파일 다운로드',
+                    style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14),
                   ),
-                ],
+                ),
               ),
             ],
           ),
@@ -218,7 +194,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
     required bool includeOtc,
     required bool includeHabits,
     required bool includeTasks,
-    required bool isShare,
   }) async {
     try {
       final csvContent = _state.generateComprehensiveHealthDataReport(
@@ -232,19 +207,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
       final dateStr = '${now.year}${now.month.toString().padLeft(2, '0')}${now.day.toString().padLeft(2, '0')}_${now.hour.toString().padLeft(2, '0')}${now.minute.toString().padLeft(2, '0')}';
       final fileName = '하곰이_종합건강기록_$dateStr.csv';
 
-      if (isShare) {
-        // 안드로이드 공유창 (카카오톡, 메일, 드라이브)
-        await _exportChannel.invokeMethod('shareCsv', {
-          'fileName': fileName,
-          'content': csvContent,
-        });
-      } else {
-        // 안드로이드 공용 Download 폴더에 실제 다운로드
-        final res = await _exportChannel.invokeMethod<Map>('downloadCsv', {
-          'fileName': fileName,
-          'content': csvContent,
-        });
-
+      // 안드로이드 공용 Download 폴더에 실제 다운로드
+      await _exportChannel.invokeMethod<Map>('downloadCsv', {
+        'fileName': fileName,
+        'content': csvContent,
+      });
         if (mounted) {
           showDialog(
             context: context,
@@ -267,7 +234,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
             ),
           );
         }
-      }
     } catch (e) {
       if (mounted) {
         CelebrationToast.show(
@@ -374,7 +340,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     ),
                     SizedBox(height: 3),
                     Text(
-                      '정신약학 비처벌 복약 솔루션 · v0.90.206',
+                      '정신약학 비처벌 복약 솔루션 · v0.90.207',
                       style: TextStyle(
                         fontSize: 12,
                         color: AppColors.textSecondary,
