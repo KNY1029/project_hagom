@@ -163,7 +163,29 @@ class HagomMonthCalendarWidgetProvider : HomeWidgetProvider() {
 
                         val isDaySelected = (selectedDateStr.isNotEmpty() && selectedDateStr == cellDate)
                         val bgRes = if (isDaySelected) {
-                            if (status.contains("pin")) R.drawable.hagom_widget_selected_pin else R.drawable.hagom_widget_selected_bg
+                            // 🌟 선택된 날짜도 원래의 진행 상황(습관 초록 배경, 복약 하단바, 핀)을 100% 보존하고 외곽 보라 테두리만 두름!
+                            when (status) {
+                                "today" -> R.drawable.hagom_widget_today_bg_sel
+                                "today_pin" -> R.drawable.hagom_widget_today_pin_sel
+                                "today_done" -> R.drawable.hagom_widget_today_done_bg_sel
+                                "today_done_pin" -> R.drawable.hagom_widget_today_done_pin_sel
+                                "all_done" -> R.drawable.hagom_widget_done_bg_sel
+                                "all_done_pin" -> R.drawable.hagom_widget_done_pin_green_sel
+                                "mdone" -> R.drawable.hagom_widget_done_med_bar_sel
+                                "mdone_pin" -> R.drawable.hagom_widget_done_med_bar_pin_sel
+                                "hdone_mdone" -> R.drawable.hagom_widget_habit_done_med_done_sel
+                                "hdone_mdone_pin" -> R.drawable.hagom_widget_habit_done_med_done_pin_sel
+                                "hdone_mmissed" -> R.drawable.hagom_widget_habit_done_med_missed_sel
+                                "hdone_mmissed_pin" -> R.drawable.hagom_widget_habit_done_med_missed_pin_sel
+                                "hdone_mpartial" -> R.drawable.hagom_widget_habit_done_med_partial_sel
+                                "hdone_mpartial_pin" -> R.drawable.hagom_widget_habit_done_med_partial_pin_sel
+                                "missed_med" -> R.drawable.hagom_widget_bar_red_sel
+                                "missed_med_pin" -> R.drawable.hagom_widget_bar_red_pin_sel
+                                "partial" -> R.drawable.hagom_widget_bar_brown_sel
+                                "partial_pin" -> R.drawable.hagom_widget_bar_brown_pin_sel
+                                "pin_only" -> R.drawable.hagom_widget_pin_lavender_sel
+                                else -> R.drawable.hagom_widget_white_bg_sel
+                            }
                         } else {
                             when (status) {
                                 "today" -> R.drawable.hagom_widget_today_bg

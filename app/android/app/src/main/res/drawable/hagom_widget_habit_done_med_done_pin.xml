@@ -10,13 +10,13 @@
     <item android:gravity="top|end" android:top="2.5dp" android:right="2.5dp">
         <shape android:shape="oval">
             <size android:width="4.5dp" android:height="4.5dp" />
-            <solid android:color="#044E36" />
+            <solid android:color="#059669" />
         </shape>
     </item>
     <item android:gravity="bottom" android:bottom="2dp" android:left="3dp" android:right="3dp">
         <shape android:shape="rectangle">
             <size android:height="3.5dp" />
-            <solid android:color="#044E36" />
+            <solid android:color="#059669" />
             <corners android:radius="1.5dp" />
         </shape>
     </item>

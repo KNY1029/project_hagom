@@ -78,6 +78,44 @@ class _CalendarTabViewState extends State<CalendarTabView> {
     });
   }
 
+  // 🌟 [월별 시각 비교 라벨]:
+  String _getMonthComparisonLabel(int m) {
+    switch (m) {
+      case 8:
+        return '8월: A안(에메랄드) + 연결형';
+      case 7:
+        return '7월: B안(제이드) + 연결형';
+      case 6:
+        return '6월: C안(켈리그린) + 연결형';
+      case 9:
+        return '9월: B안(제이드) + 독립형';
+      case 10:
+        return '10월: C안(켈리그린) + 독립형';
+      default:
+        return 'A안(에메랄드) + 독립형';
+    }
+  }
+
+  // 🌟 [월별 완료 초록 컬러 선택]:
+  Color _getDoneGreenColor(int m) {
+    switch (m) {
+      case 8:
+      case 11:
+        // A안: 선명한 에메랄드 그린 (Emerald 600 - 가장 생생하고 기분 좋은 초록)
+        return const Color(0xFF059669);
+      case 7:
+      case 9:
+        // B안: 깊이감 있는 쥬얼 제이드 (Teal/Jade 700 - 청록빛이 살짝 도는 고급스러운 초록)
+        return const Color(0xFF0F766E);
+      case 6:
+      case 10:
+        // C안: 밝고 경쾌한 켈리 그린 (Emerald 500 - 화사한 새싹 초록)
+        return const Color(0xFF10B981);
+      default:
+        return const Color(0xFF059669);
+    }
+  }
+
   // 할일/한일 추가 및 수정 모달
   void _showTaskModal({TaskItem? task}) {
     final titleCtrl = TextEditingController(text: task?.title ?? '');
@@ -726,6 +764,21 @@ class _CalendarTabViewState extends State<CalendarTabView> {
                   style: TextStyle(fontSize: 19, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
                 ),
                 const SizedBox(width: 6),
+                // 🌟 월별 시각 비교 라벨 배지 (6~10월)
+                if (_currentMonth.year == 2026 && _currentMonth.month >= 6 && _currentMonth.month <= 10) ...[
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                    decoration: BoxDecoration(
+                      color: AppColors.lightLavender,
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                    child: Text(
+                      _getMonthComparisonLabel(_currentMonth.month),
+                      style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: AppColors.primaryPurple),
+                    ),
+                  ),
+                  const SizedBox(width: 4),
+                ],
                 IconButton(
                   icon: Icon(Icons.chevron_left, size: 22, color: AppColors.textSecondary),
                   onPressed: () => _changeMonth(-1),
@@ -811,11 +864,36 @@ class _CalendarTabViewState extends State<CalendarTabView> {
                   final isFuture = cellDate.isAfter(today);
                   final isBeforeTracking = _state.isBeforeTrackingStart(cellDate);
 
-                  // 🌟 [습관 독립 바탕색 규격]:
-                  // 습관을 100% 실천했으면 약을 먹었든 안 먹었든 무조건 연초록 틴트(#E6F8F0)!
-                  // 기록 시작일 이전이거나 미래인 날짜는 깨끗한 순백색 초기화!
+                  // 🌟 [월별 시각 비교 세팅]:
+                  // 8월: 옵션 A(생생한 에메랄드 #059669) + 좌우 연결형(Continuous)
+                  // 7월: 옵션 B(쥬얼 제이드 #0F766E) + 좌우 연결형(Continuous)
+                  // 6월: 옵션 C(밝은 켈리 그린 #10B981) + 좌우 연결형(Continuous)
+                  // 9월: 옵션 B(쥬얼 제이드 #0F766E) + 독립형
+                  // 10월: 옵션 C(밝은 켈리 그린 #10B981) + 독립형
+                  // 11월(현재): 옵션 A(생생한 에메랄드 #059669) + 독립형
+                  final monthNum = _currentMonth.month;
+                  final isConnectedMode = (_currentMonth.year == 2026 && (monthNum == 8 || monthNum == 7 || monthNum == 6));
+                  final Color currentDoneGreen = _getDoneGreenColor(monthNum);
+
                   final isMed100 = medRate != null && medRate >= 1.0;
                   final isHabit100 = !isFuture && !isBeforeTracking && habitRate != null && habitRate >= 1.0;
+
+                  // 🌟 좌우 연결 판정
+                  final prevDate = cellDate.subtract(const Duration(days: 1));
+                  final nextDate = cellDate.add(const Duration(days: 1));
+                  final isPrevSameMonth = prevDate.month == cellDate.month;
+                  final isNextSameMonth = nextDate.month == cellDate.month;
+                  final isPrevHabitDone = isConnectedMode && isPrevSameMonth && ((_state.getHabitRateForDay(prevDate) ?? 0) >= 1.0);
+                  final isNextHabitDone = isConnectedMode && isNextSameMonth && ((_state.getHabitRateForDay(nextDate) ?? 0) >= 1.0);
+                  final isPrevMedDone = isConnectedMode && isPrevSameMonth && ((_state.getMedRateForDay(prevDate) ?? 0) >= 1.0);
+                  final isNextMedDone = isConnectedMode && isNextSameMonth && ((_state.getMedRateForDay(nextDate) ?? 0) >= 1.0);
+
+                  final BorderRadius cellRadius = isConnectedMode && isHabit100
+                      ? BorderRadius.horizontal(
+                          left: Radius.circular(isPrevHabitDone ? 0 : 8),
+                          right: Radius.circular(isNextHabitDone ? 0 : 8),
+                        )
+                      : BorderRadius.circular(8);
 
                   return GestureDetector(
                     onTap: () {
@@ -826,7 +904,7 @@ class _CalendarTabViewState extends State<CalendarTabView> {
                     child: Container(
                       decoration: BoxDecoration(
                         color: isHabit100 ? AppColors.successBg : Colors.white,
-                        borderRadius: BorderRadius.circular(8),
+                        borderRadius: cellRadius,
                         border: Border.all(
                           color: isSelected
                               ? AppColors.primaryPurple
@@ -848,7 +926,7 @@ class _CalendarTabViewState extends State<CalendarTabView> {
                                 height: 5.5,
                                 decoration: BoxDecoration(
                                   color: isTasksAllDone
-                                      ? const Color(0xFF044E36) // 짙은 딥 포레스트 그린 (완료)
+                                      ? currentDoneGreen // 🌟 생생한 완료 초록 반영!
                                       : const Color(0xFFC4B5FD), // 밝은 파스텔 연보라 (미완료: 초록과 즉시 구분!)
                                   shape: BoxShape.circle,
                                 ),
@@ -880,13 +958,18 @@ class _CalendarTabViewState extends State<CalendarTabView> {
                             if (isMed100)
                               Positioned(
                                 bottom: 4,
-                                left: 8,
-                                right: 8,
+                                left: isConnectedMode ? (isPrevMedDone ? 0 : 4) : 8,
+                                right: isConnectedMode ? (isNextMedDone ? 0 : 4) : 8,
                                 child: Container(
                                   height: 3.5,
                                   decoration: BoxDecoration(
-                                    color: const Color(0xFF044E36), // 복약 완료: 딥 포레스트 그린 바
-                                    borderRadius: BorderRadius.circular(2),
+                                    color: currentDoneGreen, // 🌟 생생한 완료 초록 바!
+                                    borderRadius: isConnectedMode
+                                        ? BorderRadius.horizontal(
+                                            left: Radius.circular(isPrevMedDone ? 0 : 2),
+                                            right: Radius.circular(isNextMedDone ? 0 : 2),
+                                          )
+                                        : BorderRadius.circular(2),
                                   ),
                                 ),
                               )

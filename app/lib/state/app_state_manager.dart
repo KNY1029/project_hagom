@@ -339,6 +339,10 @@ class AppStateManager extends ChangeNotifier {
 
   /// 특정 날짜가 기록 시작일 이전인지 확인
   bool isBeforeTrackingStart(DateTime date) {
+    // 🌟 비교 및 시뮬레이션을 위한 샘플 월(6, 7, 8, 9, 10월)은 항상 모든 진행도/바가 보이도록 허용!
+    if (date.year == 2026 && date.month >= 6 && date.month <= 10) {
+      return false;
+    }
     // 개발자 모드에서는 1~7일 모든 임상 예시 데이터가 달력에 온전히 보여야 하므로 절대 가리지 않음!
     if (isDevSimulationMode) {
       return false;
@@ -1016,6 +1020,24 @@ class AppStateManager extends ChangeNotifier {
       // 오늘 날짜 기본 예시
       TaskItem(id: 'task_today_1', title: '약학 실습 보고서 작성', date: DateTime(y, m, now.day), time: '오후 6:00', isCompleted: false),
       TaskItem(id: 'task_today_2', title: '병원 정기 상담 및 처방전 받기', date: DateTime(y, m, now.day), time: '오후 2:30', isCompleted: false),
+
+      // 🌟 [비교 시뮬레이션용]: 6월~10월 할일 샘플 (완료 초록핀 & 미완료 연보라핀 골고루 배치)
+      for (final simMonth in [6, 7, 8, 9, 10]) ...[
+        // 1일: 완료된 일정 (초록 핀)
+        TaskItem(id: 't_sim_${simMonth}_1', title: '아침 가벼운 스트레칭', date: DateTime(2026, simMonth, 1), time: '오전 8:30', isCompleted: true),
+        // 3일: 미완료 일정 (연보라 핀)
+        TaskItem(id: 't_sim_${simMonth}_3', title: '약국에서 영양제 상담', date: DateTime(2026, simMonth, 3), time: '오후 2:00', isCompleted: false),
+        // 5일: 완료된 일정 (초록 핀)
+        TaskItem(id: 't_sim_${simMonth}_5', title: '비타민D 햇빛 쬐기', date: DateTime(2026, simMonth, 5), time: '오후 1:00', isCompleted: true),
+        // 8일: 미완료 일정 (연보라 핀)
+        TaskItem(id: 't_sim_${simMonth}_8', title: '실습 보고서 3장 읽기', date: DateTime(2026, simMonth, 8), time: '오후 4:30', isCompleted: false),
+        // 12일: 완료된 일정 (초록 핀)
+        TaskItem(id: 't_sim_${simMonth}_12', title: '수면 위생 체크하기', date: DateTime(2026, simMonth, 12), time: '오후 9:30', isCompleted: true),
+        // 15일: 미완료 일정 (연보라 핀)
+        TaskItem(id: 't_sim_${simMonth}_15', title: '도서관 대출 도서 반납', date: DateTime(2026, simMonth, 15), time: '오후 3:00', isCompleted: false),
+        // 20일: 완료된 일정 (초록 핀)
+        TaskItem(id: 't_sim_${simMonth}_20', title: '따뜻한 물 한 잔 마시기', date: DateTime(2026, simMonth, 20), time: '오전 9:00', isCompleted: true),
+      ],
     ]);
   }
 
