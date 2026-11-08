@@ -61,6 +61,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
     bool includeOtc = true;
     bool includeHabits = true;
     bool includeTasks = true;
+    // 📅 기본 기간: 기록 시작일부터 오늘까지 (기록 시작일이 없으면 최근 1달)
+    final now = DateTime.now();
+    DateTimeRange selectedRange = DateTimeRange(
+      start: _state.trackingStartDate,
+      end: DateTime(now.year, now.month, now.day),
+    );
 
     await showModalBottomSheet(
       context: context,
@@ -105,21 +111,84 @@ class _SettingsScreenState extends State<SettingsScreen> {
               ),
               const SizedBox(height: 2),
               Text(
-                '다운로드할 카테고리를 선택해 주세요. 앱에 기록된 모든 로우 데이터가 엑셀(CSV) 스프레드시트로 생성돼요.',
+                '다운로드할 기간과 카테고리를 선택해 주세요. 각 카테고리가 깔끔하게 번호별 개별 시트(CSV) 파일로 저장돼요.',
                 style: TextStyle(fontSize: 12, color: AppColors.textSecondary, height: 1.4),
               ),
+              const SizedBox(height: 14),
+
+              // 📅 다운로드 기간 선택 UI
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                decoration: BoxDecoration(
+                  color: AppColors.lightLavender.withValues(alpha: 0.5),
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(color: AppColors.primaryPurple.withValues(alpha: 0.3)),
+                ),
+                child: Row(
+                  children: [
+                    Icon(Icons.calendar_month_rounded, size: 20, color: AppColors.primaryPurple),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text('데이터 추출 기간', style: TextStyle(fontSize: 11, color: AppColors.textSecondary, fontWeight: FontWeight.bold)),
+                          const SizedBox(height: 2),
+                          Text(
+                            '${selectedRange.start.year}.${selectedRange.start.month.toString().padLeft(2, '0')}.${selectedRange.start.day.toString().padLeft(2, '0')} ~ ${selectedRange.end.year}.${selectedRange.end.month.toString().padLeft(2, '0')}.${selectedRange.end.day.toString().padLeft(2, '0')}',
+                            style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
+                          ),
+                        ],
+                      ),
+                    ),
+                    OutlinedButton(
+                      style: OutlinedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                        side: BorderSide(color: AppColors.primaryPurple),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                      ),
+                      onPressed: () async {
+                        final picked = await showDateRangePicker(
+                          context: context,
+                          initialDateRange: selectedRange,
+                          firstDate: DateTime(2025, 1, 1),
+                          lastDate: DateTime.now().add(const Duration(days: 365)),
+                          builder: (context, child) {
+                            return Theme(
+                              data: Theme.of(context).copyWith(
+                                colorScheme: ColorScheme.light(
+                                  primary: AppColors.primaryPurple,
+                                  onPrimary: Colors.white,
+                                  surface: Colors.white,
+                                  onSurface: AppColors.textPrimary,
+                                ),
+                              ),
+                              child: child!,
+                            );
+                          },
+                        );
+                        if (picked != null) {
+                          setModalState(() => selectedRange = picked);
+                        }
+                      },
+                      child: Text('기간 변경', style: TextStyle(fontSize: 12, color: AppColors.primaryPurple, fontWeight: FontWeight.bold)),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 14),
 
               // 체크박스 4대 영역
-              _buildCategoryCheckbox('처방약 데이터 (필수 복용약, 용법/용량, 복용 시각, 엄수 여부)', includePrescription, (val) {
+              _buildCategoryCheckbox('1. 처방약 관리 데이터', includePrescription, (val) {
                 setModalState(() => includePrescription = val ?? false);
               }),
-              _buildCategoryCheckbox('일반약 및 영양제 데이터 (비처방약, 일일 루틴, 복약 이행률)', includeOtc, (val) {
+              _buildCategoryCheckbox('2. 일반의약품 및 영양제 데이터', includeOtc, (val) {
                 setModalState(() => includeOtc = val ?? false);
               }),
-              _buildCategoryCheckbox('작은 습관 데이터 (일일 실천 횟수, 주간 완료율, 비처벌 점수)', includeHabits, (val) {
+              _buildCategoryCheckbox('3. 작은 습관 관리 데이터', includeHabits, (val) {
                 setModalState(() => includeHabits = val ?? false);
               }),
-              _buildCategoryCheckbox('할일 및 진료 일정 데이터 (병원 방문, 복약 점검, 완료 현황)', includeTasks, (val) {
+              _buildCategoryCheckbox('4. 할일 및 일정 관리 데이터', includeTasks, (val) {
                 setModalState(() => includeTasks = val ?? false);
               }),
 
@@ -138,6 +207,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       : () async {
                           Navigator.of(mCtx).pop();
                           await _performCsvDownload(
+                            startDate: selectedRange.start,
+                            endDate: selectedRange.end,
                             includePrescription: includePrescription,
                             includeOtc: includeOtc,
                             includeHabits: includeHabits,
@@ -190,13 +261,17 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   Future<void> _performCsvDownload({
+    required DateTime startDate,
+    required DateTime endDate,
     required bool includePrescription,
     required bool includeOtc,
     required bool includeHabits,
     required bool includeTasks,
   }) async {
     try {
-      final csvContent = _state.generateComprehensiveHealthDataReport(
+      final reports = _state.generateHealthDataReportsBySection(
+        startDate: startDate,
+        endDate: endDate,
         includePrescription: includePrescription,
         includeOtc: includeOtc,
         includeHabits: includeHabits,
@@ -204,36 +279,48 @@ class _SettingsScreenState extends State<SettingsScreen> {
       );
 
       final now = DateTime.now();
-      final dateStr = '${now.year}${now.month.toString().padLeft(2, '0')}${now.day.toString().padLeft(2, '0')}_${now.hour.toString().padLeft(2, '0')}${now.minute.toString().padLeft(2, '0')}';
-      final fileName = '하곰이_종합건강기록_$dateStr.csv';
+      // 🌟 요청하신 파일명 형식: 하곰이_날짜_시간 (예: 하곰이_20261108_2315)
+      final dateStr = '${now.year}${now.month.toString().padLeft(2, '0')}${now.day.toString().padLeft(2, '0')}';
+      final timeStr = '${now.hour.toString().padLeft(2, '0')}${now.minute.toString().padLeft(2, '0')}';
+      final basePrefix = '하곰이_${dateStr}_$timeStr';
 
-      // 안드로이드 공용 Download 폴더에 실제 다운로드
-      await _exportChannel.invokeMethod<Map>('downloadCsv', {
-        'fileName': fileName,
-        'content': csvContent,
+      // 각 번호별 섹션을 개별 시트(CSV) 파일로 매핑
+      final Map<String, String> filesToDownload = {};
+      reports.forEach((sectionKey, content) {
+        final fName = '${basePrefix}_$sectionKey.csv';
+        filesToDownload[fName] = content;
       });
-        if (mounted) {
-          showDialog(
-            context: context,
-            builder: (dCtx) => AlertDialog(
-              title: Text('다운로드 완료', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-              content: Text(
-                '스마트폰의 [다운로드] 폴더에 실제 엑셀(CSV) 파일이 성공적으로 저장되었어요!\n\n파일명: $fileName\n\n내 파일 앱의 [다운로드] 카테고리나 엑셀 앱에서 바로 열어보실 수 있어요.',
-                style: const TextStyle(fontSize: 13, height: 1.4),
-              ),
-              actions: [
-                ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.primaryPurple,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                  ),
-                  onPressed: () => Navigator.of(dCtx).pop(),
-                  child: Text('확인', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-                ),
-              ],
+
+      // 안드로이드 공용 Download 폴더에 다중 파일 실제 다운로드
+      await _exportChannel.invokeMethod<Map>('downloadMultipleCsv', {
+        'files': filesToDownload,
+      });
+
+      if (mounted) {
+        showDialog(
+          context: context,
+          builder: (dCtx) => AlertDialog(
+            title: Text('다운로드 완료', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+            content: Text(
+              '스마트폰의 [다운로드] 폴더에 선택하신 기간의 데이터가 번호별 개별 시트(CSV) 파일로 성공적으로 저장되었어요!\n\n'
+              '📅 조회 기간: ${startDate.year}.${startDate.month.toString().padLeft(2, '0')}.${startDate.day.toString().padLeft(2, '0')} ~ ${endDate.year}.${endDate.month.toString().padLeft(2, '0')}.${endDate.day.toString().padLeft(2, '0')}\n\n'
+              '📁 저장된 파일 목록:\n${filesToDownload.keys.map((k) => '• $k').join('\n')}\n\n'
+              '내 파일 앱의 [다운로드] 카테고리나 엑셀 앱에서 바로 열어보실 수 있어요.',
+              style: const TextStyle(fontSize: 12.5, height: 1.45),
             ),
-          );
-        }
+            actions: [
+              ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.primaryPurple,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                ),
+                onPressed: () => Navigator.of(dCtx).pop(),
+                child: Text('확인', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+              ),
+            ],
+          ),
+        );
+      }
     } catch (e) {
       if (mounted) {
         CelebrationToast.show(
@@ -340,7 +427,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     ),
                     SizedBox(height: 3),
                     Text(
-                      '정신약학 비처벌 복약 솔루션 · v0.90.215',
+                      '정신약학 맞춤 복약 솔루션 · v0.90.216',
                       style: TextStyle(
                         fontSize: 12,
                         color: AppColors.textSecondary,
@@ -500,7 +587,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
                   activeThumbColor: AppColors.primaryPurple,
                   title: Text('하곰이 따뜻한 응원 알림', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: AppColors.textPrimary)),
-                  subtitle: Text('비처벌적 힐링과 응원의 한마디', style: TextStyle(fontSize: 11.5, color: AppColors.textSecondary)),
+                  subtitle: Text('다정한 힐링과 응원의 한마디', style: TextStyle(fontSize: 11.5, color: AppColors.textSecondary)),
                   value: _state.mascotNotificationEnabled,
                   onChanged: (val) => _state.setMascotNotification(val),
                 ),

@@ -67,8 +67,7 @@ class DailyGreetingModal extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 8),
-
-            // 💬 3. 비처벌적 지지 멘트 & 자가 모니터링 효능
+            // 💬 3. 따뜻한 지지 멘트 & 자가 모니터링 효능
             Text(
               '앱을 켜고 나를 마주한 것만으로도\n오늘 치료를 위한 큰 한 걸음을 내딛은 거예요.',
               textAlign: TextAlign.center,

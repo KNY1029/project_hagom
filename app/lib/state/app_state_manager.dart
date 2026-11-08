@@ -522,7 +522,7 @@ class AppStateManager extends ChangeNotifier {
     return nextVal;
   }
 
-  // 날짜별 상태 반환: 1.0(완전달성-연초록), 0.1~0.99(부분달성-오렌지바), 0.0(미복용/비처벌적그레이바), null(미래)
+  // 날짜별 상태 반환: 1.0(완전달성-연초록), 0.1~0.99(부분달성-오렌지바), 0.0(미복용/그레이바), null(미래)
   double? getMedRateForDay(DateTime day) {
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
@@ -1505,95 +1505,163 @@ class AppStateManager extends ChangeNotifier {
 
     notifyListeners();
   }
-  // 🌟 [보건약학 임상 연구 & 교수님 자문용] 4대 영역 종합 건강 데이터 CSV 생성기
-  String generateComprehensiveHealthDataReport({
+  // 🌟 [통합 건강 데이터 다중 시트/영역 생성기]:
+  // 기간(startDate ~ endDate) 내의 모든 복약, 습관, 할일 데이터를 날짜별로 완벽하게 추출합니다.
+  // 반환값: { '1_처방약': 'csvContent', '2_일반약및영양제': 'csvContent', ... }
+  Map<String, String> generateHealthDataReportsBySection({
+    required DateTime startDate,
+    required DateTime endDate,
     bool includePrescription = true,
     bool includeOtc = true,
     bool includeHabits = true,
     bool includeTasks = true,
   }) {
-    final buffer = StringBuffer();
-    // 엑셀에서 한글 깨짐 방지 UTF-8 BOM
-    buffer.write('\uFEFF');
-    buffer.writeln('하곰이(Hagom) 비처벌적 환자 케어 솔루션 - 통합 건강 기록 데이터');
-    buffer.writeln('추출 일시,${DateTime.now().toString().substring(0, 19)}');
-    buffer.writeln('기록 시작일,${_trackingStartDate != null ? _dateKey(_trackingStartDate!) : "기록 전"}');
-    buffer.writeln('다정한 시도 횟수,$gentleAttempts,돌아온 횟수,$returnedCount');
-    buffer.writeln('');
+    final Map<String, String> result = {};
+    final sDate = DateTime(startDate.year, startDate.month, startDate.day);
+    final eDate = DateTime(endDate.year, endDate.month, endDate.day);
 
-    final nowStr = '${DateTime.now().year}-${DateTime.now().month.toString().padLeft(2, '0')}-${DateTime.now().day.toString().padLeft(2, '0')}';
+    // 날짜 목록 생성
+    final List<DateTime> dateRange = [];
+    DateTime cur = sDate;
+    while (!cur.isAfter(eDate)) {
+      dateRange.add(cur);
+      cur = cur.add(const Duration(days: 1));
+    }
 
-    // 1. 💊 처방약 데이터 (별도 분리)
+    // 1. 💊 1. 처방약 관리 데이터
     if (includePrescription) {
-      buffer.writeln('--- [1. 처방약 관리 데이터] ---');
-      buffer.writeln('기록 일자,약물 ID,약품명,복용법,기타 메모,복용 주기,복용 기간,회차(시간대),예정 시각,복용 여부,실제 복용 시각,기록 방식(실시간/사후수정)');
-      final rxMeds = _medications.where((m) => m.isPrescription);
-      for (final med in rxMeds) {
-        for (final slot in med.doseSlots) {
-          final statusStr = slot.isCompleted ? '복용 완료' : (slot.isSkipped ? '건너뜀' : '미복용/대기');
-          final recordMethod = !slot.isCompleted
-              ? '-'
-              : (isSlotRetroactive(DateTime.now(), med.id, med.doseSlots.indexOf(slot)) ? '달력 사후 수정' : '당일 실시간 체크');
-          buffer.writeln(
-            '"$nowStr","${med.id}","${med.name}","${med.dosage}","${med.memo ?? '-'}","${med.recurrenceSummary}","${med.durationSummary}","${slot.label}","${slot.scheduledTime ?? '-'}","$statusStr","${slot.takenTime ?? '-'}","$recordMethod"',
-          );
+      final buf = StringBuffer();
+      buf.write('\uFEFF');
+      buf.writeln('1. 처방약 관리 데이터');
+      buf.writeln('조회 기간,${_dateKey(sDate)} ~ ${_dateKey(eDate)}');
+      buf.writeln('추출 일시,${DateTime.now().toString().substring(0, 19)}');
+      buf.writeln('');
+      buf.writeln('기록 일자,약물 ID,약품명,복용법,기타 메모,복용 주기,복용 기간,회차(시간대),예정 시각,복용 여부,실제 복용 시각,기록 방식');
+
+      final rxMeds = _medications.where((m) => m.isPrescription).toList();
+      for (final day in dateRange) {
+        final dStr = _dateKey(day);
+        for (final med in rxMeds) {
+          for (int slotIdx = 0; slotIdx < med.doseSlots.length; slotIdx++) {
+            final slot = med.doseSlots[slotIdx];
+            final isDone = isSlotCompletedForDay(day, med.id, slotIdx);
+            final takenTime = getSlotTakenTimeForDay(day, med.id, slotIdx) ?? (isDone ? (slot.scheduledTime ?? '완료') : '-');
+            final statusStr = isDone ? '복용 완료' : (slot.isSkipped ? '건너뜀' : '미복용/대기');
+            final recordMethod = !isDone
+                ? '-'
+                : (isSlotRetroactive(day, med.id, slotIdx) ? '달력 사후 수정' : '당일 실시간 체크');
+            buf.writeln(
+              '"$dStr","${med.id}","${med.name}","${med.dosage}","${med.memo ?? '-'}","${med.recurrenceSummary}","${med.durationSummary}","${slot.label}","${slot.scheduledTime ?? '-'}","$statusStr","$takenTime","$recordMethod"',
+            );
+          }
         }
       }
-      buffer.writeln('');
+      result['1_처방약_관리_데이터'] = buf.toString();
     }
 
-    // 2. 🌿 일반의약품 및 영양제 데이터 (별도 분리)
+    // 2. 🌿 2. 일반의약품 및 영양제 데이터
     if (includeOtc) {
-      buffer.writeln('--- [2. 일반의약품 및 영양제 데이터] ---');
-      buffer.writeln('기록 일자,약물 ID,약품명,복용법,기타 메모,복용 주기,복용 기간,회차(시간대),예정 시각,복용 여부,실제 복용 시각,기록 방식(실시간/사후수정)');
-      final otcMeds = _medications.where((m) => !m.isPrescription);
-      for (final med in otcMeds) {
-        for (final slot in med.doseSlots) {
-          final statusStr = slot.isCompleted ? '복용 완료' : (slot.isSkipped ? '건너뜀' : '미복용/대기');
-          final recordMethod = !slot.isCompleted
-              ? '-'
-              : (isSlotRetroactive(DateTime.now(), med.id, med.doseSlots.indexOf(slot)) ? '달력 사후 수정' : '당일 실시간 체크');
-          buffer.writeln(
-            '"$nowStr","${med.id}","${med.name}","${med.dosage}","${med.memo ?? '-'}","${med.recurrenceSummary}","${med.durationSummary}","${slot.label}","${slot.scheduledTime ?? '-'}","$statusStr","${slot.takenTime ?? '-'}","$recordMethod"',
+      final buf = StringBuffer();
+      buf.write('\uFEFF');
+      buf.writeln('2. 일반의약품 및 영양제 데이터');
+      buf.writeln('조회 기간,${_dateKey(sDate)} ~ ${_dateKey(eDate)}');
+      buf.writeln('추출 일시,${DateTime.now().toString().substring(0, 19)}');
+      buf.writeln('');
+      buf.writeln('기록 일자,약물 ID,약품명,복용법,기타 메모,복용 주기,복용 기간,회차(시간대),예정 시각,복용 여부,실제 복용 시각,기록 방식');
+
+      final otcMeds = _medications.where((m) => !m.isPrescription).toList();
+      for (final day in dateRange) {
+        final dStr = _dateKey(day);
+        for (final med in otcMeds) {
+          for (int slotIdx = 0; slotIdx < med.doseSlots.length; slotIdx++) {
+            final slot = med.doseSlots[slotIdx];
+            final isDone = isSlotCompletedForDay(day, med.id, slotIdx);
+            final takenTime = getSlotTakenTimeForDay(day, med.id, slotIdx) ?? (isDone ? (slot.scheduledTime ?? '완료') : '-');
+            final statusStr = isDone ? '복용 완료' : (slot.isSkipped ? '건너뜀' : '미복용/대기');
+            final recordMethod = !isDone
+                ? '-'
+                : (isSlotRetroactive(day, med.id, slotIdx) ? '달력 사후 수정' : '당일 실시간 체크');
+            buf.writeln(
+              '"$dStr","${med.id}","${med.name}","${med.dosage}","${med.memo ?? '-'}","${med.recurrenceSummary}","${med.durationSummary}","${slot.label}","${slot.scheduledTime ?? '-'}","$statusStr","$takenTime","$recordMethod"',
+            );
+          }
+        }
+      }
+      result['2_일반의약품_영양제_데이터'] = buf.toString();
+    }
+
+    // 3. 🌱 3. 작은 습관 관리 데이터
+    if (includeHabits) {
+      final buf = StringBuffer();
+      buf.write('\uFEFF');
+      buf.writeln('3. 작은 습관 관리 데이터');
+      buf.writeln('조회 기간,${_dateKey(sDate)} ~ ${_dateKey(eDate)}');
+      buf.writeln('추출 일시,${DateTime.now().toString().substring(0, 19)}');
+      buf.writeln('');
+      buf.writeln('기록 일자,습관 ID,습관 제목,상세 설명,실천 주기,1일 목표 횟수,해당일 실천 점수,달성률(%),평가 상태');
+
+      for (final day in dateRange) {
+        final dStr = _dateKey(day);
+        for (final habit in _habits) {
+          final score = getHabitScoreForDay(day, habit.id);
+          final percent = (score * 100).toInt();
+          final evaluation = score >= 1.0 ? '목표 달성' : (score > 0 ? '일부 실천' : '실천 대기');
+          buf.writeln(
+            '"$dStr","${habit.id}","${habit.title}","${habit.subtitle}","${habit.recurrenceSummary}","${habit.targetPerDay}회","$score","$percent%","$evaluation"',
           );
         }
       }
-      buffer.writeln('');
+      result['3_작은_습관_관리_데이터'] = buf.toString();
     }
 
-    // 3. 🌱 작은 습관 데이터
-    if (includeHabits) {
-      buffer.writeln('--- [3. 작은 습관 관리 데이터] ---');
-      buffer.writeln('기록 일자,습관 ID,습관 제목,상세 설명,실천 주기,1일 목표 횟수,오늘 실천 횟수,주간 완료 횟수,달성률(%),비처벌적 평가 상태');
-
-      for (final habit in _habits) {
-        final percent = (habit.score * 100).toInt();
-        final evaluation = habit.score >= 1.0 ? '목표 달성' : (habit.score > 0 ? '다정한 일부 실천' : '실천 대기');
-        buffer.writeln(
-          '"$nowStr","${habit.id}","${habit.title}","${habit.subtitle}","${habit.recurrenceSummary}","${habit.targetPerDay}회","${habit.currentCount}회","${habit.weeklyCompletedCount}회","$percent%","$evaluation"',
-        );
-      }
-      buffer.writeln('');
-    }
-
-    // 4. 🗓️ 할일 및 진료 일정 데이터
+    // 4. 🗓️ 4. 할일 및 일정 관리 데이터
     if (includeTasks) {
-      buffer.writeln('--- [4. 할일 및 일정 관리 데이터] ---');
-      buffer.writeln('대상 일자,일정 ID,일정명,예정 시각,완료 여부,반복 설정,알림 설정');
+      final buf = StringBuffer();
+      buf.write('\uFEFF');
+      buf.writeln('4. 할일 및 일정 관리 데이터');
+      buf.writeln('조회 기간,${_dateKey(sDate)} ~ ${_dateKey(eDate)}');
+      buf.writeln('추출 일시,${DateTime.now().toString().substring(0, 19)}');
+      buf.writeln('');
+      buf.writeln('대상 일자,일정 ID,일정명,예정 시각,완료 여부,반복 설정,알림 설정');
 
-      for (final task in _tasks) {
-        final dateStr = '${task.date.year}-${task.date.month.toString().padLeft(2, '0')}-${task.date.day.toString().padLeft(2, '0')}';
-        final statusStr = task.isCompleted ? '완료' : '진행 대기';
-        buffer.writeln(
-          '"$dateStr","${task.id}","${task.title}","${task.time ?? '-'}","$statusStr","${task.repeatSummary}","${task.reminderSummary}"',
-        );
+      for (final day in dateRange) {
+        final dayTasks = getTasksForDay(day);
+        final dStr = _dateKey(day);
+        for (final task in dayTasks) {
+          final statusStr = task.isCompleted ? '완료' : '진행 대기';
+          buf.writeln(
+            '"$dStr","${task.id}","${task.title}","${task.time ?? '-'}","$statusStr","${task.repeatSummary}","${task.reminderSummary}"',
+          );
+        }
       }
-      buffer.writeln('');
+      result['4_할일_및_일정_데이터'] = buf.toString();
     }
-    return buffer.toString();
+
+    return result;
   }
 
-  // 🌟 기존 레거시 함수 호환
+  // 🌟 기존 레거시 함수 호환 (단일 문자열로 합침)
+  String generateComprehensiveHealthDataReport({
+    DateTime? startDate,
+    DateTime? endDate,
+    bool includePrescription = true,
+    bool includeOtc = true,
+    bool includeHabits = true,
+    bool includeTasks = true,
+  }) {
+    final sDate = startDate ?? trackingStartDate;
+    final eDate = endDate ?? DateTime.now();
+    final map = generateHealthDataReportsBySection(
+      startDate: sDate,
+      endDate: eDate,
+      includePrescription: includePrescription,
+      includeOtc: includeOtc,
+      includeHabits: includeHabits,
+      includeTasks: includeTasks,
+    );
+    return map.values.join('\n\n');
+  }
+
   String generateMedicalCsvReport() {
     return generateComprehensiveHealthDataReport();
   }

@@ -26,7 +26,7 @@ class HagomMascotWidgetProvider : HomeWidgetProvider() {
             val views = RemoteViews(context.packageName, R.layout.hagom_mascot_widget).apply {
                 val badge = widgetData.getString("mascot_badge", "1. 기대")
                 val quote = widgetData.getString("mascot_quote", "유저가 접속해서 기록을 이어갈 것이라 믿고 웃어주는 모습")
-                val sub = widgetData.getString("mascot_sub", "비처벌적 푸시")
+                val sub = widgetData.getString("mascot_sub", "다정한 응원 푸시")
                 val imageName = widgetData.getString("mascot_image", "hagom_widget_stage_1")
 
                 setTextViewText(R.id.widget_mascot_badge, badge)

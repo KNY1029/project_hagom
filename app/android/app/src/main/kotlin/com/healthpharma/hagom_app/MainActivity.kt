@@ -61,17 +61,43 @@ class MainActivity : FlutterActivity() {
                             savedPath = file.absolutePath
                         }
 
-                        val cacheFile = File(cacheDir, fileName)
-                        FileOutputStream(cacheFile).use { output ->
-                            output.write(content.toByteArray(Charsets.UTF_8))
-                        }
-
                         result.success(mapOf("success" to true, "path" to savedPath, "fileName" to fileName))
                     } catch (e: Exception) {
                         result.error("EXPORT_ERROR", e.message, null)
                     }
                 }
-
+                "downloadMultipleCsv" -> {
+                    val files = call.argument<Map<String, String>>("files") ?: emptyMap()
+                    try {
+                        val savedNames = mutableListOf<String>()
+                        for ((fName, fContent) in files) {
+                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                                val values = ContentValues().apply {
+                                    put(MediaStore.MediaColumns.DISPLAY_NAME, fName)
+                                    put(MediaStore.MediaColumns.MIME_TYPE, "text/csv")
+                                    put(MediaStore.MediaColumns.RELATIVE_PATH, Environment.DIRECTORY_DOWNLOADS)
+                                }
+                                val uri = contentResolver.insert(MediaStore.Downloads.EXTERNAL_CONTENT_URI, values)
+                                if (uri != null) {
+                                    contentResolver.openOutputStream(uri)?.use { output ->
+                                        output.write(fContent.toByteArray(Charsets.UTF_8))
+                                    }
+                                    savedNames.add(fName)
+                                }
+                            } else {
+                                val downloadsDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
+                                val file = File(downloadsDir, fName)
+                                FileOutputStream(file).use { output ->
+                                    output.write(fContent.toByteArray(Charsets.UTF_8))
+                                }
+                                savedNames.add(fName)
+                            }
+                        }
+                        result.success(mapOf("success" to true, "fileNames" to savedNames))
+                    } catch (e: Exception) {
+                        result.error("EXPORT_ERROR", e.message, null)
+                    }
+                }
                 "shareCsv" -> {
                     val fileName = call.argument<String>("fileName") ?: "하곰이_건강기록.csv"
                     val content = call.argument<String>("content") ?: ""

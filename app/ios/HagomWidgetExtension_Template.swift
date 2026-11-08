@@ -18,7 +18,7 @@ struct HagomWidgetProvider: TimelineProvider {
             date: Date(),
             badge: "1. 기대",
             quote: "유저가 접속해서 기록을 이어갈 것이라 믿고 웃어주는 모습",
-            sub: "비처벌적 푸시",
+            sub: "다정한 응원 푸시",
             imageName: "hagom_widget_stage_1"
         )
     }

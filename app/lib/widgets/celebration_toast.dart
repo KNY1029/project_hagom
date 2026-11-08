@@ -6,7 +6,7 @@ import '../state/app_state_manager.dart';
 /// 🐻 [하곰이 축하 & 격려 토스트 (PRD 접점 3)]
 /// 
 /// 복약 완료 또는 습관 완료 시 화면 하단에 앙증맞게 떠서
-/// 하곰이 얼굴과 함께 비처벌적 칭찬/축하 멘트를 건네는 스낵바 알림!
+/// 하곰이 얼굴과 함께 다정한 칭찬/축하 멘트를 건네는 스낵바 알림!
 /// [actionLabel] 및 [onAction] 전달 시 토스트 안에서 바로 1초 되돌리기 지원!
 class CelebrationToast {
   static void show(
