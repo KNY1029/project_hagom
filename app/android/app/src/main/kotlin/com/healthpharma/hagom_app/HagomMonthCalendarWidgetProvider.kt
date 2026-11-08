@@ -171,6 +171,14 @@ class HagomMonthCalendarWidgetProvider : HomeWidgetProvider() {
                                 "today_done_pin" -> R.drawable.hagom_widget_today_done_pin
                                 "all_done" -> R.drawable.hagom_widget_done_bg
                                 "all_done_pin" -> R.drawable.hagom_widget_done_pin_green
+                                "mdone" -> R.drawable.hagom_widget_done_med_bar
+                                "mdone_pin" -> R.drawable.hagom_widget_done_med_bar_pin
+                                "hdone_mdone" -> R.drawable.hagom_widget_habit_done_med_done
+                                "hdone_mdone_pin" -> R.drawable.hagom_widget_habit_done_med_done_pin
+                                "hdone_mmissed" -> R.drawable.hagom_widget_habit_done_med_missed
+                                "hdone_mmissed_pin" -> R.drawable.hagom_widget_habit_done_med_missed_pin
+                                "hdone_mpartial" -> R.drawable.hagom_widget_habit_done_med_partial
+                                "hdone_mpartial_pin" -> R.drawable.hagom_widget_habit_done_med_partial_pin
                                 "missed_med" -> R.drawable.hagom_widget_bar_red
                                 "missed_med_pin" -> R.drawable.hagom_widget_bar_red_pin
                                 "partial" -> R.drawable.hagom_widget_bar_brown

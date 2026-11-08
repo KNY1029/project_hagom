@@ -6,15 +6,14 @@ import '../models/task_item.dart';
 import '../state/app_state_manager.dart';
 import '../widgets/celebration_toast.dart';
 import '../widgets/app_time_picker.dart';
-/// 📅 [달력 & 할일 탭: PRD 5.3절 신규 6안 공식 규격]
+/// 📅 [달력 & 할일 탭: 복약(바)·습관(바탕)·할일(핀) 3대 요소 1:1 독립 규격]
 /// 
-/// 1. 6안 날짜 셀 컬러링 알고리즘:
-///    - 100% 완료: 날짜 셀 전체 '통으로' 연초록 파스텔 틴트(#E6F8F0) + 짙은 초록 숫자(#065F46)
-///    - 부분 달성: 흰색 배경 + 하단 오렌지 캡슐 바(#F59E0B)
-///    - 0% 미복용: 비처벌적 중립 소프트 그레이 바(#D1D5DB)로 안심 피드백
+/// 1. 날짜 셀 컬러링 알고리즘:
+///    - 습관(바탕색): 100% 실천 시 셀 전체 연초록 파스텔 틴트(#E6F8F0) / 미완료 시 흰색
+///    - 복약(하단 바, 3.5px): 100% 완료 시 딥 포레스트 그린 바(#044E36) / 처방약 미복용 시 레드 바(#EF4444) / 일부 미완료 시 파스텔 연보라 바(#B39DDB)
+///    - 할일(모서리 핀, 5.5px): 완료 시 딥 포레스트 그린 핀(#044E36) / 미완료 시 밝은 파스텔 연보라 핀(#C4B5FD)
 ///    - 오늘 날짜: 보라색 테두리(#7B61A8)
 ///    - 미래 날짜: 진행도 바/틴트 일체 미표시 (완전 깨끗한 초기화)
-///    - 할일 핀: 셀 우측 상단 모서리(top: 4, right: 4)에 라벤더 닷(• #7B61A8)
 /// 2. 데일리 상세 아코디언:
 ///    - 날짜 터치 시 하단에 그날의 종합 복약/습관/할일 브리핑 펼침
 ///    - 과거 날짜 복약 완료 사후 수정 지원 ➔ "소급 축하 토스트" 즉시 발동!
@@ -812,13 +811,12 @@ class _CalendarTabViewState extends State<CalendarTabView> {
                   final isFuture = cellDate.isAfter(today);
                   final isBeforeTracking = _state.isBeforeTrackingStart(cellDate);
 
-                  // 🌟 [통 연초록 틴트 규격]: 기록 시작일 이후이면서 미래가 아닐 때, "약과 습관 둘 다 100% 완료했을 때만" 통으로 연초록!
-                  // 기록 시작일 이전이거나 미래인 날짜는 완전 깨끗한 순백색 초기화!
+                  // 🌟 [습관 독립 바탕색 규격]:
+                  // 습관을 100% 실천했으면 약을 먹었든 안 먹었든 무조건 연초록 틴트(#E6F8F0)!
+                  // 기록 시작일 이전이거나 미래인 날짜는 깨끗한 순백색 초기화!
                   final isMed100 = medRate != null && medRate >= 1.0;
-                  final isHabit100 = habitRate != null && habitRate >= 1.0;
-                  final isAll100Done = !isFuture && !isBeforeTracking && isMed100 && isHabit100;
-                  final isPartial = medRate != null && medRate > 0.0 && medRate < 1.0;
-                  final isZero = medRate != null && medRate == 0.0;
+                  final isHabit100 = !isFuture && !isBeforeTracking && habitRate != null && habitRate >= 1.0;
+
                   return GestureDetector(
                     onTap: () {
                       setState(() {
@@ -827,7 +825,7 @@ class _CalendarTabViewState extends State<CalendarTabView> {
                     },
                     child: Container(
                       decoration: BoxDecoration(
-                        color: isAll100Done ? AppColors.successBg : Colors.white,
+                        color: isHabit100 ? AppColors.successBg : Colors.white,
                         borderRadius: BorderRadius.circular(8),
                         border: Border.all(
                           color: isSelected
@@ -839,8 +837,8 @@ class _CalendarTabViewState extends State<CalendarTabView> {
                       child: Stack(
                         children: [
                           // 🌟 [할일 모서리 핀]:
-                          // - 할일 전부 완료: 연초록 바탕(#E6F8F0)에서도 100% 선명하게 구분되는 딥 포레스트 그린(Deep Forest Green #044E36)
-                          // - 할일 덜 끝냄/진행 중: 은은하고 포근한 라벤더 퍼플(Lavender Purple #7B61A8)
+                          // - 할일 전부 완료: 연초록 바탕에서도 선명하게 구분되는 딥 포레스트 그린(Deep Forest Green #044E36)
+                          // - 할일 덜 끝냄/미완료: 초록색과 명도 대비가 극명하게 나는 밝고 부드러운 파스텔 연보라(#C4B5FD)
                           if (hasTasks)
                             Positioned(
                               top: 4,
@@ -850,8 +848,8 @@ class _CalendarTabViewState extends State<CalendarTabView> {
                                 height: 5.5,
                                 decoration: BoxDecoration(
                                   color: isTasksAllDone
-                                      ? const Color(0xFF044E36) // 짙은 딥 포레스트 그린 (연초록 배경에서도 또렷하게 보임!)
-                                      : AppColors.primaryPurple, // 덜 한 것: 라벤더 보라색
+                                      ? const Color(0xFF044E36) // 짙은 딥 포레스트 그린 (완료)
+                                      : const Color(0xFFC4B5FD), // 밝은 파스텔 연보라 (미완료: 초록과 즉시 구분!)
                                   shape: BoxShape.circle,
                                 ),
                               ),
@@ -872,39 +870,54 @@ class _CalendarTabViewState extends State<CalendarTabView> {
                             ),
                           ),
 
-                          // 🌟 사용자 제안 3단계 극단적 단순화 규격:
-                          // 1) 전부 다 한 날: 통 연초록 틴트 (#E6F8F0) + 하단 바 없음!
-                          // 2) 처방약 안 먹은 날: 흰색 셀 + 🚨 빨간색 바 (#EF4444)
-                          // 3) 뭔가 덜 한 날: 흰색 셀 + 🟤 웜브라운 바 (#8B5E3C)
-                          // 4) 기록 시작일 이전이거나 아직 오지 않은 날짜(미래): 바 일체 없이 완전 깨끗한 순백색 초기화!
-                          // 오늘 날짜는 아직 하루가 끝나지 않았으므로 미복용(빨간 바)/일부 실천(갈색 바) 표시 금지!
-                          if (!isFuture && !isToday && !isBeforeTracking && !isAll100Done) ...[
-                            if (hasMissedPrescription)
+                          // 🌟 [복약 독립 하단 바 규격 (두께 3.5px 도톰하게 개선)]:
+                          // 1) 복약 100% 완료: 할일 핀 완료색과 같은 짙은 딥 포레스트 그린 바 (#044E36)
+                          // 2) 처방약 놓친 날: 🚨 선명한 경고 레드 바 (#EF4444)
+                          // 3) 일부 복용/일반약 미완료: 차분하고 통일감 있는 연보라 바 (#B39DDB)
+                          // - 과거 날짜: 상태에 따라 3가지 바 중 하나 표시
+                          // - 오늘 날짜: 아직 하루가 진행 중이므로 완료했을 때만 초록 바를 띄우고 미완료 경고는 보류
+                          if (!isFuture && !isBeforeTracking) ...[
+                            if (isMed100)
                               Positioned(
                                 bottom: 4,
                                 left: 8,
                                 right: 8,
                                 child: Container(
-                                  height: 2.5,
+                                  height: 3.5,
                                   decoration: BoxDecoration(
-                                    color: AppColors.missedRed, // 선명한 처방약 미복용 경고 레드 바
+                                    color: const Color(0xFF044E36), // 복약 완료: 딥 포레스트 그린 바
                                     borderRadius: BorderRadius.circular(2),
                                   ),
                                 ),
                               )
-                            else
-                              Positioned(
-                                bottom: 4,
-                                left: 8,
-                                right: 8,
-                                child: Container(
-                                  height: 2.5,
-                                  decoration: BoxDecoration(
-                                    color: AppColors.warmBrown.withValues(alpha: 0.6), // 일반약이든 습관이든 뭔가 덜 한 날 웜브라운 바
-                                    borderRadius: BorderRadius.circular(2),
+                            else if (!isToday) ...[
+                              if (hasMissedPrescription)
+                                Positioned(
+                                  bottom: 4,
+                                  left: 8,
+                                  right: 8,
+                                  child: Container(
+                                    height: 3.5,
+                                    decoration: BoxDecoration(
+                                      color: AppColors.missedRed, // 처방약 미복용: 레드 바
+                                      borderRadius: BorderRadius.circular(2),
+                                    ),
+                                  ),
+                                )
+                              else
+                                Positioned(
+                                  bottom: 4,
+                                  left: 8,
+                                  right: 8,
+                                  child: Container(
+                                    height: 3.5,
+                                    decoration: BoxDecoration(
+                                      color: const Color(0xFFB39DDB), // 일부 복용/미완료: 화사한 연보라 바
+                                      borderRadius: BorderRadius.circular(2),
+                                    ),
                                   ),
                                 ),
-                              ),
+                            ],
                           ],
                         ],
                       ),

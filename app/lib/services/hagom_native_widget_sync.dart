@@ -422,15 +422,31 @@ class HagomNativeWidgetSync {
           final mRate = state.getMedRateForDay(cellDate);
           final hRate = state.getHabitRateForDay(cellDate);
           final isMissedP = state.hasMissedPrescriptionForDay(cellDate);
+          final isHabitDone = hRate != null && hRate >= 1.0;
+          final isMedDone = mRate != null && mRate >= 1.0;
 
-          if (mRate != null && mRate >= 1.0 && hRate != null && hRate >= 1.0) {
-            status = hasT ? 'all_done_pin' : 'all_done';
-          } else if (isMissedP) {
-            status = hasT ? 'missed_med_pin' : 'missed_med';
-          } else if (mRate != null && mRate > 0.0) {
-            status = hasT ? 'partial_pin' : 'partial';
-          } else if (hasT) {
-            status = 'pin_only';
+          if (isHabitDone) {
+            // 습관 완료 (배경 연초록)
+            if (isMedDone) {
+              status = hasT ? 'hdone_mdone_pin' : 'hdone_mdone';
+            } else if (isMissedP) {
+              status = hasT ? 'hdone_mmissed_pin' : 'hdone_mmissed';
+            } else if (mRate != null && mRate > 0.0) {
+              status = hasT ? 'hdone_mpartial_pin' : 'hdone_mpartial';
+            } else {
+              status = hasT ? 'all_done_pin' : 'all_done'; // 습관만 완료 (초록 배경만)
+            }
+          } else {
+            // 습관 미완료 (배경 흰색)
+            if (isMedDone) {
+              status = hasT ? 'mdone_pin' : 'mdone';
+            } else if (isMissedP) {
+              status = hasT ? 'missed_med_pin' : 'missed_med';
+            } else if (mRate != null && mRate > 0.0) {
+              status = hasT ? 'partial_pin' : 'partial';
+            } else if (hasT) {
+              status = 'pin_only';
+            }
           }
         } else if (hasT) {
           status = 'pin_only';
@@ -581,15 +597,31 @@ class HagomNativeWidgetSync {
           final mRate = state.getMedRateForDay(cellDate);
           final hRate = state.getHabitRateForDay(cellDate);
           final isMissedP = state.hasMissedPrescriptionForDay(cellDate);
+          final isHabitDone = hRate != null && hRate >= 1.0;
+          final isMedDone = mRate != null && mRate >= 1.0;
 
-          if (mRate != null && mRate >= 1.0 && hRate != null && hRate >= 1.0) {
-            status = hasT ? 'all_done_pin' : 'all_done';
-          } else if (isMissedP) {
-            status = hasT ? 'missed_med_pin' : 'missed_med';
-          } else if (mRate != null && mRate > 0.0) {
-            status = hasT ? 'partial_pin' : 'partial';
-          } else if (hasT) {
-            status = 'pin_only';
+          if (isHabitDone) {
+            // 습관 완료 (배경 연초록)
+            if (isMedDone) {
+              status = hasT ? 'hdone_mdone_pin' : 'hdone_mdone';
+            } else if (isMissedP) {
+              status = hasT ? 'hdone_mmissed_pin' : 'hdone_mmissed';
+            } else if (mRate != null && mRate > 0.0) {
+              status = hasT ? 'hdone_mpartial_pin' : 'hdone_mpartial';
+            } else {
+              status = hasT ? 'all_done_pin' : 'all_done'; // 습관만 완료
+            }
+          } else {
+            // 습관 미완료 (배경 흰색)
+            if (isMedDone) {
+              status = hasT ? 'mdone_pin' : 'mdone';
+            } else if (isMissedP) {
+              status = hasT ? 'missed_med_pin' : 'missed_med';
+            } else if (mRate != null && mRate > 0.0) {
+              status = hasT ? 'partial_pin' : 'partial';
+            } else if (hasT) {
+              status = 'pin_only';
+            }
           }
         } else if (hasT) {
           status = 'pin_only';
