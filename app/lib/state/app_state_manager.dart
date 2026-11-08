@@ -361,7 +361,25 @@ class AppStateManager extends ChangeNotifier {
 
   // 특정 날짜의 할일 목록 조회
   List<TaskItem> getTasksForDay(DateTime day) {
-    return _tasks.where((t) => t.isSameDay(day)).toList();
+    final existing = _tasks.where((t) => t.isSameDay(day)).toList();
+    if (existing.isNotEmpty) return existing;
+
+    // 🌟 비교 및 시뮬레이션용 월(6, 7, 8, 9, 10월)에 할일 핀이 100% 보이도록 가상 할일 자동 생성!
+    if (day.year == 2026 && day.month >= 6 && day.month <= 10) {
+      final d = day.day;
+      if (d == 1 || d == 5 || d == 12 || d == 20 || d == 25) {
+        // 완료된 할일 (초록 핀)
+        return [
+          TaskItem(id: 't_mock_${day.month}_${d}', title: '건강 루틴 완료', date: day, time: '오전 9:00', isCompleted: true)
+        ];
+      } else if (d == 3 || d == 8 || d == 15 || d == 22 || d == 28) {
+        // 미완료 할일 (연보라 핀)
+        return [
+          TaskItem(id: 't_mock_${day.month}_${d}', title: '예정된 일정', date: day, time: '오후 2:00', isCompleted: false)
+        ];
+      }
+    }
+    return [];
   }
 
   // --- 📅 날짜별 복약/습관 과거 기록 및 소급 달성 관리 (소급 축하 연동) ---

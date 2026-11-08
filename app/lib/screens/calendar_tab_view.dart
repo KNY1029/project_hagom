@@ -840,10 +840,11 @@ class _CalendarTabViewState extends State<CalendarTabView> {
                 shrinkWrap: true,
                 physics: const NeverScrollableScrollPhysics(),
                 itemCount: 42, // 6주 x 7일
-                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                   crossAxisCount: 7,
                   mainAxisSpacing: 4,
-                  crossAxisSpacing: 4,
+                  // 🌟 연결형 모드(6, 7, 8월)에서는 칸들 사이의 가로 빈 공간(Gap)을 0으로 만들어 완전히 맞닿아 띠처럼 이어짐!
+                  crossAxisSpacing: (_currentMonth.year == 2026 && (_currentMonth.month >= 6 && _currentMonth.month <= 8)) ? 0 : 4,
                   childAspectRatio: 0.95,
                 ),
                 itemBuilder: (ctx, idx) {
@@ -878,22 +879,28 @@ class _CalendarTabViewState extends State<CalendarTabView> {
                   final isMed100 = medRate != null && medRate >= 1.0;
                   final isHabit100 = !isFuture && !isBeforeTracking && habitRate != null && habitRate >= 1.0;
 
-                  // 🌟 좌우 연결 판정
-                  final prevDate = cellDate.subtract(const Duration(days: 1));
-                  final nextDate = cellDate.add(const Duration(days: 1));
-                  final isPrevSameMonth = prevDate.month == cellDate.month;
-                  final isNextSameMonth = nextDate.month == cellDate.month;
-                  final isPrevHabitDone = isConnectedMode && isPrevSameMonth && ((_state.getHabitRateForDay(prevDate) ?? 0) >= 1.0);
-                  final isNextHabitDone = isConnectedMode && isNextSameMonth && ((_state.getHabitRateForDay(nextDate) ?? 0) >= 1.0);
-                  final isPrevMedDone = isConnectedMode && isPrevSameMonth && ((_state.getMedRateForDay(prevDate) ?? 0) >= 1.0);
-                  final isNextMedDone = isConnectedMode && isNextSameMonth && ((_state.getMedRateForDay(nextDate) ?? 0) >= 1.0);
+                  // 🌟 복약 하단 바 색상 결정:
+                  Color medBarColor = currentDoneGreen;
+                  bool hasMedBar = false;
+                  if (!isFuture && !isBeforeTracking) {
+                    if (isMed100) {
+                      medBarColor = currentDoneGreen;
+                      hasMedBar = true;
+                    } else if (!isToday) {
+                      if (hasMissedPrescription) {
+                        medBarColor = AppColors.missedRed;
+                        hasMedBar = true;
+                      } else {
+                        medBarColor = const Color(0xFFB39DDB);
+                        hasMedBar = true;
+                      }
+                    }
+                  }
 
-                  final BorderRadius cellRadius = isConnectedMode && isHabit100
-                      ? BorderRadius.horizontal(
-                          left: Radius.circular(isPrevHabitDone ? 0 : 8),
-                          right: Radius.circular(isNextHabitDone ? 0 : 8),
-                        )
-                      : BorderRadius.circular(8);
+                  // 🌟 연결형 모드에서는 모서리를 둥글지 않게(Radius 0) 직각으로 처리하여 완전히 하나로 이어진 띠 연출!
+                  final BorderRadius cellRadius = isConnectedMode
+                      ? BorderRadius.zero // 🌟 연결형 모드: 모서리 둥글기 없음!
+                      : BorderRadius.circular(8); // 독립형 모드: 둥근 모서리
 
                   return GestureDetector(
                     onTap: () {
@@ -954,54 +961,20 @@ class _CalendarTabViewState extends State<CalendarTabView> {
                           // 3) 일부 복용/일반약 미완료: 차분하고 통일감 있는 연보라 바 (#B39DDB)
                           // - 과거 날짜: 상태에 따라 3가지 바 중 하나 표시
                           // - 오늘 날짜: 아직 하루가 진행 중이므로 완료했을 때만 초록 바를 띄우고 미완료 경고는 보류
-                          if (!isFuture && !isBeforeTracking) ...[
-                            if (isMed100)
-                              Positioned(
-                                bottom: 4,
-                                left: isConnectedMode ? (isPrevMedDone ? 0 : 4) : 8,
-                                right: isConnectedMode ? (isNextMedDone ? 0 : 4) : 8,
-                                child: Container(
-                                  height: 3.5,
-                                  decoration: BoxDecoration(
-                                    color: currentDoneGreen, // 🌟 생생한 완료 초록 바!
-                                    borderRadius: isConnectedMode
-                                        ? BorderRadius.horizontal(
-                                            left: Radius.circular(isPrevMedDone ? 0 : 2),
-                                            right: Radius.circular(isNextMedDone ? 0 : 2),
-                                          )
-                                        : BorderRadius.circular(2),
-                                  ),
+                          if (hasMedBar)
+                            Positioned(
+                              bottom: 4,
+                              // 🌟 연결형 모드: 칸의 맨 왼쪽(0)부터 맨 오른쪽(0)까지 빈 공간 없이 꽉 채워 인접 날짜와 칼같이 이어짐!
+                              left: isConnectedMode ? 0 : 8,
+                              right: isConnectedMode ? 0 : 8,
+                              child: Container(
+                                height: 3.5,
+                                decoration: BoxDecoration(
+                                  color: medBarColor, // 🌟 색상(초록/빨강/보라)만 달라지며 빈 공간 없이 쭉 연결!
+                                  borderRadius: isConnectedMode ? BorderRadius.zero : BorderRadius.circular(2),
                                 ),
-                              )
-                            else if (!isToday) ...[
-                              if (hasMissedPrescription)
-                                Positioned(
-                                  bottom: 4,
-                                  left: 8,
-                                  right: 8,
-                                  child: Container(
-                                    height: 3.5,
-                                    decoration: BoxDecoration(
-                                      color: AppColors.missedRed, // 처방약 미복용: 레드 바
-                                      borderRadius: BorderRadius.circular(2),
-                                    ),
-                                  ),
-                                )
-                              else
-                                Positioned(
-                                  bottom: 4,
-                                  left: 8,
-                                  right: 8,
-                                  child: Container(
-                                    height: 3.5,
-                                    decoration: BoxDecoration(
-                                      color: const Color(0xFFB39DDB), // 일부 복용/미완료: 화사한 연보라 바
-                                      borderRadius: BorderRadius.circular(2),
-                                    ),
-                                  ),
-                                ),
-                            ],
-                          ],
+                              ),
+                            ),
                         ],
                       ),
                     ),
