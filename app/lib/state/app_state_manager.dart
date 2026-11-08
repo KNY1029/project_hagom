@@ -339,8 +339,8 @@ class AppStateManager extends ChangeNotifier {
 
   /// 특정 날짜가 기록 시작일 이전인지 확인
   bool isBeforeTrackingStart(DateTime date) {
-    // 🌟 비교 및 시뮬레이션을 위한 샘플 월(6, 7, 8, 9, 10월)은 항상 모든 진행도/바가 보이도록 허용!
-    if (date.year == 2026 && date.month >= 6 && date.month <= 10) {
+    // 🌟 비교 및 시뮬레이션을 위한 샘플 월(1월~10월)은 항상 모든 진행도/바가 보이도록 허용!
+    if (date.year == 2026 && date.month >= 1 && date.month <= 10) {
       return false;
     }
     // 개발자 모드에서는 1~7일 모든 임상 예시 데이터가 달력에 온전히 보여야 하므로 절대 가리지 않음!
@@ -364,8 +364,8 @@ class AppStateManager extends ChangeNotifier {
     final existing = _tasks.where((t) => t.isSameDay(day)).toList();
     if (existing.isNotEmpty) return existing;
 
-    // 🌟 비교 및 시뮬레이션용 월(6, 7, 8, 9, 10월)에 할일 핀이 100% 보이도록 가상 할일 자동 생성!
-    if (day.year == 2026 && day.month >= 6 && day.month <= 10) {
+    // 🌟 비교 및 시뮬레이션용 월(1월~10월)에 할일 핀이 100% 보이도록 가상 할일 자동 생성!
+    if (day.year == 2026 && day.month >= 1 && day.month <= 10) {
       final d = day.day;
       if (d == 1 || d == 5 || d == 12 || d == 20 || d == 25) {
         // 완료된 할일 (초록 핀)
@@ -1039,8 +1039,8 @@ class AppStateManager extends ChangeNotifier {
       TaskItem(id: 'task_today_1', title: '약학 실습 보고서 작성', date: DateTime(y, m, now.day), time: '오후 6:00', isCompleted: false),
       TaskItem(id: 'task_today_2', title: '병원 정기 상담 및 처방전 받기', date: DateTime(y, m, now.day), time: '오후 2:30', isCompleted: false),
 
-      // 🌟 [비교 시뮬레이션용]: 6월~10월 할일 샘플 (완료 초록핀 & 미완료 연보라핀 골고루 배치)
-      for (final simMonth in [6, 7, 8, 9, 10]) ...[
+      // 🌟 [비교 시뮬레이션용]: 1월~10월 할일 샘플 (완료 초록핀 & 미완료 연보라핀 골고루 배치)
+      for (final simMonth in [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]) ...[
         // 1일: 완료된 일정 (초록 핀)
         TaskItem(id: 't_sim_${simMonth}_1', title: '아침 가벼운 스트레칭', date: DateTime(2026, simMonth, 1), time: '오전 8:30', isCompleted: true),
         // 3일: 미완료 일정 (연보라 핀)

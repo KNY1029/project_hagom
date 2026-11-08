@@ -79,19 +79,25 @@ class _CalendarTabViewState extends State<CalendarTabView> {
   }
 
   // 🌟 [월별 완료 초록 컬러 선택]:
+  // 9개 달(2월~10월) + 11월에 걸쳐 A(에메랄드), B(제이드), C(켈리그린) 완벽 매핑
   Color _getDoneGreenColor(int m) {
     switch (m) {
+      case 2:
+      case 5:
       case 8:
       case 11:
-        // A안: 선명한 에메랄드 그린 (Emerald 600 - 가장 생생하고 기분 좋은 초록)
+        // A안: 선명한 에메랄드 그린 (Emerald 600 #059669 - 가장 생생하고 기분 좋은 초록)
         return const Color(0xFF059669);
-      case 7:
-      case 9:
-        // B안: 깊이감 있는 쥬얼 제이드 (Teal/Jade 700 - 청록빛이 살짝 도는 고급스러운 초록)
-        return const Color(0xFF0F766E);
+      case 3:
       case 6:
+      case 9:
+        // B안: 깊이감 있는 쥬얼 제이드 (Teal/Jade 700 #0F766E - 청록빛이 살짝 도는 고급스러운 초록)
+        return const Color(0xFF0F766E);
+      case 1:
+      case 4:
+      case 7:
       case 10:
-        // C안: 밝고 경쾌한 켈리 그린 (Emerald 500 - 화사한 새싹 초록)
+        // C안: 밝고 경쾌한 켈리 그린 (Emerald 500 #10B981 - 화사한 새싹 초록)
         return const Color(0xFF10B981);
       default:
         return const Color(0xFF059669);
@@ -810,10 +816,10 @@ class _CalendarTabViewState extends State<CalendarTabView> {
                 gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                   crossAxisCount: 7,
                   mainAxisSpacing: 4,
-                  // 🌟 연결형 모드(6, 7, 8월)에서는 칸들 사이의 가로 빈 공간(Gap)을 0으로 만들어 완전히 맞닿아 띠처럼 이어짐!
-                  crossAxisSpacing: (_currentMonth.year == 2026 && (_currentMonth.month >= 6 && _currentMonth.month <= 8)) ? 0 : 4,
-                  // 🌟 crossAxisSpacing이 0이 되어 가로 폭이 늘어난 만큼, 세로 높이가 커지지 않고 다른 달과 똑같은 아담한 높이를 유지하도록 종횡비 보정(1.02)!
-                  childAspectRatio: (_currentMonth.year == 2026 && (_currentMonth.month >= 6 && _currentMonth.month <= 8)) ? 1.02 : 0.95,
+                  // 🌟 연결형 모드(2월~4월, 8월)에서는 칸들 사이의 가로 빈 공간을 0으로 만들어 완전히 맞닿아 띠처럼 이어짐!
+                  crossAxisSpacing: (_currentMonth.year == 2026 && (_currentMonth.month >= 2 && _currentMonth.month <= 4 || _currentMonth.month == 8)) ? 0 : 4,
+                  // 🌟 연결형 모드 종횡비 보정(1.02)
+                  childAspectRatio: (_currentMonth.year == 2026 && (_currentMonth.month >= 2 && _currentMonth.month <= 4 || _currentMonth.month == 8)) ? 1.02 : 0.95,
                 ),
                 itemBuilder: (ctx, idx) {
                   final dayOffset = idx - firstWeekday + 1;
@@ -833,32 +839,41 @@ class _CalendarTabViewState extends State<CalendarTabView> {
                   final isFuture = cellDate.isAfter(today);
                   final isBeforeTracking = _state.isBeforeTrackingStart(cellDate);
 
-                  // 🌟 [월별 시각 비교 세팅]:
-                  // 8월: 옵션 A(생생한 에메랄드 #059669) + 좌우 연결형(Continuous)
-                  // 7월: 옵션 B(쥬얼 제이드 #0F766E) + 좌우 연결형(Continuous)
-                  // 6월: 옵션 C(밝은 켈리 그린 #10B981) + 좌우 연결형(Continuous)
-                  // 9월: 옵션 B(쥬얼 제이드 #0F766E) + 독립형
-                  // 10월: 옵션 C(밝은 켈리 그린 #10B981) + 독립형
-                  // 11월(현재): 옵션 A(생생한 에메랄드 #059669) + 독립형
                   final monthNum = _currentMonth.month;
-                  final isConnectedMode = (_currentMonth.year == 2026 && (monthNum == 8 || monthNum == 7 || monthNum == 6));
+
+                  // 🌟 [월별 형태 모드]:
+                  // 1월~4월: 좌우 연결형 (Continuous Streak)
+                  // 5월~11월: 독립형 (Independent Rounded)
+                  final isConnectedMode = (_currentMonth.year == 2026 && (monthNum >= 1 && monthNum <= 4));
+
                   final Color currentDoneGreen = _getDoneGreenColor(monthNum);
+
+                  // 🌟 [월별 미완료 색상 비교 (연보라 vs 쿨그레이)]:
+                  // - 8월, 9월, 10월, 2월, 3월, 4월: 화사한 파스텔 연보라 (바: #B39DDB, 핀: #C4B5FD)
+                  // - 5월, 6월, 7월, 1월: 정갈한 소프트 쿨그레이 (바: #9CA3AF, 핀: #D1D5DB)
+                  final bool isGrayPending = (_currentMonth.year == 2026 && (monthNum == 5 || monthNum == 6 || monthNum == 7 || monthNum == 1));
+                  final Color pendingBarColor = isGrayPending ? const Color(0xFF9CA3AF) : const Color(0xFFB39DDB);
+                  final Color pendingPinColor = isGrayPending ? const Color(0xFFD1D5DB) : const Color(0xFFC4B5FD);
 
                   final isMed100 = medRate != null && medRate >= 1.0;
                   final isHabit100 = !isFuture && !isBeforeTracking && habitRate != null && habitRate >= 1.0;
 
-                  // 🌟 복약 하단 바 색상 결정:
                   Color medBarColor = currentDoneGreen;
                   bool hasMedBar = false;
 
-                  // 🌟 월별 독립형 하단 바 굵기(Thickness) 비교:
-                  // - 11월: 3.5px (기본 도톰한 두께)
-                  // - 10월: 4.5px (더 굵고 시원한 두께)
-                  // - 9월: 5.5px (묵직하고 확실하게 눈에 띄는 두께)
-                  // - 8, 7, 6월(연결형): 3.5px
-                  final double barThickness = (monthNum == 9)
-                      ? 5.5
-                      : (monthNum == 10 ? 4.5 : 3.5);
+                  // 🌟 [월별 하단 바 두께(Thickness) 매핑]:
+                  // 3.5px: 11월, 8월, 5월, 2월
+                  // 4.5px: 10월, 7월, 4월, 1월
+                  // 5.5px: 9월, 6월, 3월
+                  final double barThickness;
+                  if (monthNum == 9 || monthNum == 6 || monthNum == 3) {
+                    barThickness = 5.5;
+                  } else if (monthNum == 10 || monthNum == 7 || monthNum == 4 || monthNum == 1) {
+                    barThickness = 4.5;
+                  } else {
+                    barThickness = 3.5;
+                  }
+
                   if (!isFuture && !isBeforeTracking) {
                     if (isMed100) {
                       medBarColor = currentDoneGreen;
@@ -868,7 +883,7 @@ class _CalendarTabViewState extends State<CalendarTabView> {
                         medBarColor = AppColors.missedRed;
                         hasMedBar = true;
                       } else {
-                        medBarColor = const Color(0xFFB39DDB);
+                        medBarColor = pendingBarColor;
                         hasMedBar = true;
                       }
                     }
@@ -911,7 +926,7 @@ class _CalendarTabViewState extends State<CalendarTabView> {
                                 decoration: BoxDecoration(
                                   color: isTasksAllDone
                                       ? currentDoneGreen // 🌟 생생한 완료 초록 반영!
-                                      : const Color(0xFFC4B5FD), // 밝은 파스텔 연보라 (미완료: 초록과 즉시 구분!)
+                                      : pendingPinColor, // 🌟 월별 미완료 색상 (연보라 or 쿨그레이)
                                   shape: BoxShape.circle,
                                 ),
                               ),
