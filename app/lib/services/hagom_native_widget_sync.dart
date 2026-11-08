@@ -421,7 +421,9 @@ class HagomNativeWidgetSync {
       await HomeWidget.saveWidgetData<String>('month_habits', monthHabits);
       await HomeWidget.saveWidgetData<String>('month_tasks', monthTasks);
       await HomeWidget.saveWidgetData<String>('month_tasks_label', taskSectionLabel);
+      final todayIso = '${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}';
       final targetDateIso = '${targetDate.year}-${targetDate.month.toString().padLeft(2, '0')}-${targetDate.day.toString().padLeft(2, '0')}';
+      await HomeWidget.saveWidgetData<String>('month_today_iso', todayIso);
       await HomeWidget.saveWidgetData<String>('month_inspecting_iso', isInspectingOtherDay ? targetDateIso : '');
       await HomeWidget.saveWidgetData<String>('month_selected_date', selDate != null ? targetDateIso : '');
       await HomeWidget.saveWidgetData<String>('month_selected_day', selDate != null ? selDate.day.toString() : '');
@@ -599,7 +601,9 @@ class HagomNativeWidgetSync {
       await HomeWidget.saveWidgetData<String>('month_habits', monthHabits);
       await HomeWidget.saveWidgetData<String>('month_tasks', monthTasks);
       await HomeWidget.saveWidgetData<String>('month_tasks_label', taskSectionLabel);
+      final todayIso = '${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}';
       final targetDateIso = '${targetDate.year}-${targetDate.month.toString().padLeft(2, '0')}-${targetDate.day.toString().padLeft(2, '0')}';
+      await HomeWidget.saveWidgetData<String>('month_today_iso', todayIso);
       await HomeWidget.saveWidgetData<String>('month_inspecting_iso', isInspectingOtherDay ? targetDateIso : '');
       await HomeWidget.saveWidgetData<String>('month_selected_date', selDate != null ? targetDateIso : '');
       await HomeWidget.saveWidgetData<String>('month_selected_day', selDate != null ? selDate.day.toString() : '');

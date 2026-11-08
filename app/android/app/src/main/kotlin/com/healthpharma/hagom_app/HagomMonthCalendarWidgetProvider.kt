@@ -39,6 +39,7 @@ class HagomMonthCalendarWidgetProvider : HomeWidgetProvider() {
             val canSupportTwoCol = (minW >= 280)
             val selectedDateStr = widgetData.getString("month_selected_date", "") ?: ""
             val inspectingIso = widgetData.getString("month_inspecting_iso", "") ?: ""
+            val todayIso = widgetData.getString("month_today_iso", "") ?: ""
             val hasSelectedOtherDay = inspectingIso.isNotEmpty()
             val views = RemoteViews(context.packageName, R.layout.hagom_month_calendar_widget).apply {
                 // 🌟 [세로 높이 반응형 3단계 헤더]:
@@ -188,7 +189,20 @@ class HagomMonthCalendarWidgetProvider : HomeWidgetProvider() {
                             }
                         }
                         setInt(resId, "setBackgroundResource", bgRes)
-                        val cellPending = if (isDaySelected && inspectingIso.isNotEmpty()) {
+
+                        // 🌟 [원터치 = 위젯 내 조회 / 투터치 = 앱 달력 해당 날짜로 즉시 진입]:
+                        // 1) 다른 날짜: 1차 터치 시 선택(보라 테두리) -> 2차 터치 시 앱의 그날 달력으로 즉시 진입!
+                        // 2) 오늘 날짜:
+                        //    - 다른 날짜를 보다가 오늘을 터치하면: 오늘 날짜로 위젯 복귀 (selectedDateStr == cellDate 또는 초기화)
+                        //    - 이미 오늘을 보고 있는 상태(기본 상태이거나 오늘이 선택된 상태)에서 오늘을 터치하면: 앱의 오늘 달력으로 즉시 진입!
+                        val isTodayCell = (todayIso.isNotEmpty() && cellDate == todayIso) || status.startsWith("today")
+                        val shouldOpenApp = if (isTodayCell) {
+                            // 다른 날짜를 조회 중이 아닐 때(기본 오늘 상태) 오늘을 터치하거나, 오늘이 명시적으로 선택되었을 때 앱 열기!
+                            !hasSelectedOtherDay || (selectedDateStr == cellDate)
+                        } else {
+                            isDaySelected
+                        }
+                        val cellPending = if (shouldOpenApp) {
                             WidgetBindings.openAppIntent(
                                 context,
                                 "hagomwidget://opencalendar?date=$cellDate",
