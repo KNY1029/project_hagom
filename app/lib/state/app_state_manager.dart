@@ -34,6 +34,11 @@ class AppStateManager extends ChangeNotifier {
     await HagomNativeWidgetSync.updateNativeWidget(this);
   }
 
+  /// 🌟 [백그라운드 전용]: 이미 네이티브가 위젯 UI를 최신 상태로 바꿨으므로,
+  /// 플러터가 옛날 값으로 위젯을 덮어쓰지 않고 로컬 DB에 데이터만 조용히 영구 저장!
+  Future<void> flushDataToDiskOnly() async {
+    await _saveDataToDisk();
+  }
   /// ⚡ [초고속 Fast-path]: 달력 날짜 탭 시 불필요한 전체 위젯/디스크 연산을 건너뛰고 달력만 즉시 갱신!
   Future<void> flushForCalendarWidgetOnly() async {
     await HagomNativeWidgetSync.updateMonthCalendarOnly(this);

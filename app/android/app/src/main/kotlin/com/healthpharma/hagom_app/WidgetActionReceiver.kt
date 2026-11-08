@@ -18,10 +18,24 @@ import es.antonborri.home_widget.HomeWidgetPlugin
  */
 class WidgetActionReceiver : BroadcastReceiver() {
 
+    companion object {
+        // 🌟 [디바운스 락]: 0.8초 동안 동일 버튼 연타 시 무시하여 널뛰기/경쟁 상태 완벽 차단!
+        private val lastClickTimes = java.util.concurrent.ConcurrentHashMap<String, Long>()
+    }
+
     override fun onReceive(context: Context, intent: Intent) {
         val uri = intent.data ?: return
         val host = uri.host ?: uri.path?.replace("/", "") ?: return
         val action = host.lowercase()
+
+        // 디바운스 검사: 동일 uri 액션이 800ms 이내에 연속으로 들어오면 튕겨냄
+        val now = System.currentTimeMillis()
+        val uriKey = uri.toString()
+        val lastClick = lastClickTimes[uriKey] ?: 0L
+        if (now - lastClick < 800L) {
+            return // 연타 무시
+        }
+        lastClickTimes[uriKey] = now
 
         val prefs = context.getSharedPreferences("HomeWidgetPreferences", Context.MODE_PRIVATE)
         val editor = prefs.edit()

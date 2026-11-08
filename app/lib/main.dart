@@ -37,7 +37,7 @@ Future<void> handleWidgetUriAction(Uri? uri) async {
         final slot = med.doseSlots[slotIdx];
         if (!slot.isCompleted) {
           state.completeSlot(med.id, slotIdx);
-          await state.flushForWidget();
+          await state.flushDataToDiskOnly();
         }
         return;
       }
@@ -48,7 +48,7 @@ Future<void> handleWidgetUriAction(Uri? uri) async {
         final slot = med.doseSlots[i];
         if (!slot.isCompleted && !slot.isSkipped) {
           state.completeSlot(med.id, i);
-          await state.flushForWidget();
+          await state.flushDataToDiskOnly();
           return;
         }
       }
@@ -58,7 +58,7 @@ Future<void> handleWidgetUriAction(Uri? uri) async {
       final habit = state.habits.firstWhere((h) => h.id == id);
       if (habit.score < 1.0) {
         state.advanceHabitProgress(habit.id);
-        await state.flushForWidget();
+        await state.flushDataToDiskOnly();
       }
       return;
     }
@@ -66,7 +66,7 @@ Future<void> handleWidgetUriAction(Uri? uri) async {
     for (final habit in todayHabits) {
       if (habit.score < 1.0) {
         state.advanceHabitProgress(habit.id);
-        await state.flushForWidget();
+        await state.flushDataToDiskOnly();
         return;
       }
     }
@@ -74,16 +74,15 @@ Future<void> handleWidgetUriAction(Uri? uri) async {
     // 할일은 위젯에서도 완료 <-> 취소 토글을 자유롭게 허용
     if (id != null && state.tasks.any((t) => t.id == id)) {
       state.toggleTaskCompleted(id);
-      await state.flushForWidget();
+      await state.flushDataToDiskOnly();
       return;
     }
     final todayTasks = state.getTasksForDay(DateTime.now());
     if (todayTasks.isNotEmpty) {
       state.toggleTaskCompleted(todayTasks.first.id);
-      await state.flushForWidget();
+      await state.flushDataToDiskOnly();
     }
   } else if (action == 'openmeds') {
-    state.setTargetTab(0);
   } else if (action == 'openhabits') {
     state.setTargetTab(1);
   } else if (action == 'opencalendar') {
