@@ -121,6 +121,9 @@ Future<void> handleWidgetUriAction(Uri? uri) async {
     await state.flushForCalendarWidgetOnly();
   } else if (action == 'openroom') {
     state.setTargetTab(0, openRoom: true);
+  } else if (action == 'next_mascot_stage') {
+    state.nextMascotStage();
+    await state.flushForWidget();
   }
 }
 

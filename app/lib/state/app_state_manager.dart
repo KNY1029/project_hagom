@@ -96,6 +96,18 @@ class AppStateManager extends ChangeNotifier {
     notifyListeners();
   }
 
+  // --- 🐻 하곰이 응원/상태 위젯 단계 (1~9단계) ---
+  int mascotStageIndex = 0; // 0: 기대, 1: 기다림, ..., 8: 붕괴
+
+  void nextMascotStage() {
+    mascotStageIndex = (mascotStageIndex + 1) % 9;
+    notifyListeners();
+  }
+
+  void setMascotStage(int index) {
+    mascotStageIndex = index.clamp(0, 8);
+    notifyListeners();
+  }
   void setCompletionFeedbackEnabled(bool value) {
     completionFeedbackEnabled = value;
     _prefs?.setBool('hagom_completion_feedback', value);
@@ -707,6 +719,7 @@ class AppStateManager extends ChangeNotifier {
       await _prefs!.setBool('hagom_habit_noti', habitNotificationEnabled);
       await _prefs!.setBool('hagom_tasks_noti', tasksNotificationEnabled);
       await _prefs!.setBool('hagom_mascot_noti', mascotNotificationEnabled);
+      await _prefs!.setInt('hagom_mascot_stage_index', mascotStageIndex);
       await _prefs!.setBool('hagom_completion_feedback', completionFeedbackEnabled);
       await _prefs!.setString('hagom_noti_freq', notificationFrequency);
       await _prefs!.setInt('hagom_daily_reset_hour', dailyResetHour);
@@ -823,6 +836,7 @@ class AppStateManager extends ChangeNotifier {
       habitNotificationEnabled = _prefs!.getBool('hagom_habit_noti') ?? true;
       tasksNotificationEnabled = _prefs!.getBool('hagom_tasks_noti') ?? true;
       mascotNotificationEnabled = _prefs!.getBool('hagom_mascot_noti') ?? true;
+      mascotStageIndex = _prefs!.getInt('hagom_mascot_stage_index') ?? 0;
       completionFeedbackEnabled = _prefs!.getBool('hagom_completion_feedback') ?? true;
       notificationFrequency = _prefs!.getString('hagom_noti_freq') ?? '기본';
       dailyResetHour = _prefs!.getInt('hagom_daily_reset_hour') ?? 8;

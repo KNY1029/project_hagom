@@ -22,34 +22,72 @@ class HagomNativeWidgetSync {
     try {
       // Save accent colors before providers refresh from HomeWidget preferences.
       // -------------------------------------------------------------
-      // 1) 마스코트 응원 위젯
+      // 1) 마스코트 응원 위젯 (9단계 상태 지원)
       // -------------------------------------------------------------
-      final totalMeds = state.totalDoseSlots;
-      final compMeds = state.completedDoseSlots;
-      final todayHabits = state.habits.where((h) => h.isDueToday).toList();
-      final habitTotal = todayHabits.length;
-      final habitScore = state.habitTotalScore;
+      const List<Map<String, String>> mascotStages = [
+        {
+          'badge': '1. 기대',
+          'quote': '유저가 접속해서 기록을 이어갈 것이라 믿고 웃어주는 모습',
+          'sub': '비처벌적 푸시',
+          'image': 'hagom_widget_stage_1',
+        },
+        {
+          'badge': '2. 기다림',
+          'quote': '생각보다 유저의 귀환이 늦어져서 슬슬 초조해지는 모습',
+          'sub': '하곰이와 상호작용할 도덕적 의무감 부여',
+          'image': 'hagom_widget_stage_2',
+        },
+        {
+          'badge': '3. 부담',
+          'quote': '어째서 돌아오지 않는지 알고 싶어하는 모습',
+          'sub': '앱 접속이 오래 끊겼다는 걸 확대이미지를 통해 강조',
+          'image': 'hagom_widget_stage_3',
+        },
+        {
+          'badge': '4. 당황',
+          'quote': '정말로 발걸음이 끊겼다는 걸 받아들이지 못하는 모습',
+          'sub': '하곰이의 불안과 당혹감',
+          'image': 'hagom_widget_stage_4',
+        },
+        {
+          'badge': '5. 분노',
+          'quote': '하곰이의 듀오링고적 면 살짝 보여주고 싶었음',
+          'sub': '흑화 가능하다는 가능성 시사',
+          'image': 'hagom_widget_stage_5',
+        },
+        {
+          'badge': '6. 슬픔',
+          'quote': '눈물이 점점 차오르는 모습',
+          'sub': '어 한번 들어가봐야 하나 싶도록 존재감 어필',
+          'image': 'hagom_widget_stage_6',
+        },
+        {
+          'badge': '7. 피로',
+          'quote': '다 울고 나서 바싹 마른 모습',
+          'sub': '기존 이미지와 다르게 망가지는 표현으로 재접속 시도',
+          'image': 'hagom_widget_stage_7',
+        },
+        {
+          'badge': '8. 절망',
+          'quote': '극적인 표현과 명암대비로 시선 붙잡기',
+          'sub': '시선 붙잡고 재접속 유도',
+          'image': 'hagom_widget_stage_8',
+        },
+        {
+          'badge': '9. 붕괴',
+          'quote': '최종단계로 완전히 고장난/고사한 모습',
+          'sub': '다마고치 사망 같은 무게감의 엔딩',
+          'image': 'hagom_widget_stage_9',
+        },
+      ];
 
-      final bool isMedAll = totalMeds > 0 && compMeds >= totalMeds;
-      final bool isHabitAll = habitTotal > 0 && habitScore >= habitTotal.toDouble();
+      final currentStage = mascotStages[state.mascotStageIndex.clamp(0, mascotStages.length - 1)];
 
-      String mascotBadge;
-      String mascotQuote;
-      String mascotSub;
+      await HomeWidget.saveWidgetData<String>('mascot_badge', currentStage['badge']!);
+      await HomeWidget.saveWidgetData<String>('mascot_quote', currentStage['quote']!);
+      await HomeWidget.saveWidgetData<String>('mascot_sub', currentStage['sub']!);
+      await HomeWidget.saveWidgetData<String>('mascot_image', currentStage['image']!);
 
-      if (isMedAll && isHabitAll) {
-        mascotBadge = '기쁨 (올클리어)';
-        mascotQuote = '오늘 약과 루틴을 모두 완료했어요!\n스스로를 아끼는 마음이 정말 멋져요.';
-        mascotSub = '오늘의 모든 목표 달성 완료';
-      } else {
-        mascotBadge = '하곰이의 응원';
-        mascotQuote = '한 가지만 실천해도 충분해요.\n오늘 약 하나만 챙겨도 대단한 거예요.';
-        mascotSub = '천천히 편안한 속도로 가요';
-      }
-
-      await HomeWidget.saveWidgetData<String>('mascot_badge', mascotBadge);
-      await HomeWidget.saveWidgetData<String>('mascot_quote', mascotQuote);
-      await HomeWidget.saveWidgetData<String>('mascot_sub', mascotSub);
       await HomeWidget.updateWidget(
         name: mascotProvider,
         androidName: mascotProvider,
@@ -58,6 +96,8 @@ class HagomNativeWidgetSync {
       // -------------------------------------------------------------
       // 2) 복약 관리 위젯
       // -------------------------------------------------------------
+      final totalMeds = state.totalDoseSlots;
+      final compMeds = state.completedDoseSlots;
       final List<_MedSlotEntry> todaySlots = [];
       for (final med in state.medications) {
         if (!med.isDueToday) continue;
@@ -156,6 +196,7 @@ class HagomNativeWidgetSync {
       // -------------------------------------------------------------
       // 3) 습관 관리 위젯
       // -------------------------------------------------------------
+      final todayHabits = state.habits.where((h) => h.isDueToday).toList();
       final pendingHabits = todayHabits.where((h) => h.score < 1.0).toList();
       final primaryHabit = pendingHabits.isNotEmpty
           ? pendingHabits.first

@@ -14,19 +14,43 @@ class HagomMascotWidgetProvider : HomeWidgetProvider() {
         appWidgetIds: IntArray,
         widgetData: SharedPreferences
     ) {
-        for (appWidgetId in appWidgetIds) {
+        val targetIds = if (appWidgetIds.isNotEmpty()) {
+            appWidgetIds
+        } else {
+            appWidgetManager.getAppWidgetIds(
+                android.content.ComponentName(context, HagomMascotWidgetProvider::class.java)
+            )
+        }
+
+        for (appWidgetId in targetIds) {
             val views = RemoteViews(context.packageName, R.layout.hagom_mascot_widget).apply {
-                val badge = widgetData.getString("mascot_badge", "하곰이의 응원")
-                val quote = widgetData.getString("mascot_quote", "한 가지만 실천해도 충분해요.\n오늘 약 하나만 챙겨도 대단한 거예요.")
-                val sub = widgetData.getString("mascot_sub", "천천히 편안한 속도로 가요")
+                val badge = widgetData.getString("mascot_badge", "1. 기대")
+                val quote = widgetData.getString("mascot_quote", "유저가 접속해서 기록을 이어갈 것이라 믿고 웃어주는 모습")
+                val sub = widgetData.getString("mascot_sub", "비처벌적 푸시")
+                val imageName = widgetData.getString("mascot_image", "hagom_widget_stage_1")
 
                 setTextViewText(R.id.widget_mascot_badge, badge)
                 setTextViewText(R.id.widget_mascot_quote, quote)
                 setTextViewText(R.id.widget_mascot_sub, sub)
 
+                val imageRes = when (imageName) {
+                    "hagom_widget_stage_1" -> R.drawable.hagom_widget_stage_1
+                    "hagom_widget_stage_2" -> R.drawable.hagom_widget_stage_2
+                    "hagom_widget_stage_3" -> R.drawable.hagom_widget_stage_3
+                    "hagom_widget_stage_4" -> R.drawable.hagom_widget_stage_4
+                    "hagom_widget_stage_5" -> R.drawable.hagom_widget_stage_5
+                    "hagom_widget_stage_6" -> R.drawable.hagom_widget_stage_6
+                    "hagom_widget_stage_7" -> R.drawable.hagom_widget_stage_7
+                    "hagom_widget_stage_8" -> R.drawable.hagom_widget_stage_8
+                    "hagom_widget_stage_9" -> R.drawable.hagom_widget_stage_9
+                    else -> R.drawable.hagom_widget_stage_1
+                }
+                setImageViewResource(R.id.widget_mascot_img, imageRes)
+
+                // 🌟 위젯 터치 시 백그라운드로 다음 단계(1~9단계 순환)로 즉시 전환!
                 setOnClickPendingIntent(
                     R.id.widget_mascot_container,
-                    WidgetBindings.openAppIntent(context, "hagomwidget://openroom", 1004)
+                    WidgetBindings.actionIntent(context, "hagomwidget://next_mascot_stage", 5001)
                 )
             }
             appWidgetManager.updateAppWidget(appWidgetId, views)
