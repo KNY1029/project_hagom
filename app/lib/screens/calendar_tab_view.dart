@@ -78,24 +78,6 @@ class _CalendarTabViewState extends State<CalendarTabView> {
     });
   }
 
-  // 🌟 [월별 시각 비교 라벨]:
-  String _getMonthComparisonLabel(int m) {
-    switch (m) {
-      case 8:
-        return '8월: A안(에메랄드) + 연결형';
-      case 7:
-        return '7월: B안(제이드) + 연결형';
-      case 6:
-        return '6월: C안(켈리그린) + 연결형';
-      case 9:
-        return '9월: B안(제이드) + 독립형';
-      case 10:
-        return '10월: C안(켈리그린) + 독립형';
-      default:
-        return 'A안(에메랄드) + 독립형';
-    }
-  }
-
   // 🌟 [월별 완료 초록 컬러 선택]:
   Color _getDoneGreenColor(int m) {
     switch (m) {
@@ -764,21 +746,6 @@ class _CalendarTabViewState extends State<CalendarTabView> {
                   style: TextStyle(fontSize: 19, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
                 ),
                 const SizedBox(width: 6),
-                // 🌟 월별 시각 비교 라벨 배지 (6~10월)
-                if (_currentMonth.year == 2026 && _currentMonth.month >= 6 && _currentMonth.month <= 10) ...[
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                    decoration: BoxDecoration(
-                      color: AppColors.lightLavender,
-                      borderRadius: BorderRadius.circular(4),
-                    ),
-                    child: Text(
-                      _getMonthComparisonLabel(_currentMonth.month),
-                      style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: AppColors.primaryPurple),
-                    ),
-                  ),
-                  const SizedBox(width: 4),
-                ],
                 IconButton(
                   icon: Icon(Icons.chevron_left, size: 22, color: AppColors.textSecondary),
                   onPressed: () => _changeMonth(-1),
@@ -845,7 +812,8 @@ class _CalendarTabViewState extends State<CalendarTabView> {
                   mainAxisSpacing: 4,
                   // 🌟 연결형 모드(6, 7, 8월)에서는 칸들 사이의 가로 빈 공간(Gap)을 0으로 만들어 완전히 맞닿아 띠처럼 이어짐!
                   crossAxisSpacing: (_currentMonth.year == 2026 && (_currentMonth.month >= 6 && _currentMonth.month <= 8)) ? 0 : 4,
-                  childAspectRatio: 0.95,
+                  // 🌟 crossAxisSpacing이 0이 되어 가로 폭이 늘어난 만큼, 세로 높이가 커지지 않고 다른 달과 똑같은 아담한 높이를 유지하도록 종횡비 보정(1.02)!
+                  childAspectRatio: (_currentMonth.year == 2026 && (_currentMonth.month >= 6 && _currentMonth.month <= 8)) ? 1.02 : 0.95,
                 ),
                 itemBuilder: (ctx, idx) {
                   final dayOffset = idx - firstWeekday + 1;
@@ -882,6 +850,15 @@ class _CalendarTabViewState extends State<CalendarTabView> {
                   // 🌟 복약 하단 바 색상 결정:
                   Color medBarColor = currentDoneGreen;
                   bool hasMedBar = false;
+
+                  // 🌟 월별 독립형 하단 바 굵기(Thickness) 비교:
+                  // - 11월: 3.5px (기본 도톰한 두께)
+                  // - 10월: 4.5px (더 굵고 시원한 두께)
+                  // - 9월: 5.5px (묵직하고 확실하게 눈에 띄는 두께)
+                  // - 8, 7, 6월(연결형): 3.5px
+                  final double barThickness = (monthNum == 9)
+                      ? 5.5
+                      : (monthNum == 10 ? 4.5 : 3.5);
                   if (!isFuture && !isBeforeTracking) {
                     if (isMed100) {
                       medBarColor = currentDoneGreen;
@@ -968,10 +945,10 @@ class _CalendarTabViewState extends State<CalendarTabView> {
                               left: isConnectedMode ? 0 : 8,
                               right: isConnectedMode ? 0 : 8,
                               child: Container(
-                                height: 3.5,
+                                height: barThickness, // 🌟 월별로 달라지는 굵기 (3.5px, 4.5px, 5.5px)
                                 decoration: BoxDecoration(
                                   color: medBarColor, // 🌟 색상(초록/빨강/보라)만 달라지며 빈 공간 없이 쭉 연결!
-                                  borderRadius: isConnectedMode ? BorderRadius.zero : BorderRadius.circular(2),
+                                  borderRadius: isConnectedMode ? BorderRadius.zero : BorderRadius.circular(barThickness / 2),
                                 ),
                               ),
                             ),
