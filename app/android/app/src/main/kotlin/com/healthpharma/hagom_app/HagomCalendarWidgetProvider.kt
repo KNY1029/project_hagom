@@ -85,11 +85,11 @@ class HagomCalendarWidgetProvider : HomeWidgetProvider() {
                 val btnPending = if (mainAction.isNotEmpty()) {
                     WidgetBindings.actionIntent(context, mainAction)
                 } else {
-                    WidgetBindings.noopIntent(context)
+                    // 🌟 할일이 없어서 [열기] 상태이거나 액션이 없을 때는 탭 시 달력 탭(앱)으로 즉시 열기!
+                    openCalIntent
                 }
                 setOnClickPendingIntent(R.id.widget_calendar_btn, btnPending)
                 setOnClickPendingIntent(R.id.widget_calendar_btn_compact, btnPending)
-
                 setViewVisibility(R.id.calendar_expanded_list, if (maxRows > 0) View.VISIBLE else View.GONE)
 
                 val rowIds = listOf(

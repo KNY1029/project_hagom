@@ -95,7 +95,8 @@ class HagomHabitsWidgetProvider : HomeWidgetProvider() {
                     val btnPending = if (state != "done" && mainAction.isNotEmpty()) {
                         WidgetBindings.actionIntent(context, mainAction)
                     } else {
-                        WidgetBindings.noopIntent(context)
+                        // 습관이 없어서 [열기]이거나 완료 상태일 때는 습관 탭(앱)으로 열기!
+                        openHabitsIntent
                     }
                     setOnClickPendingIntent(R.id.widget_habits_btn, btnPending)
                     setOnClickPendingIntent(R.id.widget_habits_btn_compact, btnPending)

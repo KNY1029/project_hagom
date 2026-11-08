@@ -89,7 +89,8 @@ class HagomMedsWidgetProvider : HomeWidgetProvider() {
                     val btnPending = if (mainAction.isNotEmpty()) {
                         WidgetBindings.actionIntent(context, mainAction)
                     } else {
-                        WidgetBindings.noopIntent(context)
+                        // 약이 없어서 [열기]이거나 완료 상태일 때는 복약 탭(앱)으로 열기!
+                        openMedsIntent
                     }
                     setOnClickPendingIntent(R.id.widget_meds_btn, btnPending)
                     setOnClickPendingIntent(R.id.widget_meds_btn_compact, btnPending)
