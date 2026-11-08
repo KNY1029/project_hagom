@@ -280,11 +280,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
       );
 
       final now = DateTime.now();
-      // 🌟 파일명 형식: 하곰이_날짜_시간.xlsx (예: 하곰이_20261108_2355.xlsx)
+      // 🌟 요청하신 파일명 형식: hagom_날짜_시간.xlsx (예: hagom_20261109_0015.xlsx)
       final dateStr = '${now.year}${now.month.toString().padLeft(2, '0')}${now.day.toString().padLeft(2, '0')}';
       final timeStr = '${now.hour.toString().padLeft(2, '0')}${now.minute.toString().padLeft(2, '0')}';
-      final fileName = '하곰이_${dateStr}_$timeStr.xlsx';
-
+      final fileName = 'hagom_${dateStr}_$timeStr.xlsx';
       // 안드로이드 공용 Download 폴더에 단일 엑셀 파일 다운로드
       await _exportChannel.invokeMethod<Map>('downloadExcel', {
         'fileName': fileName,
@@ -427,7 +426,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     ),
                     SizedBox(height: 3),
                     Text(
-                      '정신약학 맞춤 복약 솔루션 · v0.90.219',
+                      '정신약학 맞춤 복약 솔루션 · v0.90.221',
                       style: TextStyle(
                         fontSize: 12,
                         color: AppColors.textSecondary,

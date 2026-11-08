@@ -98,7 +98,7 @@ class HagomHabitsWidgetProvider : HomeWidgetProvider() {
                     val (bgRes, txtColor) = when (state) {
                         "done" -> R.drawable.hagom_widget_green_btn_bg to Color.parseColor("#1B6B46")
                         "partial" -> R.drawable.hagom_widget_brown_btn_bg to Color.parseColor("#8B5E3C")
-                        else -> R.drawable.hagom_widget_habit_btn_bg to Color.WHITE
+                        else -> R.drawable.hagom_widget_gray_btn_bg to Color.parseColor("#6B7280")
                     }
                     setInt(R.id.widget_habits_btn, "setBackgroundResource", bgRes)
                     setTextColor(R.id.widget_habits_btn_title, txtColor)
@@ -134,11 +134,13 @@ class HagomHabitsWidgetProvider : HomeWidgetProvider() {
                             "habits_row_${n}_short",
                             "habits_row_${n}_done",
                             "habits_row_${n}_action",
-                            "실천",
-                            R.drawable.hagom_widget_habit_btn_bg,
+                            "대기",
+                            R.drawable.hagom_widget_gray_btn_bg,
                             isNarrow,
                             allowCompletedToggle = false,
-                            allowShow = idx < maxRows
+                            allowShow = idx < maxRows,
+                            customBtnLabelKey = "habits_row_${n}_btn_label",
+                            customBtnStateKey = "habits_row_${n}_state"
                         )
                     }
                 }

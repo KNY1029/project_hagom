@@ -89,7 +89,9 @@ object WidgetBindings {
         pendingBg: Int,
         isNarrow: Boolean,
         allowCompletedToggle: Boolean,
-        allowShow: Boolean
+        allowShow: Boolean,
+        customBtnLabelKey: String = "",
+        customBtnStateKey: String = ""
     ) {
         if (!allowShow) {
             views.setViewVisibility(rowId, View.GONE)
@@ -105,17 +107,28 @@ object WidgetBindings {
         views.setViewVisibility(rowId, View.VISIBLE)
         views.setTextViewText(textId, display)
 
-        val isDone = prefs.getString(doneKey, "false") == "true"
+        val customLabel = if (customBtnLabelKey.isNotEmpty()) text(prefs, customBtnLabelKey) else ""
+        val customState = if (customBtnStateKey.isNotEmpty()) text(prefs, customBtnStateKey) else ""
+        val isDone = prefs.getString(doneKey, "false") == "true" || customState == "done"
+
         if (isDone) {
             views.setTextViewText(btnId, "완료")
-            views.setInt(btnId, "setBackgroundResource", R.drawable.hagom_widget_done_bg)
-            views.setTextColor(btnId, Color.parseColor("#044E36"))
+            views.setInt(btnId, "setBackgroundResource", R.drawable.hagom_widget_green_btn_bg)
+            views.setTextColor(btnId, Color.parseColor("#1B6B46"))
+        } else if (customLabel.isNotEmpty()) {
+            views.setTextViewText(btnId, customLabel)
+            if (customState == "partial") {
+                views.setInt(btnId, "setBackgroundResource", R.drawable.hagom_widget_brown_btn_bg)
+                views.setTextColor(btnId, Color.parseColor("#8B5E3C"))
+            } else {
+                views.setInt(btnId, "setBackgroundResource", R.drawable.hagom_widget_gray_btn_bg)
+                views.setTextColor(btnId, Color.parseColor("#6B7280"))
+            }
         } else {
             views.setTextViewText(btnId, pendingLabel)
             views.setInt(btnId, "setBackgroundResource", pendingBg)
             views.setTextColor(btnId, Color.WHITE)
         }
-
         val action = text(prefs, actionKey)
         if ((!isDone || allowCompletedToggle) && action.isNotEmpty()) {
             views.setOnClickPendingIntent(btnId, actionIntent(context, action))

@@ -87,12 +87,7 @@ class HagomNativeWidgetSync {
       await HomeWidget.saveWidgetData<String>('mascot_quote', currentStage['quote']!);
       await HomeWidget.saveWidgetData<String>('mascot_sub', currentStage['sub']!);
       await HomeWidget.saveWidgetData<String>('mascot_image', currentStage['image']!);
-
-      await HomeWidget.updateWidget(
-        name: mascotProvider,
-        androidName: mascotProvider,
-        qualifiedAndroidName: 'com.healthpharma.hagom_app.$mascotProvider',
-      );
+      // 1) 마스코트 데이터 준비 완료
       // -------------------------------------------------------------
       // 2) 복약 관리 위젯
       // -------------------------------------------------------------
@@ -188,20 +183,21 @@ class HagomNativeWidgetSync {
           await HomeWidget.saveWidgetData<String>('meds_row_${n}_action', '');
         }
       }
-      await HomeWidget.updateWidget(
-        name: medsProvider,
-        androidName: medsProvider,
-        qualifiedAndroidName: 'com.healthpharma.hagom_app.$medsProvider',
-      );
+      // 2) 복약 데이터 준비 완료
       // -------------------------------------------------------------
       // 3) 습관 관리 위젯
       // -------------------------------------------------------------
+      // 🌟 [습관 정렬 규칙]:
+      // 1) 사용자가 앱에서 위아래로 설정한 원래 순서(state.habits)를 기본으로 유지!
+      // 2) 미완료 습관(score < 1.0)들을 원래 순서대로 상단에 배치
+      // 3) 완료된 습관(score >= 1.0)들을 원래 순서대로 맨 밑으로 내림!
       final todayHabits = state.habits.where((h) => h.isDueToday).toList();
       final pendingHabits = todayHabits.where((h) => h.score < 1.0).toList();
-      final primaryHabit = pendingHabits.isNotEmpty
-          ? pendingHabits.first
-          : (todayHabits.isNotEmpty ? todayHabits.first : null);
-      final doneHabitCount = todayHabits.where((h) => h.score >= 1.0).length;
+      final completedHabits = todayHabits.where((h) => h.score >= 1.0).toList();
+      final orderedAllHabits = [...pendingHabits, ...completedHabits];
+
+      final primaryHabit = orderedAllHabits.isNotEmpty ? orderedAllHabits.first : null;
+      final doneHabitCount = completedHabits.length;
 
       String habitsTag = '오늘의 습관';
       String habitsProgress = '$doneHabitCount/${todayHabits.length} 완료';
@@ -220,26 +216,28 @@ class HagomNativeWidgetSync {
         habitsState = 'standby';
         habitsAction = '';
       } else {
-        final countInfo = primaryHabit.targetPerDay > 1
-            ? ' (${primaryHabit.currentCount}/${primaryHabit.targetPerDay})'
-            : '';
-        habitsTitle = '${primaryHabit.title}$countInfo';
+        // 🌟 버튼 안에 이미 "1/4회"가 들어가므로 제목 옆의 (1/4) 괄호는 깔끔하게 제거!
+        habitsTitle = primaryHabit.title;
         habitsSubtitle = primaryHabit.subtitle;
         habitsSubtitleShort = primaryHabit.targetPerDay > 1
             ? '${primaryHabit.currentCount}/${primaryHabit.targetPerDay}회 실천'
             : primaryHabit.recurrenceSummary;
+
+        // 🌟 앱 내부 상태와 100% 동일한 버튼 라벨 ("대기", "조금 실천", "1/4회", "완료")
+        habitsBtnTitle = primaryHabit.statusLabel;
+        final cur = primaryHabit.currentCount;
+        final target = primaryHabit.targetPerDay;
+        final habitUri = 'hagomwidget://checkhabit?id=${Uri.encodeComponent(primaryHabit.id)}&cur=$cur&target=$target';
+
         if (primaryHabit.score >= 1.0) {
-          habitsBtnTitle = '완료';
           habitsState = 'done';
           habitsAction = '';
         } else if (primaryHabit.score > 0.0) {
-          habitsBtnTitle = '실천';
           habitsState = 'partial';
-          habitsAction = 'hagomwidget://checkhabit?id=${Uri.encodeComponent(primaryHabit.id)}';
+          habitsAction = habitUri;
         } else {
-          habitsBtnTitle = '실천';
           habitsState = 'standby';
-          habitsAction = 'hagomwidget://checkhabit?id=${Uri.encodeComponent(primaryHabit.id)}';
+          habitsAction = habitUri;
         }
       }
 
@@ -254,36 +252,39 @@ class HagomNativeWidgetSync {
       await HomeWidget.saveWidgetData<String>('habits_state', habitsState);
       await HomeWidget.saveWidgetData<String>('habits_action', habitsAction);
 
-      final remainingHabits = todayHabits.where((h) => h.id != primaryHabit?.id).toList();
-      final orderedHabits = [
-        ...remainingHabits.where((h) => h.score < 1.0),
-        ...remainingHabits.where((h) => h.score >= 1.0),
-      ];
+      // 나머지 6개 행에도 사용자가 설정한 순서대로 미완료 상단 -> 완료 하단 배치
+      final remainingHabits = orderedAllHabits.where((h) => h.id != primaryHabit?.id).toList();
       for (int i = 0; i < 6; i++) {
         final n = i + 1;
-        if (i < orderedHabits.length) {
-          final h = orderedHabits[i];
-          final prog = h.targetPerDay > 1 ? ' (${h.currentCount}/${h.targetPerDay})' : '';
+        if (i < remainingHabits.length) {
+          final h = remainingHabits[i];
           final isDone = h.score >= 1.0;
-          await HomeWidget.saveWidgetData<String>('habits_row_${n}_text', '${h.title}$prog');
+          final stateStr = isDone ? 'done' : (h.score > 0.0 ? 'partial' : 'standby');
+
+          // 🌟 개별 행에서도 텍스트 옆 (1/4) 괄호를 완전히 떼고 순수 제목만 깔끔하게 노출
+          await HomeWidget.saveWidgetData<String>('habits_row_${n}_text', h.title);
           await HomeWidget.saveWidgetData<String>('habits_row_${n}_short', h.title);
           await HomeWidget.saveWidgetData<String>('habits_row_${n}_done', isDone ? 'true' : 'false');
+          // 🌟 개별 행 버튼 텍스트도 "대기", "조금 실천", "1/4회", "완료" 등으로 상세 표시!
+          await HomeWidget.saveWidgetData<String>('habits_row_${n}_btn_label', h.statusLabel);
+          await HomeWidget.saveWidgetData<String>('habits_row_${n}_state', stateStr);
+          final hCur = h.currentCount;
+          final hTarget = h.targetPerDay;
+          final rowActionUri = 'hagomwidget://checkhabit?id=${Uri.encodeComponent(h.id)}&cur=$hCur&target=$hTarget';
           await HomeWidget.saveWidgetData<String>(
             'habits_row_${n}_action',
-            isDone ? '' : 'hagomwidget://checkhabit?id=${Uri.encodeComponent(h.id)}',
+            isDone ? '' : rowActionUri,
           );
         } else {
           await HomeWidget.saveWidgetData<String>('habits_row_${n}_text', '');
           await HomeWidget.saveWidgetData<String>('habits_row_${n}_short', '');
           await HomeWidget.saveWidgetData<String>('habits_row_${n}_done', 'false');
+          await HomeWidget.saveWidgetData<String>('habits_row_${n}_btn_label', '');
+          await HomeWidget.saveWidgetData<String>('habits_row_${n}_state', '');
           await HomeWidget.saveWidgetData<String>('habits_row_${n}_action', '');
         }
       }
-      await HomeWidget.updateWidget(
-        name: habitsProvider,
-        androidName: habitsProvider,
-        qualifiedAndroidName: 'com.healthpharma.hagom_app.$habitsProvider',
-      );
+      // 3) 습관 데이터 준비 완료
       // -------------------------------------------------------------
       // 4) 할일 / 일정 위젯
       // -------------------------------------------------------------
@@ -353,11 +354,7 @@ class HagomNativeWidgetSync {
           await HomeWidget.saveWidgetData<String>('cal_row_${n}_action', '');
         }
       }
-      await HomeWidget.updateWidget(
-        name: calendarProvider,
-        androidName: calendarProvider,
-        qualifiedAndroidName: 'com.healthpharma.hagom_app.$calendarProvider',
-      );
+      // 4) 할일 데이터 준비 완료
 
       // -------------------------------------------------------------
       // 5) 4x4 한 달 기록 달력 위젯
@@ -532,11 +529,16 @@ class HagomNativeWidgetSync {
           await HomeWidget.saveWidgetData<String>('month_today_task_$n', '');
         }
       }
-      await HomeWidget.updateWidget(
-        name: monthCalendarProvider,
-        androidName: monthCalendarProvider,
-        qualifiedAndroidName: 'com.healthpharma.hagom_app.$monthCalendarProvider',
-      );
+
+      // 🌟 [동시 일괄 갱신]: 5개 위젯이 하나씩 따로따로 바뀌며 덜컹거리는 현상을 막고,
+      // 모든 데이터 저장이 끝난 후 단 한 번에 5개 위젯을 동시에 일괄 업데이트(Atomic Simultaneous Batch)합니다!
+      await Future.wait([
+        HomeWidget.updateWidget(name: mascotProvider, androidName: mascotProvider, qualifiedAndroidName: 'com.healthpharma.hagom_app.$mascotProvider'),
+        HomeWidget.updateWidget(name: medsProvider, androidName: medsProvider, qualifiedAndroidName: 'com.healthpharma.hagom_app.$medsProvider'),
+        HomeWidget.updateWidget(name: habitsProvider, androidName: habitsProvider, qualifiedAndroidName: 'com.healthpharma.hagom_app.$habitsProvider'),
+        HomeWidget.updateWidget(name: calendarProvider, androidName: calendarProvider, qualifiedAndroidName: 'com.healthpharma.hagom_app.$calendarProvider'),
+        HomeWidget.updateWidget(name: monthCalendarProvider, androidName: monthCalendarProvider, qualifiedAndroidName: 'com.healthpharma.hagom_app.$monthCalendarProvider'),
+      ]);
     } catch (e) {
       debugPrint('Native widget update error: $e');
     }

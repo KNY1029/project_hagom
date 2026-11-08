@@ -94,11 +94,15 @@ class HagomMedsWidgetProvider : HomeWidgetProvider() {
                     setViewVisibility(R.id.widget_meds_btn, if (isNarrow) View.GONE else View.VISIBLE)
                     setViewVisibility(R.id.widget_meds_btn_compact, if (isNarrow) View.VISIBLE else View.GONE)
 
-                    setInt(R.id.widget_meds_btn, "setBackgroundResource", R.drawable.hagom_widget_btn_bg)
-                    setTextColor(R.id.widget_meds_btn_title, Color.WHITE)
-                    setInt(R.id.widget_meds_btn_compact, "setBackgroundResource", R.drawable.hagom_widget_btn_bg)
-                    setTextColor(R.id.widget_meds_btn_compact_title, Color.WHITE)
+                    // 🌟 복용 완료 시 보라색이 아닌 초록색 완료 버튼(배경 #EAF8F1, 텍스트 #1B6B46)으로 즉시 반영!
+                    val isBtnDone = (btnTitle == "완료" || allDone)
+                    val bgRes = if (isBtnDone) R.drawable.hagom_widget_green_btn_bg else R.drawable.hagom_widget_btn_bg
+                    val txtColor = if (isBtnDone) Color.parseColor("#1B6B46") else Color.WHITE
 
+                    setInt(R.id.widget_meds_btn, "setBackgroundResource", bgRes)
+                    setTextColor(R.id.widget_meds_btn_title, txtColor)
+                    setInt(R.id.widget_meds_btn_compact, "setBackgroundResource", bgRes)
+                    setTextColor(R.id.widget_meds_btn_compact_title, txtColor)
                     val mainAction = WidgetBindings.text(widgetData, "meds_action")
                     val btnPending = if (mainAction.isNotEmpty()) {
                         WidgetBindings.actionIntent(context, mainAction)

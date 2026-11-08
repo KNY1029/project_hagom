@@ -122,21 +122,99 @@ class WidgetActionReceiver : BroadcastReceiver() {
             }
 
             "checkhabit" -> {
-                // 🌱 습관 체크 탭: 해당 row 즉각 완료 처리 및 메인 실천 버튼 즉시 변경!
+                // 🌱 습관 체크 탭: 0.01초 만에 다음 상태 라벨로 정확하게 전진!
+                // (3/4회에서 눌렀을 때만 완료로 바뀌고, 그 전에는 2/4회, 3/4회로 즉시 다음 번호로 이동)
                 val id = uri.getQueryParameter("id")
+                val curParam = uri.getQueryParameter("cur")?.toIntOrNull()
+                val targetParam = uri.getQueryParameter("target")?.toIntOrNull() ?: 1
+
+                // 1) row 일치 항목 즉시 갱신
                 for (n in 1..6) {
                     val actionStr = prefs.getString("habits_row_${n}_action", "") ?: ""
                     if (id != null && actionStr.contains("id=$id")) {
-                        editor.putString("habits_row_${n}_done", "true")
-                        editor.putString("habits_row_${n}_action", "")
+                        val curVal = curParam ?: 0
+                        val nextVal = curVal + 1
+                        val isTargetMulti = targetParam > 1
+
+                        val nextLabel: String
+                        val nextState: String
+                        val isDone: Boolean
+
+                        if (isTargetMulti) {
+                            if (nextVal >= targetParam) {
+                                nextLabel = "완료"
+                                nextState = "done"
+                                isDone = true
+                            } else {
+                                nextLabel = "$nextVal/${targetParam}회"
+                                nextState = "partial"
+                                isDone = false
+                            }
+                        } else {
+                            if (nextVal >= 2) {
+                                nextLabel = "완료"
+                                nextState = "done"
+                                isDone = true
+                            } else {
+                                nextLabel = "조금 실천"
+                                nextState = "partial"
+                                isDone = false
+                            }
+                        }
+
+                        editor.putString("habits_row_${n}_btn_label", nextLabel)
+                        editor.putString("habits_row_${n}_state", nextState)
+                        editor.putString("habits_row_${n}_done", if (isDone) "true" else "false")
+                        if (isDone) {
+                            editor.putString("habits_row_${n}_action", "")
+                        } else {
+                            // 다음 번 탭을 위한 uri 파라미터 갱신
+                            editor.putString("habits_row_${n}_action", "hagomwidget://checkhabit?id=$id&cur=$nextVal&target=$targetParam")
+                        }
                         break
                     }
                 }
+
+                // 2) 메인 헤더 대표 습관 버튼 즉시 갱신
                 val mainAction = prefs.getString("habits_action", "") ?: ""
                 if (mainAction.isNotEmpty() && (id == null || mainAction.contains("id=$id"))) {
-                    editor.putString("habits_state", "done")
-                    editor.putString("habits_btn_title", "완료")
-                    editor.putString("habits_action", "")
+                    val curVal = curParam ?: 0
+                    val nextVal = curVal + 1
+                    val isTargetMulti = targetParam > 1
+
+                    val nextLabel: String
+                    val nextState: String
+                    val isDone: Boolean
+
+                    if (isTargetMulti) {
+                        if (nextVal >= targetParam) {
+                            nextLabel = "완료"
+                            nextState = "done"
+                            isDone = true
+                        } else {
+                            nextLabel = "$nextVal/${targetParam}회"
+                            nextState = "partial"
+                            isDone = false
+                        }
+                    } else {
+                        if (nextVal >= 2) {
+                            nextLabel = "완료"
+                            nextState = "done"
+                            isDone = true
+                        } else {
+                            nextLabel = "조금 실천"
+                            nextState = "partial"
+                            isDone = false
+                        }
+                    }
+
+                    editor.putString("habits_btn_title", nextLabel)
+                    editor.putString("habits_state", nextState)
+                    if (isDone) {
+                        editor.putString("habits_action", "")
+                    } else {
+                        editor.putString("habits_action", "hagomwidget://checkhabit?id=${id ?: ""}&cur=$nextVal&target=$targetParam")
+                    }
                 }
                 editor.apply()
 

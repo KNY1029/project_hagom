@@ -33,9 +33,8 @@ class MainActivity : FlutterActivity() {
             when (call.method) {
                 "showTestNotification" -> showTestNotification(result)
                 "downloadExcel" -> {
-                    val fileName = call.argument<String>("fileName") ?: "하곰이_건강기록.xlsx"
+                    val fileName = call.argument<String>("fileName") ?: "hagom_건강기록.xlsx"
                     val bytes = call.argument<ByteArray>("bytes") ?: ByteArray(0)
-
                     try {
                         var savedPath = ""
                         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
