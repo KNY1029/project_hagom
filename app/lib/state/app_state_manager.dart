@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'package:excel/excel.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/medication_item.dart';
@@ -1505,9 +1506,219 @@ class AppStateManager extends ChangeNotifier {
 
     notifyListeners();
   }
-  // 🌟 [통합 건강 데이터 다중 시트/영역 생성기]:
-  // 기간(startDate ~ endDate) 내의 모든 복약, 습관, 할일 데이터를 날짜별로 완벽하게 추출합니다.
-  // 반환값: { '1_처방약': 'csvContent', '2_일반약및영양제': 'csvContent', ... }
+  // 🌟 [통합 건강 데이터 단일 엑셀(XLSX) 다중 시트 생성기]:
+  // 하나의 엑셀 파일 안에 4대 카테고리가 각기 다른 탭(Sheet)으로 깔끔하게 분리되어 저장됩니다.
+  List<int> generateExcelWorkbook({
+    required DateTime startDate,
+    required DateTime endDate,
+    bool includePrescription = true,
+    bool includeOtc = true,
+    bool includeHabits = true,
+    bool includeTasks = true,
+  }) {
+    final excel = Excel.createExcel();
+    final sDate = DateTime(startDate.year, startDate.month, startDate.day);
+    final eDate = DateTime(endDate.year, endDate.month, endDate.day);
+
+    final List<DateTime> dateRange = [];
+    DateTime cur = sDate;
+    while (!cur.isAfter(eDate)) {
+      dateRange.add(cur);
+      cur = cur.add(const Duration(days: 1));
+    }
+
+    // 1. 💊 1. 처방약 관리 데이터 시트
+    if (includePrescription) {
+      final Sheet sheet = excel['1. 처방약 관리'];
+      sheet.appendRow([TextCellValue('1. 처방약 관리 데이터')]);
+      sheet.appendRow([TextCellValue('조회 기간: ${_dateKey(sDate)} ~ ${_dateKey(eDate)}')]);
+      sheet.appendRow([TextCellValue('추출 일시: ${DateTime.now().toString().substring(0, 19)}')]);
+      sheet.appendRow([TextCellValue('')]);
+      sheet.appendRow([
+        TextCellValue('기록 일자'),
+        TextCellValue('약물 ID'),
+        TextCellValue('약품명'),
+        TextCellValue('복용법'),
+        TextCellValue('기타 메모'),
+        TextCellValue('복용 주기'),
+        TextCellValue('복용 기간'),
+        TextCellValue('회차(시간대)'),
+        TextCellValue('예정 시각'),
+        TextCellValue('복용 여부'),
+        TextCellValue('실제 복용 시각'),
+        TextCellValue('기록 방식'),
+      ]);
+
+      final rxMeds = _medications.where((m) => m.isPrescription).toList();
+      for (final day in dateRange) {
+        final dStr = _dateKey(day);
+        for (final med in rxMeds) {
+          for (int slotIdx = 0; slotIdx < med.doseSlots.length; slotIdx++) {
+            final slot = med.doseSlots[slotIdx];
+            final isDone = isSlotCompletedForDay(day, med.id, slotIdx);
+            final takenTime = getSlotTakenTimeForDay(day, med.id, slotIdx) ?? (isDone ? (slot.scheduledTime ?? '완료') : '-');
+            final statusStr = isDone ? '복용 완료' : (slot.isSkipped ? '건너뜀' : '미복용/대기');
+            final recordMethod = !isDone
+                ? '-'
+                : (isSlotRetroactive(day, med.id, slotIdx) ? '달력 사후 수정' : '당일 실시간 체크');
+
+            sheet.appendRow([
+              TextCellValue(dStr),
+              TextCellValue(med.id),
+              TextCellValue(med.name),
+              TextCellValue(med.dosage),
+              TextCellValue(med.memo ?? '-'),
+              TextCellValue(med.recurrenceSummary),
+              TextCellValue(med.durationSummary),
+              TextCellValue(slot.label),
+              TextCellValue(slot.scheduledTime ?? '-'),
+              TextCellValue(statusStr),
+              TextCellValue(takenTime),
+              TextCellValue(recordMethod),
+            ]);
+          }
+        }
+      }
+    }
+
+    // 2. 🌿 2. 일반의약품 및 영양제 데이터 시트
+    if (includeOtc) {
+      final Sheet sheet = excel['2. 일반약 및 영양제'];
+      sheet.appendRow([TextCellValue('2. 일반의약품 및 영양제 데이터')]);
+      sheet.appendRow([TextCellValue('조회 기간: ${_dateKey(sDate)} ~ ${_dateKey(eDate)}')]);
+      sheet.appendRow([TextCellValue('추출 일시: ${DateTime.now().toString().substring(0, 19)}')]);
+      sheet.appendRow([TextCellValue('')]);
+      sheet.appendRow([
+        TextCellValue('기록 일자'),
+        TextCellValue('약물 ID'),
+        TextCellValue('약품명'),
+        TextCellValue('복용법'),
+        TextCellValue('기타 메모'),
+        TextCellValue('복용 주기'),
+        TextCellValue('복용 기간'),
+        TextCellValue('회차(시간대)'),
+        TextCellValue('예정 시각'),
+        TextCellValue('복용 여부'),
+        TextCellValue('실제 복용 시각'),
+        TextCellValue('기록 방식'),
+      ]);
+
+      final otcMeds = _medications.where((m) => !m.isPrescription).toList();
+      for (final day in dateRange) {
+        final dStr = _dateKey(day);
+        for (final med in otcMeds) {
+          for (int slotIdx = 0; slotIdx < med.doseSlots.length; slotIdx++) {
+            final slot = med.doseSlots[slotIdx];
+            final isDone = isSlotCompletedForDay(day, med.id, slotIdx);
+            final takenTime = getSlotTakenTimeForDay(day, med.id, slotIdx) ?? (isDone ? (slot.scheduledTime ?? '완료') : '-');
+            final statusStr = isDone ? '복용 완료' : (slot.isSkipped ? '건너뜀' : '미복용/대기');
+            final recordMethod = !isDone
+                ? '-'
+                : (isSlotRetroactive(day, med.id, slotIdx) ? '달력 사후 수정' : '당일 실시간 체크');
+
+            sheet.appendRow([
+              TextCellValue(dStr),
+              TextCellValue(med.id),
+              TextCellValue(med.name),
+              TextCellValue(med.dosage),
+              TextCellValue(med.memo ?? '-'),
+              TextCellValue(med.recurrenceSummary),
+              TextCellValue(med.durationSummary),
+              TextCellValue(slot.label),
+              TextCellValue(slot.scheduledTime ?? '-'),
+              TextCellValue(statusStr),
+              TextCellValue(takenTime),
+              TextCellValue(recordMethod),
+            ]);
+          }
+        }
+      }
+    }
+
+    // 3. 🌱 3. 작은 습관 관리 데이터 시트
+    if (includeHabits) {
+      final Sheet sheet = excel['3. 작은 습관'];
+      sheet.appendRow([TextCellValue('3. 작은 습관 관리 데이터')]);
+      sheet.appendRow([TextCellValue('조회 기간: ${_dateKey(sDate)} ~ ${_dateKey(eDate)}')]);
+      sheet.appendRow([TextCellValue('추출 일시: ${DateTime.now().toString().substring(0, 19)}')]);
+      sheet.appendRow([TextCellValue('')]);
+      sheet.appendRow([
+        TextCellValue('기록 일자'),
+        TextCellValue('습관 ID'),
+        TextCellValue('습관 제목'),
+        TextCellValue('상세 설명'),
+        TextCellValue('실천 주기'),
+        TextCellValue('1일 목표 횟수'),
+        TextCellValue('해당일 실천 점수'),
+        TextCellValue('달성률(%)'),
+        TextCellValue('평가 상태'),
+      ]);
+
+      for (final day in dateRange) {
+        final dStr = _dateKey(day);
+        for (final habit in _habits) {
+          final score = getHabitScoreForDay(day, habit.id);
+          final percent = (score * 100).toInt();
+          final evaluation = score >= 1.0 ? '목표 달성' : (score > 0 ? '일부 실천' : '실천 대기');
+          sheet.appendRow([
+            TextCellValue(dStr),
+            TextCellValue(habit.id),
+            TextCellValue(habit.title),
+            TextCellValue(habit.subtitle),
+            TextCellValue(habit.recurrenceSummary),
+            TextCellValue('${habit.targetPerDay}회'),
+            TextCellValue(score.toString()),
+            TextCellValue('$percent%'),
+            TextCellValue(evaluation),
+          ]);
+        }
+      }
+    }
+
+    // 4. 🗓️ 4. 할일 및 일정 관리 데이터 시트
+    if (includeTasks) {
+      final Sheet sheet = excel['4. 할일 및 일정'];
+      sheet.appendRow([TextCellValue('4. 할일 및 일정 관리 데이터')]);
+      sheet.appendRow([TextCellValue('조회 기간: ${_dateKey(sDate)} ~ ${_dateKey(eDate)}')]);
+      sheet.appendRow([TextCellValue('추출 일시: ${DateTime.now().toString().substring(0, 19)}')]);
+      sheet.appendRow([TextCellValue('')]);
+      sheet.appendRow([
+        TextCellValue('대상 일자'),
+        TextCellValue('일정 ID'),
+        TextCellValue('일정명'),
+        TextCellValue('예정 시각'),
+        TextCellValue('완료 여부'),
+        TextCellValue('반복 설정'),
+        TextCellValue('알림 설정'),
+      ]);
+
+      for (final day in dateRange) {
+        final dayTasks = getTasksForDay(day);
+        final dStr = _dateKey(day);
+        for (final task in dayTasks) {
+          final statusStr = task.isCompleted ? '완료' : '진행 대기';
+          sheet.appendRow([
+            TextCellValue(dStr),
+            TextCellValue(task.id),
+            TextCellValue(task.title),
+            TextCellValue(task.time ?? '-'),
+            TextCellValue(statusStr),
+            TextCellValue(task.repeatSummary),
+            TextCellValue(task.reminderSummary),
+          ]);
+        }
+      }
+    }
+
+    // 기본 생성되는 빈 Sheet1 제거 (원하는 시트가 하나라도 생성된 경우)
+    if (excel.sheets.keys.any((k) => k != 'Sheet1')) {
+      excel.delete('Sheet1');
+    }
+
+    return excel.encode() ?? <int>[];
+  }
+
+  // 🌟 [통합 건강 데이터 다중 섹션 추출기 (CSV 호환)]:
   Map<String, String> generateHealthDataReportsBySection({
     required DateTime startDate,
     required DateTime endDate,

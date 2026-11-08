@@ -269,7 +269,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
     required bool includeTasks,
   }) async {
     try {
-      final reports = _state.generateHealthDataReportsBySection(
+      // 🌟 단일 엑셀 파일 안에 4대 카테고리가 4개의 개별 시트(Sheet)로 깔끔하게 분리되어 들어감!
+      final excelBytes = _state.generateExcelWorkbook(
         startDate: startDate,
         endDate: endDate,
         includePrescription: includePrescription,
@@ -279,21 +280,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
       );
 
       final now = DateTime.now();
-      // 🌟 요청하신 파일명 형식: 하곰이_날짜_시간 (예: 하곰이_20261108_2315)
+      // 🌟 파일명 형식: 하곰이_날짜_시간.xlsx (예: 하곰이_20261108_2355.xlsx)
       final dateStr = '${now.year}${now.month.toString().padLeft(2, '0')}${now.day.toString().padLeft(2, '0')}';
       final timeStr = '${now.hour.toString().padLeft(2, '0')}${now.minute.toString().padLeft(2, '0')}';
-      final basePrefix = '하곰이_${dateStr}_$timeStr';
+      final fileName = '하곰이_${dateStr}_$timeStr.xlsx';
 
-      // 각 번호별 섹션을 개별 시트(CSV) 파일로 매핑
-      final Map<String, String> filesToDownload = {};
-      reports.forEach((sectionKey, content) {
-        final fName = '${basePrefix}_$sectionKey.csv';
-        filesToDownload[fName] = content;
-      });
-
-      // 안드로이드 공용 Download 폴더에 다중 파일 실제 다운로드
-      await _exportChannel.invokeMethod<Map>('downloadMultipleCsv', {
-        'files': filesToDownload,
+      // 안드로이드 공용 Download 폴더에 단일 엑셀 파일 다운로드
+      await _exportChannel.invokeMethod<Map>('downloadExcel', {
+        'fileName': fileName,
+        'bytes': excelBytes,
       });
 
       if (mounted) {
@@ -302,10 +297,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
           builder: (dCtx) => AlertDialog(
             title: Text('다운로드 완료', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
             content: Text(
-              '스마트폰의 [다운로드] 폴더에 선택하신 기간의 데이터가 번호별 개별 시트(CSV) 파일로 성공적으로 저장되었어요!\n\n'
+              '스마트폰의 [다운로드] 폴더에 하나의 엑셀 파일로 성공적으로 저장되었어요!\n\n'
+              '📄 저장된 파일명:\n• $fileName\n\n'
               '📅 조회 기간: ${startDate.year}.${startDate.month.toString().padLeft(2, '0')}.${startDate.day.toString().padLeft(2, '0')} ~ ${endDate.year}.${endDate.month.toString().padLeft(2, '0')}.${endDate.day.toString().padLeft(2, '0')}\n\n'
-              '📁 저장된 파일 목록:\n${filesToDownload.keys.map((k) => '• $k').join('\n')}\n\n'
-              '내 파일 앱의 [다운로드] 카테고리나 엑셀 앱에서 바로 열어보실 수 있어요.',
+              '📑 파일 내부 분리된 시트(Sheet) 목록:\n'
+              '• 1. 처방약 관리\n'
+              '• 2. 일반약 및 영양제\n'
+              '• 3. 작은 습관\n'
+              '• 4. 할일 및 일정\n\n'
+              '엑셀(Excel)이나 한셀 앱에서 열면 하단 탭으로 시트별 데이터를 확인하실 수 있어요.',
               style: const TextStyle(fontSize: 12.5, height: 1.45),
             ),
             actions: [
@@ -427,7 +427,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     ),
                     SizedBox(height: 3),
                     Text(
-                      '정신약학 맞춤 복약 솔루션 · v0.90.218',
+                      '정신약학 맞춤 복약 솔루션 · v0.90.219',
                       style: TextStyle(
                         fontSize: 12,
                         color: AppColors.textSecondary,

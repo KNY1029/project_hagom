@@ -32,6 +32,38 @@ class MainActivity : FlutterActivity() {
         MethodChannel(flutterEngine.dartExecutor.binaryMessenger, CHANNEL).setMethodCallHandler { call, result ->
             when (call.method) {
                 "showTestNotification" -> showTestNotification(result)
+                "downloadExcel" -> {
+                    val fileName = call.argument<String>("fileName") ?: "하곰이_건강기록.xlsx"
+                    val bytes = call.argument<ByteArray>("bytes") ?: ByteArray(0)
+
+                    try {
+                        var savedPath = ""
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                            val values = ContentValues().apply {
+                                put(MediaStore.MediaColumns.DISPLAY_NAME, fileName)
+                                put(MediaStore.MediaColumns.MIME_TYPE, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+                                put(MediaStore.MediaColumns.RELATIVE_PATH, Environment.DIRECTORY_DOWNLOADS)
+                            }
+                            val uri = contentResolver.insert(MediaStore.Downloads.EXTERNAL_CONTENT_URI, values)
+                            if (uri != null) {
+                                contentResolver.openOutputStream(uri)?.use { output ->
+                                    output.write(bytes)
+                                }
+                                savedPath = "다운로드 폴더 ($fileName)"
+                            }
+                        } else {
+                            val downloadsDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
+                            val file = File(downloadsDir, fileName)
+                            FileOutputStream(file).use { output ->
+                                output.write(bytes)
+                            }
+                            savedPath = file.absolutePath
+                        }
+                        result.success(mapOf("success" to true, "path" to savedPath, "fileName" to fileName))
+                    } catch (e: Exception) {
+                        result.error("EXPORT_ERROR", e.message, null)
+                    }
+                }
                 "downloadCsv" -> {
                     val fileName = call.argument<String>("fileName") ?: "하곰이_건강기록.csv"
                     val content = call.argument<String>("content") ?: ""

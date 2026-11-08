@@ -89,19 +89,29 @@ class WidgetActionReceiver : BroadcastReceiver() {
             }
 
             "checkmed" -> {
-                // 💊 복약 체크 탭: 해당 row를 즉각 '완료' 상태로 바꾸고 위젯 즉시 갱신!
+                // 💊 복약 체크 탭: 해당 row를 즉각 '완료' 상태로 바꾸고, 메인 복용 버튼도 즉시 변경!
                 val id = uri.getQueryParameter("id")
                 val slot = uri.getQueryParameter("slot")
-                // 위젯 내 meds_row_1~6 중 일치하는 row 찾아서 done=true 처리
+                
+                // 1) row 일치 항목 체크
                 for (n in 1..6) {
                     val actionStr = prefs.getString("meds_row_${n}_action", "") ?: ""
-                    if (actionStr.contains("id=$id") && actionStr.contains("slot=$slot")) {
+                    if ((id != null && slot != null && actionStr.contains("id=$id") && actionStr.contains("slot=$slot")) ||
+                        (id != null && actionStr.contains("id=$id"))) {
                         editor.putString("meds_row_${n}_done", "true")
-                        editor.putString("meds_row_${n}_action", "") // 중복 클릭 방지
-                        editor.apply()
+                        editor.putString("meds_row_${n}_action", "")
                         break
                     }
                 }
+                
+                // 2) 메인 헤더 복용 버튼 체크 (primary med 탭인 경우)
+                val mainAction = prefs.getString("meds_action", "") ?: ""
+                if (mainAction.isNotEmpty() && (id == null || mainAction.contains("id=$id"))) {
+                    editor.putString("meds_btn_title", "완료")
+                    editor.putString("meds_action", "")
+                }
+                editor.apply()
+
                 val ids = appWidgetManager.getAppWidgetIds(
                     ComponentName(context, HagomMedsWidgetProvider::class.java)
                 )
@@ -112,17 +122,24 @@ class WidgetActionReceiver : BroadcastReceiver() {
             }
 
             "checkhabit" -> {
-                // 🌱 습관 체크 탭: 해당 row 즉각 완료 처리 및 위젯 즉시 갱신!
+                // 🌱 습관 체크 탭: 해당 row 즉각 완료 처리 및 메인 실천 버튼 즉시 변경!
                 val id = uri.getQueryParameter("id")
                 for (n in 1..6) {
                     val actionStr = prefs.getString("habits_row_${n}_action", "") ?: ""
-                    if (actionStr.contains("id=$id")) {
+                    if (id != null && actionStr.contains("id=$id")) {
                         editor.putString("habits_row_${n}_done", "true")
                         editor.putString("habits_row_${n}_action", "")
-                        editor.apply()
                         break
                     }
                 }
+                val mainAction = prefs.getString("habits_action", "") ?: ""
+                if (mainAction.isNotEmpty() && (id == null || mainAction.contains("id=$id"))) {
+                    editor.putString("habits_state", "done")
+                    editor.putString("habits_btn_title", "완료")
+                    editor.putString("habits_action", "")
+                }
+                editor.apply()
+
                 val ids = appWidgetManager.getAppWidgetIds(
                     ComponentName(context, HagomHabitsWidgetProvider::class.java)
                 )
@@ -131,7 +148,6 @@ class WidgetActionReceiver : BroadcastReceiver() {
                     provider.onUpdate(context, appWidgetManager, ids, prefs)
                 }
             }
-
             "checktask" -> {
                 // 🗓️ 할일 체크 탭: 완료 토글 및 위젯 즉시 갱신!
                 val id = uri.getQueryParameter("id")
