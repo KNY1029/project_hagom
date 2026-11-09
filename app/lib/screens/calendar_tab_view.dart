@@ -817,12 +817,10 @@ class _CalendarTabViewState extends State<CalendarTabView> {
                 gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                   crossAxisCount: 7,
                   mainAxisSpacing: 4,
-                  // 🌟 연결형 모드(8월, 12월, 2~4월): 칸들 사이 가로 빈 공간을 0으로 만들어 띠처럼 이어짐!
-                  crossAxisSpacing: ((_currentMonth.year == 2026 && (_currentMonth.month >= 2 && _currentMonth.month <= 4 || _currentMonth.month == 8 || _currentMonth.month == 12)) ||
-                                     (_currentMonth.year == 2025 && _currentMonth.month == 12)) ? 0 : 4,
+                  // 🌟 연결형 모드(2~4월): 칸들 사이 가로 빈 공간을 0으로 만들어 띠처럼 이어짐! 8월과 12월은 사용자 스크린샷대로 독립형(간격 4, 종횡비 0.95)
+                  crossAxisSpacing: (_currentMonth.year == 2026 && (_currentMonth.month >= 2 && _currentMonth.month <= 4)) ? 0 : 4,
                   // 🌟 연결형 모드 종횡비 보정(1.02)
-                  childAspectRatio: ((_currentMonth.year == 2026 && (_currentMonth.month >= 2 && _currentMonth.month <= 4 || _currentMonth.month == 8 || _currentMonth.month == 12)) ||
-                                     (_currentMonth.year == 2025 && _currentMonth.month == 12)) ? 1.02 : 0.95,
+                  childAspectRatio: (_currentMonth.year == 2026 && (_currentMonth.month >= 2 && _currentMonth.month <= 4)) ? 1.02 : 0.95,
                 ),
                 itemBuilder: (ctx, idx) {
                   final dayOffset = idx - firstWeekday + 1;
@@ -845,11 +843,11 @@ class _CalendarTabViewState extends State<CalendarTabView> {
                   final monthNum = _currentMonth.month;
 
                   // 🌟 [월별 형태 모드]:
-                  // 8월 & 12월 (2025/2026): 8월 레이아웃 그대로 좌우 꽉 찬 연결형 바 (left: 0, right: 0) + 3.5px
-                  final isConnectedMode = ((_currentMonth.year == 2026 && ((monthNum >= 1 && monthNum <= 4) || monthNum == 8 || monthNum == 12)) ||
-                                           (_currentMonth.year == 2025 && monthNum == 12));
+                  // 🌟 [월별 형태 모드]:
+                  // 1월~4월: 좌우 연결형 (Continuous Streak)
+                  // 5월~12월 (8월 & 12월 포함): 독립형 (사용자 스크린샷 그대로 간격 4, 좌우 8 여백 바, 둥근 모서리)
+                  final isConnectedMode = (_currentMonth.year == 2026 && (monthNum >= 1 && monthNum <= 4));
                   final Color currentDoneGreen = _getDoneGreenColor(monthNum);
-
                   // 🌟 [월별 미완료 색상 비교 (연보라 vs 쿨그레이)]:
                   // - 8월, 9월, 10월, 2월, 3월, 4월, 11월: 화사한 파스텔 연보라 (바: #B39DDB, 핀: #C4B5FD)
                   // - 5월, 6월, 7월, 1월, 그리고 12월(2025년/2026년 5월 색상 요청!): 정갈한 소프트 쿨그레이 (바: #9CA3AF, 핀: #D1D5DB)

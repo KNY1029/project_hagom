@@ -881,7 +881,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     ),
                     SizedBox(height: 3),
                     Text(
-                      '정신약학 맞춤 복약 솔루션 · v0.90.233',
+                      '정신약학 맞춤 복약 솔루션 · v0.90.235',
                       style: TextStyle(
                         fontSize: 12,
                         color: AppColors.textSecondary,
@@ -926,10 +926,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       const SizedBox(height: 6),
                       Text(
                         _state.notificationFrequency == '최소'
-                            ? '필수 알림: 유저님이 직접 계획한 실천사항을 시간에 맞춰 안내해요!'
+                            ? '직접 계획한 실천사항을 시간에 맞춰 안내해요!'
                             : (_state.notificationFrequency == '기본'
-                                ? '필수 알림 + 3일 이상 미출석 시 안부 + 다정한 토크 알림'
-                                : '필수 알림 (미실천 시 재알림) + 3일 이상 미출석 + 다정한 토크 + 매콤한 토크'),
+                                ? '실천 알림에 더해, 하곰이가 종종 말을 걸어와요!'
+                                : '하곰이의 밀착 케어! 스파르타식 관리를 받아요!'),
                         style: const TextStyle(fontSize: 11.5, color: AppColors.textMuted),
                       ),
                       const SizedBox(height: 10),

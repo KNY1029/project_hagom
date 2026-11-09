@@ -1335,17 +1335,19 @@ class _MedsTabViewState extends State<MedsTabView> {
                                 behavior: HitTestBehavior.opaque,
                                 onTap: () {
                                   if (!slot.isCompleted && !slot.isSkipped) {
+                                    final wasMedDoneBefore = med.isAllCompleted;
                                     final wasAllDoneBefore = (_state.getMedRateForDay(DateTime.now()) ?? 0.0) >= 1.0;
                                     _state.completeSlot(med.id, idx);
+                                    final isMedDoneNow = med.isAllCompleted;
                                     final isAllDoneNow = (_state.getMedRateForDay(DateTime.now()) ?? 0.0) >= 1.0;
 
-                                    if (!wasAllDoneBefore && isAllDoneNow) {
-                                      // 🎉 오늘 복약 100% 올클리어! 투명 플로팅 하곰이 축하 오버레이 팝업 등장!
+                                    if ((!wasAllDoneBefore && isAllDoneNow) || (!wasMedDoneBefore && isMedDoneNow)) {
+                                      // 🎉 복약 완료! 투명 플로팅 하곰이 + 꽃가루 폭죽 축하 오버레이 팝업 등장!
                                       HagomCelebrationOverlay.show(
                                         context,
                                         assetPath: AppAssets.medsAllDoneWebp,
-                                        title: '오늘 복약 모두 완료!',
-                                        subtitle: '정말 대단해요! 오늘 복약을 전부 챙기셨어요.',
+                                        title: isAllDoneNow ? '오늘 복약 모두 완료!' : '${med.name} 복용 완료!',
+                                        subtitle: isAllDoneNow ? '정말 대단해요! 오늘 복약을 전부 챙기셨어요.' : '제시간에 복용을 완료하셨어요. 참 잘했어요!',
                                       );
                                     } else {
                                       final toast = HagomDialogue.getRandomMedToast('${med.name} ${slot.label}');
@@ -1403,17 +1405,19 @@ class _MedsTabViewState extends State<MedsTabView> {
                   GestureDetector(
                     onTap: () {
                       if (!isAllDone) {
+                        final wasMedDoneBefore = med.isAllCompleted;
                         final wasAllDoneBefore = (_state.getMedRateForDay(DateTime.now()) ?? 0.0) >= 1.0;
                         _state.completeNextSlot(med.id);
+                        final isMedDoneNow = med.isAllCompleted;
                         final isAllDoneNow = (_state.getMedRateForDay(DateTime.now()) ?? 0.0) >= 1.0;
 
-                        if (!wasAllDoneBefore && isAllDoneNow) {
-                          // 🎉 오늘 복약 100% 올클리어! 투명 플로팅 하곰이 축하 오버레이 팝업 등장!
+                        if ((!wasAllDoneBefore && isAllDoneNow) || (!wasMedDoneBefore && isMedDoneNow)) {
+                          // 🎉 복약 완료! 투명 플로팅 하곰이 + 꽃가루 폭죽 축하 오버레이 팝업 등장!
                           HagomCelebrationOverlay.show(
                             context,
                             assetPath: AppAssets.medsAllDoneWebp,
-                            title: '오늘 복약 모두 완료!',
-                            subtitle: '정말 대단해요! 오늘 복약을 전부 챙기셨어요.',
+                            title: isAllDoneNow ? '오늘 복약 모두 완료!' : '${med.name} 복용 완료!',
+                            subtitle: isAllDoneNow ? '정말 대단해요! 오늘 복약을 전부 챙기셨어요.' : '제시간에 복용을 완료하셨어요. 참 잘했어요!',
                           );
                         } else {
                           final toast = HagomDialogue.getRandomMedToast(med.name);

@@ -602,9 +602,8 @@ class AppStateManager extends ChangeNotifier {
     if (target.isAfter(today)) return null; // 미래 날짜는 깨끗하게 비움
 
     // 등록된 약이 하나도 없거나 오늘 복용할 약이 없으면 0.0 처리!
-    final dueMeds = _medications.where((m) => m.isDueOn(day)).toList();
+    final dueMeds = medications.where((m) => m.isDueOn(day)).toList();
     if (dueMeds.isEmpty) return 0.0;
-
     int total = 0;
     int completed = 0;
 
@@ -727,9 +726,8 @@ class AppStateManager extends ChangeNotifier {
     final target = DateTime(day.year, day.month, day.day);
 
     if (target.isAfter(today)) return null;
-    final dueHabits = _habits.where((h) => h.isDueOn(day)).toList();
+    final dueHabits = habits.where((h) => h.isDueOn(day)).toList();
     if (dueHabits.isEmpty) return 1.0;
-
     double sum = 0.0;
     for (final h in dueHabits) {
       sum += getHabitScoreForDay(day, h.id);
