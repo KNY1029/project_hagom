@@ -446,6 +446,295 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
+  // 📖 앱 사용 가이드 모달 (요약 버전 + 발표문/초기 가이드 상세 보기 토글)
+  void _showAppGuideModal() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (gCtx) {
+        bool isDetailedPresentationMode = false;
+
+        return StatefulBuilder(
+          builder: (innerCtx, setInnerState) {
+            return SafeArea(
+              child: Container(
+                height: MediaQuery.of(context).size.height * 0.85,
+                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Center(
+                      child: Container(
+                        width: 40,
+                        height: 4,
+                        margin: const EdgeInsets.only(bottom: 16),
+                        decoration: BoxDecoration(
+                          color: Colors.grey.shade300,
+                          borderRadius: BorderRadius.circular(2),
+                        ),
+                      ),
+                    ),
+                    Row(
+                      children: [
+                        Icon(
+                          isDetailedPresentationMode ? Icons.record_voice_over_outlined : Icons.menu_book_outlined,
+                          color: AppColors.primaryPurple,
+                          size: 22,
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          isDetailedPresentationMode ? '앱 가이드라인 (발표문 버전)' : '앱 사용 가이드 (요약 버전)',
+                          style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
+                        ),
+                        const Spacer(),
+                        IconButton(
+                          icon: const Icon(Icons.close, size: 20, color: AppColors.textMuted),
+                          onPressed: () => Navigator.of(gCtx).pop(),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 4),
+                    Row(
+                      children: [
+                        Text(
+                          isDetailedPresentationMode ? '처음 보았던 상세한 발표 가이드라인' : '핵심 기능 7대 포인트 한눈에 보기',
+                          style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
+                        ),
+                        const Spacer(),
+                        // 토글 버튼: 요약 버전 <-> 상세 발표문 버전
+                        TextButton.icon(
+                          style: TextButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                            visualDensity: VisualDensity.compact,
+                            backgroundColor: AppColors.primaryPurple.withValues(alpha: 0.08),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                          ),
+                          icon: Icon(
+                            isDetailedPresentationMode ? Icons.list_alt : Icons.description_outlined,
+                            size: 15,
+                            color: AppColors.primaryPurple,
+                          ),
+                          label: Text(
+                            isDetailedPresentationMode ? '요약본 보기' : '발표문 상세 보기',
+                            style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.bold, color: AppColors.primaryPurple),
+                          ),
+                          onPressed: () {
+                            setInnerState(() {
+                              isDetailedPresentationMode = !isDetailedPresentationMode;
+                            });
+                          },
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    const Divider(height: 1),
+                    Expanded(
+                      child: ListView(
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        children: isDetailedPresentationMode
+                            ? _buildPresentationGuideItems()
+                            : _buildSummaryGuideItems(),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  // 📝 요약 가이드 7대 항목
+  List<Widget> _buildSummaryGuideItems() {
+    return [
+      _buildGuideCard(
+        number: '1',
+        title: '복약 관리',
+        icon: Icons.medication_outlined,
+        items: [
+          '(1) 약 이름, 복용법 입력 (예: 콘서타, 물과 함께 경구 복용)',
+          '(2) 의사 처방 약물일 경우 체크 (아닐 경우 체크하지 않음)',
+          '(3) 복용 시간 설정',
+        ],
+      ),
+      const SizedBox(height: 12),
+      _buildGuideCard(
+        number: '2',
+        title: '습관 관리',
+        icon: Icons.eco_outlined,
+        items: [
+          '(1) 습관 이름, 작은 목표, 하루 목표 입력 (예: 물 마시기, 1잔씩, 4회)',
+          '(2) 실천 주기 설정 (옵션: 매일, 요일 선택, 주간 횟수, 오늘만)',
+          '(3) 알림 시각 지정 (직접 설정 가능) 또는 미지정 선택',
+        ],
+      ),
+      const SizedBox(height: 12),
+      _buildGuideCard(
+        number: '3',
+        title: '기록 달력',
+        icon: Icons.calendar_month_outlined,
+        items: [
+          '(1) 해당 날짜의 복약 현황, 습관 현황 조회 가능',
+          '(2) 하단 바의 색상 의미:\n  • 붉은색 하단 바 : 처방약을 먹지 않았을 때\n  • 회색 하단 바 : 약(처방약 제외)이나 습관을 통틀어 하나라도 미완료일 때\n  • 초록색 하단 바 : 복약과 습관을 모두 완료했을 때',
+          '(3) 오늘의 할 일 : 사용자가 별도로 추가 가능, 완료 이전에는 보라색 점이었다가 완료 후에 초록색 점으로 변환',
+        ],
+      ),
+      const SizedBox(height: 12),
+      _buildGuideCard(
+        number: '4',
+        title: '설정 (우측 상단 톱니바퀴)',
+        icon: Icons.settings_outlined,
+        items: [
+          '(1) 개인 성향에 따른 맞춤 설정 : 알림 반복 빈도(최소, 기본, 적극적 3가지 모드), 각 기능에 대해 별도로 알림 on/off 가능',
+          '(2) 복약 기록 다운로드 : 의료진과의 상담 등 도움, 엑셀 파일 형식, 추출할 정보 선택 가능, 저장 및 공유 기능 지원',
+        ],
+      ),
+      const SizedBox(height: 12),
+      _buildGuideCard(
+        number: '5',
+        title: '하곰이 (우측 상단)',
+        icon: Icons.sentiment_satisfied_alt_outlined,
+        items: [
+          '(1) 짧게 누르면 : 하곰이와의 대화',
+          '(2) 길게 누르면 : 하곰이의 방으로 이동',
+        ],
+      ),
+      const SizedBox(height: 12),
+      _buildGuideCard(
+        number: '6',
+        title: '하곰이의 방',
+        icon: Icons.home_outlined,
+        items: [
+          '(1) 하곰이, 하곰이의 위로와 응원, 누적접속일수 조회 가능',
+          '(2) 하곰이와의 유대감과 성취감을 충전할 수 있는 곳',
+        ],
+      ),
+      const SizedBox(height: 12),
+      _buildGuideCard(
+        number: '7',
+        title: '위젯',
+        icon: Icons.widgets_outlined,
+        items: [
+          '(1) 복약 관리, 습관 관리, 오늘의 할 일, 기록 달력 조회 가능',
+          '(2) 시간 순으로 정리된 목록',
+          '(3) 위젯 클릭 시 앱으로 이동',
+        ],
+      ),
+      const SizedBox(height: 16),
+    ];
+  }
+
+  // 🎙️ 발표문 버전 상세 가이드라인 항목
+  List<Widget> _buildPresentationGuideItems() {
+    return [
+      _buildPresentationSection(
+        number: '1',
+        title: '복약 관리 💊',
+        content: '병원에서 약을 처방받았다면, 약 이름과 복용법을 입력하고 의사 처방 필수 약물에 체크해줍니다. (처방약은 중요하기 때문에 알림이 상시 작동합니다.) 그리고 복용 시간을 설정합니다.\n\n'
+            '처방받은 약이 아닌 의약품이나 영양제의 경우, 체크 표시만 빼고 같은 방법으로 하면 됩니다.\n\n'
+            '‘지금 복용’을 누르면 현재 시각이 기록되며 ‘완료’로 바뀌고, 상단의 완수율이 올라갑니다. 오늘의 복약을 모두 완료하면 100%가 됩니다.',
+      ),
+      const SizedBox(height: 14),
+      _buildPresentationSection(
+        number: '2',
+        title: '습관 관리 🍃',
+        content: '습관 이름, 작은 목표와 하루 목표치를 설정합니다. 실천 주기를 입력하고, 필요하다면 알림 시각도 설정합니다.\n\n'
+            '습관을 1회 수행할 때마다 상단 완수율이 올라갑니다. 목표 횟수를 모두 채우면 ‘완료’로 바뀝니다.',
+      ),
+      const SizedBox(height: 14),
+      _buildPresentationSection(
+        number: '3',
+        title: '기록 달력 🗓',
+        content: '그동안 생활한 기록을 볼 수 있는 곳입니다. 날짜를 누르면, 해당 날짜의 복약 현황, 습관 현황이 보입니다.\n\n'
+            '처방받은 약을 미복용한 경우 붉은색 하단 바로 표시되며, 모든 복약과 습관을 완수하면 초록색 하단 바로 따뜻하게 채워집니다. 하나라도 미실천이 있다면 차분한 회색 바가 표시되어 스스로의 일상을 돌아볼 수 있습니다.',
+      ),
+      const SizedBox(height: 14),
+      _buildPresentationSection(
+        number: '4',
+        title: '의료진 소통 & 맞춤 설정 ⚙️',
+        content: '설정에서는 개인의 컨디션에 맞게 알림 빈도(최소, 기본, 적극적)를 조절할 수 있습니다.\n\n'
+            '또한 진료를 받으러 갈 때 [기록 다운로드] 기능을 활용하면, 엑셀 파일 형식으로 지금까지의 복약 순응도와 생활 습관 기록이 단일 파일 시트별로 정돈되어 추출되므로 담당 의사 선생님과 한층 정확하고 전문적인 상담을 나눌 수 있습니다.',
+      ),
+      const SizedBox(height: 16),
+    ];
+  }
+
+  Widget _buildGuideCard({required String number, required String title, required IconData icon, required List<String> items}) {
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: const Color(0xFFF9FAFB),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: const Color(0xFFE5E7EB)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                width: 22,
+                height: 22,
+                alignment: Alignment.center,
+                decoration: BoxDecoration(color: AppColors.primaryPurple, shape: BoxShape.circle),
+                child: Text(number, style: const TextStyle(color: Colors.white, fontSize: 11.5, fontWeight: FontWeight.bold)),
+              ),
+              const SizedBox(width: 8),
+              Icon(icon, size: 18, color: AppColors.primaryPurple),
+              const SizedBox(width: 6),
+              Text(title, style: TextStyle(fontSize: 14.5, fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
+            ],
+          ),
+          const SizedBox(height: 10),
+          ...items.map((it) => Padding(
+            padding: const EdgeInsets.only(bottom: 5),
+            child: Text(it, style: TextStyle(fontSize: 12, color: AppColors.textSecondary, height: 1.45)),
+          )),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPresentationSection({required String number, required String title, required String content}) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AppColors.primaryPurple.withValues(alpha: 0.25)),
+        boxShadow: [
+          BoxShadow(color: AppColors.primaryPurple.withValues(alpha: 0.04), blurRadius: 8, offset: const Offset(0, 2)),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                width: 24,
+                height: 24,
+                alignment: Alignment.center,
+                decoration: BoxDecoration(color: AppColors.primaryPurple, shape: BoxShape.circle),
+                child: Text(number, style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold)),
+              ),
+              const SizedBox(width: 8),
+              Text(title, style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: AppColors.primaryPurple)),
+            ],
+          ),
+          const SizedBox(height: 10),
+          Text(content, style: TextStyle(fontSize: 13, color: AppColors.textPrimary, height: 1.55)),
+        ],
+      ),
+    );
+  }
+
   Widget _buildPolicySection({required String title, required String content, required IconData icon}) {
     return Container(
       padding: const EdgeInsets.all(14),
@@ -881,7 +1170,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     ),
                     SizedBox(height: 3),
                     Text(
-                      '정신약학 맞춤 복약 솔루션 · v0.90.236',
+                      '정신약학 맞춤 복약 솔루션 · v0.90.237',
                       style: TextStyle(
                         fontSize: 12,
                         color: AppColors.textSecondary,
@@ -1174,15 +1463,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
                   leading: Icon(Icons.help_outline, color: AppColors.primaryPurple),
                   title: Text('앱 사용 가이드 다시 보기', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: AppColors.textPrimary)),
-                  subtitle: Text('처음 시작했을 때 보여줬던 가이드', style: TextStyle(fontSize: 11.5, color: AppColors.textSecondary)),
+                  subtitle: Text('핵심 요약 가이드 및 발표문 버전 상세 가이드라인', style: TextStyle(fontSize: 11.5, color: AppColors.textSecondary)),
                   trailing: const Icon(Icons.arrow_forward_ios, size: 14, color: AppColors.textMuted),
-                  onTap: () {
-                    Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder: (gCtx) => const SplashScreen(forceGreetingPreview: true),
-                      ),
-                    );
-                  },
+                  onTap: _showAppGuideModal,
                 ),
                 const Divider(height: 1, color: Color(0xFFF3F4F6)),
                 ListTile(
