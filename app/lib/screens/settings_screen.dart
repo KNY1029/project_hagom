@@ -331,6 +331,146 @@ class _SettingsScreenState extends State<SettingsScreen> {
     }
   }
 
+  // 📜 개인정보 처리방침 모달 (인앱 뷰어 + 외부 링크 열기)
+  void _showPrivacyPolicyModal() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (pCtx) {
+        return SafeArea(
+          child: Container(
+            height: MediaQuery.of(context).size.height * 0.8,
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Center(
+                  child: Container(
+                    width: 40,
+                    height: 4,
+                    margin: const EdgeInsets.only(bottom: 16),
+                    decoration: BoxDecoration(
+                      color: Colors.grey.shade300,
+                      borderRadius: BorderRadius.circular(2),
+                    ),
+                  ),
+                ),
+                Row(
+                  children: [
+                    Icon(Icons.privacy_tip_outlined, color: AppColors.primaryPurple, size: 22),
+                    const SizedBox(width: 8),
+                    Text(
+                      '하곰이 개인정보 처리방침',
+                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
+                    ),
+                    const Spacer(),
+                    IconButton(
+                      icon: const Icon(Icons.close, size: 20, color: AppColors.textMuted),
+                      onPressed: () => Navigator.of(pCtx).pop(),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 6),
+                Text(
+                  '환자 중심의 안전한 로컬 저장 솔루션 원칙',
+                  style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
+                ),
+                const SizedBox(height: 12),
+                const Divider(height: 1),
+                Expanded(
+                  child: ListView(
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    children: [
+                      _buildPolicySection(
+                        title: '1. 수집 항목',
+                        content: '하곰이 앱은 유저님의 개인정보(이름, 주민번호, 연락처 등)를 절대 요구하지 않아요!\n'
+                            '입력하시는 복약 정보와 생활 습관, 알림 설정 등은 오직 유저님의 스마트폰 내부(로컬)에만 안전하게 보관되며, '
+                            '외부 서버로 전송되지 않습니다. 복약 데이터는 유저님이 직접 엑셀 파일로 추출하여 담당 의료진에게 자유롭게 전달하고 공유하는 안전한 시스템입니다.',
+                        icon: Icons.shield_outlined,
+                      ),
+                      const SizedBox(height: 16),
+                      _buildPolicySection(
+                        title: '2. 보관 기간',
+                        content: '저희는 외부 서버에 개인정보를 보관하지 않습니다. '
+                            '유저님이 스마트폰에서 직접 삭제하기 전까지 데이터는 앱 내부 로컬 저장소에 남아 있어요!\n'
+                            '설정의 [기록 및 데이터 관리]에서 지우고 싶은 기간이나 특정 항목만 골라서 안전하게 지울 수도 있답니다.',
+                        icon: Icons.history_toggle_off,
+                      ),
+                      const SizedBox(height: 16),
+                      _buildPolicySection(
+                        title: '3. 활용 목적',
+                        content: '저희가 유저님의 데이터를 수집한다 해도, 그걸 대체 어디에 활용할지 모르겠네요.\n'
+                            '하곰이 앱은 유저님 개인의 편리한 복약과 자기 돌봄을 위한 순수한 건강 관리 서비스일 뿐입니다!',
+                        icon: Icons.volunteer_activism_outlined,
+                      ),
+                      const SizedBox(height: 16),
+                      _buildPolicySection(
+                        title: '4. 계정 및 데이터 삭제 방법',
+                        content: '계정을 만들고 로그인하는 기능은 추후 업데이트로 구현될 예정입니다. '
+                            '현재 버전에서는 앱을 삭제(삭제 시 기기 내 모든 데이터 영구 소멸)하시거나, 설정 탭의 [모든 데이터 전체 초기화]를 통해 언제든 하곰이와 깨끗하게 작별할 수 있어요.',
+                        icon: Icons.delete_forever_outlined,
+                      ),
+                      const SizedBox(height: 24),
+                      Center(
+                        child: OutlinedButton.icon(
+                          style: OutlinedButton.styleFrom(
+                            side: BorderSide(color: AppColors.primaryPurple),
+                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                          ),
+                          icon: Icon(Icons.open_in_browser, size: 18, color: AppColors.primaryPurple),
+                          label: Text(
+                            '조원 페이지에서 원문 보기 (lit.link/ko/hagom)',
+                            style: TextStyle(fontSize: 12.5, fontWeight: FontWeight.bold, color: AppColors.primaryPurple),
+                          ),
+                          onPressed: () async {
+                            try {
+                              await _exportChannel.invokeMethod('openUrl', {'url': 'https://lit.link/ko/hagom'});
+                            } catch (_) {}
+                          },
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildPolicySection({required String title, required String content, required IconData icon}) {
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: const Color(0xFFF9FAFB),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: const Color(0xFFE5E7EB)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(icon, size: 18, color: AppColors.primaryPurple),
+              const SizedBox(width: 8),
+              Text(title, style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Text(content, style: TextStyle(fontSize: 12.5, color: AppColors.textSecondary, height: 1.5)),
+        ],
+      ),
+    );
+  }
+
   // 🗑️ 데이터 기록 관리 & 선택적 삭제 모달
   void _showDataManagementModal() {
     showModalBottomSheet(
@@ -741,7 +881,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     ),
                     SizedBox(height: 3),
                     Text(
-                      '정신약학 맞춤 복약 솔루션 · v0.90.229',
+                      '정신약학 맞춤 복약 솔루션 · v0.90.230',
                       style: TextStyle(
                         fontSize: 12,
                         color: AppColors.textSecondary,
@@ -1021,6 +1161,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
             ),
             child: Column(
               children: [
+                ListTile(
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                  leading: Icon(Icons.privacy_tip_outlined, color: AppColors.primaryPurple),
+                  title: Text('개인정보 처리방침', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: AppColors.textPrimary)),
+                  subtitle: Text('수집 항목, 보관 기간 및 활용 목적 안내', style: TextStyle(fontSize: 11.5, color: AppColors.textSecondary)),
+                  trailing: const Icon(Icons.arrow_forward_ios, size: 14, color: AppColors.textMuted),
+                  onTap: _showPrivacyPolicyModal,
+                ),
+                const Divider(height: 1, color: Color(0xFFF3F4F6)),
                 ListTile(
                   contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
                   leading: Icon(Icons.help_outline, color: AppColors.primaryPurple),

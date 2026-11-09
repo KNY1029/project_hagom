@@ -31,6 +31,18 @@ class MainActivity : FlutterActivity() {
 
         MethodChannel(flutterEngine.dartExecutor.binaryMessenger, CHANNEL).setMethodCallHandler { call, result ->
             when (call.method) {
+                "openUrl" -> {
+                    val urlStr = call.argument<String>("url") ?: "https://lit.link/ko/hagom"
+                    try {
+                        val browserIntent = Intent(Intent.ACTION_VIEW, Uri.parse(urlStr)).apply {
+                            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                        }
+                        startActivity(browserIntent)
+                        result.success(true)
+                    } catch (e: Exception) {
+                        result.error("OPEN_URL_ERROR", e.message, null)
+                    }
+                }
                 "showTestNotification" -> showTestNotification(result)
                 "downloadExcel" -> {
                     val fileName = call.argument<String>("fileName") ?: "hagom_건강기록.xlsx"

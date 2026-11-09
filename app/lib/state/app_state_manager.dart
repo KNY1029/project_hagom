@@ -375,23 +375,30 @@ class AppStateManager extends ChangeNotifier {
   List<TaskItem> get tasks => _tasks.where((t) => !t.isArchived).toList();
   // 🌟 전체 할일 목록 (과거 달력 및 엑셀 다운로드용)
   List<TaskItem> get allTasks => _tasks;
+
+  // 가상 생성된 모의 할일 중 삭제된 ID 목록
+  final Set<String> _hiddenMockTaskIds = {};
+
   // 특정 날짜의 할일 목록 조회
   List<TaskItem> getTasksForDay(DateTime day) {
-    final existing = _tasks.where((t) => t.isSameDay(day)).toList();
+    final existing = tasks.where((t) => t.isSameDay(day)).toList();
     if (existing.isNotEmpty) return existing;
 
-    // 🌟 비교 및 시뮬레이션용 월(1월~10월)에 할일 핀이 100% 보이도록 가상 할일 자동 생성!
-    if (day.year == 2026 && day.month >= 1 && day.month <= 10) {
+    // 🌟 비교 및 시뮬레이션용 월(1월~10월, 12월)에 할일 핀이 100% 보이도록 가상 할일 자동 생성!
+    if (day.year == 2026 && ((day.month >= 1 && day.month <= 10) || day.month == 12)) {
       final d = day.day;
-      if (d == 1 || d == 5 || d == 12 || d == 20 || d == 25) {
+      final mId = 't_mock_${day.month}_${d}';
+      if (_hiddenMockTaskIds.contains(mId)) return [];
+      // 12월: 다양한 날짜에 초록 완료 핀과 쿨그레이 미완료 핀 분산 배치
+      if (d == 1 || d == 4 || d == 8 || d == 11 || d == 15 || d == 18 || d == 22 || d == 25 || d == 29) {
         // 완료된 할일 (초록 핀)
         return [
-          TaskItem(id: 't_mock_${day.month}_${d}', title: '건강 루틴 완료', date: day, time: '오전 9:00', isCompleted: true)
+          TaskItem(id: 't_mock_${day.month}_${d}', title: '병원 정기 상담 완료', date: day, time: '오전 10:00', isCompleted: true)
         ];
-      } else if (d == 3 || d == 8 || d == 15 || d == 22 || d == 28) {
-        // 미완료 할일 (연보라 핀)
+      } else if (d == 2 || d == 5 || d == 9 || d == 12 || d == 16 || d == 19 || d == 23 || d == 26 || d == 30) {
+        // 미완료/예정 할일 (정갈한 소프트 쿨그레이 핀)
         return [
-          TaskItem(id: 't_mock_${day.month}_${d}', title: '예정된 일정', date: day, time: '오후 2:00', isCompleted: false)
+          TaskItem(id: 't_mock_${day.month}_${d}', title: '복약 일지 점검', date: day, time: '오후 3:00', isCompleted: false)
         ];
       }
     }
@@ -454,6 +461,52 @@ class AppStateManager extends ChangeNotifier {
     // 6일: 처방약이랑 습관 누락 (처방약 Focusin 0%, 일반약 100%, 습관 0%)
     // 7일: 약(처방+일반)이랑 습관 전부 다 누락 (0%)
     final d = day.day;
+    // 🌟 [12월 전용 다채로운 임상 케이스 매핑 (1~31일 전수)]:
+    if (day.year == 2026 && day.month == 12) {
+      switch (d) {
+        case 1:  // Case 1: 복약 100% + 습관 100% + 할일 완료 (완벽 달성: 초록배경+초록바+초록핀)
+        case 8:
+        case 15:
+        case 22:
+        case 29:
+          return true;
+        case 2:  // Case 2: 복약 100% + 습관 0% + 할일 미완료 (복약 올클리어: 흰배경+초록바+회색핀)
+        case 9:
+        case 16:
+        case 23:
+        case 30:
+          return true;
+        case 3:  // Case 3: 처방약 100% + 일반약 0% + 습관 100% + 할일 없음 (일반약 누락: 초록배경+보라/회색바)
+        case 10:
+        case 17:
+        case 24:
+        case 31:
+          return medId.contains('1'); // 처방약만 복용
+        case 4:  // Case 4: 처방약 0% + 일반약 100% + 습관 100% + 할일 완료 (처방약 놓침 경고: 초록배경+빨간바+초록핀)
+        case 11:
+        case 18:
+        case 25:
+          return !medId.contains('1'); // 일반약만 복용
+        case 5:  // Case 5: 처방약 0% + 일반약 0% + 습관 100% + 할일 미완료 (약 전부 누락: 초록배경+빨간바+회색핀)
+        case 12:
+        case 19:
+        case 26:
+          return false; // 약 전부 미복용
+        case 6:  // Case 6: 처방약 100% + 일반약 0% + 습관 0% + 할일 없음 (처방약만 복용: 흰배경+보라/회색바)
+        case 13:
+        case 20:
+        case 27:
+          return medId.contains('1');
+        case 7:  // Case 7: 복약 0% + 습관 0% + 할일 없음 (완전 미실천: 흰배경+빨간바)
+        case 14:
+        case 21:
+        case 28:
+        default:
+          return false;
+      }
+    }
+
+    // 1~11월 기본 시뮬레이션
     if (d == 1 || d == 2) {
       return true; // 복약 전부 완료
     }
@@ -615,6 +668,46 @@ class AppStateManager extends ChangeNotifier {
     // 6일: 습관 0% (습관 + 처방약 누락)
     // 7일: 습관 0% (전부 다 누락)
     final d = day.day;
+    // 🌟 [12월 전용 습관 다채로운 조합 매핑]:
+    if (day.year == 2026 && day.month == 12) {
+      switch (d) {
+        case 1:  // 습관 100% (연초록 배경)
+        case 3:  // 습관 100% (연초록 배경)
+        case 4:  // 습관 100% (연초록 배경)
+        case 5:  // 습관 100% (연초록 배경)
+        case 8:
+        case 10:
+        case 11:
+        case 12:
+        case 15:
+        case 17:
+        case 18:
+        case 19:
+        case 22:
+        case 24:
+        case 25:
+        case 26:
+        case 29:
+        case 31:
+          return 1.0;
+        case 2:  // 습관 0% (흰 배경)
+        case 6:  // 습관 0%
+        case 7:  // 습관 0%
+        case 9:
+        case 13:
+        case 14:
+        case 16:
+        case 20:
+        case 21:
+        case 23:
+        case 27:
+        case 28:
+        case 30:
+        default:
+          return 0.0;
+      }
+    }
+
     if (d == 1 || d == 3 || d == 4) {
       return 1.0; // 습관 완료
     }
@@ -1470,9 +1563,11 @@ class AppStateManager extends ChangeNotifier {
     if (idx != -1) {
       _tasks[idx].isArchived = true;
       notifyListeners();
+    } else if (id.startsWith('t_mock_')) {
+      _hiddenMockTaskIds.add(id);
+      notifyListeners();
     }
   }
-
   // 🌟 할일 완전 영구 삭제 (설정 관리자용)
   void permanentlyDeleteTask(String id) {
     _tasks.removeWhere((t) => t.id == id);

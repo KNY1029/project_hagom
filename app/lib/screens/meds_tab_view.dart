@@ -1021,7 +1021,7 @@ class _MedsTabViewState extends State<MedsTabView> {
       context: context,
       builder: (dCtx) => AlertDialog(
         title: const Text('복약 항목 삭제', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-        content: Text('\'${med.name}\' 약을 목록에서 완전히 삭제할까요?\n지금까지의 복용 체크 기록도 함께 정리됩니다.'),
+        content: Text('\'${med.name}\' 약을 현재 복약 목록에서 삭제할까요?\n\n과거 달력 기록과 엑셀 다운로드 데이터에는 안전하게 보존되며, 당장 복약 탭에서만 보이지 않게 됩니다.'),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(dCtx).pop(),
