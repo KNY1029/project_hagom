@@ -38,7 +38,7 @@ class HagomCalendarWidgetProvider : HomeWidgetProvider() {
         for (appWidgetId in targetIds) {
             val opts = appWidgetManager.getAppWidgetOptions(appWidgetId)
             val minW = opts.getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_WIDTH, 180)
-            val is1x1 = (minW in 1..110)
+            val is1x1 = (minW in 1..125)
             val openCalIntent = WidgetBindings.openAppIntent(context, "hagomwidget://opencalendar", 1003)
 
             val views = if (is1x1) {

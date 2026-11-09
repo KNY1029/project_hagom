@@ -38,7 +38,7 @@ class HagomMedsWidgetProvider : HomeWidgetProvider() {
         for (appWidgetId in targetIds) {
             val opts = appWidgetManager.getAppWidgetOptions(appWidgetId)
             val minW = opts.getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_WIDTH, 180)
-            val is1x1 = (minW in 1..110) // 1x1 모드 판정
+            val is1x1 = (minW in 1..125) // 1x1 모드 판정
             val allDone = widgetData.getString("meds_all_done", "false") == "true"
             val openMedsIntent = WidgetBindings.openAppIntent(context, "hagomwidget://openmeds", 1001)
 

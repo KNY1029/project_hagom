@@ -38,7 +38,7 @@ class HagomHabitsWidgetProvider : HomeWidgetProvider() {
         for (appWidgetId in targetIds) {
             val opts = appWidgetManager.getAppWidgetOptions(appWidgetId)
             val minW = opts.getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_WIDTH, 180)
-            val is1x1 = (minW in 1..110)
+            val is1x1 = (minW in 1..125)
             val allDone = widgetData.getString("habits_all_done", "false") == "true"
             val openHabitsIntent = WidgetBindings.openAppIntent(context, "hagomwidget://openhabits", 1002)
 

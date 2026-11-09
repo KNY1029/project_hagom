@@ -35,8 +35,7 @@ class HagomMascotWidgetProvider : HomeWidgetProvider() {
         for (appWidgetId in targetIds) {
             val opts = appWidgetManager.getAppWidgetOptions(appWidgetId)
             val minW = opts.getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_WIDTH, 180)
-            val is1x1 = (minW in 1..110) // 1x1 크기 판정 (110dp 이하)
-
+            val is1x1 = (minW in 1..125) // 1x1 크기 판정 (갤럭시 S25+ 및 고해상도 런처 125dp 이하 포용)
             val imageName = widgetData.getString("mascot_image", "hagom_widget_stage_1")
             val imageRes = when (imageName) {
                 "hagom_widget_stage_1" -> R.drawable.hagom_widget_stage_1

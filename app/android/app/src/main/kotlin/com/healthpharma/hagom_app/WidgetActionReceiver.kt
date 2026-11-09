@@ -19,8 +19,9 @@ import es.antonborri.home_widget.HomeWidgetPlugin
 class WidgetActionReceiver : BroadcastReceiver() {
 
     companion object {
-        // 🌟 [디바운스 락]: 0.8초 동안 동일 버튼 연타 시 무시하여 널뛰기/경쟁 상태 완벽 차단!
-        private val lastClickTimes = java.util.concurrent.ConcurrentHashMap<String, Long>()
+        // 🌟 [전체 버튼 글로벌 락]: 버튼을 누르면 대기시간(450ms) 동안
+        // 해당 버튼뿐만 아니라 "위젯 내의 다른 모든 버튼" 클릭까지 전부 잠금 처리하여 동시 연타 및 꼬임 완벽 차단!
+        private var globalLockUntil = 0L
     }
 
     override fun onReceive(context: Context, intent: Intent) {
@@ -28,14 +29,15 @@ class WidgetActionReceiver : BroadcastReceiver() {
         val host = uri.host ?: uri.path?.replace("/", "") ?: return
         val action = host.lowercase()
 
-        // 디바운스 검사: 동일 uri 액션이 800ms 이내에 연속으로 들어오면 튕겨냄
+        // 🔒 글로벌 락 검사: 450ms 대기시간 동안에는 어떤 위젯 버튼 클릭도 무시
         val now = System.currentTimeMillis()
-        val uriKey = uri.toString()
-        val lastClick = lastClickTimes[uriKey] ?: 0L
-        if (now - lastClick < 800L) {
-            return // 연타 무시
+        if (now < globalLockUntil) {
+            return
         }
-        lastClickTimes[uriKey] = now
+        // 사용자가 완료 인지할 수 있는 가장 쾌적하고 깔끔한 대기시간: 450ms
+        if (action == "checkmed" || action == "checkhabit" || action == "checktask") {
+            globalLockUntil = now + 450L
+        }
 
         val prefs = context.getSharedPreferences("HomeWidgetPreferences", Context.MODE_PRIVATE)
         val editor = prefs.edit()
@@ -293,11 +295,11 @@ class WidgetActionReceiver : BroadcastReceiver() {
             }
         }
 
-        // 🌟 [B안 구현: 완료 확인 인지 0.8초 딜레이]:
-        // 사용자가 완료 버튼을 눌렀을 때 그 자리에서 '초록 완료' 버튼 상태를 0.8초 동안 확실하게 보여주고,
-        // 0.8초 뒤에 백그라운드 동기화(플러터 재정렬)를 트리거하여 완료된 항목이 자연스럽게 하단으로 이동하도록 연출!
+        // 🌟 [최적화된 450ms 딜레이]:
+        // 사용자가 버튼이 눌렸다는 것(초록 완료 등)을 명확하게 눈으로 인지한 뒤
+        // 지루하게 기다리지 않고 450ms 시점에 자연스럽게 하단으로 재배치!
         val shouldDelayReposition = (action == "checkmed" || action == "checkhabit" || action == "checktask")
-        val delayMs = if (shouldDelayReposition) 800L else 0L
+        val delayMs = if (shouldDelayReposition) 450L else 0L
 
         Handler(Looper.getMainLooper()).postDelayed({
             try {
