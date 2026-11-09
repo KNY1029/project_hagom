@@ -10,6 +10,7 @@ class TaskItem {
   String repeatCycle;        // 반복 주기 ('매일', '매주 특정 요일', '매달 이 날')
   List<String> repeatDays;   // '매주 특정 요일'일 때 선택된 요일 목록 (['월', '수', '금'])
   bool isExpanded;           // 아코디언 옵션 펼침 여부
+  bool isArchived;           // 🌟 [소프트삭제]: 탭 목록에서는 숨기되, 과거 달력 및 엑셀 다운로드에는 보존!
 
   TaskItem({
     required this.id,
@@ -23,6 +24,7 @@ class TaskItem {
     this.repeatCycle = '매주',
     List<String>? repeatDays,
     this.isExpanded = false,
+    this.isArchived = false,
   })  : reminders = reminders ?? (reminder != null ? [reminder] : ['30분 전']),
         repeatDays = repeatDays ?? [];
 
@@ -51,8 +53,8 @@ class TaskItem {
     'isRepeated': isRepeated,
     'repeatCycle': repeatCycle,
     'repeatDays': repeatDays,
+    'isArchived': isArchived,
   };
-
   factory TaskItem.fromJson(Map<String, dynamic> json) {
     List<String> rems = [];
     if (json['reminders'] != null) {
@@ -78,6 +80,7 @@ class TaskItem {
       isRepeated: json['isRepeated'] as bool? ?? false,
       repeatCycle: json['repeatCycle'] as String? ?? '매주',
       repeatDays: days,
+      isArchived: json['isArchived'] as bool? ?? false,
     );
   }
 

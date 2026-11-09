@@ -22,8 +22,9 @@ class HabitItem {
     this.currentCount = 0,
     this.weeklyCompletedCount = 0,
     this.isExpanded = false,
+    this.isArchived = false,
   });
-
+  bool isArchived;
   /// 🌟 오늘(Today) 실천해야 하는 습관인지 판별하는 스마트 로직
   bool isDueOn(DateTime date) {
     if (recurrenceSummary == '매일' || recurrenceSummary == '오늘만') {
@@ -66,8 +67,8 @@ class HabitItem {
     'targetPerDay': targetPerDay,
     'currentCount': currentCount,
     'weeklyCompletedCount': weeklyCompletedCount,
+    'isArchived': isArchived,
   };
-
   factory HabitItem.fromJson(Map<String, dynamic> json) => HabitItem(
     id: json['id'] as String,
     title: json['title'] as String,
@@ -78,8 +79,8 @@ class HabitItem {
     targetPerDay: json['targetPerDay'] as int? ?? 1,
     currentCount: json['currentCount'] as int? ?? 0,
     weeklyCompletedCount: json['weeklyCompletedCount'] as int? ?? 0,
+    isArchived: json['isArchived'] as bool? ?? false,
   );
-
   // 점수 환산 (0.0 ~ 1.0)
   double get score {
     if (targetPerDay <= 1) {

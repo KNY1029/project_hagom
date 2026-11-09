@@ -331,6 +331,321 @@ class _SettingsScreenState extends State<SettingsScreen> {
     }
   }
 
+  // 🗑️ 데이터 기록 관리 & 선택적 삭제 모달
+  void _showDataManagementModal() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (mCtx) {
+        return StatefulBuilder(
+          builder: (ctx, setMState) {
+            return SafeArea(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Center(
+                      child: Container(
+                        width: 40,
+                        height: 4,
+                        margin: const EdgeInsets.only(bottom: 16),
+                        decoration: BoxDecoration(
+                          color: Colors.grey.shade300,
+                          borderRadius: BorderRadius.circular(2),
+                        ),
+                      ),
+                    ),
+                    Text(
+                      '기록 및 데이터 관리',
+                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
+                    ),
+                    const SizedBox(height: 6),
+                    Text(
+                      '탭에서 삭제한 항목은 기록 보존을 위해 과거 달력과 엑셀에 남아있습니다. 기록까지 완전히 지우려면 아래에서 선택하세요.',
+                      style: TextStyle(fontSize: 12.5, color: AppColors.textSecondary, height: 1.4),
+                    ),
+                    const SizedBox(height: 16),
+                    const Divider(height: 1),
+
+                    // 1) 특정 기간 동안의 기록 삭제
+                    ListTile(
+                      contentPadding: EdgeInsets.zero,
+                      leading: Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(color: AppColors.primaryPurple.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(8)),
+                        child: Icon(Icons.date_range, color: AppColors.primaryPurple, size: 20),
+                      ),
+                      title: Text('특정 기간 동안의 기록 삭제', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: AppColors.textPrimary)),
+                      subtitle: Text('원하는 시작일~종료일 사이의 복약/습관/할일 기록만 핀셋 삭제', style: TextStyle(fontSize: 11.5, color: AppColors.textSecondary)),
+                      trailing: const Icon(Icons.chevron_right, size: 20, color: AppColors.textMuted),
+                      onTap: () {
+                        Navigator.of(mCtx).pop();
+                        _showDateRangeDeleteDialog();
+                      },
+                    ),
+                    const Divider(height: 1),
+
+                    // 2) 특정 복약/습관/할일 완전 삭제
+                    ListTile(
+                      contentPadding: EdgeInsets.zero,
+                      leading: Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(color: Colors.orange.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(8)),
+                        child: const Icon(Icons.checklist, color: Colors.orange, size: 20),
+                      ),
+                      title: Text('특정 항목 영구 삭제', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: AppColors.textPrimary)),
+                      subtitle: Text('더 이상 보존하지 않을 약, 습관, 할일을 골라 기록까지 완전히 삭제', style: TextStyle(fontSize: 11.5, color: AppColors.textSecondary)),
+                      trailing: const Icon(Icons.chevron_right, size: 20, color: AppColors.textMuted),
+                      onTap: () {
+                        Navigator.of(mCtx).pop();
+                        _showSpecificItemDeleteDialog();
+                      },
+                    ),
+                    const Divider(height: 1),
+
+                    // 3) 모든 데이터 초기화
+                    ListTile(
+                      contentPadding: EdgeInsets.zero,
+                      leading: Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(color: AppColors.missedRed.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(8)),
+                        child: Icon(Icons.delete_forever, color: AppColors.missedRed, size: 20),
+                      ),
+                      title: Text('모든 데이터 전체 초기화', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: AppColors.missedRed)),
+                      subtitle: Text('앱의 모든 복약, 습관, 일정 및 과거 기록을 완전히 비움', style: TextStyle(fontSize: 11.5, color: AppColors.textSecondary)),
+                      trailing: const Icon(Icons.chevron_right, size: 20, color: AppColors.textMuted),
+                      onTap: () {
+                        Navigator.of(mCtx).pop();
+                        _confirmResetAllData();
+                      },
+                    ),
+                    const SizedBox(height: 12),
+                  ],
+                ),
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  // 🗓️ 1. 특정 기간 동안의 기록 부분 삭제 팝업
+  void _showDateRangeDeleteDialog() async {
+    final now = DateTime.now();
+    DateTimeRange? picked = await showDateRangePicker(
+      context: context,
+      firstDate: DateTime(2025, 1, 1),
+      lastDate: DateTime(2027, 12, 31),
+      initialDateRange: DateTimeRange(
+        start: now.subtract(const Duration(days: 7)),
+        end: now,
+      ),
+      helpText: '삭제할 기간 선택',
+      cancelText: '취소',
+      confirmText: '이 기간 선택',
+    );
+
+    if (picked == null || !mounted) return;
+
+    bool delMeds = true;
+    bool delHabits = true;
+    bool delTasks = true;
+
+    showDialog(
+      context: context,
+      builder: (dCtx) {
+        return StatefulBuilder(
+          builder: (ctx, setDlgState) {
+            final sStr = '${picked.start.year}.${picked.start.month}.${picked.start.day}';
+            final eStr = '${picked.end.year}.${picked.end.month}.${picked.end.day}';
+
+            return AlertDialog(
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+              title: Text('기간별 기록 삭제', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.missedRed)),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('선택한 기간: $sStr ~ $eStr', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13.5)),
+                  const SizedBox(height: 8),
+                  Text('해당 기간에 기록된 데이터를 영구 삭제합니다. 삭제할 항목을 선택하세요.', style: TextStyle(fontSize: 12, color: AppColors.textSecondary)),
+                  const SizedBox(height: 12),
+                  CheckboxListTile(
+                    contentPadding: EdgeInsets.zero,
+                    dense: true,
+                    title: const Text('복약 체크 기록', style: TextStyle(fontSize: 13)),
+                    value: delMeds,
+                    activeColor: AppColors.primaryPurple,
+                    onChanged: (v) => setDlgState(() => delMeds = v ?? true),
+                  ),
+                  CheckboxListTile(
+                    contentPadding: EdgeInsets.zero,
+                    dense: true,
+                    title: const Text('습관 실천 기록', style: TextStyle(fontSize: 13)),
+                    value: delHabits,
+                    activeColor: AppColors.primaryPurple,
+                    onChanged: (v) => setDlgState(() => delHabits = v ?? true),
+                  ),
+                  CheckboxListTile(
+                    contentPadding: EdgeInsets.zero,
+                    dense: true,
+                    title: const Text('일정 및 할일', style: TextStyle(fontSize: 13)),
+                    value: delTasks,
+                    activeColor: AppColors.primaryPurple,
+                    onChanged: (v) => setDlgState(() => delTasks = v ?? true),
+                  ),
+                ],
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.of(dCtx).pop(),
+                  child: Text('취소', style: TextStyle(color: AppColors.textSecondary)),
+                ),
+                ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.missedRed,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                  ),
+                  onPressed: () {
+                    _state.deleteRecordsForDateRange(
+                      startDate: picked.start,
+                      endDate: picked.end,
+                      deleteMeds: delMeds,
+                      deleteHabits: delHabits,
+                      deleteTasks: delTasks,
+                    );
+                    Navigator.of(dCtx).pop();
+                    CelebrationToast.show(
+                      context,
+                      title: '기간 기록 삭제 완료',
+                      message: '$sStr ~ $eStr 기록이 정리되었어요.',
+                    );
+                  },
+                  child: const Text('삭제 확정', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+  }
+
+  // 🎯 2. 특정 항목 영구 삭제 (보관된 약, 습관, 할일 중 선택 삭제)
+  void _showSpecificItemDeleteDialog() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+      builder: (sCtx) {
+        return StatefulBuilder(
+          builder: (ctx, setSState) {
+            final allMeds = _state.allMedications;
+            final allHabits = _state.allHabits;
+            final allTasks = _state.allTasks;
+
+            return Container(
+              height: MediaQuery.of(context).size.height * 0.75,
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Center(
+                    child: Container(width: 40, height: 4, margin: const EdgeInsets.only(bottom: 12), decoration: BoxDecoration(color: Colors.grey.shade300, borderRadius: BorderRadius.circular(2))),
+                  ),
+                  Text('특정 항목 영구 삭제', style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
+                  const SizedBox(height: 4),
+                  Text('과거 기록까지 완전히 지울 항목의 [영구 삭제] 버튼을 누르세요.', style: TextStyle(fontSize: 12, color: AppColors.textSecondary)),
+                  const SizedBox(height: 12),
+                  const Divider(height: 1),
+                  Expanded(
+                    child: ListView(
+                      children: [
+                        if (allMeds.isNotEmpty) ...[
+                          Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 8),
+                            child: Text('💊 복약 목록 (${allMeds.length}개)', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: AppColors.primaryPurple)),
+                          ),
+                          ...allMeds.map((m) => ListTile(
+                            dense: true,
+                            contentPadding: EdgeInsets.zero,
+                            title: Text('${m.name} (${m.dosage})', style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
+                            subtitle: Text(m.isArchived ? '상태: 탭에서 숨김(보관됨)' : '상태: 현재 복용 중', style: TextStyle(fontSize: 11, color: m.isArchived ? Colors.orange : Colors.green)),
+                            trailing: TextButton(
+                              style: TextButton.styleFrom(foregroundColor: AppColors.missedRed),
+                              onPressed: () {
+                                _state.permanentlyDeleteMedication(m.id);
+                                setSState(() {});
+                                CelebrationToast.show(context, title: '영구 삭제 완료', message: '\'${m.name}\' 기록이 완전히 삭제되었어요.');
+                              },
+                              child: const Text('영구 삭제', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+                            ),
+                          )),
+                        ],
+                        if (allHabits.isNotEmpty) ...[
+                          const SizedBox(height: 12),
+                          Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 8),
+                            child: Text('🌱 습관 목록 (${allHabits.length}개)', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Color(0xFF059669))),
+                          ),
+                          ...allHabits.map((h) => ListTile(
+                            dense: true,
+                            contentPadding: EdgeInsets.zero,
+                            title: Text(h.title, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
+                            subtitle: Text(h.isArchived ? '상태: 탭에서 숨김(보관됨)' : '상태: 현재 실천 중', style: TextStyle(fontSize: 11, color: h.isArchived ? Colors.orange : Colors.green)),
+                            trailing: TextButton(
+                              style: TextButton.styleFrom(foregroundColor: AppColors.missedRed),
+                              onPressed: () {
+                                _state.permanentlyDeleteHabit(h.id);
+                                setSState(() {});
+                                CelebrationToast.show(context, title: '영구 삭제 완료', message: '\'${h.title}\' 기록이 완전히 삭제되었어요.');
+                              },
+                              child: const Text('영구 삭제', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+                            ),
+                          )),
+                        ],
+                        if (allTasks.isNotEmpty) ...[
+                          const SizedBox(height: 12),
+                          Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 8),
+                            child: Text('🗓️ 할일 목록 (${allTasks.length}개)', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Color(0xFFB58A32))),
+                          ),
+                          ...allTasks.map((t) => ListTile(
+                            dense: true,
+                            contentPadding: EdgeInsets.zero,
+                            title: Text(t.title, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
+                            subtitle: Text('${t.date.year}.${t.date.month}.${t.date.day} · ${t.isArchived ? "보관됨" : (t.isCompleted ? "완료" : "대기")}', style: TextStyle(fontSize: 11, color: AppColors.textSecondary)),
+                            trailing: TextButton(
+                              style: TextButton.styleFrom(foregroundColor: AppColors.missedRed),
+                              onPressed: () {
+                                _state.permanentlyDeleteTask(t.id);
+                                setSState(() {});
+                                CelebrationToast.show(context, title: '영구 삭제 완료', message: '\'${t.title}\' 할일이 완전히 삭제되었어요.');
+                              },
+                              child: const Text('영구 삭제', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+                            ),
+                          )),
+                        ],
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
   // ⚠️ 전체 데이터 초기화 다이얼로그
   void _confirmResetAllData() {
     showDialog(
@@ -338,7 +653,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       builder: (dCtx) => AlertDialog(
         title: Text('모든 데이터 초기화', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.missedRed)),
         content: Text(
-          '등록된 모든 복약, 습관, 일정 기록이 완전히 삭제되고 초기 상태로 되돌아갑니다. 정말 초기화할까요?',
+          '등록된 모든 복약, 습관, 일정 및 과거 기록이 완전히 삭제되고 초기 상태로 되돌아갑니다. 정말 초기화할까요?',
           style: TextStyle(fontSize: 13, height: 1.4),
         ),
         actions: [
@@ -426,7 +741,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     ),
                     SizedBox(height: 3),
                     Text(
-                      '정신약학 맞춤 복약 솔루션 · v0.90.227',
+                      '정신약학 맞춤 복약 솔루션 · v0.90.229',
                       style: TextStyle(
                         fontSize: 12,
                         color: AppColors.textSecondary,
@@ -809,9 +1124,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 ListTile(
                   contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
                   leading: const Icon(Icons.delete_outline, color: AppColors.missedRed),
-                  title: Text('모든 데이터 초기화', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: AppColors.missedRed)),
-                  subtitle: Text('복약, 습관, 일정 기록을 모두 비우고 초기화', style: TextStyle(fontSize: 11.5, color: AppColors.textSecondary)),
-                  onTap: _confirmResetAllData,
+                  title: Text('기록 및 데이터 관리 (선택/전체 삭제)', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: AppColors.missedRed)),
+                  subtitle: Text('기간별 기록 삭제, 특정 항목 영구 삭제, 전체 초기화', style: TextStyle(fontSize: 11.5, color: AppColors.textSecondary)),
+                  trailing: const Icon(Icons.arrow_forward_ios, size: 14, color: AppColors.textMuted),
+                  onTap: _showDataManagementModal,
                 ),
               ],
             ),

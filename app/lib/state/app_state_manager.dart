@@ -63,21 +63,26 @@ class AppStateManager extends ChangeNotifier {
   }
   // --- 💊 복약 데이터 ---
   final List<MedicationItem> _medications = [];
-  List<MedicationItem> get medications => _medications;
+  // 🌟 현재 탭에서 보이는 활성 복약 목록 (삭제되지 않은 항목만 표시)
+  List<MedicationItem> get medications => _medications.where((m) => !m.isArchived).toList();
+  // 🌟 전체 복약 목록 (소프트 삭제된 과거 항목 포함: 엑셀 다운로드 및 과거 달력 조회용)
+  List<MedicationItem> get allMedications => _medications;
 
-  // 🌟 오늘 복약 통계 (오늘 복용해야 하는 약들의 슬롯만 집계!)
-  int get totalDoseSlots => _medications.where((m) => m.isDueToday).fold(0, (sum, m) => sum + m.totalSlotsCount);
-  int get completedDoseSlots => _medications.where((m) => m.isDueToday).fold(0, (sum, m) => sum + m.completedSlotsCount);
+  // 🌟 오늘 복약 통계 (현재 복용 중인 활성 약물들만 집계!)
+  int get totalDoseSlots => medications.where((m) => m.isDueToday).fold(0, (sum, m) => sum + m.totalSlotsCount);
+  int get completedDoseSlots => medications.where((m) => m.isDueToday).fold(0, (sum, m) => sum + m.completedSlotsCount);
 
   // --- 🌱 습관 데이터 ---
   final List<HabitItem> _habits = [];
-  List<HabitItem> get habits => _habits;
+  // 🌟 현재 탭에서 보이는 활성 습관 목록
+  List<HabitItem> get habits => _habits.where((h) => !h.isArchived).toList();
+  // 🌟 전체 습관 목록 (과거 달력 및 엑셀 다운로드용)
+  List<HabitItem> get allHabits => _habits;
 
-  // 🌟 오늘 실천해야 하는 습관 통계 (오늘 실천 대상인 습관만 집계!)
-  int get todayHabitsCount => _habits.where((h) => h.isDueToday).length;
-  double get habitTotalScore => _habits.where((h) => h.isDueToday).fold(0.0, (sum, item) => sum + item.score);
+  // 🌟 오늘 실천해야 하는 습관 통계 (활성 습관만 집계!)
+  int get todayHabitsCount => habits.where((h) => h.isDueToday).length;
+  double get habitTotalScore => habits.where((h) => h.isDueToday).fold(0.0, (sum, item) => sum + item.score);
   double get habitCompletionRate => todayHabitsCount == 0 ? 0.0 : (habitTotalScore / todayHabitsCount);
-
   // --- ⚙️ 5대 알림 통합 설정 시스템 ---
   bool medsNotificationEnabled = true;     // 일반 복약 알림 (처방약은 항상 켜짐!)
   bool habitNotificationEnabled = true;    // 습관 알림
@@ -366,8 +371,10 @@ class AppStateManager extends ChangeNotifier {
   // --- 🐻 하곰이 통계 (누적 발걸음) ---
   // --- 🗓️ 할일 및 일정 데이터 ---
   final List<TaskItem> _tasks = [];
-  List<TaskItem> get tasks => _tasks;
-
+  // 🌟 현재 탭에서 보이는 활성 할일 목록
+  List<TaskItem> get tasks => _tasks.where((t) => !t.isArchived).toList();
+  // 🌟 전체 할일 목록 (과거 달력 및 엑셀 다운로드용)
+  List<TaskItem> get allTasks => _tasks;
   // 특정 날짜의 할일 목록 조회
   List<TaskItem> getTasksForDay(DateTime day) {
     final existing = _tasks.where((t) => t.isSameDay(day)).toList();
@@ -1267,9 +1274,22 @@ class AppStateManager extends ChangeNotifier {
     notifyListeners();
   }
 
-  // 약 삭제
+  // 🌟 약 삭제 (소프트 삭제: 현재 탭 화면에서만 숨기고, 과거 달력 및 엑셀 데이터에는 영구 보존!)
   void deleteMedication(String id) {
+    final idx = _medications.indexWhere((m) => m.id == id);
+    if (idx != -1) {
+      _medications[idx].isArchived = true;
+      notifyListeners();
+    }
+  }
+
+  // 🌟 약 완전 영구 삭제 (설정 관리자용)
+  void permanentlyDeleteMedication(String id) {
     _medications.removeWhere((m) => m.id == id);
+    // 관련 과거 슬롯 기록도 함께 정돈
+    _pastSlotRecords.forEach((_, slots) {
+      slots.removeWhere((k, _) => k.startsWith('${id}_'));
+    });
     notifyListeners();
   }
 
@@ -1340,8 +1360,21 @@ class AppStateManager extends ChangeNotifier {
     notifyListeners();
   }
 
+  // 🌟 습관 삭제 (소프트 삭제: 현재 탭 화면에서만 숨기고, 과거 달력 및 엑셀 데이터에는 영구 보존!)
   void deleteHabit(String id) {
+    final idx = _habits.indexWhere((h) => h.id == id);
+    if (idx != -1) {
+      _habits[idx].isArchived = true;
+      notifyListeners();
+    }
+  }
+
+  // 🌟 습관 완전 영구 삭제 (설정 관리자용)
+  void permanentlyDeleteHabit(String id) {
     _habits.removeWhere((h) => h.id == id);
+    _pastHabitRecords.forEach((_, habits) {
+      habits.remove(id);
+    });
     notifyListeners();
   }
 
@@ -1431,8 +1464,47 @@ class AppStateManager extends ChangeNotifier {
     notifyListeners();
   }
 
+  // 🌟 할일 삭제 (소프트 삭제: 현재 탭 화면에서만 숨기고, 과거 달력 및 엑셀 데이터에는 영구 보존!)
   void deleteTask(String id) {
+    final idx = _tasks.indexWhere((t) => t.id == id);
+    if (idx != -1) {
+      _tasks[idx].isArchived = true;
+      notifyListeners();
+    }
+  }
+
+  // 🌟 할일 완전 영구 삭제 (설정 관리자용)
+  void permanentlyDeleteTask(String id) {
     _tasks.removeWhere((t) => t.id == id);
+    notifyListeners();
+  }
+
+  // 🌟 [설정 탭 전용] 특정 기간 동안의 기록 부분 삭제
+  void deleteRecordsForDateRange({
+    required DateTime startDate,
+    required DateTime endDate,
+    bool deleteMeds = true,
+    bool deleteHabits = true,
+    bool deleteTasks = true,
+  }) {
+    DateTime cur = DateTime(startDate.year, startDate.month, startDate.day);
+    final end = DateTime(endDate.year, endDate.month, endDate.day);
+
+    while (!cur.isAfter(end)) {
+      final key = _dateKey(cur);
+      if (deleteMeds) {
+        _pastSlotRecords.remove(key);
+        _pastSlotTimes.remove(key);
+      }
+      if (deleteHabits) {
+        _pastHabitRecords.remove(key);
+      }
+      if (deleteTasks) {
+        final targetDate = cur;
+        _tasks.removeWhere((t) => t.isSameDay(targetDate));
+      }
+      cur = cur.add(const Duration(days: 1));
+    }
     notifyListeners();
   }
 

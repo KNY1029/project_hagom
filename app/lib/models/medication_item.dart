@@ -51,6 +51,7 @@ class MedicationItem {
   List<DoseSlot> doseSlots;    // 아침, 점심, 저녁 등 회차별 상태 목록!
   String? skipReason;          // 건너뛴 사유
   bool isExpanded;             // 아코디언 메뉴 펼침 여부
+  bool isArchived;             // 🌟 [보관/소프트삭제]: 현재 탭에서는 숨기되, 과거 달력 기록 및 다운로드 엑셀 데이터에는 영구 보존!
 
   MedicationItem({
     required this.id,
@@ -63,9 +64,9 @@ class MedicationItem {
     required this.doseSlots,
     this.skipReason,
     this.isExpanded = false,
+    this.isArchived = false,
     this.memo,
   }) : repeatDays = repeatDays ?? [];
-
   /// 🌟 오늘(Today) 복용해야 하는 약인지 판별하는 스마트 게터
   bool isDueOn(DateTime date) {
     if (recurrenceSummary == '매일' ||
@@ -106,8 +107,8 @@ class MedicationItem {
     'doseSlots': doseSlots.map((s) => s.toJson()).toList(),
     'skipReason': skipReason,
     'memo': memo,
+    'isArchived': isArchived,
   };
-
   factory MedicationItem.fromJson(Map<String, dynamic> json) => MedicationItem(
     id: json['id'] as String,
     name: json['name'] as String,
@@ -122,8 +123,8 @@ class MedicationItem {
         [],
     skipReason: json['skipReason'] as String?,
     memo: json['memo'] as String?,
+    isArchived: json['isArchived'] as bool? ?? false,
   );
-
   // 오늘 먹어야 할 모든 회차가 완료되거나 건너뛰어 정리되었는지 확인
   bool get isAllCompleted =>
       doseSlots.isNotEmpty && doseSlots.every((s) => s.isCompleted || s.isSkipped);

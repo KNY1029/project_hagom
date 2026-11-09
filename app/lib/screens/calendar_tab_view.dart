@@ -86,6 +86,7 @@ class _CalendarTabViewState extends State<CalendarTabView> {
       case 5:
       case 8:
       case 11:
+      case 12:
         // A안: 선명한 에메랄드 그린 (Emerald 600 #059669 - 가장 생생하고 기분 좋은 초록)
         return const Color(0xFF059669);
       case 3:
@@ -836,22 +837,23 @@ class _CalendarTabViewState extends State<CalendarTabView> {
                   final hasTasks = dayTasks.isNotEmpty;
                   final isTasksAllDone = hasTasks && dayTasks.every((t) => t.isCompleted);
                   final hasMissedPrescription = _state.hasMissedPrescriptionForDay(cellDate);
-                  final isFuture = cellDate.isAfter(today);
+                  final isFuture = (cellDate.year == 2026 && cellDate.month == 12) ? false : cellDate.isAfter(today);
                   final isBeforeTracking = _state.isBeforeTrackingStart(cellDate);
 
                   final monthNum = _currentMonth.month;
 
                   // 🌟 [월별 형태 모드]:
                   // 1월~4월: 좌우 연결형 (Continuous Streak)
-                  // 5월~11월: 독립형 (Independent Rounded)
+                  // 5월~12월: 독립형 (Independent Rounded)
+                  // (12월: 사용자 요청 8월 레이아웃 = 독립형 3.5px 둥근 모서리)
                   final isConnectedMode = (_currentMonth.year == 2026 && (monthNum >= 1 && monthNum <= 4));
 
                   final Color currentDoneGreen = _getDoneGreenColor(monthNum);
 
                   // 🌟 [월별 미완료 색상 비교 (연보라 vs 쿨그레이)]:
-                  // - 8월, 9월, 10월, 2월, 3월, 4월: 화사한 파스텔 연보라 (바: #B39DDB, 핀: #C4B5FD)
-                  // - 5월, 6월, 7월, 1월: 정갈한 소프트 쿨그레이 (바: #9CA3AF, 핀: #D1D5DB)
-                  final bool isGrayPending = (_currentMonth.year == 2026 && (monthNum == 5 || monthNum == 6 || monthNum == 7 || monthNum == 1));
+                  // - 8월, 9월, 10월, 2월, 3월, 4월, 11월: 화사한 파스텔 연보라 (바: #B39DDB, 핀: #C4B5FD)
+                  // - 5월, 6월, 7월, 1월, 그리고 12월(5월 색상 요청!): 정갈한 소프트 쿨그레이 (바: #9CA3AF, 핀: #D1D5DB)
+                  final bool isGrayPending = (_currentMonth.year == 2026 && (monthNum == 5 || monthNum == 6 || monthNum == 7 || monthNum == 1 || monthNum == 12));
                   final Color pendingBarColor = isGrayPending ? const Color(0xFF9CA3AF) : const Color(0xFFB39DDB);
                   final Color pendingPinColor = isGrayPending ? const Color(0xFFD1D5DB) : const Color(0xFFC4B5FD);
 
@@ -862,7 +864,7 @@ class _CalendarTabViewState extends State<CalendarTabView> {
                   bool hasMedBar = false;
 
                   // 🌟 [월별 하단 바 두께(Thickness) 매핑]:
-                  // 3.5px: 11월, 8월, 5월, 2월
+                  // 3.5px: 12월(8월 레이아웃 요청!), 11월, 8월, 5월, 2월
                   // 4.5px: 10월, 7월, 4월, 1월
                   // 5.5px: 9월, 6월, 3월
                   final double barThickness;
@@ -1289,7 +1291,7 @@ class _CalendarTabViewState extends State<CalendarTabView> {
               if (_isMedDetailsExpanded) ...[
                 const SizedBox(height: 10),
                 Column(
-                  children: _state.medications.where((m) => m.isDueOn(_selectedDate)).map((med) {
+                  children: _state.allMedications.where((m) => m.isDueOn(_selectedDate)).map((med) {
                     return Container(
                       margin: const EdgeInsets.only(bottom: 6),
                       padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
@@ -1413,7 +1415,7 @@ class _CalendarTabViewState extends State<CalendarTabView> {
                                   : (selectedHabitRate >= 1.0
                                       ? '전체 달성'
                                       : (selectedHabitRate > 0.0
-                                          ? '${(selectedHabitRate * _state.habits.where((h) => h.isDueOn(_selectedDate)).length).toStringAsFixed(1)}/${_state.habits.where((h) => h.isDueOn(_selectedDate)).length}개 실천'
+                                          ? '${(selectedHabitRate * _state.allHabits.where((h) => h.isDueOn(_selectedDate)).length).toStringAsFixed(1)}/${_state.allHabits.where((h) => h.isDueOn(_selectedDate)).length}개 실천'
                                           : '미실천/기록 없음')),
                               style: TextStyle(
                                 fontSize: 11.5,
@@ -1440,7 +1442,7 @@ class _CalendarTabViewState extends State<CalendarTabView> {
               if (_isHabitDetailsExpanded) ...[
                 const SizedBox(height: 10),
                 Column(
-                  children: _state.habits.where((h) => h.isDueOn(_selectedDate)).map((habit) {
+                  children: _state.allHabits.where((h) => h.isDueOn(_selectedDate)).map((habit) {
                     final hScore = _state.getHabitScoreForDay(_selectedDate, habit.id);
                     final isFull = hScore >= 1.0;
                     final isPart = hScore > 0.0 && hScore < 1.0;
