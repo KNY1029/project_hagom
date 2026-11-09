@@ -4,6 +4,7 @@ import '../constants/app_colors.dart';
 import '../constants/app_assets.dart';
 import '../state/app_state_manager.dart';
 import 'splash_screen.dart';
+import 'main_navigation_shell.dart';
 import 'widget_simulator_screen.dart';
 import '../widgets/app_time_picker.dart';
 import '../widgets/celebration_toast.dart';
@@ -446,7 +447,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
-  // 📖 앱 사용 가이드 모달 (요약 버전 + 발표문/초기 가이드 상세 보기 토글)
+  // 📖 앱 사용 가이드 모달 (요약 버전 + 처음 시작할 때처럼 화면 이동하며 체험하는 버튼 탑재)
   void _showAppGuideModal() {
     showModalBottomSheet(
       context: context,
@@ -456,210 +457,191 @@ class _SettingsScreenState extends State<SettingsScreen> {
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
       builder: (gCtx) {
-        bool isDetailedPresentationMode = false;
-
-        return StatefulBuilder(
-          builder: (innerCtx, setInnerState) {
-            return SafeArea(
-              child: Container(
-                height: MediaQuery.of(context).size.height * 0.85,
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+        return SafeArea(
+          child: Container(
+            height: MediaQuery.of(context).size.height * 0.88,
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Center(
+                  child: Container(
+                    width: 40,
+                    height: 4,
+                    margin: const EdgeInsets.only(bottom: 16),
+                    decoration: BoxDecoration(
+                      color: Colors.grey.shade300,
+                      borderRadius: BorderRadius.circular(2),
+                    ),
+                  ),
+                ),
+                Row(
                   children: [
-                    Center(
-                      child: Container(
-                        width: 40,
-                        height: 4,
-                        margin: const EdgeInsets.only(bottom: 16),
-                        decoration: BoxDecoration(
-                          color: Colors.grey.shade300,
-                          borderRadius: BorderRadius.circular(2),
-                        ),
-                      ),
+                    Icon(Icons.menu_book_outlined, color: AppColors.primaryPurple, size: 22),
+                    const SizedBox(width: 8),
+                    Text(
+                      '앱 사용 가이드 (요약본)',
+                      style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
                     ),
-                    Row(
-                      children: [
-                        Icon(
-                          isDetailedPresentationMode ? Icons.record_voice_over_outlined : Icons.menu_book_outlined,
-                          color: AppColors.primaryPurple,
-                          size: 22,
-                        ),
-                        const SizedBox(width: 8),
-                        Text(
-                          isDetailedPresentationMode ? '앱 가이드라인 (발표문 버전)' : '앱 사용 가이드 (요약 버전)',
-                          style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
-                        ),
-                        const Spacer(),
-                        IconButton(
-                          icon: const Icon(Icons.close, size: 20, color: AppColors.textMuted),
-                          onPressed: () => Navigator.of(gCtx).pop(),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 4),
-                    Row(
-                      children: [
-                        Text(
-                          isDetailedPresentationMode ? '처음 보았던 상세한 발표 가이드라인' : '핵심 기능 7대 포인트 한눈에 보기',
-                          style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
-                        ),
-                        const Spacer(),
-                        // 토글 버튼: 요약 버전 <-> 상세 발표문 버전
-                        TextButton.icon(
-                          style: TextButton.styleFrom(
-                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                            visualDensity: VisualDensity.compact,
-                            backgroundColor: AppColors.primaryPurple.withValues(alpha: 0.08),
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                          ),
-                          icon: Icon(
-                            isDetailedPresentationMode ? Icons.list_alt : Icons.description_outlined,
-                            size: 15,
-                            color: AppColors.primaryPurple,
-                          ),
-                          label: Text(
-                            isDetailedPresentationMode ? '요약본 보기' : '발표문 상세 보기',
-                            style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.bold, color: AppColors.primaryPurple),
-                          ),
-                          onPressed: () {
-                            setInnerState(() {
-                              isDetailedPresentationMode = !isDetailedPresentationMode;
-                            });
-                          },
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 8),
-                    const Divider(height: 1),
-                    Expanded(
-                      child: ListView(
-                        padding: const EdgeInsets.symmetric(vertical: 12),
-                        children: isDetailedPresentationMode
-                            ? _buildPresentationGuideItems()
-                            : _buildSummaryGuideItems(),
-                      ),
+                    const Spacer(),
+                    IconButton(
+                      icon: const Icon(Icons.close, size: 20, color: AppColors.textMuted),
+                      onPressed: () => Navigator.of(gCtx).pop(),
                     ),
                   ],
                 ),
-              ),
-            );
-          },
+                const SizedBox(height: 2),
+                Text(
+                  '핵심 기능 7대 포인트 한눈에 보기',
+                  style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
+                ),
+                const SizedBox(height: 10),
+
+                // 🚀 [사용자 요구 반영]: 맨 처음에 시작할 때 봤던 것처럼 직접 화면을 이동하며 체험하는 버튼!
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: AppColors.primaryPurple.withValues(alpha: 0.07),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: AppColors.primaryPurple.withValues(alpha: 0.2)),
+                  ),
+                  child: Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: AppColors.primaryPurple,
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Icon(Icons.touch_app, color: Colors.white, size: 18),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              '처음처럼 화면 이동하며 체험하기',
+                              style: TextStyle(fontSize: 13.5, fontWeight: FontWeight.bold, color: AppColors.primaryPurple),
+                            ),
+                            const SizedBox(height: 2),
+                            Text(
+                              '탭을 넘나들며 직접 버튼을 누르고 배우는 온보딩 가이드',
+                              style: TextStyle(fontSize: 11, color: AppColors.textSecondary),
+                            ),
+                          ],
+                        ),
+                      ),
+                      ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppColors.primaryPurple,
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                          elevation: 0,
+                        ),
+                        onPressed: () {
+                          Navigator.of(gCtx).pop(); // 모달 닫고
+                          Navigator.of(context).pushAndRemoveUntil(
+                            MaterialPageRoute(
+                              builder: (ctx) => const MainNavigationShell(startWithTutorial: true),
+                            ),
+                            (route) => false,
+                          );
+                        },
+                        child: const Text('체험 시작', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+                      ),
+                    ],
+                  ),
+                ),
+
+                const SizedBox(height: 12),
+                const Divider(height: 1),
+                Expanded(
+                  child: ListView(
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    children: _buildUserRequestedGuideItems(),
+                  ),
+                ),
+              ],
+            ),
+          ),
         );
       },
     );
   }
 
-  // 📝 요약 가이드 7대 항목
-  List<Widget> _buildSummaryGuideItems() {
+  // 📝 사용자가 정확히 요청한 7대 가이드 내용 전수 수록
+  List<Widget> _buildUserRequestedGuideItems() {
     return [
       _buildGuideCard(
         number: '1',
-        title: '복약 관리',
+        title: '복약 관리 💊',
         icon: Icons.medication_outlined,
         items: [
-          '(1) 약 이름, 복용법 입력 (예: 콘서타, 물과 함께 경구 복용)',
-          '(2) 의사 처방 약물일 경우 체크 (아닐 경우 체크하지 않음)',
-          '(3) 복용 시간 설정',
+          '병원에서 약을 처방받았다면, 약 이름과 복용법을 입력하고 의사 처방 필수 약물에 체크해줍니다. (처방약은 중요하기 때문에 알림이 상시 작동합니다.) 그리고 복용 시간을 설정합니다.',
+          '처방받은 약이 아닌 의약품이나 영양제의 경우, 체크 표시만 빼고 같은 방법으로 하면 됩니다.',
+          '‘지금 복용’을 누르면 현재 시각이 기록되며 ‘완료’로 바뀌고, 상단의 완수율이 올라갑니다. 오늘의 복약을 모두 완료하면 100%가 됩니다.',
         ],
       ),
       const SizedBox(height: 12),
       _buildGuideCard(
         number: '2',
-        title: '습관 관리',
+        title: '습관 관리 🍃',
         icon: Icons.eco_outlined,
         items: [
-          '(1) 습관 이름, 작은 목표, 하루 목표 입력 (예: 물 마시기, 1잔씩, 4회)',
-          '(2) 실천 주기 설정 (옵션: 매일, 요일 선택, 주간 횟수, 오늘만)',
-          '(3) 알림 시각 지정 (직접 설정 가능) 또는 미지정 선택',
+          '습관 이름, 작은 목표와 하루 목표치를 설정합니다. 실천 주기를 입력하고, 필요하다면 알림 시각도 설정합니다.',
+          '습관을 1회 수행할 때마다 상단 완수율이 올라갑니다. 목표 횟수를 모두 채우면 ‘완료’로 바뀝니다.',
         ],
       ),
       const SizedBox(height: 12),
       _buildGuideCard(
         number: '3',
-        title: '기록 달력',
+        title: '기록 달력 🗓',
         icon: Icons.calendar_month_outlined,
         items: [
-          '(1) 해당 날짜의 복약 현황, 습관 현황 조회 가능',
-          '(2) 하단 바의 색상 의미:\n  • 붉은색 하단 바 : 처방약을 먹지 않았을 때\n  • 회색 하단 바 : 약(처방약 제외)이나 습관을 통틀어 하나라도 미완료일 때\n  • 초록색 하단 바 : 복약과 습관을 모두 완료했을 때',
-          '(3) 오늘의 할 일 : 사용자가 별도로 추가 가능, 완료 이전에는 보라색 점이었다가 완료 후에 초록색 점으로 변환',
+          '그동안 생활한 기록을 볼 수 있는 곳입니다. 날짜를 누르면, 해당 날짜의 복약 현황, 습관 현황이 보입니다. 처방받은 약을 미복용한 경우, 붉은색❤️ 하단 바로 표시됩니다. 반면 처방받은 약은 복용했지만 다른 약물이나 습관을 완수하지 않은 경우, 회색🩶 하단 바로 표시됩니다. 모든 것을 완수했다면 초록색💚 하단 바로 표시됩니다.',
+          '‘그날의 할 일’은 사용자가 별도로 추가한 일정으로, 보라색💜 점에서 완료 시 초록색💚 점으로 바뀝니다.',
         ],
       ),
       const SizedBox(height: 12),
       _buildGuideCard(
         number: '4',
-        title: '설정 (우측 상단 톱니바퀴)',
+        title: '설정 ⚙️',
         icon: Icons.settings_outlined,
         items: [
-          '(1) 개인 성향에 따른 맞춤 설정 : 알림 반복 빈도(최소, 기본, 적극적 3가지 모드), 각 기능에 대해 별도로 알림 on/off 가능',
-          '(2) 복약 기록 다운로드 : 의료진과의 상담 등 도움, 엑셀 파일 형식, 추출할 정보 선택 가능, 저장 및 공유 기능 지원',
+          '4-1. 알림 설정⏰️\n우측 상단 톱니바퀴를 누르면, 개인 성향에 따라 맞춤 설정할 수 있습니다.\n알림 반복 빈도부터 각 기능에 대한 알림을 별도로 on/off할 수 있습니다.\n(주의할 점 : 복약 알림을 꺼도 처방된 약 알림은 꺼지지 않습니다.)',
+          '4-2. 리포트 다운로드📝\n앱 사용 기록을 엑셀 파일 형태로 다운로드 가능하며, 의료진에게 정보 제공 목적 등으로 활용할 수 있습니다. 어떤 데이터를 추출할지 직접 선택한 뒤, 저장이나 전송이 가능합니다.',
         ],
       ),
       const SizedBox(height: 12),
       _buildGuideCard(
         number: '5',
-        title: '하곰이 (우측 상단)',
+        title: '하곰이 🐻',
         icon: Icons.sentiment_satisfied_alt_outlined,
         items: [
-          '(1) 짧게 누르면 : 하곰이와의 대화',
-          '(2) 길게 누르면 : 하곰이의 방으로 이동',
+          '우측 상단 하곰이가 있습니다. 짧게 누르면 하곰이가 힘이 되는 말을 건네줘요. 길게 누르면 하곰이의 방으로 이어져요.',
         ],
       ),
       const SizedBox(height: 12),
       _buildGuideCard(
         number: '6',
-        title: '하곰이의 방',
+        title: '하곰이의 방 🚪',
         icon: Icons.home_outlined,
         items: [
-          '(1) 하곰이, 하곰이의 위로와 응원, 누적접속일수 조회 가능',
-          '(2) 하곰이와의 유대감과 성취감을 충전할 수 있는 곳',
+          '하곰이와 하곰이가 해주는 위로와 응원의 말들이 있는 힐링 공간입니다.🌱',
+          '누적접속일수를 통해 하곰이와 함께한 시간을 확인할 수 있습니다. 접속하지 않은 날이 있어도 기록은 사라지지 않으니, 계속해서 접속일을 쌓아나가며 하곰이와의 하루를 즐기세요.',
         ],
       ),
       const SizedBox(height: 12),
       _buildGuideCard(
         number: '7',
-        title: '위젯',
+        title: '위젯 📱',
         icon: Icons.widgets_outlined,
         items: [
-          '(1) 복약 관리, 습관 관리, 오늘의 할 일, 기록 달력 조회 가능',
-          '(2) 시간 순으로 정리된 목록',
-          '(3) 위젯 클릭 시 앱으로 이동',
+          '복약 관리, 습관 관리, 오늘의 할 일, 기록 달력을 간편하게 볼 수 있습니다. 목록은 시간 순으로 정렬되어 보기 편하게 되어 있습니다. 위젯을 누르면 바로 앱으로 이어져요.',
         ],
-      ),
-      const SizedBox(height: 16),
-    ];
-  }
-
-  // 🎙️ 발표문 버전 상세 가이드라인 항목
-  List<Widget> _buildPresentationGuideItems() {
-    return [
-      _buildPresentationSection(
-        number: '1',
-        title: '복약 관리 💊',
-        content: '병원에서 약을 처방받았다면, 약 이름과 복용법을 입력하고 의사 처방 필수 약물에 체크해줍니다. (처방약은 중요하기 때문에 알림이 상시 작동합니다.) 그리고 복용 시간을 설정합니다.\n\n'
-            '처방받은 약이 아닌 의약품이나 영양제의 경우, 체크 표시만 빼고 같은 방법으로 하면 됩니다.\n\n'
-            '‘지금 복용’을 누르면 현재 시각이 기록되며 ‘완료’로 바뀌고, 상단의 완수율이 올라갑니다. 오늘의 복약을 모두 완료하면 100%가 됩니다.',
-      ),
-      const SizedBox(height: 14),
-      _buildPresentationSection(
-        number: '2',
-        title: '습관 관리 🍃',
-        content: '습관 이름, 작은 목표와 하루 목표치를 설정합니다. 실천 주기를 입력하고, 필요하다면 알림 시각도 설정합니다.\n\n'
-            '습관을 1회 수행할 때마다 상단 완수율이 올라갑니다. 목표 횟수를 모두 채우면 ‘완료’로 바뀝니다.',
-      ),
-      const SizedBox(height: 14),
-      _buildPresentationSection(
-        number: '3',
-        title: '기록 달력 🗓',
-        content: '그동안 생활한 기록을 볼 수 있는 곳입니다. 날짜를 누르면, 해당 날짜의 복약 현황, 습관 현황이 보입니다.\n\n'
-            '처방받은 약을 미복용한 경우 붉은색 하단 바로 표시되며, 모든 복약과 습관을 완수하면 초록색 하단 바로 따뜻하게 채워집니다. 하나라도 미실천이 있다면 차분한 회색 바가 표시되어 스스로의 일상을 돌아볼 수 있습니다.',
-      ),
-      const SizedBox(height: 14),
-      _buildPresentationSection(
-        number: '4',
-        title: '의료진 소통 & 맞춤 설정 ⚙️',
-        content: '설정에서는 개인의 컨디션에 맞게 알림 빈도(최소, 기본, 적극적)를 조절할 수 있습니다.\n\n'
-            '또한 진료를 받으러 갈 때 [기록 다운로드] 기능을 활용하면, 엑셀 파일 형식으로 지금까지의 복약 순응도와 생활 습관 기록이 단일 파일 시트별로 정돈되어 추출되므로 담당 의사 선생님과 한층 정확하고 전문적인 상담을 나눌 수 있습니다.',
       ),
       const SizedBox(height: 16),
     ];
@@ -696,40 +678,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
             padding: const EdgeInsets.only(bottom: 5),
             child: Text(it, style: TextStyle(fontSize: 12, color: AppColors.textSecondary, height: 1.45)),
           )),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildPresentationSection({required String number, required String title, required String content}) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppColors.primaryPurple.withValues(alpha: 0.25)),
-        boxShadow: [
-          BoxShadow(color: AppColors.primaryPurple.withValues(alpha: 0.04), blurRadius: 8, offset: const Offset(0, 2)),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Container(
-                width: 24,
-                height: 24,
-                alignment: Alignment.center,
-                decoration: BoxDecoration(color: AppColors.primaryPurple, shape: BoxShape.circle),
-                child: Text(number, style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold)),
-              ),
-              const SizedBox(width: 8),
-              Text(title, style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: AppColors.primaryPurple)),
-            ],
-          ),
-          const SizedBox(height: 10),
-          Text(content, style: TextStyle(fontSize: 13, color: AppColors.textPrimary, height: 1.55)),
         ],
       ),
     );
@@ -1170,7 +1118,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     ),
                     SizedBox(height: 3),
                     Text(
-                      '정신약학 맞춤 복약 솔루션 · v0.90.238',
+                      '정신약학 맞춤 복약 솔루션 · v0.90.239',
                       style: TextStyle(
                         fontSize: 12,
                         color: AppColors.textSecondary,
