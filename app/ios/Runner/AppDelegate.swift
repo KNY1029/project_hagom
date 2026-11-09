@@ -31,6 +31,85 @@ import UserNotifications
 
     exportChannel.setMethodCallHandler { (call: FlutterMethodCall, result: @escaping FlutterResult) in
       switch call.method {
+      case "openUrl":
+        guard let args = call.arguments as? [String: Any],
+              let urlStr = args["url"] as? String,
+              let url = URL(string: urlStr) else {
+          result(FlutterError(code: "INVALID_URL", message: "Invalid URL string", details: nil))
+          return
+        }
+        if UIApplication.shared.canOpenURL(url) {
+          UIApplication.shared.open(url, options: [:]) { success in
+            result(success)
+          }
+        } else {
+          result(false)
+        }
+
+      case "downloadExcel":
+        guard let args = call.arguments as? [String: Any],
+              let fileName = args["fileName"] as? String,
+              let flutterData = args["bytes"] as? FlutterStandardTypedData else {
+          result(FlutterError(code: "INVALID_ARGS", message: "Arguments missing", details: nil))
+          return
+        }
+
+        do {
+          let docsURL = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
+          let fileURL = docsURL.appendingPathComponent(fileName)
+          try flutterData.data.write(to: fileURL)
+          result(fileURL.path)
+        } catch {
+          result(FlutterError(code: "EXCEL_SAVE_ERROR", message: error.localizedDescription, details: nil))
+        }
+
+      case "syncAlarms":
+        guard let args = call.arguments as? [String: Any],
+              let schedulesJson = args["schedulesJson"] as? String,
+              let data = schedulesJson.data(using: .utf8) else {
+          result(false)
+          return
+        }
+
+        if #available(iOS 10.0, *) {
+          let center = UNUserNotificationCenter.current()
+          center.requestAuthorization(options: [.alert, .sound, .badge]) { granted, _ in
+            guard granted else {
+              DispatchQueue.main.async { result(false) }
+              return
+            }
+
+            // 기존 예약 알림 제거 후 최신 복약/습관 스케줄로 재등록
+            center.removeAllPendingNotificationRequests()
+
+            if let jsonArray = try? JSONSerialization.jsonObject(with: data) as? [[String: Any]] {
+              for item in jsonArray {
+                guard let id = item["id"] as? Int,
+                      let hour = item["hour"] as? Int,
+                      let minute = item["minute"] as? Int,
+                      let title = item["title"] as? String,
+                      let message = item["message"] as? String else { continue }
+
+                let content = UNMutableNotificationContent()
+                content.title = title
+                content.body = message
+                content.sound = .default
+
+                var dateComponents = DateComponents()
+                dateComponents.hour = hour
+                dateComponents.minute = minute
+
+                let trigger = UNCalendarNotificationTrigger(dateMatching: dateComponents, repeats: true)
+                let request = UNNotificationRequest(identifier: "hagom_alarm_\(id)", content: content, trigger: trigger)
+                center.add(request, withCompletionHandler: nil)
+              }
+            }
+            DispatchQueue.main.async { result(true) }
+          }
+        } else {
+          result(false)
+        }
+
       case "downloadCsv":
         guard let args = call.arguments as? [String: Any],
               let fileName = args["fileName"] as? String,
@@ -51,7 +130,6 @@ import UserNotifications
         } catch {
           result(FlutterError(code: "EXPORT_ERROR", message: error.localizedDescription, details: nil))
         }
-
       case "showTestNotification":
         if #available(iOS 10.0, *) {
           let center = UNUserNotificationCenter.current()
