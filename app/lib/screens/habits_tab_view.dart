@@ -44,8 +44,8 @@ class _HabitsTabViewState extends State<HabitsTabView> {
     showDialog(
       context: context,
       builder: (dCtx) => AlertDialog(
-        title: const Text('습관 삭제', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-        content: Text('\'${habit.title}\' 습관을 현재 습관 목록에서 삭제할까요?\n\n과거 달력 기록과 엑셀 다운로드 데이터에는 안전하게 보존되며, 당장 습관 탭에서만 보이지 않게 됩니다.'),
+        title: const Text('목록에서 삭제', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+        content: Text('\'${habit.title}\' 습관을 목록에서 삭제할까요?'),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(dCtx).pop(),

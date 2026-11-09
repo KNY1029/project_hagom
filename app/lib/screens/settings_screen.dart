@@ -424,7 +424,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                           ),
                           icon: Icon(Icons.open_in_browser, size: 18, color: AppColors.primaryPurple),
                           label: Text(
-                            '조원 페이지에서 원문 보기 (lit.link/ko/hagom)',
+                            '원문 보기',
                             style: TextStyle(fontSize: 12.5, fontWeight: FontWeight.bold, color: AppColors.primaryPurple),
                           ),
                           onPressed: () async {
@@ -881,7 +881,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     ),
                     SizedBox(height: 3),
                     Text(
-                      '정신약학 맞춤 복약 솔루션 · v0.90.230',
+                      '정신약학 맞춤 복약 솔루션 · v0.90.231',
                       style: TextStyle(
                         fontSize: 12,
                         color: AppColors.textSecondary,
