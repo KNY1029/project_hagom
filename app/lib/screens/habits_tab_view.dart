@@ -725,19 +725,24 @@ class _HabitsTabViewState extends State<HabitsTabView> {
                   // 🔒 [우측 상태 칩: 76x32dp 복약 탭과 칼정렬]
                   GestureDetector(
                     onTap: () {
-                      final wasHabitDoneBefore = habit.score >= 1.0;
-                      final wasAllDoneBefore = (_state.getHabitRateForDay(DateTime.now()) ?? 0.0) >= 1.0;
+                      final todayHabits = _state.habits.where((h) => h.isDueToday).toList();
+                      final wasAllHabitsDoneBefore = todayHabits.isNotEmpty && todayHabits.every((h) => h.score >= 1.0);
                       final advanced = _state.advanceHabitProgress(habit.id);
                       if (advanced) {
-                        final isHabitDoneNow = habit.score >= 1.0;
-                        final isAllDoneNow = (_state.getHabitRateForDay(DateTime.now()) ?? 0.0) >= 1.0;
-                        if ((!wasAllDoneBefore && isAllDoneNow) || (!wasHabitDoneBefore && isHabitDoneNow)) {
-                          // 🎉 습관 완료! 투명 플로팅 하곰이 + 꽃가루 폭죽 축하 오버레이 팝업 등장!
+                        final isAllHabitsDoneNow = todayHabits.isNotEmpty && todayHabits.every((h) => h.score >= 1.0);
+                        if (!wasAllHabitsDoneBefore && isAllHabitsDoneNow) {
+                          // 🎉 오늘 하루 해야 하는 모든 습관 100% 올클리어! 축하 오버레이 팝업 등장!
                           HagomCelebrationOverlay.show(
                             context,
                             assetPath: AppAssets.habitsAllDoneWebp,
-                            title: isAllDoneNow ? '오늘 습관 모두 실천 완료!' : '${habit.title} 실천 완료!',
-                            subtitle: isAllDoneNow ? '스스로와의 약속을 멋지게 지켜내셨어요.' : '정말 대단해요! 꾸준한 실천을 칭찬해요.',
+                            title: '오늘 습관 모두 실천 완료!',
+                            subtitle: '스스로와의 약속을 멋지게 지켜내셨어요.',
+                          );
+                        } else if (habit.score >= 1.0) {
+                          CelebrationToast.show(
+                            context,
+                            title: '습관 실천 완료',
+                            message: '\'${habit.title}\' 목표를 달성했어요. 훌륭해요.',
                           );
                         } else if (habit.score > 0.0) {
                           CelebrationToast.show(
