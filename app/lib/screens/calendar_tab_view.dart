@@ -817,10 +817,12 @@ class _CalendarTabViewState extends State<CalendarTabView> {
                 gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                   crossAxisCount: 7,
                   mainAxisSpacing: 4,
-                  // 🌟 연결형 모드(2월~4월, 8월)에서는 칸들 사이의 가로 빈 공간을 0으로 만들어 완전히 맞닿아 띠처럼 이어짐!
-                  crossAxisSpacing: (_currentMonth.year == 2026 && (_currentMonth.month >= 2 && _currentMonth.month <= 4 || _currentMonth.month == 8)) ? 0 : 4,
+                  // 🌟 연결형 모드(8월, 12월, 2~4월): 칸들 사이 가로 빈 공간을 0으로 만들어 띠처럼 이어짐!
+                  crossAxisSpacing: ((_currentMonth.year == 2026 && (_currentMonth.month >= 2 && _currentMonth.month <= 4 || _currentMonth.month == 8 || _currentMonth.month == 12)) ||
+                                     (_currentMonth.year == 2025 && _currentMonth.month == 12)) ? 0 : 4,
                   // 🌟 연결형 모드 종횡비 보정(1.02)
-                  childAspectRatio: (_currentMonth.year == 2026 && (_currentMonth.month >= 2 && _currentMonth.month <= 4 || _currentMonth.month == 8)) ? 1.02 : 0.95,
+                  childAspectRatio: ((_currentMonth.year == 2026 && (_currentMonth.month >= 2 && _currentMonth.month <= 4 || _currentMonth.month == 8 || _currentMonth.month == 12)) ||
+                                     (_currentMonth.year == 2025 && _currentMonth.month == 12)) ? 1.02 : 0.95,
                 ),
                 itemBuilder: (ctx, idx) {
                   final dayOffset = idx - firstWeekday + 1;
@@ -843,11 +845,9 @@ class _CalendarTabViewState extends State<CalendarTabView> {
                   final monthNum = _currentMonth.month;
 
                   // 🌟 [월별 형태 모드]:
-                  // 1월~4월: 좌우 연결형 (Continuous Streak)
-                  // 5월~12월: 독립형 (Independent Rounded)
-                  // (12월: 사용자 요청 8월 레이아웃 = 독립형 3.5px 둥근 모서리)
-                  final isConnectedMode = (_currentMonth.year == 2026 && (monthNum >= 1 && monthNum <= 4));
-
+                  // 8월 & 12월 (2025/2026): 8월 레이아웃 그대로 좌우 꽉 찬 연결형 바 (left: 0, right: 0) + 3.5px
+                  final isConnectedMode = ((_currentMonth.year == 2026 && ((monthNum >= 1 && monthNum <= 4) || monthNum == 8 || monthNum == 12)) ||
+                                           (_currentMonth.year == 2025 && monthNum == 12));
                   final Color currentDoneGreen = _getDoneGreenColor(monthNum);
 
                   // 🌟 [월별 미완료 색상 비교 (연보라 vs 쿨그레이)]:
