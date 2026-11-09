@@ -852,11 +852,10 @@ class _CalendarTabViewState extends State<CalendarTabView> {
 
                   // 🌟 [월별 미완료 색상 비교 (연보라 vs 쿨그레이)]:
                   // - 8월, 9월, 10월, 2월, 3월, 4월, 11월: 화사한 파스텔 연보라 (바: #B39DDB, 핀: #C4B5FD)
-                  // - 5월, 6월, 7월, 1월, 그리고 12월(5월 색상 요청!): 정갈한 소프트 쿨그레이 (바: #9CA3AF, 핀: #D1D5DB)
-                  final bool isGrayPending = (_currentMonth.year == 2026 && (monthNum == 5 || monthNum == 6 || monthNum == 7 || monthNum == 1 || monthNum == 12));
+                  // - 5월, 6월, 7월, 1월, 그리고 12월(2025년/2026년 5월 색상 요청!): 정갈한 소프트 쿨그레이 (바: #9CA3AF, 핀: #D1D5DB)
+                  final bool isGrayPending = (monthNum == 5 || monthNum == 6 || monthNum == 7 || monthNum == 1 || monthNum == 12);
                   final Color pendingBarColor = isGrayPending ? const Color(0xFF9CA3AF) : const Color(0xFFB39DDB);
                   final Color pendingPinColor = isGrayPending ? const Color(0xFFD1D5DB) : const Color(0xFFC4B5FD);
-
                   final isMed100 = medRate != null && medRate >= 1.0;
                   final isHabit100 = !isFuture && !isBeforeTracking && habitRate != null && habitRate >= 1.0;
 

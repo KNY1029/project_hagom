@@ -353,11 +353,12 @@ class AppStateManager extends ChangeNotifier {
 
   /// 특정 날짜가 기록 시작일 이전인지 확인
   bool isBeforeTrackingStart(DateTime date) {
-    // 🌟 비교 및 시뮬레이션을 위한 샘플 월(1월~10월)은 항상 모든 진행도/바가 보이도록 허용!
-    if (date.year == 2026 && date.month >= 1 && date.month <= 10) {
+    // 🌟 비교 및 시뮬레이션을 위한 샘플 월(1월~10월, 2025년 12월)은 항상 모든 진행도/바가 보이도록 허용!
+    if ((date.year == 2026 && date.month >= 1 && date.month <= 10) ||
+        (date.year == 2025 && date.month == 12) ||
+        (date.year == 2026 && date.month == 12)) {
       return false;
     }
-    // 개발자 모드에서는 1~7일 모든 임상 예시 데이터가 달력에 온전히 보여야 하므로 절대 가리지 않음!
     if (isDevSimulationMode) {
       return false;
     }
@@ -384,21 +385,22 @@ class AppStateManager extends ChangeNotifier {
     final existing = tasks.where((t) => t.isSameDay(day)).toList();
     if (existing.isNotEmpty) return existing;
 
-    // 🌟 비교 및 시뮬레이션용 월(1월~10월, 12월)에 할일 핀이 100% 보이도록 가상 할일 자동 생성!
-    if (day.year == 2026 && ((day.month >= 1 && day.month <= 10) || day.month == 12)) {
+    // 🌟 비교 및 시뮬레이션용 월(1월~10월, 2025년 12월, 2026년 12월)에 할일 핀이 100% 보이도록 가상 할일 자동 생성!
+    if ((day.year == 2026 && ((day.month >= 1 && day.month <= 10) || day.month == 12)) ||
+        (day.year == 2025 && day.month == 12)) {
       final d = day.day;
-      final mId = 't_mock_${day.month}_${d}';
+      final mId = 't_mock_${day.year}_${day.month}_${d}';
       if (_hiddenMockTaskIds.contains(mId)) return [];
       // 12월: 다양한 날짜에 초록 완료 핀과 쿨그레이 미완료 핀 분산 배치
       if (d == 1 || d == 4 || d == 8 || d == 11 || d == 15 || d == 18 || d == 22 || d == 25 || d == 29) {
         // 완료된 할일 (초록 핀)
         return [
-          TaskItem(id: 't_mock_${day.month}_${d}', title: '병원 정기 상담 완료', date: day, time: '오전 10:00', isCompleted: true)
+          TaskItem(id: mId, title: '병원 정기 상담 완료', date: day, time: '오전 10:00', isCompleted: true)
         ];
       } else if (d == 2 || d == 5 || d == 9 || d == 12 || d == 16 || d == 19 || d == 23 || d == 26 || d == 30) {
         // 미완료/예정 할일 (정갈한 소프트 쿨그레이 핀)
         return [
-          TaskItem(id: 't_mock_${day.month}_${d}', title: '복약 일지 점검', date: day, time: '오후 3:00', isCompleted: false)
+          TaskItem(id: mId, title: '복약 일지 점검', date: day, time: '오후 3:00', isCompleted: false)
         ];
       }
     }
@@ -461,8 +463,8 @@ class AppStateManager extends ChangeNotifier {
     // 6일: 처방약이랑 습관 누락 (처방약 Focusin 0%, 일반약 100%, 습관 0%)
     // 7일: 약(처방+일반)이랑 습관 전부 다 누락 (0%)
     final d = day.day;
-    // 🌟 [12월 전용 다채로운 임상 케이스 매핑 (1~31일 전수)]:
-    if (day.year == 2026 && day.month == 12) {
+    // 🌟 [12월 전용 다채로운 임상 케이스 매핑 (2025년 12월 & 2026년 12월 1~31일 전수)]:
+    if ((day.year == 2025 || day.year == 2026) && day.month == 12) {
       switch (d) {
         case 1:  // Case 1: 복약 100% + 습관 100% + 할일 완료 (완벽 달성: 초록배경+초록바+초록핀)
         case 8:
@@ -668,8 +670,8 @@ class AppStateManager extends ChangeNotifier {
     // 6일: 습관 0% (습관 + 처방약 누락)
     // 7일: 습관 0% (전부 다 누락)
     final d = day.day;
-    // 🌟 [12월 전용 습관 다채로운 조합 매핑]:
-    if (day.year == 2026 && day.month == 12) {
+    // 🌟 [12월 전용 습관 다채로운 조합 매핑 (2025년 12월 & 2026년 12월)]:
+    if ((day.year == 2025 || day.year == 2026) && day.month == 12) {
       switch (d) {
         case 1:  // 습관 100% (연초록 배경)
         case 3:  // 습관 100% (연초록 배경)

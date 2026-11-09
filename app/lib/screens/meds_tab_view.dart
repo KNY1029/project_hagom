@@ -1020,7 +1020,7 @@ class _MedsTabViewState extends State<MedsTabView> {
     showDialog(
       context: context,
       builder: (dCtx) => AlertDialog(
-        title: const Text('목록에서 삭제', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+        title: const Text('복약 삭제', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
         content: Text('\'${med.name}\' 약을 목록에서 삭제할까요?'),
         actions: [
           TextButton(

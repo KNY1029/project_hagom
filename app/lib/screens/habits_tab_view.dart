@@ -44,7 +44,7 @@ class _HabitsTabViewState extends State<HabitsTabView> {
     showDialog(
       context: context,
       builder: (dCtx) => AlertDialog(
-        title: const Text('목록에서 삭제', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+        title: const Text('습관 삭제', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
         content: Text('\'${habit.title}\' 습관을 목록에서 삭제할까요?'),
         actions: [
           TextButton(
