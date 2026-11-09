@@ -1,6 +1,9 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <uses-permission android:name="android.permission.WAKE_LOCK" />
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+    <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
+    <uses-permission android:name="android.permission.USE_EXACT_ALARM" />
     <application
         android:label="하곰이"
         android:name="${applicationName}"
@@ -106,6 +109,15 @@
             android:name=".WidgetActionReceiver"
             android:exported="true" />
 
+        <!-- ⏰ 정밀 백그라운드 복약/습관 실천 및 하곰이 토크 알림 리시버 -->
+        <receiver
+            android:name=".HagomAlarmReceiver"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+                <action android:name="com.healthpharma.hagom_app.ACTION_ALARM_TRIGGER" />
+            </intent-filter>
+        </receiver>
         <!-- 🚀 home_widget 백그라운드 1-Tap 즉시 체크 리시버 & 서비스 (앱 실행 없이 동작) -->
         <receiver
             android:name="es.antonborri.home_widget.HomeWidgetBackgroundReceiver"

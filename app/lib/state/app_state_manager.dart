@@ -6,6 +6,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../models/medication_item.dart';
 import '../models/habit_item.dart';
 import '../services/hagom_native_widget_sync.dart';
+import '../services/hagom_alarm_manager.dart';
 import '../models/task_item.dart';
 import '../constants/app_colors.dart';
 
@@ -32,6 +33,7 @@ class AppStateManager extends ChangeNotifier {
   Future<void> flushForWidget() async {
     await _saveDataToDisk();
     await HagomNativeWidgetSync.updateNativeWidget(this);
+    await HagomAlarmManager.syncScheduledAlarms(this);
   }
 
   /// 🌟 [백그라운드 전용]: 이미 네이티브가 위젯 UI를 최신 상태로 바꿨으므로,
@@ -59,6 +61,7 @@ class AppStateManager extends ChangeNotifier {
     _saveDataToDisk(); // 상태 변경 시마다 로컬 DB에 자동 영구 저장!
     if (!suspendWidgetSync) {
       HagomNativeWidgetSync.updateNativeWidget(this);
+      HagomAlarmManager.syncScheduledAlarms(this);
     }
   }
   // --- 💊 복약 데이터 ---

@@ -44,6 +44,11 @@ class MainActivity : FlutterActivity() {
                     }
                 }
                 "showTestNotification" -> showTestNotification(result)
+                "syncAlarms" -> {
+                    val schedulesJson = call.argument<String>("schedulesJson") ?: "[]"
+                    HagomAlarmScheduler.scheduleAlarmsFromJson(this, schedulesJson)
+                    result.success(true)
+                }
                 "downloadExcel" -> {
                     val fileName = call.argument<String>("fileName") ?: "hagom_건강기록.xlsx"
                     val bytes = call.argument<ByteArray>("bytes") ?: ByteArray(0)
