@@ -1123,7 +1123,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     ),
                     SizedBox(height: 3),
                     Text(
-                      '정신약학 맞춤 복약 솔루션 · v0.90.240',
+                      '정신약학 맞춤 복약 솔루션 · v0.90.241',
                       style: TextStyle(
                         fontSize: 12,
                         color: AppColors.textSecondary,
@@ -1416,7 +1416,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
                   leading: Icon(Icons.help_outline, color: AppColors.primaryPurple),
                   title: Text('앱 사용 가이드 다시 보기', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: AppColors.textPrimary)),
-                  subtitle: Text('핵심 요약 가이드 및 발표문 버전 상세 가이드라인', style: TextStyle(fontSize: 11.5, color: AppColors.textSecondary)),
+                  subtitle: Text('핵심 요약 가이드 및 화면 이동 체험 가이드', style: TextStyle(fontSize: 11.5, color: AppColors.textSecondary)),
                   trailing: const Icon(Icons.arrow_forward_ios, size: 14, color: AppColors.textMuted),
                   onTap: _showAppGuideModal,
                 ),
