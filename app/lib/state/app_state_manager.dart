@@ -250,7 +250,7 @@ class AppStateManager extends ChangeNotifier {
     requestedCalendarDate = null;
   }
   // 🛠️ 개발자 모드(전체 예시 데이터 복원 상태) 여부
-  bool isDevSimulationMode = true; // 기본값은 개발자 예시 모드 (발표 및 시연용)
+  bool isDevSimulationMode = false; // 기본값: 실사용 모드 (예시 데이터 없음)
   // 🎨 테마 관리 (기본 제공 프리셋 + 사용자가 추가한 커스텀 테마)
   String currentThemeKey = AppColors.themeDefault;
   final List<ThemePreset> customThemes = [];
@@ -356,17 +356,11 @@ class AppStateManager extends ChangeNotifier {
 
   /// 특정 날짜가 기록 시작일 이전인지 확인
   bool isBeforeTrackingStart(DateTime date) {
-    // 🌟 비교 및 시뮬레이션을 위한 샘플 월(1월~10월, 2025년 12월)은 항상 모든 진행도/바가 보이도록 허용!
-    if ((date.year == 2026 && date.month >= 1 && date.month <= 10) ||
-        (date.year == 2025 && date.month == 12) ||
-        (date.year == 2026 && date.month == 12)) {
-      return false;
-    }
     if (isDevSimulationMode) {
       return false;
     }
-    // 개발자 모드 시뮬레이션 중일 때는 달력에 1~7일 예시가 보여야 하므로 제외
-    if (_pastSlotRecords.isNotEmpty || _pastHabitRecords.isNotEmpty) {
+    // 사용자가 해당 날짜에 소급 수정한 기록이 있다면 기록 시작일 이전이라도 표시 허용
+    if (hasPastRecordForDay(date)) {
       return false;
     }
     final target = DateTime(date.year, date.month, date.day);
@@ -388,20 +382,16 @@ class AppStateManager extends ChangeNotifier {
     final existing = tasks.where((t) => t.isSameDay(day)).toList();
     if (existing.isNotEmpty) return existing;
 
-    // 🌟 비교 및 시뮬레이션용 월(1월~10월, 2025년 12월, 2026년 12월)에 할일 핀이 100% 보이도록 가상 할일 자동 생성!
-    if ((day.year == 2026 && ((day.month >= 1 && day.month <= 10) || day.month == 12)) ||
-        (day.year == 2025 && day.month == 12)) {
+    // 개발자 모드일 때만 예시 할일 제공
+    if (isDevSimulationMode) {
       final d = day.day;
       final mId = 't_mock_${day.year}_${day.month}_${d}';
       if (_hiddenMockTaskIds.contains(mId)) return [];
-      // 12월: 다양한 날짜에 초록 완료 핀과 쿨그레이 미완료 핀 분산 배치
       if (d == 1 || d == 4 || d == 8 || d == 11 || d == 15 || d == 18 || d == 22 || d == 25 || d == 29) {
-        // 완료된 할일 (초록 핀)
         return [
           TaskItem(id: mId, title: '병원 정기 상담 완료', date: day, time: '오전 10:00', isCompleted: true)
         ];
       } else if (d == 2 || d == 5 || d == 9 || d == 12 || d == 16 || d == 19 || d == 23 || d == 26 || d == 30) {
-        // 미완료/예정 할일 (정갈한 소프트 쿨그레이 핀)
         return [
           TaskItem(id: mId, title: '복약 일지 점검', date: day, time: '오후 3:00', isCompleted: false)
         ];
@@ -420,6 +410,14 @@ class AppStateManager extends ChangeNotifier {
 
   // 특정 날짜의 슬롯이 '소급 수정(달력에서 나중에 수정한 것)'인지 여부 (key: 'YYYY-MM-DD_medId_slotIdx')
   final Set<String> _retroactiveSlots = {};
+
+  /// 특정 날짜에 사용자가 직접 소급 수정한 복약/습관 기록이 있는지 확인
+  bool hasPastRecordForDay(DateTime day) {
+    final key = _dateKey(day);
+    final hasMedRecord = _pastSlotRecords.containsKey(key) && _pastSlotRecords[key]!.isNotEmpty;
+    final hasHabitRecord = _pastHabitRecords.containsKey(key) && _pastHabitRecords[key]!.isNotEmpty;
+    return hasMedRecord || hasHabitRecord;
+  }
 
   bool isSlotRetroactive(DateTime day, String medId, int slotIdx) {
     final key = '${_dateKey(day)}_${medId}_$slotIdx';
@@ -457,52 +455,48 @@ class AppStateManager extends ChangeNotifier {
     if (_pastSlotRecords.containsKey(key) && _pastSlotRecords[key]!.containsKey(slotKey)) {
       return _pastSlotRecords[key]![slotKey]!;
     }
-    // 🌟 사용자 요청 정확한 날짜별 임상 케이스 맵핑:
-    // 1일: 전부 다 한 날 (복약 100%, 습관 100%)
-    // 2일: 습관만 안 한 날 (복약 100%, 습관 0%)
-    // 3일: 일반약만 누락 (처방약 Focusin 100%, 일반약 0%, 습관 100%)
-    // 4일: 처방약 누락 (처방약 Focusin 0%, 일반약 100%, 습관 100%)
-    // 5일: 습관이랑 일반약 누락 (처방약 Focusin 100%, 일반약 0%, 습관 0%)
-    // 6일: 처방약이랑 습관 누락 (처방약 Focusin 0%, 일반약 100%, 습관 0%)
-    // 7일: 약(처방+일반)이랑 습관 전부 다 누락 (0%)
+    // 개발자 모드가 아니면 사용자가 소급 수정한 기록(_pastSlotRecords)만 반환하고 기본값은 미완료(false)
+    if (!isDevSimulationMode) {
+      return false;
+    }
+
     final d = day.day;
-    // 🌟 [12월 전용 다채로운 임상 케이스 매핑 (2025년 12월 & 2026년 12월 1~31일 전수)]:
     if ((day.year == 2025 || day.year == 2026) && day.month == 12) {
       switch (d) {
-        case 1:  // Case 1: 복약 100% + 습관 100% + 할일 완료 (완벽 달성: 초록배경+초록바+초록핀)
+        case 1:
         case 8:
         case 15:
         case 22:
         case 29:
           return true;
-        case 2:  // Case 2: 복약 100% + 습관 0% + 할일 미완료 (복약 올클리어: 흰배경+초록바+회색핀)
+        case 2:
         case 9:
         case 16:
         case 23:
         case 30:
           return true;
-        case 3:  // Case 3: 처방약 100% + 일반약 0% + 습관 100% + 할일 없음 (일반약 누락: 초록배경+보라/회색바)
+        case 3:
         case 10:
         case 17:
         case 24:
         case 31:
-          return medId.contains('1'); // 처방약만 복용
-        case 4:  // Case 4: 처방약 0% + 일반약 100% + 습관 100% + 할일 완료 (처방약 놓침 경고: 초록배경+빨간바+초록핀)
+          return medId.contains('1');
+        case 4:
         case 11:
         case 18:
         case 25:
-          return !medId.contains('1'); // 일반약만 복용
-        case 5:  // Case 5: 처방약 0% + 일반약 0% + 습관 100% + 할일 미완료 (약 전부 누락: 초록배경+빨간바+회색핀)
+          return !medId.contains('1');
+        case 5:
         case 12:
         case 19:
         case 26:
-          return false; // 약 전부 미복용
-        case 6:  // Case 6: 처방약 100% + 일반약 0% + 습관 0% + 할일 없음 (처방약만 복용: 흰배경+보라/회색바)
+          return false;
+        case 6:
         case 13:
         case 20:
         case 27:
           return medId.contains('1');
-        case 7:  // Case 7: 복약 0% + 습관 0% + 할일 없음 (완전 미실천: 흰배경+빨간바)
+        case 7:
         case 14:
         case 21:
         case 28:
@@ -511,20 +505,10 @@ class AppStateManager extends ChangeNotifier {
       }
     }
 
-    // 1~11월 기본 시뮬레이션
-    if (d == 1 || d == 2) {
-      return true; // 복약 전부 완료
-    }
-    if (d == 3 || d == 5) {
-      return medId.contains('1'); // 일반약 누락 -> med_1(처방약)만 복용
-    }
-    if (d == 4 || d == 6) {
-      return !medId.contains('1'); // 처방약 누락 -> med_1(처방약) 미복용, med_2(일반약)는 복용
-    }
-    if (d == 7) {
-      return false; // 복약 전부 미복용
-    }
-    // 8일 이후 패턴 반복 (테스트용)
+    if (d == 1 || d == 2) return true;
+    if (d == 3 || d == 5) return medId.contains('1');
+    if (d == 4 || d == 6) return !medId.contains('1');
+    if (d == 7) return false;
     if (d % 6 == 1) return true;
     if (d % 6 == 2) return true;
     if (d % 6 == 3) return medId.contains('1');
@@ -532,7 +516,6 @@ class AppStateManager extends ChangeNotifier {
     if (d % 6 == 5) return medId.contains('1');
     return !medId.contains('1');
   }
-
   /// 특정 날짜의 특정 약/슬롯 복용 시각 문자열 가져오기
   String? getSlotTakenTimeForDay(DateTime day, String medId, int slotIdx) {
     final now = DateTime.now();
@@ -663,22 +646,18 @@ class AppStateManager extends ChangeNotifier {
     if (_pastHabitRecords.containsKey(key) && _pastHabitRecords[key]!.containsKey(habitId)) {
       return _pastHabitRecords[key]![habitId]!;
     }
-    // 🌟 사용자 요청 정확한 날짜별 임상 케이스에 맞춘 습관 시뮬레이션:
-    // 1일: 습관 100% (전부 다 함)
-    // 2일: 습관 0% (습관만 안 함)
-    // 3일: 습관 100% (일반약만 누락)
-    // 4일: 습관 100% (처방약만 누락)
-    // 5일: 습관 0% (습관 + 일반약 누락)
-    // 6일: 습관 0% (습관 + 처방약 누락)
-    // 7일: 습관 0% (전부 다 누락)
+    // 개발자 모드가 아니면 사용자가 소급 수정한 기록(_pastHabitRecords)만 반환하고 기본값은 대기(0.0)
+    if (!isDevSimulationMode) {
+      return 0.0;
+    }
+
     final d = day.day;
-    // 🌟 [12월 전용 습관 다채로운 조합 매핑 (2025년 12월 & 2026년 12월)]:
     if ((day.year == 2025 || day.year == 2026) && day.month == 12) {
       switch (d) {
-        case 1:  // 습관 100% (연초록 배경)
-        case 3:  // 습관 100% (연초록 배경)
-        case 4:  // 습관 100% (연초록 배경)
-        case 5:  // 습관 100% (연초록 배경)
+        case 1:
+        case 3:
+        case 4:
+        case 5:
         case 8:
         case 10:
         case 11:
@@ -694,9 +673,9 @@ class AppStateManager extends ChangeNotifier {
         case 29:
         case 31:
           return 1.0;
-        case 2:  // 습관 0% (흰 배경)
-        case 6:  // 습관 0%
-        case 7:  // 습관 0%
+        case 2:
+        case 6:
+        case 7:
         case 9:
         case 13:
         case 14:
@@ -712,13 +691,8 @@ class AppStateManager extends ChangeNotifier {
       }
     }
 
-    if (d == 1 || d == 3 || d == 4) {
-      return 1.0; // 습관 완료
-    }
-    if (d == 2 || d == 5 || d == 6 || d == 7) {
-      return 0.0; // 습관 미완료
-    }
-    // 8일 이후 패턴 반복
+    if (d == 1 || d == 3 || d == 4) return 1.0;
+    if (d == 2 || d == 5 || d == 6 || d == 7) return 0.0;
     return (d % 2 == 0) ? 0.0 : 1.0;
   }
 
@@ -823,7 +797,6 @@ class AppStateManager extends ChangeNotifier {
   SharedPreferences? _prefs;
 
   Future<void> _initDataAndStorage() async {
-    _initDefaultData();
     try {
       _prefs = await SharedPreferences.getInstance();
       await _loadDataFromDisk();
@@ -902,8 +875,8 @@ class AppStateManager extends ChangeNotifier {
         final List<dynamic> decoded = jsonDecode(medsRaw);
         _medications.clear();
         _medications.addAll(decoded.map((e) => MedicationItem.fromJson(e as Map<String, dynamic>)));
-        // 만약 주 1회 약물 예시(med_3)가 아직 없다면 추가!
-        if (!_medications.any((m) => m.id == 'med_3')) {
+        // 개발자 모드일 때만 예시 주 1회 약물(med_3) 추가
+        if (isDevSimulationMode && !_medications.any((m) => m.id == 'med_3')) {
           _medications.add(
             MedicationItem(
               id: 'med_3',
@@ -944,7 +917,7 @@ class AppStateManager extends ChangeNotifier {
         final List<dynamic> decoded = jsonDecode(habitsRaw);
         _habits.clear();
         _habits.addAll(decoded.map((e) => HabitItem.fromJson(e as Map<String, dynamic>)));
-        if (!_habits.any((h) => h.id == 'habit_5')) {
+        if (isDevSimulationMode && !_habits.any((h) => h.id == 'habit_5')) {
           _habits.add(
             HabitItem(
               id: 'habit_5',
@@ -953,7 +926,7 @@ class AppStateManager extends ChangeNotifier {
               recurrenceSummary: '주 1회',
               targetPerDay: 1,
               currentCount: 0,
-              weeklyCompletedCount: 1, // 🌟 이번 주에 이미 1회 완료하여 오늘은 쉴 수 있는 상태!
+              weeklyCompletedCount: 1, // 이번 주 완료 상태
             ),
           );
         }
@@ -1606,56 +1579,46 @@ class AppStateManager extends ChangeNotifier {
     notifyListeners();
   }
 
-  // 🌟 모든 데이터 초기화 (스토어 심사 및 테스트용)
+  // 🌟 모든 데이터 초기화: 실사용 모드에서는 예시까지 완전히 백지화!
   Future<void> resetAllData() async {
     _medications.clear();
     _habits.clear();
     _tasks.clear();
     _pastSlotRecords.clear();
     _pastHabitRecords.clear();
+    _pastSlotTimes.clear();
+    _retroactiveSlots.clear();
+    customTimeSlots.clear(); // 커스텀 시간대도 깨끗하게 초기화!
     gentleAttempts = 0;
     returnedCount = 0;
-    _initDefaultData();
+    final now = DateTime.now();
+    _trackingStartDate = DateTime(now.year, now.month, now.day);
+
+    if (isDevSimulationMode) {
+      _initDefaultData();
+    }
+
     if (_prefs != null) {
       await _prefs!.clear();
     }
+    await _saveDataToDisk();
     notifyListeners();
   }
 
-  // 🌟 [온보딩 튜토리얼 종료 후 클린 슬레이트 전환]
-  // - 복약 및 할일: 예시 데이터 완전 삭제 (사용자가 직접 등록하도록 백지화!)
-  // - 습관 3종(계획 점검, 물 마시기, 스트레칭): 모두 '대기(0회)' 상태로 초기화되어 실사용 대기!
+  // 🌟 [온보딩 튜토리얼 종료 후 클린 슬레이트 전환]: 모든 예시 약/습관/할일 완전 삭제 백지화
   Future<void> finishTutorialCleanSlate() async {
     _medications.clear();
+    _habits.clear(); // 습관 예시도 완전 삭제하여 백지 상태로 제공
     _tasks.clear();
     _pastSlotRecords.clear();
     _pastHabitRecords.clear();
-    isDevSimulationMode = false; // 클린 슬레이트: 실사용 모드 (기록 시작일 이전 숨김 적용)
+    _pastSlotTimes.clear();
+    _retroactiveSlots.clear();
+    customTimeSlots.clear();
+    isDevSimulationMode = false;
+    final now = DateTime.now();
+    _trackingStartDate = DateTime(now.year, now.month, now.day);
 
-    _habits.clear();
-    _habits.addAll([
-      HabitItem(
-        id: 'habit_plan',
-        title: '오늘 계획 가볍게 보기',
-        subtitle: '유연하게 · 1분이라도 충분해요',
-        targetPerDay: 1,
-        currentCount: 0, // 대기
-      ),
-      HabitItem(
-        id: 'habit_water',
-        title: '물 마시기',
-        subtitle: '하루 4잔 시원하게',
-        targetPerDay: 4,
-        currentCount: 0, // 대기
-      ),
-      HabitItem(
-        id: 'habit_stretch',
-        title: '스트레칭 및 가볍게 걷기',
-        subtitle: '몸 깨우기 · 5~10분',
-        targetPerDay: 1,
-        currentCount: 0, // 대기
-      ),
-    ]);
     await _saveDataToDisk();
     notifyListeners();
   }

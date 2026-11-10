@@ -100,6 +100,7 @@ class _SplashScreenState extends State<SplashScreen> {
               onPressed: () async {
                 Navigator.of(dCtx).pop();
                 await _state.markInitialModeSelected();
+                await _state.finishTutorialCleanSlate(); // 예시 데이터 일체 없는 완전 백지 클린 상태로 시작!
                 _startTutorialOnMain = false;
                 _checkGreetingAndProceed();
               },

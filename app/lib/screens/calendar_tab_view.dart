@@ -714,6 +714,7 @@ class _CalendarTabViewState extends State<CalendarTabView> {
     final selectedDayTasks = _state.getTasksForDay(_selectedDate);
     final isSelectedDatePast = _selectedDate.isBefore(today);
     final isSelectedDateToday = _selectedDate.isAtSameMomentAs(today);
+    final isSelectedDateBeforeTracking = _state.isBeforeTrackingStart(_selectedDate);
     final selectedMedRate = _state.getMedRateForDay(_selectedDate);
     final selectedHabitRate = _state.getHabitRateForDay(_selectedDate);
     return ListView(
@@ -1213,9 +1214,11 @@ class _CalendarTabViewState extends State<CalendarTabView> {
                               border: selectedMedRate != null && selectedMedRate >= 1.0 ? Border.all(color: AppColors.completedBorder) : null,
                             ),
                             child: Text(
-                              selectedMedRate == null
-                                  ? '기록 대기'
-                                  : (selectedMedRate >= 1.0 ? '전체 완료' : (selectedMedRate > 0.0 ? '일부 복용' : '건너뜀/미기록')),
+                              isSelectedDateBeforeTracking
+                                  ? '기록 시작 전'
+                                  : (selectedMedRate == null
+                                      ? '기록 대기'
+                                      : (selectedMedRate >= 1.0 ? '전체 완료' : (selectedMedRate > 0.0 ? '일부 복용' : '건너뜀/미기록'))),
                               style: TextStyle(
                                 fontSize: 11.5,
                                 fontWeight: FontWeight.bold,
@@ -1301,7 +1304,9 @@ class _CalendarTabViewState extends State<CalendarTabView> {
                                       final timePart = takenTime != null && takenTime.isNotEmpty
                                           ? ' ${takenTime.split(' ').last}'
                                           : (slot.scheduledTime != null ? ' ${slot.scheduledTime!.split(' ').last}' : '');
-                                      final statusText = isDone ? '${slot.label}$timePart' : '${slot.label} 미복용';
+                                      final statusText = isDone
+                                          ? '${slot.label}$timePart'
+                                          : (isSelectedDateBeforeTracking ? '${slot.label} 기록 전' : '${slot.label} 미복용');
 
                                       return Text(
                                         statusText,
@@ -1359,13 +1364,15 @@ class _CalendarTabViewState extends State<CalendarTabView> {
                               border: selectedHabitRate != null && selectedHabitRate >= 1.0 ? Border.all(color: AppColors.completedBorder) : null,
                             ),
                             child: Text(
-                              selectedHabitRate == null
-                                  ? '기록 대기'
-                                  : (selectedHabitRate >= 1.0
-                                      ? '전체 달성'
-                                      : (selectedHabitRate > 0.0
-                                          ? '${(selectedHabitRate * _state.allHabits.where((h) => h.isDueOn(_selectedDate)).length).toStringAsFixed(1)}/${_state.allHabits.where((h) => h.isDueOn(_selectedDate)).length}개 실천'
-                                          : '미실천/기록 없음')),
+                              isSelectedDateBeforeTracking
+                                  ? '기록 시작 전'
+                                  : (selectedHabitRate == null
+                                      ? '기록 대기'
+                                      : (selectedHabitRate >= 1.0
+                                          ? '전체 달성'
+                                          : (selectedHabitRate > 0.0
+                                              ? '${(selectedHabitRate * _state.allHabits.where((h) => h.isDueOn(_selectedDate)).length).toStringAsFixed(1)}/${_state.allHabits.where((h) => h.isDueOn(_selectedDate)).length}개 실천'
+                                              : '미실천/기록 없음'))),
                               style: TextStyle(
                                 fontSize: 11.5,
                                 fontWeight: FontWeight.bold,
@@ -1395,7 +1402,7 @@ class _CalendarTabViewState extends State<CalendarTabView> {
                     final hScore = _state.getHabitScoreForDay(_selectedDate, habit.id);
                     final isFull = hScore >= 1.0;
                     final isPart = hScore > 0.0 && hScore < 1.0;
-                    String label = '대기';
+                    String label = isSelectedDateBeforeTracking && hScore == 0.0 ? '기록 전' : '대기';
                     Color bg = Colors.white;
                     Color border = AppColors.divider;
                     Color textCol = AppColors.textSecondary;
