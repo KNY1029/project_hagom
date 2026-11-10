@@ -90,22 +90,43 @@ import UserNotifications
                       let title = item["title"] as? String,
                       let message = item["message"] as? String else { continue }
 
-                let content = UNMutableNotificationContent()
-                content.title = title
-                content.body = message
-                content.sound = .default
+                let repeatDays = item["repeatDays"] as? [Int] ?? []
 
-                var dateComponents = DateComponents()
-                dateComponents.hour = hour
-                dateComponents.minute = minute
+                if repeatDays.isEmpty {
+                  // 매일 울림
+                  let content = UNMutableNotificationContent()
+                  content.title = title
+                  content.body = message
+                  content.sound = .default
 
-                let trigger = UNCalendarNotificationTrigger(dateMatching: dateComponents, repeats: true)
-                let request = UNNotificationRequest(identifier: "hagom_alarm_\(id)", content: content, trigger: trigger)
-                center.add(request, withCompletionHandler: nil)
+                  var dateComponents = DateComponents()
+                  dateComponents.hour = hour
+                  dateComponents.minute = minute
+
+                  let trigger = UNCalendarNotificationTrigger(dateMatching: dateComponents, repeats: true)
+                  let request = UNNotificationRequest(identifier: "hagom_alarm_\(id)", content: content, trigger: trigger)
+                  center.add(request, withCompletionHandler: nil)
+                } else {
+                  // 지정된 특정 요일(1=일요일..7=토요일)에만 울림!
+                  for (idx, dayNum) in repeatDays.enumerated() {
+                    let content = UNMutableNotificationContent()
+                    content.title = title
+                    content.body = message
+                    content.sound = .default
+
+                    var dateComponents = DateComponents()
+                    dateComponents.weekday = dayNum // 1=Sunday, 2=Monday... in iOS
+                    dateComponents.hour = hour
+                    dateComponents.minute = minute
+
+                    let trigger = UNCalendarNotificationTrigger(dateMatching: dateComponents, repeats: true)
+                    let request = UNNotificationRequest(identifier: "hagom_alarm_\(id)_\(idx)", content: content, trigger: trigger)
+                    center.add(request, withCompletionHandler: nil)
+                  }
+                }
               }
             }
             DispatchQueue.main.async { result(true) }
-          }
         } else {
           result(false)
         }

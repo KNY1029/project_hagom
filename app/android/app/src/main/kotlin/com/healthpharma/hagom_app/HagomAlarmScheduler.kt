@@ -28,17 +28,34 @@ object HagomAlarmScheduler {
                 val isEssential = item.optBoolean("isEssential", false)
                 val repeatDays = item.optJSONArray("repeatDays") // e.g. [1, 2, 3...] 1=일요일
 
-                scheduleSingleDailyAlarm(context, am, id, hour, minute, title, message, isEssential)
+                val targetDays = mutableListOf<Int>()
+                if (repeatDays != null && repeatDays.length() > 0) {
+                    for (dIdx in 0 until repeatDays.length()) {
+                        targetDays.add(repeatDays.getInt(dIdx))
+                    }
+                }
+
+                if (targetDays.isEmpty()) {
+                    // 특정 요일 지정이 없으면 매일 울림
+                    scheduleSingleAlarm(context, am, id, hour, minute, -1, title, message, isEssential)
+                } else {
+                    // 지정된 특정 요일(예: 1=일요일)에만 정확히 알림 등록!
+                    for ((index, dayOfWeek) in targetDays.withIndex()) {
+                        val subId = id * 10 + index
+                        scheduleSingleAlarm(context, am, subId, hour, minute, dayOfWeek, title, message, isEssential)
+                    }
+                }
             }
         } catch (_: Exception) {}
     }
 
-    private fun scheduleSingleDailyAlarm(
+    private fun scheduleSingleAlarm(
         context: Context,
         am: AlarmManager,
         alarmId: Int,
         hour: Int,
         minute: Int,
+        targetDayOfWeek: Int, // Calendar.SUNDAY(1) ~ Calendar.SATURDAY(7), 또는 -1 (매일)
         title: String,
         message: String,
         isEssential: Boolean
@@ -63,8 +80,19 @@ object HagomAlarmScheduler {
             set(Calendar.MINUTE, minute)
             set(Calendar.SECOND, 0)
             set(Calendar.MILLISECOND, 0)
-            if (timeInMillis <= System.currentTimeMillis()) {
-                add(Calendar.DAY_OF_YEAR, 1)
+
+            if (targetDayOfWeek in Calendar.SUNDAY..Calendar.SATURDAY) {
+                // 🌟 [특정 요일 전용 정밀 계산]: 오늘부터 가장 가까운 해당 요일로 점프!
+                var daysUntil = (targetDayOfWeek - get(Calendar.DAY_OF_WEEK) + 7) % 7
+                if (daysUntil == 0 && timeInMillis <= System.currentTimeMillis()) {
+                    daysUntil = 7 // 오늘이 해당 요일이지만 시간이 이미 지났다면 7일 뒤(다음 주 해당 요일)
+                }
+                add(Calendar.DAY_OF_YEAR, daysUntil)
+            } else {
+                // 매일 울림
+                if (timeInMillis <= System.currentTimeMillis()) {
+                    add(Calendar.DAY_OF_YEAR, 1)
+                }
             }
         }
 

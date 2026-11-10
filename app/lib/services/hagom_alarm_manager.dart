@@ -33,6 +33,7 @@ class HagomAlarmManager {
             'title': '하곰이 복약 알림',
             'message': HagomDialogue.getRequiredReminder('${med.name} (${slot.label})'),
             'isEssential': true,
+            'repeatDays': _getRepeatDaysList(med.recurrenceSummary, med.repeatDays),
           });
 
           // 적극적 모드: 30분 뒤 재알림 추가 등록!
@@ -65,6 +66,7 @@ class HagomAlarmManager {
               'title': '하곰이 습관 알림',
               'message': HagomDialogue.getRequiredReminder(habit.title),
               'isEssential': true,
+              'repeatDays': _getRepeatDaysList(habit.recurrenceSummary, habit.repeatDays),
             });
           }
         }
@@ -117,6 +119,33 @@ class HagomAlarmManager {
         'schedulesJson': jsonEncode(schedules),
       });
     } catch (_) {}
+  }
+
+  /// 한국어 요일명(['일', '월', ...]) 또는 주기 요약문에서 요일 번호 목록(1=일요일..7=토요일) 추출
+  static List<int> _getRepeatDaysList(String recurrenceSummary, List<String> repeatDays) {
+    final Map<String, int> dayToCalNum = {
+      '일': 1,
+      '월': 2,
+      '화': 3,
+      '수': 4,
+      '목': 5,
+      '금': 6,
+      '토': 7,
+    };
+
+    if (repeatDays.isNotEmpty) {
+      return repeatDays.map((d) => dayToCalNum[d]).whereType<int>().toList();
+    }
+
+    if (recurrenceSummary.contains('일요일')) return [1];
+    if (recurrenceSummary.contains('월요일')) return [2];
+    if (recurrenceSummary.contains('화요일')) return [3];
+    if (recurrenceSummary.contains('수요일')) return [4];
+    if (recurrenceSummary.contains('목요일')) return [5];
+    if (recurrenceSummary.contains('금요일')) return [6];
+    if (recurrenceSummary.contains('토요일')) return [7];
+
+    return []; // 비어있으면 매일 울림
   }
 
   /// '오전 8:30', '오후 7:00' 형태 파싱
