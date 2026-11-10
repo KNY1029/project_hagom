@@ -77,32 +77,9 @@ class _CalendarTabViewState extends State<CalendarTabView> {
       _selectedDate = DateTime(now.year, now.month, now.day);
     });
   }
-
-  // 🌟 [월별 완료 초록 컬러 선택]:
-  // 9개 달(2월~10월) + 11월에 걸쳐 A(에메랄드), B(제이드), C(켈리그린) 완벽 매핑
+  // 🌟 [전체 달 공통 완료 초록 컬러]: 5월의 싱그럽고 선명한 에메랄드 그린 (Emerald 600 #059669)으로 통일!
   Color _getDoneGreenColor(int m) {
-    switch (m) {
-      case 2:
-      case 5:
-      case 8:
-      case 11:
-      case 12:
-        // A안: 선명한 에메랄드 그린 (Emerald 600 #059669 - 가장 생생하고 기분 좋은 초록)
-        return const Color(0xFF059669);
-      case 3:
-      case 6:
-      case 9:
-        // B안: 깊이감 있는 쥬얼 제이드 (Teal/Jade 700 #0F766E - 청록빛이 살짝 도는 고급스러운 초록)
-        return const Color(0xFF0F766E);
-      case 1:
-      case 4:
-      case 7:
-      case 10:
-        // C안: 밝고 경쾌한 켈리 그린 (Emerald 500 #10B981 - 화사한 새싹 초록)
-        return const Color(0xFF10B981);
-      default:
-        return const Color(0xFF059669);
-    }
+    return const Color(0xFF059669);
   }
 
   // 할일/한일 추가 및 수정 모달
@@ -817,10 +794,9 @@ class _CalendarTabViewState extends State<CalendarTabView> {
                 gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                   crossAxisCount: 7,
                   mainAxisSpacing: 4,
-                  // 🌟 연결형 모드(2~4월): 칸들 사이 가로 빈 공간을 0으로 만들어 띠처럼 이어짐! 8월과 12월은 사용자 스크린샷대로 독립형(간격 4, 종횡비 0.95)
-                  crossAxisSpacing: (_currentMonth.year == 2026 && (_currentMonth.month >= 2 && _currentMonth.month <= 4)) ? 0 : 4,
-                  // 🌟 연결형 모드 종횡비 보정(1.02)
-                  childAspectRatio: (_currentMonth.year == 2026 && (_currentMonth.month >= 2 && _currentMonth.month <= 4)) ? 1.02 : 0.95,
+                  // 🌟 전체 달 공통 레이아웃 (8월 사용자 스크린샷 핏 통일: 독립형 카드, 간격 4, 종횡비 0.95)
+                  crossAxisSpacing: 4,
+                  childAspectRatio: 0.95,
                 ),
                 itemBuilder: (ctx, idx) {
                   final dayOffset = idx - firstWeekday + 1;
@@ -837,41 +813,23 @@ class _CalendarTabViewState extends State<CalendarTabView> {
                   final hasTasks = dayTasks.isNotEmpty;
                   final isTasksAllDone = hasTasks && dayTasks.every((t) => t.isCompleted);
                   final hasMissedPrescription = _state.hasMissedPrescriptionForDay(cellDate);
-                  final isFuture = (cellDate.year == 2026 && cellDate.month == 12) ? false : cellDate.isAfter(today);
+                  // 🌟 26년 12월 등 미래 날짜에 하단 바 추가되던 예외를 완전히 떼어내고, 실제 미래 날짜는 깨끗하게 비표시!
+                  final isFuture = cellDate.isAfter(today);
                   final isBeforeTracking = _state.isBeforeTrackingStart(cellDate);
 
-                  final monthNum = _currentMonth.month;
-
-                  // 🌟 [월별 형태 모드]:
-                  // 🌟 [월별 형태 모드]:
-                  // 1월~4월: 좌우 연결형 (Continuous Streak)
-                  // 5월~12월 (8월 & 12월 포함): 독립형 (사용자 스크린샷 그대로 간격 4, 좌우 8 여백 바, 둥근 모서리)
-                  final isConnectedMode = (_currentMonth.year == 2026 && (monthNum >= 1 && monthNum <= 4));
-                  final Color currentDoneGreen = _getDoneGreenColor(monthNum);
-                  // 🌟 [월별 미완료 색상 비교 (연보라 vs 쿨그레이)]:
-                  // - 8월, 9월, 10월, 2월, 3월, 4월, 11월: 화사한 파스텔 연보라 (바: #B39DDB, 핀: #C4B5FD)
-                  // - 5월, 6월, 7월, 1월, 그리고 12월(2025년/2026년 5월 색상 요청!): 정갈한 소프트 쿨그레이 (바: #9CA3AF, 핀: #D1D5DB)
-                  final bool isGrayPending = (monthNum == 5 || monthNum == 6 || monthNum == 7 || monthNum == 1 || monthNum == 12);
-                  final Color pendingBarColor = isGrayPending ? const Color(0xFF9CA3AF) : const Color(0xFFB39DDB);
-                  final Color pendingPinColor = isGrayPending ? const Color(0xFFD1D5DB) : const Color(0xFFC4B5FD);
+                  // 🌟 [전체 달 공통 레이아웃 & 5월 컬러 팔레트 전면 통일]:
+                  // - 레이아웃: 8월 스크린샷 핏 (독립형 카드 모서리 8px, 하단 바 두께 3.5px, 좌우 여백 8px)
+                  // - 색상: 5월 컬러 팔레트 (완료: 에메랄드 #059669, 미완료: 소프트 쿨그레이 #9CA3AF, 핀: 쿨그레이 #D1D5DB, 처방약 누락: 빨강 #EF4444)
+                  const Color currentDoneGreen = Color(0xFF059669);
+                  const Color pendingBarColor = Color(0xFF9CA3AF);
+                  const Color pendingPinColor = Color(0xFFD1D5DB);
+                  const double barThickness = 3.5;
+                  final BorderRadius cellRadius = BorderRadius.circular(8);
                   final isMed100 = medRate != null && medRate >= 1.0;
                   final isHabit100 = !isFuture && !isBeforeTracking && habitRate != null && habitRate >= 1.0;
 
                   Color medBarColor = currentDoneGreen;
                   bool hasMedBar = false;
-
-                  // 🌟 [월별 하단 바 두께(Thickness) 매핑]:
-                  // 3.5px: 12월(8월 레이아웃 요청!), 11월, 8월, 5월, 2월
-                  // 4.5px: 10월, 7월, 4월, 1월
-                  // 5.5px: 9월, 6월, 3월
-                  final double barThickness;
-                  if (monthNum == 9 || monthNum == 6 || monthNum == 3) {
-                    barThickness = 5.5;
-                  } else if (monthNum == 10 || monthNum == 7 || monthNum == 4 || monthNum == 1) {
-                    barThickness = 4.5;
-                  } else {
-                    barThickness = 3.5;
-                  }
 
                   if (!isFuture && !isBeforeTracking) {
                     if (isMed100) {
@@ -887,12 +845,6 @@ class _CalendarTabViewState extends State<CalendarTabView> {
                       }
                     }
                   }
-
-                  // 🌟 연결형 모드에서는 모서리를 둥글지 않게(Radius 0) 직각으로 처리하여 완전히 하나로 이어진 띠 연출!
-                  final BorderRadius cellRadius = isConnectedMode
-                      ? BorderRadius.zero // 🌟 연결형 모드: 모서리 둥글기 없음!
-                      : BorderRadius.circular(8); // 독립형 모드: 둥근 모서리
-
                   return GestureDetector(
                     onTap: () {
                       setState(() {
@@ -955,14 +907,14 @@ class _CalendarTabViewState extends State<CalendarTabView> {
                           if (hasMedBar)
                             Positioned(
                               bottom: 4,
-                              // 🌟 연결형 모드: 칸의 맨 왼쪽(0)부터 맨 오른쪽(0)까지 빈 공간 없이 꽉 채워 인접 날짜와 칼같이 이어짐!
-                              left: isConnectedMode ? 0 : 8,
-                              right: isConnectedMode ? 0 : 8,
+                              // 🌟 8월 레이아웃 통일: 좌우 8px 여백, 두께 3.5px, 둥근 모서리
+                              left: 8,
+                              right: 8,
                               child: Container(
-                                height: barThickness, // 🌟 월별로 달라지는 굵기 (3.5px, 4.5px, 5.5px)
+                                height: barThickness,
                                 decoration: BoxDecoration(
-                                  color: medBarColor, // 🌟 색상(초록/빨강/보라)만 달라지며 빈 공간 없이 쭉 연결!
-                                  borderRadius: isConnectedMode ? BorderRadius.zero : BorderRadius.circular(barThickness / 2),
+                                  color: medBarColor,
+                                  borderRadius: BorderRadius.circular(barThickness / 2),
                                 ),
                               ),
                             ),
