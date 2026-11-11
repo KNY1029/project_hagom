@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 import '../constants/app_colors.dart';
 import '../state/app_state_manager.dart';
 import '../screens/companion_room_screen.dart';
-
+import '../screens/settings_screen.dart';
+import '../screens/widget_simulator_screen.dart';
 /// 🎮 [하곰이 실전 인터랙티브 튜토리얼 오버레이]
 /// - 직접 버튼을 눌러보고 상태 변화를 눈으로 확인하며 배우는 5단계 체험 가이드!
 /// 1. 복약 탭: '지금 복용' 눌러서 실제 복약 시간 전환 체험
@@ -13,11 +14,13 @@ import '../screens/companion_room_screen.dart';
 class TutorialOverlay extends StatefulWidget {
   final VoidCallback onFinishTutorial;
   final Function(int) onSwitchTab;
+  final bool clearDataOnFinish;
 
   const TutorialOverlay({
     super.key,
     required this.onFinishTutorial,
     required this.onSwitchTab,
+    this.clearDataOnFinish = true,
   });
 
   @override
@@ -30,60 +33,109 @@ class _TutorialOverlayState extends State<TutorialOverlay> {
   final List<Map<String, dynamic>> _steps = [
     {
       'tabIndex': 0,
-      'badge': '체험 1/5 · 복약 탭',
-      'title': '직접 [지금 복용] 버튼을 눌러보세요',
+      'badge': '가이드 1/7 · 복약 관리 💊',
+      'title': '1. 복약 관리 💊',
       'body':
-          '화면에 보이는 약 카드 우측의 [지금 복용]을 탭해 보세요!\n\n예정 시각(오전 8:00)이 방금 복용한 실제 시각으로 바뀌면서 초록색 칩으로 전환되는 것을 확인할 수 있어요.',
-      'btnText': '눌러봤어요 ➔ 다음 단계',
-    },
-    {
-      'tabIndex': 0,
-      'badge': '체험 2/5 · 복약 탭',
-      'title': '약 카드를 톡 눌러서 펼쳐보세요',
-      'body':
-          '약 카드를 탭하면 아래로 메뉴가 부드럽게 열려요.\n\n시간을 바꾸는 [정보 수정]과, 약을 못 먹었을 때 자책 없이 안전하게 넘길 수 있는 [건너뛰기]를 사용할 수 있어요.',
-      'btnText': '확인했어요 ➔ 습관 관리 가기',
+          '병원에서 약을 처방받았다면, 약 이름과 복용법을 입력하고 의사 처방 필수 약물에 체크해줍니다. (처방약은 중요하기 때문에 알림이 상시 작동합니다.) 그리고 복용 시간을 설정합니다.\n\n처방받은 약이 아닌 의약품이나 영양제의 경우, 체크 표시만 빼고 같은 방법으로 하면 됩니다.\n\n‘지금 복용’을 누르면 현재 시각이 기록되며 ‘완료’로 바뀌고, 상단의 완수율이 올라갑니다. 오늘의 복약을 모두 완료하면 100%가 됩니다.',
+      'btnText': '다음 ➔ 습관 관리로 이동',
     },
     {
       'tabIndex': 1,
-      'badge': '체험 3/5 · 습관 탭',
-      'title': '물 마시기의 [3/4회] 버튼을 눌러보세요',
+      'badge': '가이드 2/7 · 습관 관리 🍃',
+      'title': '2. 습관 관리 🍃',
       'body':
-          '두 번째 탭(습관)으로 이동했어요! 물 마시기 카드의 버튼을 탭해 보세요.\n\n완료 상태로 바뀌면서 상단 게이지가 쑥 차오르는 것을 볼 수 있어요. 조금만 실천해도 점수로 인정해 주는 비처벌적 게이지예요.',
-      'btnText': '게이지가 올랐어요 ➔ 달력 보기',
+          '습관 이름, 작은 목표와 하루 목표치를 설정합니다. 실천 주기를 입력하고, 필요하다면 알림 시각도 설정합니다.\n\n습관을 1회 수행할 때마다 상단 완수율이 올라갑니다. 목표 횟수를 모두 채우면 ‘완료’로 바뀝니다.',
+      'btnText': '다음 ➔ 기록 달력으로 이동',
     },
     {
       'tabIndex': 2,
-      'badge': '체험 4/5 · 달력 탭',
-      'title': '한눈에 들어오는 3단계 안심 달력',
+      'badge': '가이드 3/7 · 기록 달력 🗓',
+      'title': '3. 기록 달력 🗓',
       'body':
-          '세 번째 탭(달력)이에요!\n\n• 연초록 파스텔 셀: 약과 습관을 다 한 날\n• 빨간 바: 중요한 처방약을 놓친 날\n• 갈색 바: 일반약이나 습관을 덜 한 날\n과거 날짜를 눌러 소급 체크해도 하곰이가 똑같이 축하해 드려요.',
-      'btnText': '이해했어요 ➔ 하곰이의 방 가보기',
+          '그동안 생활한 기록을 볼 수 있는 곳입니다. 날짜를 누르면, 해당 날짜의 복약 현황, 습관 현황이 보입니다. 처방받은 약을 미복용한 경우, 붉은색❤️ 하단 바로 표시됩니다. 반면 처방받은 약은 복용했지만 다른 약물이나 습관을 완수하지 않은 경우, 회색🩶 하단 바로 표시됩니다. 모든 것을 완수했다면 초록색💚 하단 바로 표시됩니다.\n\n‘그날의 할 일’은 사용자가 별도로 추가한 일정으로, 보라색💜 점에서 완료 시 초록색💚 점으로 바뀝니다.',
+      'btnText': '다음 ➔ 설정 화면 둘러보기',
     },
     {
-      'tabIndex': 0, // 방으로 이동
-      'badge': '체험 5/5 · 하곰이의 방',
-      'title': '마음 편히 쉬어가는 하곰이의 방',
+      'tabIndex': 0,
+      'badge': '가이드 4/7 · 설정 ⚙️',
+      'title': '4. 설정 ⚙️',
       'body':
-          '상단 우측의 곰돌이 얼굴을 누르면 [하곰이의 방]으로 갈 수 있어요.\n\n아무것도 못 한 날에도 하곰이를 톡톡 건드리면 따뜻한 위로와 격려를 건네줘요. 누적 발걸음 통계도 여기서 확인할 수 있어요.',
-      'btnText': '하곰이의 방 둘러보기',
+          '4-1. 알림 설정⏰️\n우측 상단 톱니바퀴를 누르면, 개인 성향에 따라 맞춤 설정할 수 있습니다.\n알림 반복 빈도부터 각 기능에 대한 알림을 별도로 on/off할 수 있습니다.\n(주의할 점 : 복약 알림을 꺼도 처방된 약 알림은 꺼지지 않습니다.)\n\n4-2. 리포트 다운로드📝\n앱 사용 기록을 엑셀 파일 형태로 다운로드 가능하며, 의료진에게 정보 제공 목적 등으로 활용할 수 있습니다. 어떤 데이터를 추출할지 직접 선택한 뒤, 저장이나 전송이 가능합니다.',
+      'btnText': '직접 설정 화면 열어보기',
+    },
+    {
+      'tabIndex': 0,
+      'badge': '가이드 5/7 · 하곰이 🐻',
+      'title': '5. 하곰이 🐻',
+      'body':
+          '우측 상단 하곰이가 있습니다. 짧게 누르면 하곰이가 힘이 되는 말을 건네줘요. 길게 누르면 하곰이의 방으로 이어져요.\n\n앱 어디서나 지치고 힘들 때 하곰이를 톡 탭해 보세요!',
+      'btnText': '다음 ➔ 하곰이의 방 둘러보기',
+    },
+    {
+      'tabIndex': 0,
+      'badge': '가이드 6/7 · 하곰이의 방 🚪',
+      'title': '6. 하곰이의 방 🚪',
+      'body':
+          '하곰이와 하곰이가 해주는 위로와 응원의 말들이 있는 힐링 공간입니다.🌱\n\n누적접속일수를 통해 하곰이와 함께한 시간을 확인할 수 있습니다. 접속하지 않은 날이 있어도 기록은 사라지지 않으니, 계속해서 접속일을 쌓아나가며 하곰이와의 하루를 즐기세요.',
+      'btnText': '직접 하곰이의 방 입장하기',
+    },
+    {
+      'tabIndex': 0,
+      'badge': '가이드 7/7 · 위젯 📱',
+      'title': '7. 위젯 📱',
+      'body':
+          '복약 관리, 습관 관리, 오늘의 할 일, 기록 달력을 간편하게 볼 수 있습니다. 목록은 시간 순으로 정렬되어 보기 편하게 되어 있습니다. 위젯을 누르면 바로 앱으로 이어져요.\n\n홈 화면에 위젯을 꺼내두면 앱을 켜지 않고도 1-Tap으로 복약과 습관을 손쉽게 체크할 수 있어요!',
+      'btnText': '위젯 시뮬레이터 체험 및 가이드 완료',
     },
   ];
 
   void _nextStep() {
-    if (_currentStep == 3) {
-      // Step 4 ➔ Step 5: 하곰이의 방 안내
+    if (_currentStep == 2) {
+      // Step 3 (달력) ➔ Step 4 (설정): 탭을 복약(0)으로 바꾸고 설정 단계 준비
       setState(() {
         _currentStep++;
       });
       widget.onSwitchTab(0);
+    } else if (_currentStep == 3) {
+      // Step 4: '직접 설정 화면 열어보기'를 누르면 실제 설정 화면으로 이동!
+      Navigator.of(context).push(
+        MaterialPageRoute(builder: (context) => const SettingsScreen()),
+      ).then((_) {
+        // 설정 화면 둘러보고 뒤로 돌아왔을 때 Step 5 (하곰이 안내)로 부드럽게 전진!
+        if (mounted) {
+          setState(() {
+            _currentStep = 4;
+          });
+          widget.onSwitchTab(0);
+        }
+      });
     } else if (_currentStep == 4) {
-      // Step 5에서 '하곰이의 방 둘러보기' 누르면 실제 방 화면으로 띄워줌!
+      // Step 5 ➔ Step 6 (하곰이의 방 안내)
+      setState(() {
+        _currentStep++;
+      });
+      widget.onSwitchTab(0);
+    } else if (_currentStep == 5) {
+      // Step 6: '직접 하곰이의 방 입장하기' 누르면 실제 하곰이의 방 화면으로 이동!
       Navigator.of(context).push(
         MaterialPageRoute(builder: (context) => const CompanionRoomScreen()),
       ).then((_) {
-        // 방을 보고 돌아왔을 때 완료 다이얼로그 발동!
-        _finishTutorial();
+        // 방을 둘러보고 돌아왔을 때 Step 7 (위젯 안내)로 전진!
+        if (mounted) {
+          setState(() {
+            _currentStep = 6;
+          });
+          widget.onSwitchTab(0);
+        }
+      });
+    } else if (_currentStep == 6) {
+      // Step 7: 위젯 시뮬레이터 화면을 열어주어 위젯 작동 모습을 보여주고 완료 다이얼로그 호출!
+      Navigator.of(context).push(
+        MaterialPageRoute(builder: (context) => const WidgetSimulatorScreen()),
+      ).then((_) {
+        if (mounted) {
+          _finishTutorial();
+        }
       });
     } else {
       setState(() {
@@ -115,7 +167,9 @@ class _TutorialOverlayState extends State<TutorialOverlay> {
             ),
             onPressed: () async {
               Navigator.of(ctx).pop();
-              await AppStateManager().finishTutorialCleanSlate();
+              if (widget.clearDataOnFinish) {
+                await AppStateManager().finishTutorialCleanSlate();
+              }
               widget.onFinishTutorial();
             },
             child: const Text('내 기록 시작하기', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
@@ -144,7 +198,7 @@ class _TutorialOverlayState extends State<TutorialOverlay> {
             border: Border.all(color: AppColors.primaryPurple, width: 1.5),
             boxShadow: [
               BoxShadow(
-                color: AppColors.primaryPurple.withOpacity(0.18),
+                color: AppColors.primaryPurple.withValues(alpha: 0.18),
                 blurRadius: 18,
                 offset: const Offset(0, 6),
               ),
