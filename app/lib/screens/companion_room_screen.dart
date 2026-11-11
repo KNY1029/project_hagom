@@ -3,7 +3,6 @@ import '../constants/app_colors.dart';
 import '../constants/app_assets.dart';
 import '../constants/hagom_dialogue.dart';
 import '../state/app_state_manager.dart';
-import '../widgets/responsive_content.dart';
 
 /// 상단 헤더의 하곰이 미니 아바타를 통해 열리는
 /// [하곰이 동반자 인터랙션 룸 화면]
@@ -21,6 +20,22 @@ class _CompanionRoomScreenState extends State<CompanionRoomScreen> {
   final AppStateManager _state = AppStateManager();
 
   String _currentQuote = HagomDialogue.roomQuotes.first;
+
+  @override
+  void initState() {
+    super.initState();
+    _state.addListener(_onStateChanged);
+  }
+
+  @override
+  void dispose() {
+    _state.removeListener(_onStateChanged);
+    super.dispose();
+  }
+
+  void _onStateChanged() {
+    if (mounted) setState(() {});
+  }
 
   void _nextQuote() {
     setState(() {
@@ -50,11 +65,9 @@ class _CompanionRoomScreenState extends State<CompanionRoomScreen> {
         centerTitle: true,
       ),
       body: SafeArea(
-        child: ResponsiveContent(
-          maxWidth: 680,
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
-            child: Column(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
+          child: Column(
             children: [
               const SizedBox(height: 10),
               // 캐릭터 컨디션 배지 (Figma 디자인 반영)
@@ -175,13 +188,17 @@ class _CompanionRoomScreenState extends State<CompanionRoomScreen> {
                       ),
                     ),
                     const SizedBox(height: 12),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceAround,
-                      children: [
-                        _buildStatItem('${_state.returnedCount}회', '다시 돌아옴', AppColors.primaryPurple),
-                        _buildStatItem('${_state.gentleAttempts}회', '부드럽게 시도', AppColors.warmBrown),
-                        _buildStatItem('100%', '나를 위한 마음', AppColors.successGreen),
-                      ],
+                    Center(
+                      child: Column(
+                        children: [
+                          Text(
+                            'D+${_state.accessDayCount}',
+                            style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: AppColors.primaryPurple),
+                          ),
+                          const SizedBox(height: 3),
+                          Text('\uC811\uC18D\uC77C\uC218', style: TextStyle(fontSize: 12, color: AppColors.textSecondary)),
+                        ],
+                      ),
                     ),
                   ],
                 ),
@@ -205,33 +222,10 @@ class _CompanionRoomScreenState extends State<CompanionRoomScreen> {
                 ),
               ),
             ],
-            ),
           ),
         ),
       ),
     );
   }
 
-  Widget _buildStatItem(String count, String label, Color color) {
-    return Column(
-      children: [
-        Text(
-          count,
-          style: TextStyle(
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
-            color: color,
-          ),
-        ),
-        const SizedBox(height: 4),
-        Text(
-          label,
-          style: TextStyle(
-            fontSize: 12,
-            color: AppColors.textSecondary,
-          ),
-        ),
-      ],
-    );
-  }
 }
