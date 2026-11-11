@@ -10,7 +10,6 @@ import 'companion_room_screen.dart';
 import 'settings_screen.dart';
 import '../state/app_state_manager.dart';
 import '../widgets/tutorial_overlay.dart';
-import '../widgets/daily_greeting_modal.dart';
 /// 메인 화면 셸 (Shell):
 /// - 상단 헤더: 타이틀 + 설정 버튼 + 하곰이 미니 아바타
 /// - 하단 탭 바: 복약 / 습관 / 달력
@@ -19,10 +18,12 @@ import '../widgets/daily_greeting_modal.dart';
 ///   * 길게 누르거나 말풍선을 누르면 '하곰이의 방'으로 이동
 class MainNavigationShell extends StatefulWidget {
   final bool startWithTutorial;
+  final bool preserveUserDataAfterTutorial;
   final int initialTabIndex;
   const MainNavigationShell({
     super.key,
     this.startWithTutorial = false,
+    this.preserveUserDataAfterTutorial = false,
     this.initialTabIndex = 0,
   });
 
@@ -143,9 +144,7 @@ class _MainNavigationShellState extends State<MainNavigationShell> {
         title: Text(
           _tabTitles[_currentIndex],
           style: TextStyle(
-            color: AppColors.useTabMiniThemes
-                ? _getTabColor(_currentIndex)
-                : AppColors.textPrimary,
+            color: AppColors.textPrimary,
             fontWeight: FontWeight.bold,
             fontSize: 20,
           ),
@@ -178,7 +177,7 @@ class _MainNavigationShellState extends State<MainNavigationShell> {
                   color: AppColors.lightLavender,
                   shape: BoxShape.circle,
                   border: Border.all(
-                    color: AppColors.primaryPurple.withOpacity(0.5),
+                    color: AppColors.primaryPurple.withValues(alpha: 0.5),
                     width: 1.5,
                   ),
                 ),
@@ -235,10 +234,10 @@ class _MainNavigationShellState extends State<MainNavigationShell> {
                       decoration: BoxDecoration(
                         color: Colors.white,
                         borderRadius: BorderRadius.circular(14),
-                        border: Border.all(color: AppColors.primaryPurple.withOpacity(0.25)),
+                        border: Border.all(color: AppColors.primaryPurple.withValues(alpha: 0.25)),
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.black.withOpacity(0.08),
+                            color: Colors.black.withValues(alpha: 0.08),
                             blurRadius: 10,
                             offset: const Offset(0, 4),
                           ),
@@ -277,6 +276,7 @@ class _MainNavigationShellState extends State<MainNavigationShell> {
                   _currentIndex = tabIdx;
                 });
               },
+              clearDataOnFinish: !widget.preserveUserDataAfterTutorial,
               onFinishTutorial: () {
                 setState(() {
                   _isTutorialActive = false;
@@ -299,9 +299,7 @@ class _MainNavigationShellState extends State<MainNavigationShell> {
           },
           type: BottomNavigationBarType.fixed,
           enableFeedback: false,
-          selectedItemColor: AppColors.useTabMiniThemes
-              ? _getTabColor(_currentIndex)
-              : AppColors.primaryPurple,
+    selectedItemColor: AppColors.primaryPurple,
           unselectedItemColor: AppColors.textMuted,
           backgroundColor: Colors.white,
           elevation: 8,
@@ -310,17 +308,17 @@ class _MainNavigationShellState extends State<MainNavigationShell> {
           items: [
             BottomNavigationBarItem(
               icon: const Icon(Icons.medication_outlined),
-              activeIcon: Icon(Icons.medication, color: AppColors.useTabMiniThemes ? AppColors.tabMedsColor : null),
+              activeIcon: Icon(Icons.medication, color: AppColors.primaryPurple),
               label: '복약',
             ),
             BottomNavigationBarItem(
               icon: const Icon(Icons.eco_outlined),
-              activeIcon: Icon(Icons.eco, color: AppColors.useTabMiniThemes ? AppColors.tabHabitsColor : null),
+              activeIcon: Icon(Icons.eco, color: AppColors.primaryPurple),
               label: '습관',
             ),
             BottomNavigationBarItem(
               icon: const Icon(Icons.calendar_month_outlined),
-              activeIcon: Icon(Icons.calendar_month, color: AppColors.useTabMiniThemes ? AppColors.tabCalendarColor : null),
+              activeIcon: Icon(Icons.calendar_month, color: AppColors.primaryPurple),
               label: '달력',
             ),
           ],
@@ -329,16 +327,4 @@ class _MainNavigationShellState extends State<MainNavigationShell> {
     );
   }
 
-  Color _getTabColor(int idx) {
-    switch (idx) {
-      case 0:
-        return AppColors.tabMedsColor;
-      case 1:
-        return AppColors.tabHabitsColor;
-      case 2:
-        return AppColors.tabCalendarColor;
-      default:
-        return AppColors.primaryPurple;
-    }
-  }
 }
