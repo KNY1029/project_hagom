@@ -3,6 +3,7 @@ import '../constants/app_colors.dart';
 import '../constants/app_assets.dart';
 import '../constants/hagom_dialogue.dart';
 import '../state/app_state_manager.dart';
+import '../widgets/responsive_content.dart';
 
 /// 상단 헤더의 하곰이 미니 아바타를 통해 열리는
 /// [하곰이 동반자 인터랙션 룸 화면]
@@ -49,9 +50,11 @@ class _CompanionRoomScreenState extends State<CompanionRoomScreen> {
         centerTitle: true,
       ),
       body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
-          child: Column(
+        child: ResponsiveContent(
+          maxWidth: 680,
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
+            child: Column(
             children: [
               const SizedBox(height: 10),
               // 캐릭터 컨디션 배지 (Figma 디자인 반영)
@@ -202,6 +205,7 @@ class _CompanionRoomScreenState extends State<CompanionRoomScreen> {
                 ),
               ),
             ],
+            ),
           ),
         ),
       ),

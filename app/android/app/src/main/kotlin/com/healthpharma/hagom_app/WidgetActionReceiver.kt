@@ -276,15 +276,39 @@ class WidgetActionReceiver : BroadcastReceiver() {
             "checktask" -> {
                 // 🗓️ 할일 체크 탭: 완료 토글 및 위젯 즉시 갱신!
                 val id = uri.getQueryParameter("id")
+                var oldDone: Boolean? = null
+                var newDone: Boolean? = null
                 for (n in 1..6) {
                     val actionStr = prefs.getString("cal_row_${n}_action", "") ?: ""
-                    if (actionStr.contains("id=$id")) {
+                    if (id != null && actionStr.contains("id=$id")) {
                         val currentDone = prefs.getString("cal_row_${n}_done", "false") == "true"
-                        editor.putString("cal_row_${n}_done", if (currentDone) "false" else "true")
+                        oldDone = currentDone
+                        newDone = !currentDone
+                        editor.putString("cal_row_${n}_done", if (newDone == true) "true" else "false")
                         editor.apply()
                         break
                     }
                 }
+                // 대표 할일 카드가 눌린 경우에도 제목·버튼·완료색·진행률을 즉시 함께 갱신한다.
+                val mainAction = prefs.getString("calendar_action", "") ?: ""
+                if (id != null && mainAction.contains("id=$id")) {
+                    val currentDone = prefs.getString("calendar_all_done", "false") == "true"
+                    oldDone = currentDone
+                    newDone = !currentDone
+                    editor.putString("calendar_btn_title", if (newDone == true) "완료" else "체크")
+                    editor.putString("calendar_all_done", if (newDone == true) "true" else "false")
+                }
+                if (oldDone != null && newDone != null) {
+                    val progress = prefs.getString("calendar_progress", "") ?: ""
+                    val match = Regex("(\\d+)/(\\d+)").find(progress)
+                    if (match != null) {
+                        val done = match.groupValues[1].toIntOrNull() ?: 0
+                        val total = match.groupValues[2].toIntOrNull() ?: 0
+                        val nextDone = (done + if (newDone == true) 1 else -1).coerceIn(0, total)
+                        editor.putString("calendar_progress", "$nextDone/$total 완료")
+                    }
+                }
+                editor.apply()
                 val ids = appWidgetManager.getAppWidgetIds(
                     ComponentName(context, HagomCalendarWidgetProvider::class.java)
                 )

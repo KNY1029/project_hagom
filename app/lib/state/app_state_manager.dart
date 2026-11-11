@@ -12,6 +12,10 @@ import '../constants/app_colors.dart';
 
 /// 앱 전체의 복약 및 습관 데이터를 로컬 DB에 영구 보존하고 실시간 알림을 보내는 상태 관리자
 class AppStateManager extends ChangeNotifier {
+  // 개발자 모드에서 달력 비교용으로 남겨둘 임시 데이터는 2026년 11월만 사용한다.
+  static const int simulationPreviewYear = 2026;
+  static const int simulationPreviewMonth = 11;
+
   // 싱글톤 패턴
   static final AppStateManager _instance = AppStateManager._internal();
   factory AppStateManager() => _instance;
@@ -58,6 +62,8 @@ class AppStateManager extends ChangeNotifier {
   @override
   void notifyListeners() {
     super.notifyListeners();
+    // 가이드 체험 데이터는 실제 사용자 데이터로 저장하지 않는다.
+    if (isTutorialDemoMode) return;
     _saveDataToDisk(); // 상태 변경 시마다 로컬 DB에 자동 영구 저장!
     if (!suspendWidgetSync) {
       HagomNativeWidgetSync.updateNativeWidget(this);
@@ -251,6 +257,7 @@ class AppStateManager extends ChangeNotifier {
   }
   // 🛠️ 개발자 모드(전체 예시 데이터 복원 상태) 여부
   bool isDevSimulationMode = false; // 기본값: 실사용 모드 (예시 데이터 없음)
+  bool isTutorialDemoMode = false; // 저장하지 않는 온보딩 체험 데이터 상태
   // 🎨 테마 관리 (기본 제공 프리셋 + 사용자가 추가한 커스텀 테마)
   String currentThemeKey = AppColors.themeDefault;
   final List<ThemePreset> customThemes = [];
@@ -377,17 +384,20 @@ class AppStateManager extends ChangeNotifier {
   // 가상 생성된 모의 할일 중 삭제된 ID 목록
   final Set<String> _hiddenMockTaskIds = {};
 
+  bool _isSimulationPreviewMonth(DateTime day) =>
+      day.year == simulationPreviewYear && day.month == simulationPreviewMonth;
+
   // 특정 날짜의 할일 목록 조회
   List<TaskItem> getTasksForDay(DateTime day) {
     final existing = tasks.where((t) => t.isSameDay(day)).toList();
     if (existing.isNotEmpty) return existing;
 
     // 개발자 모드일 때만 예시 할일 제공
-    if (isDevSimulationMode) {
+    if (isDevSimulationMode && _isSimulationPreviewMonth(day)) {
       final d = day.day;
       final mId = 't_mock_${day.year}_${day.month}_${d}';
       if (_hiddenMockTaskIds.contains(mId)) return [];
-      if (d == 1 || d == 4 || d == 8 || d == 11 || d == 15 || d == 18 || d == 22 || d == 25 || d == 29) {
+      if (d == 1 || d == 4 || d == 7 || d == 8 || d == 10 || d == 11 || d == 15 || d == 18 || d == 22 || d == 25 || d == 29) {
         return [
           TaskItem(id: mId, title: '병원 정기 상담 완료', date: day, time: '오전 10:00', isCompleted: true)
         ];
@@ -459,6 +469,7 @@ class AppStateManager extends ChangeNotifier {
     if (!isDevSimulationMode) {
       return false;
     }
+    if (!_isSimulationPreviewMonth(day)) return false;
 
     final d = day.day;
     if ((day.year == 2025 || day.year == 2026) && day.month == 12) {
@@ -586,6 +597,7 @@ class AppStateManager extends ChangeNotifier {
     final target = DateTime(day.year, day.month, day.day);
 
     if (target.isAfter(today)) return null; // 미래 날짜는 깨끗하게 비움
+    if (isDevSimulationMode && !_isSimulationPreviewMonth(day)) return null;
 
     // 등록된 약이 하나도 없거나 오늘 복용할 약이 없으면 0.0 처리!
     final dueMeds = medications.where((m) => m.isDueOn(day)).toList();
@@ -612,6 +624,7 @@ class AppStateManager extends ChangeNotifier {
     final target = DateTime(day.year, day.month, day.day);
 
     if (target.isAfter(today)) return false; // 미래 날짜는 제외
+    if (isDevSimulationMode && !_isSimulationPreviewMonth(day)) return false;
 
     final duePrescriptions = _medications.where((m) => m.isPrescription && m.isDueOn(day));
     for (final med in duePrescriptions) {
@@ -650,6 +663,7 @@ class AppStateManager extends ChangeNotifier {
     if (!isDevSimulationMode) {
       return 0.0;
     }
+    if (!_isSimulationPreviewMonth(day)) return 0.0;
 
     final d = day.day;
     if ((day.year == 2025 || day.year == 2026) && day.month == 12) {
@@ -835,6 +849,7 @@ class AppStateManager extends ChangeNotifier {
         await _prefs!.setString('hagom_last_greeting_day', _lastGreetingDayKey!);
       }
       await _prefs!.setBool('hagom_initial_mode_selected', isInitialModeSelected);
+      await _prefs!.setBool('hagom_dev_simulation_mode', isDevSimulationMode);
       if (_trackingStartDate != null) {
         await _prefs!.setString('hagom_tracking_start_date', _dateKey(_trackingStartDate!));
       }
@@ -855,6 +870,8 @@ class AppStateManager extends ChangeNotifier {
   Future<void> _loadDataFromDisk() async {
     if (_prefs == null) return;
     try {
+      final savedDevMode = _prefs!.getBool('hagom_dev_simulation_mode');
+      isDevSimulationMode = savedDevMode ?? false;
       final medsRaw = _prefs!.getString('hagom_medications');
       final customThemesRaw = _prefs!.getString('hagom_custom_themes');
       customThemes.clear();
@@ -936,6 +953,16 @@ class AppStateManager extends ChangeNotifier {
         final List<dynamic> decoded = jsonDecode(tasksRaw);
         _tasks.clear();
         _tasks.addAll(decoded.map((e) => TaskItem.fromJson(e as Map<String, dynamic>)));
+        // 이전 월별 비교 작업에서 저장된 1~10월 샘플 일정 제거
+        _tasks.removeWhere((task) => task.id.startsWith('t_sim_') && !_isSimulationPreviewMonth(task.date));
+      }
+      // 이전 버전에서 개발자 모드 플래그 없이 저장된 예시 데이터는
+      // 실사용 모드로 간주하고 최초 1회만 제거한다.
+      if (savedDevMode == null) {
+        _medications.removeWhere((med) => med.id == 'med_1' || med.id == 'med_2' || med.id == 'med_3');
+        _habits.removeWhere((habit) => RegExp(r'^habit_[1-5]$').hasMatch(habit.id));
+        _tasks.removeWhere((task) => task.id.startsWith('t_nov') || task.id.startsWith('task_today_'));
+        await _prefs!.setBool('hagom_dev_simulation_mode', false);
       }
       gentleAttempts = _prefs!.getInt('hagom_gentle_attempts') ?? gentleAttempts;
       returnedCount = _prefs!.getInt('hagom_returned_count') ?? returnedCount;
@@ -1124,23 +1151,6 @@ class AppStateManager extends ChangeNotifier {
       TaskItem(id: 'task_today_1', title: '약학 실습 보고서 작성', date: DateTime(y, m, now.day), time: '오후 6:00', isCompleted: false),
       TaskItem(id: 'task_today_2', title: '병원 정기 상담 및 처방전 받기', date: DateTime(y, m, now.day), time: '오후 2:30', isCompleted: false),
 
-      // 🌟 [비교 시뮬레이션용]: 1월~10월 할일 샘플 (완료 초록핀 & 미완료 연보라핀 골고루 배치)
-      for (final simMonth in [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]) ...[
-        // 1일: 완료된 일정 (초록 핀)
-        TaskItem(id: 't_sim_${simMonth}_1', title: '아침 가벼운 스트레칭', date: DateTime(2026, simMonth, 1), time: '오전 8:30', isCompleted: true),
-        // 3일: 미완료 일정 (연보라 핀)
-        TaskItem(id: 't_sim_${simMonth}_3', title: '약국에서 영양제 상담', date: DateTime(2026, simMonth, 3), time: '오후 2:00', isCompleted: false),
-        // 5일: 완료된 일정 (초록 핀)
-        TaskItem(id: 't_sim_${simMonth}_5', title: '비타민D 햇빛 쬐기', date: DateTime(2026, simMonth, 5), time: '오후 1:00', isCompleted: true),
-        // 8일: 미완료 일정 (연보라 핀)
-        TaskItem(id: 't_sim_${simMonth}_8', title: '실습 보고서 3장 읽기', date: DateTime(2026, simMonth, 8), time: '오후 4:30', isCompleted: false),
-        // 12일: 완료된 일정 (초록 핀)
-        TaskItem(id: 't_sim_${simMonth}_12', title: '수면 위생 체크하기', date: DateTime(2026, simMonth, 12), time: '오후 9:30', isCompleted: true),
-        // 15일: 미완료 일정 (연보라 핀)
-        TaskItem(id: 't_sim_${simMonth}_15', title: '도서관 대출 도서 반납', date: DateTime(2026, simMonth, 15), time: '오후 3:00', isCompleted: false),
-        // 20일: 완료된 일정 (초록 핀)
-        TaskItem(id: 't_sim_${simMonth}_20', title: '따뜻한 물 한 잔 마시기', date: DateTime(2026, simMonth, 20), time: '오전 9:00', isCompleted: true),
-      ],
     ]);
   }
 
@@ -1615,6 +1625,7 @@ class AppStateManager extends ChangeNotifier {
     _pastSlotTimes.clear();
     _retroactiveSlots.clear();
     customTimeSlots.clear();
+    isTutorialDemoMode = false;
     isDevSimulationMode = false;
     final now = DateTime.now();
     _trackingStartDate = DateTime(now.year, now.month, now.day);
@@ -1632,6 +1643,7 @@ class AppStateManager extends ChangeNotifier {
     _pastSlotRecords.clear();
     _pastHabitRecords.clear();
     _initDefaultData();
+    isTutorialDemoMode = false;
     isDevSimulationMode = true; // 개발자 모드 복원: 전체 예시 노출 모드
 
     await _saveDataToDisk();
@@ -1648,6 +1660,8 @@ class AppStateManager extends ChangeNotifier {
     _pastHabitRecords.clear();
 
     _initDefaultData();
+    isTutorialDemoMode = true;
+    isDevSimulationMode = true;
 
     notifyListeners();
   }

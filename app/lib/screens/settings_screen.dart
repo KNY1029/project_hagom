@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../constants/app_colors.dart';
 import '../constants/app_assets.dart';
 import '../state/app_state_manager.dart';
+import '../widgets/responsive_content.dart';
 import 'splash_screen.dart';
 import 'main_navigation_shell.dart';
 import 'widget_simulator_screen.dart';
@@ -1087,9 +1088,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
         ),
         centerTitle: true,
       ),
-      body: ListView(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-        children: [
+      body: ResponsiveContent(
+        child: ListView(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          children: [
           // 🐻 상단 하곰이 마스코트 프로필 카드
           Container(
             padding: const EdgeInsets.all(16),
@@ -1123,7 +1125,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     ),
                     SizedBox(height: 3),
                     Text(
-                      '정신약학 맞춤 복약 솔루션 · v0.90.244',
+                      '정신약학 맞춤 복약 솔루션 · v0.90.249',
                       style: TextStyle(
                         fontSize: 12,
                         color: AppColors.textSecondary,
@@ -1518,7 +1520,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
             ),
           ),
           const SizedBox(height: 32),
-        ],
+          ],
+        ),
       ),
     );
   }

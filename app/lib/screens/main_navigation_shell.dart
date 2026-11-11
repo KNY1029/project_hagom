@@ -10,6 +10,7 @@ import 'companion_room_screen.dart';
 import 'settings_screen.dart';
 import '../state/app_state_manager.dart';
 import '../widgets/tutorial_overlay.dart';
+import '../widgets/responsive_content.dart';
 /// 메인 화면 셸 (Shell):
 /// - 상단 헤더: 타이틀 + 설정 버튼 + 하곰이 미니 아바타
 /// - 하단 탭 바: 복약 / 습관 / 달력
@@ -193,9 +194,10 @@ class _MainNavigationShellState extends State<MainNavigationShell> {
       body: Stack(
         children: [
           // 각 탭마다 독립된 Navigator를 부여하여 모달이 탭 내부에서 열리고, 하단 탭 바는 가려지지 않고 항상 최상단에 고정!
-          IndexedStack(
-            index: _currentIndex,
-            children: [
+          ResponsiveContent(
+            child: IndexedStack(
+              index: _currentIndex,
+              children: [
               Navigator(
                 onGenerateRoute: (settings) => MaterialPageRoute(
                   builder: (context) => const MedsTabView(),
@@ -211,7 +213,8 @@ class _MainNavigationShellState extends State<MainNavigationShell> {
                   builder: (context) => const CalendarTabView(),
                 ),
               ),
-            ],
+              ],
+            ),
           ),
 
           // 💬 헤더 하곰이 바로 아래에 뜨는 미니 콤팩트 말풍선

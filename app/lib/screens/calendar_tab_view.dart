@@ -717,6 +717,10 @@ class _CalendarTabViewState extends State<CalendarTabView> {
     final isSelectedDateBeforeTracking = _state.isBeforeTrackingStart(_selectedDate);
     final selectedMedRate = _state.getMedRateForDay(_selectedDate);
     final selectedHabitRate = _state.getHabitRateForDay(_selectedDate);
+    final selectedMedComplete = !isSelectedDateBeforeTracking && selectedMedRate != null && selectedMedRate >= 1.0;
+    final selectedMedPartial = !isSelectedDateBeforeTracking && selectedMedRate != null && selectedMedRate > 0.0;
+    final selectedHabitComplete = !isSelectedDateBeforeTracking && selectedHabitRate != null && selectedHabitRate >= 1.0;
+    final selectedHabitPartial = !isSelectedDateBeforeTracking && selectedHabitRate != null && selectedHabitRate > 0.0;
     return ListView(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       children: [
@@ -788,18 +792,23 @@ class _CalendarTabViewState extends State<CalendarTabView> {
               const SizedBox(height: 6),
 
               // 날짜 셀 그리드
-              GridView.builder(
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                itemCount: 42, // 6주 x 7일
-                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 7,
-                  mainAxisSpacing: 4,
-                  // 🌟 전체 달 공통 레이아웃 (8월 사용자 스크린샷 핏 통일: 독립형 카드, 간격 4, 종횡비 0.95)
-                  crossAxisSpacing: 4,
-                  childAspectRatio: 0.95,
-                ),
-                itemBuilder: (ctx, idx) {
+              LayoutBuilder(
+                builder: (context, constraints) {
+                  // 태블릿에서도 날짜 숫자와 상태 표시가 셀 크기와 함께 커지도록 한다.
+                  final calendarScale = (constraints.maxWidth / 336.0).clamp(1.0, 1.6);
+                  return GridView.builder(
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    itemCount: 42, // 6주 x 7일
+                    gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: 7,
+                      mainAxisSpacing: 4,
+                      // 🌟 전체 달 공통 레이아웃 (8월 비교안: 가로로 긴 독립형 카드)
+                      // 칸 자체는 서로 붙지 않고, 하단 바도 각 날짜 안에서만 표시한다.
+                      crossAxisSpacing: 0,
+                      childAspectRatio: 1.02,
+                    ),
+                    itemBuilder: (ctx, idx) {
                   final dayOffset = idx - firstWeekday + 1;
                   if (dayOffset < 1 || dayOffset > daysInMonth) {
                     return const SizedBox.shrink(); // 이전/다음달 빈칸
@@ -819,15 +828,16 @@ class _CalendarTabViewState extends State<CalendarTabView> {
                   final isBeforeTracking = _state.isBeforeTrackingStart(cellDate);
 
                   // 🌟 [전체 달 공통 레이아웃 & 5월 컬러 팔레트 전면 통일]:
-                  // - 레이아웃: 8월 스크린샷 핏 (독립형 카드 모서리 8px, 하단 바 두께 3.5px, 좌우 여백 8px)
+                  // - 레이아웃: 8월 비교안 (가로로 긴 독립형 카드, 모서리 8px, 하단 바 좌우 여백 8px)
                   // - 색상: 5월 컬러 팔레트 (완료: 에메랄드 #059669, 미완료: 소프트 쿨그레이 #9CA3AF, 핀: 쿨그레이 #D1D5DB, 처방약 누락: 빨강 #EF4444)
                   const Color currentDoneGreen = Color(0xFF059669);
                   const Color pendingBarColor = Color(0xFF9CA3AF);
                   const Color pendingPinColor = Color(0xFFD1D5DB);
-                  const double barThickness = 3.5;
-                  final BorderRadius cellRadius = BorderRadius.circular(8);
+                  final double barThickness = (3.5 * calendarScale).clamp(3.5, 5.5);
+                  final BorderRadius cellRadius = BorderRadius.circular((8 * calendarScale).clamp(8, 12));
                   final isMed100 = medRate != null && medRate >= 1.0;
                   final isHabit100 = !isFuture && !isBeforeTracking && habitRate != null && habitRate >= 1.0;
+                  final selectedBorderWidth = isSelected && isToday ? 3.2 : (isSelected ? 1.8 : (isToday ? 1.2 : 0.0));
 
                   Color medBarColor = currentDoneGreen;
                   bool hasMedBar = false;
@@ -860,7 +870,8 @@ class _CalendarTabViewState extends State<CalendarTabView> {
                           color: isSelected
                               ? AppColors.primaryPurple
                               : (isToday ? AppColors.primaryPurple.withValues(alpha: 0.5) : Colors.transparent),
-                          width: isSelected ? 1.8 : (isToday ? 1.2 : 0),
+                          // 오늘을 선택한 경우에만 현재 위치가 확실히 보이도록 더 굵게 표시한다.
+                          width: selectedBorderWidth,
                         ),
                       ),
                       child: Stack(
@@ -870,11 +881,11 @@ class _CalendarTabViewState extends State<CalendarTabView> {
                           // - 할일 덜 끝냄/미완료: 초록색과 명도 대비가 극명하게 나는 밝고 부드러운 파스텔 연보라(#C4B5FD)
                           if (hasTasks)
                             Positioned(
-                              top: 4,
-                              right: 4,
+                              top: 4 * calendarScale,
+                              right: 4 * calendarScale,
                               child: Container(
-                                width: 5.5,
-                                height: 5.5,
+                                width: 5.5 * calendarScale,
+                                height: 5.5 * calendarScale,
                                 decoration: BoxDecoration(
                                   color: isTasksAllDone
                                       ? currentDoneGreen // 🌟 생생한 완료 초록 반영!
@@ -889,7 +900,7 @@ class _CalendarTabViewState extends State<CalendarTabView> {
                             child: Text(
                               '$dayOffset',
                               style: TextStyle(
-                                fontSize: 13,
+                                fontSize: 13 * calendarScale,
                                 fontWeight: (isToday || isSelected) ? FontWeight.bold : FontWeight.w500,
                                 // 전체 완료한 날이라도 일요일이면 빨간색 유지! 평일은 기본 텍스트 색 유지!
                                 color: cellDate.weekday == DateTime.sunday
@@ -907,10 +918,10 @@ class _CalendarTabViewState extends State<CalendarTabView> {
                           // - 오늘 날짜: 아직 하루가 진행 중이므로 완료했을 때만 초록 바를 띄우고 미완료 경고는 보류
                           if (hasMedBar)
                             Positioned(
-                              bottom: 4,
+                              bottom: 4 * calendarScale,
                               // 🌟 8월 레이아웃 통일: 좌우 8px 여백, 두께 3.5px, 둥근 모서리
-                              left: 8,
-                              right: 8,
+                              left: 8 * calendarScale,
+                              right: 8 * calendarScale,
                               child: Container(
                                 height: barThickness,
                                 decoration: BoxDecoration(
@@ -922,6 +933,8 @@ class _CalendarTabViewState extends State<CalendarTabView> {
                         ],
                       ),
                     ),
+                  );
+                    },
                   );
                 },
               ),
@@ -1205,26 +1218,26 @@ class _CalendarTabViewState extends State<CalendarTabView> {
                           Container(
                             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                             decoration: BoxDecoration(
-                              color: selectedMedRate != null && selectedMedRate >= 1.0
+                              color: selectedMedComplete
                                   ? AppColors.completedBg
-                                  : (selectedMedRate != null && selectedMedRate > 0.0
+                                  : (selectedMedPartial
                                       ? AppColors.partialOrange.withValues(alpha: 0.12)
                                       : const Color(0xFFF3F4F6)),
                               borderRadius: BorderRadius.circular(5),
-                              border: selectedMedRate != null && selectedMedRate >= 1.0 ? Border.all(color: AppColors.completedBorder) : null,
+                              border: selectedMedComplete ? Border.all(color: AppColors.completedBorder) : null,
                             ),
                             child: Text(
                               isSelectedDateBeforeTracking
-                                  ? '기록 시작 전'
+                                  ? '기록 전'
                                   : (selectedMedRate == null
                                       ? '기록 대기'
                                       : (selectedMedRate >= 1.0 ? '전체 완료' : (selectedMedRate > 0.0 ? '일부 복용' : '건너뜀/미기록'))),
                               style: TextStyle(
                                 fontSize: 11.5,
                                 fontWeight: FontWeight.bold,
-                                color: selectedMedRate != null && selectedMedRate >= 1.0
+                                color: selectedMedComplete
                                     ? AppColors.completedText
-                                    : (selectedMedRate != null && selectedMedRate > 0.0 ? AppColors.partialOrange : AppColors.textSecondary),
+                                    : (selectedMedPartial ? AppColors.partialOrange : AppColors.textSecondary),
                               ),
                             ),
                           ),
@@ -1355,17 +1368,17 @@ class _CalendarTabViewState extends State<CalendarTabView> {
                           Container(
                             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                             decoration: BoxDecoration(
-                              color: selectedHabitRate != null && selectedHabitRate >= 1.0
+                              color: selectedHabitComplete
                                   ? AppColors.completedBg
-                                  : (selectedHabitRate != null && selectedHabitRate > 0.0
+                                  : (selectedHabitPartial
                                       ? AppColors.partialOrange.withValues(alpha: 0.12)
                                       : const Color(0xFFF3F4F6)),
                               borderRadius: BorderRadius.circular(5),
-                              border: selectedHabitRate != null && selectedHabitRate >= 1.0 ? Border.all(color: AppColors.completedBorder) : null,
+                              border: selectedHabitComplete ? Border.all(color: AppColors.completedBorder) : null,
                             ),
                             child: Text(
                               isSelectedDateBeforeTracking
-                                  ? '기록 시작 전'
+                                  ? '기록 전'
                                   : (selectedHabitRate == null
                                       ? '기록 대기'
                                       : (selectedHabitRate >= 1.0
@@ -1376,9 +1389,9 @@ class _CalendarTabViewState extends State<CalendarTabView> {
                               style: TextStyle(
                                 fontSize: 11.5,
                                 fontWeight: FontWeight.bold,
-                                color: selectedHabitRate != null && selectedHabitRate >= 1.0
+                                color: selectedHabitComplete
                                     ? AppColors.completedText
-                                    : (selectedHabitRate != null && selectedHabitRate > 0.0 ? AppColors.partialOrange : AppColors.textSecondary),
+                                    : (selectedHabitPartial ? AppColors.partialOrange : AppColors.textSecondary),
                               ),
                             ),
                           ),
@@ -1400,8 +1413,8 @@ class _CalendarTabViewState extends State<CalendarTabView> {
                 Column(
                   children: _state.allHabits.where((h) => h.isDueOn(_selectedDate)).map((habit) {
                     final hScore = _state.getHabitScoreForDay(_selectedDate, habit.id);
-                    final isFull = hScore >= 1.0;
-                    final isPart = hScore > 0.0 && hScore < 1.0;
+                    final isFull = !isSelectedDateBeforeTracking && hScore >= 1.0;
+                    final isPart = !isSelectedDateBeforeTracking && hScore > 0.0 && hScore < 1.0;
                     String label = isSelectedDateBeforeTracking && hScore == 0.0 ? '기록 전' : '대기';
                     Color bg = Colors.white;
                     Color border = AppColors.divider;

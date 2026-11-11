@@ -90,13 +90,13 @@ Future<void> handleWidgetUriAction(Uri? uri) async {
     // 할일은 위젯에서도 완료 <-> 취소 토글을 자유롭게 허용
     if (id != null && state.tasks.any((t) => t.id == id)) {
       state.toggleTaskCompleted(id);
-      await state.flushDataToDiskOnly();
+      await state.flushForWidget();
       return;
     }
     final todayTasks = state.getTasksForDay(DateTime.now());
     if (todayTasks.isNotEmpty) {
       state.toggleTaskCompleted(todayTasks.first.id);
-      await state.flushDataToDiskOnly();
+      await state.flushForWidget();
     }
   } else if (action == 'openmeds') {
   } else if (action == 'openhabits') {
@@ -151,6 +151,9 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   if (!kIsWeb) {
+    // iOS WidgetKit Extension과 Flutter 앱이 같은 UserDefaults를 사용하도록
+    // App Group을 먼저 지정한다. Android에서는 home_widget이 이 호출을 무시한다.
+    await HomeWidget.setAppGroupId('group.com.healthpharma.hagom_app');
     // 🌟 백그라운드 위젯 터치 핸들러가 SharedPreferences에 완전히 각인될 때까지 await 보장!
     await HomeWidget.registerInteractivityCallback(backgroundCallback);
   }

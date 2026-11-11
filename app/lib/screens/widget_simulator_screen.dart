@@ -3,6 +3,7 @@ import '../constants/app_colors.dart';
 import '../constants/app_assets.dart';
 import '../state/app_state_manager.dart';
 import '../widgets/celebration_toast.dart';
+import '../widgets/responsive_content.dart';
 
 /// 📱 스마트폰 홈 위젯 시뮬레이터 & 쇼룸 화면 (v0.22.82)
 /// 
@@ -85,9 +86,10 @@ class _WidgetSimulatorScreenState extends State<WidgetSimulatorScreen> {
         ),
         centerTitle: true,
       ),
-      body: ListView(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-        children: [
+      body: ResponsiveContent(
+        child: ListView(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          children: [
           // 💡 안내 배너
           Container(
             padding: const EdgeInsets.all(14),
@@ -181,7 +183,8 @@ class _WidgetSimulatorScreenState extends State<WidgetSimulatorScreen> {
           // 위젯 7: 할일 원탭 체크
           _buildTaskOneTapWidget(),
           const SizedBox(height: 32),
-        ],
+          ],
+        ),
       ),
     );
   }
