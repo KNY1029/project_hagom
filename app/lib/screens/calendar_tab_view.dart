@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-
 import '../constants/app_colors.dart';
 import '../models/medication_item.dart';
 import '../models/habit_item.dart';
@@ -7,16 +6,14 @@ import '../models/task_item.dart';
 import '../state/app_state_manager.dart';
 import '../widgets/celebration_toast.dart';
 import '../widgets/app_time_picker.dart';
-
-/// 📅 [달력 & 할일 탭: PRD 5.3절 신규 6안 공식 규격]
-///
-/// 1. 6안 날짜 셀 컬러링 알고리즘:
-///    - 100% 완료: 날짜 셀 전체 '통으로' 연초록 파스텔 틴트(#E6F8F0) + 짙은 초록 숫자(#065F46)
-///    - 부분 달성: 흰색 배경 + 하단 오렌지 캡슐 바(#F59E0B)
-///    - 0% 미복용: 비처벌적 중립 소프트 그레이 바(#D1D5DB)로 안심 피드백
+/// 📅 [달력 & 할일 탭: 복약(바)·습관(바탕)·할일(핀) 3대 요소 1:1 독립 규격]
+/// 
+/// 1. 날짜 셀 컬러링 알고리즘:
+///    - 습관(바탕색): 100% 실천 시 셀 전체 연초록 파스텔 틴트(#E6F8F0) / 미완료 시 흰색
+///    - 복약(하단 바, 3.5px): 100% 완료 시 딥 포레스트 그린 바(#044E36) / 처방약 미복용 시 레드 바(#EF4444) / 일부 미완료 시 파스텔 연보라 바(#B39DDB)
+///    - 할일(모서리 핀, 5.5px): 완료 시 딥 포레스트 그린 핀(#044E36) / 미완료 시 밝은 파스텔 연보라 핀(#C4B5FD)
 ///    - 오늘 날짜: 보라색 테두리(#7B61A8)
 ///    - 미래 날짜: 진행도 바/틴트 일체 미표시 (완전 깨끗한 초기화)
-///    - 할일 핀: 셀 우측 상단 모서리(top: 4, right: 4)에 라벤더 닷(• #7B61A8)
 /// 2. 데일리 상세 아코디언:
 ///    - 날짜 터치 시 하단에 그날의 종합 복약/습관/할일 브리핑 펼침
 ///    - 과거 날짜 복약 완료 사후 수정 지원 ➔ "소급 축하 토스트" 즉시 발동!
@@ -68,11 +65,7 @@ class _CalendarTabViewState extends State<CalendarTabView> {
   // 월 이동
   void _changeMonth(int delta) {
     setState(() {
-      _currentMonth = DateTime(
-        _currentMonth.year,
-        _currentMonth.month + delta,
-        1,
-      );
+      _currentMonth = DateTime(_currentMonth.year, _currentMonth.month + delta, 1);
     });
   }
 
@@ -84,29 +77,76 @@ class _CalendarTabViewState extends State<CalendarTabView> {
       _selectedDate = DateTime(now.year, now.month, now.day);
     });
   }
+  // 🌟 [전체 달 공통 완료 초록 컬러]: 5월의 싱그럽고 선명한 에메랄드 그린 (Emerald 600 #059669)으로 통일!
+  void _showCalendarLegend() {
+    const red = Color(0xFFEF4444);
+    const green = Color(0xFF059669);
+    const gray = Color(0xFF9CA3AF);
+    const taskIncompleteGray = Color(0xFFD1D5DB);
+
+    Widget legendRow({required Widget marker, required String label}) => Padding(
+          padding: const EdgeInsets.symmetric(vertical: 7),
+          child: Row(children: [
+            SizedBox(width: 42, child: Center(child: marker)),
+            const SizedBox(width: 10),
+            Expanded(child: Text(label, style: const TextStyle(fontSize: 14))),
+          ]),
+        );
+    Widget underline(Color color) => Container(
+          width: 28, height: 4,
+          decoration: BoxDecoration(color: color, borderRadius: BorderRadius.circular(4)),
+        );
+    Widget circle(Color color) => Container(
+          width: 12, height: 12,
+          decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+        );
+    Widget square(Color color) => Container(
+          width: 14, height: 14,
+          decoration: BoxDecoration(color: color, borderRadius: BorderRadius.circular(3), border: Border.all(color: const Color(0xFFD1D5DB))),
+        );
+
+    showDialog<void>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('\uD45C\uC2DC \uC548\uB0B4'),
+        content: Column(mainAxisSize: MainAxisSize.min, children: [
+          legendRow(marker: underline(red), label: '\uCC98\uBC29\uC57D \uBBF8\uBCF5\uC6A9'),
+          legendRow(marker: underline(green), label: '\uBCF5\uC57D \uC644\uB8CC'),
+          legendRow(marker: underline(gray), label: '\uBCF5\uC57D \uBBF8\uC644\uB8CC'),
+          const Divider(),
+          legendRow(marker: circle(green), label: '\uD560\uC77C \uC644\uB8CC'),
+          legendRow(marker: circle(taskIncompleteGray), label: '\uD560\uC77C \uBBF8\uC644\uB8CC'),
+          const Divider(),
+          legendRow(marker: square(AppColors.successBg), label: '\uC2B5\uAD00 \uC644\uB8CC'),
+          legendRow(marker: square(Colors.white), label: '\uC2B5\uAD00 \uBBF8\uC644\uB8CC'),
+        ]),
+        actions: [TextButton(onPressed: () => Navigator.of(dialogContext).pop(), child: const Text('\uD655\uC778'))],
+      ),
+    );
+  }
+
+  Color _getDoneGreenColor(int m) {
+    return const Color(0xFF059669);
+  }
 
   // 할일/한일 추가 및 수정 모달
   void _showTaskModal({TaskItem? task}) {
     final titleCtrl = TextEditingController(text: task?.title ?? '');
     String selectedTime = task?.time ?? '오후 6:00';
     // 다중 선택 알림 목록
-    final List<String> selectedReminders = List<String>.from(
-      task?.reminders ?? ['30분 전'],
-    );
+    final List<String> selectedReminders = List<String>.from(task?.reminders ?? ['30분 전']);
     bool isRepeated = task?.isRepeated ?? false;
     String repeatCycle = task?.repeatCycle ?? '매주 특정 요일';
-    final List<String> selectedRepeatDays = List<String>.from(
-      task?.repeatDays ?? [],
-    );
-    final availableReminders = ['정시', '30분 전', '1시간 전', '하루 전'];
+    final List<String> selectedRepeatDays = List<String>.from(task?.repeatDays ?? []);
+    final availableReminders = [
+      '정시', '30분 전', '1시간 전', '하루 전'
+    ];
     final weekDayLabels = ['월', '화', '수', '목', '금', '토', '일'];
 
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
     final isPast = _selectedDate.isBefore(today);
-    final modalActionName = task != null
-        ? '일정 수정'
-        : (isPast ? '한일 추가' : '할일 추가');
+    final modalActionName = task != null ? '일정 수정' : (isPast ? '한일 추가' : '할일 추가');
 
     showModalBottomSheet(
       context: context,
@@ -120,11 +160,7 @@ class _CalendarTabViewState extends State<CalendarTabView> {
             color: Colors.white,
             borderRadius: BorderRadius.circular(20),
             boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.12),
-                blurRadius: 16,
-                offset: const Offset(0, -4),
-              ),
+              BoxShadow(color: Colors.black.withValues(alpha: 0.12), blurRadius: 16, offset: const Offset(0, -4)),
             ],
           ),
           padding: EdgeInsets.only(
@@ -143,17 +179,10 @@ class _CalendarTabViewState extends State<CalendarTabView> {
                   children: [
                     Text(
                       '${_selectedDate.month}월 ${_selectedDate.day}일 $modalActionName',
-                      style: const TextStyle(
-                        fontSize: 17,
-                        fontWeight: FontWeight.bold,
-                        color: AppColors.textPrimary,
-                      ),
+                      style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
                     ),
                     IconButton(
-                      icon: const Icon(
-                        Icons.close,
-                        color: AppColors.textSecondary,
-                      ),
+                      icon: Icon(Icons.close, color: AppColors.textSecondary),
                       onPressed: () => Navigator.of(ctx).pop(),
                     ),
                   ],
@@ -166,20 +195,9 @@ class _CalendarTabViewState extends State<CalendarTabView> {
                     hintText: '',
                     filled: true,
                     fillColor: const Color(0xFFF9FAFB),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(10),
-                      borderSide: const BorderSide(color: AppColors.divider),
-                    ),
-                    focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(10),
-                      borderSide: const BorderSide(
-                        color: AppColors.primaryPurple,
-                      ),
-                    ),
-                    contentPadding: const EdgeInsets.symmetric(
-                      horizontal: 14,
-                      vertical: 12,
-                    ),
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide(color: AppColors.divider)),
+                    focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide(color: AppColors.primaryPurple)),
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
                   ),
                 ),
                 const SizedBox(height: 14),
@@ -187,32 +205,16 @@ class _CalendarTabViewState extends State<CalendarTabView> {
                 // 시간 선택 버튼
                 Row(
                   children: [
-                    const Text(
-                      '예정 시각',
-                      style: TextStyle(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w600,
-                        color: AppColors.textPrimary,
-                      ),
-                    ),
+                    Text('예정 시각', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.textPrimary)),
                     const Spacer(),
                     OutlinedButton(
                       style: OutlinedButton.styleFrom(
-                        side: const BorderSide(color: AppColors.divider),
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 6,
-                        ),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
-                        ),
+                        side: BorderSide(color: AppColors.divider),
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                       ),
                       onPressed: () async {
-                        final t = await AppTimePicker.show(
-                          context,
-                          initialTime: TimeOfDay.now(),
-                          title: '예정 시각 설정',
-                        );
+                        final t = await AppTimePicker.show(context, initialTime: TimeOfDay.now(), title: '예정 시각 설정');
                         if (t != null) {
                           setMState(() {
                             final p = t.period == DayPeriod.am ? '오전' : '오후';
@@ -222,14 +224,7 @@ class _CalendarTabViewState extends State<CalendarTabView> {
                           });
                         }
                       },
-                      child: Text(
-                        selectedTime,
-                        style: const TextStyle(
-                          color: AppColors.primaryPurple,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 13,
-                        ),
-                      ),
+                      child: Text(selectedTime, style: TextStyle(color: AppColors.primaryPurple, fontWeight: FontWeight.bold, fontSize: 13)),
                     ),
                   ],
                 ),
@@ -239,19 +234,9 @@ class _CalendarTabViewState extends State<CalendarTabView> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    const Text(
-                      '알림 설정 (중복 선택 가능)',
-                      style: TextStyle(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w600,
-                        color: AppColors.textPrimary,
-                      ),
-                    ),
+                    Text('알림 설정 (중복 선택 가능)', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.textPrimary)),
                     TextButton(
-                      style: TextButton.styleFrom(
-                        padding: EdgeInsets.zero,
-                        minimumSize: Size.zero,
-                      ),
+                      style: TextButton.styleFrom(padding: EdgeInsets.zero, minimumSize: Size.zero),
                       onPressed: () {
                         // 🌟 복합 시간(N시간 N분 전) 및 N일 전 직접 추가 다이얼로그
                         String mode = '시간/분'; // '시간/분' 또는 '일'
@@ -262,13 +247,7 @@ class _CalendarTabViewState extends State<CalendarTabView> {
                           context: context,
                           builder: (dCtx) => StatefulBuilder(
                             builder: (ctx, setDState) => AlertDialog(
-                              title: const Text(
-                                '직접 알림 추가',
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
+                              title: const Text('직접 알림 추가', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
                               content: Column(
                                 mainAxisSize: MainAxisSize.min,
                                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -281,8 +260,7 @@ class _CalendarTabViewState extends State<CalendarTabView> {
                                         selected: mode == '시간/분',
                                         showCheckmark: false,
                                         selectedColor: AppColors.lightLavender,
-                                        onSelected: (_) =>
-                                            setDState(() => mode = '시간/분'),
+                                        onSelected: (_) => setDState(() => mode = '시간/분'),
                                       ),
                                       const SizedBox(width: 8),
                                       ChoiceChip(
@@ -290,8 +268,7 @@ class _CalendarTabViewState extends State<CalendarTabView> {
                                         selected: mode == '일',
                                         showCheckmark: false,
                                         selectedColor: AppColors.lightLavender,
-                                        onSelected: (_) =>
-                                            setDState(() => mode = '일'),
+                                        onSelected: (_) => setDState(() => mode = '일'),
                                       ),
                                     ],
                                   ),
@@ -299,8 +276,7 @@ class _CalendarTabViewState extends State<CalendarTabView> {
 
                                   if (mode == '시간/분')
                                     Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.center,
+                                      mainAxisAlignment: MainAxisAlignment.center,
                                       children: [
                                         SizedBox(
                                           width: 50,
@@ -308,29 +284,14 @@ class _CalendarTabViewState extends State<CalendarTabView> {
                                             keyboardType: TextInputType.number,
                                             decoration: const InputDecoration(
                                               hintText: '',
-                                              contentPadding:
-                                                  EdgeInsets.symmetric(
-                                                    horizontal: 8,
-                                                    vertical: 8,
-                                                  ),
-                                              border: OutlineInputBorder(
-                                                borderRadius: BorderRadius.all(
-                                                  Radius.circular(8),
-                                                ),
-                                              ),
+                                              contentPadding: EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+                                              border: OutlineInputBorder(borderRadius: BorderRadius.all(Radius.circular(8))),
                                             ),
-                                            onChanged: (v) =>
-                                                hours = int.tryParse(v),
+                                            onChanged: (v) => hours = int.tryParse(v),
                                           ),
                                         ),
                                         const SizedBox(width: 4),
-                                        const Text(
-                                          '시간',
-                                          style: TextStyle(
-                                            fontSize: 13,
-                                            fontWeight: FontWeight.w600,
-                                          ),
-                                        ),
+                                        const Text('시간', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
                                         const SizedBox(width: 10),
                                         SizedBox(
                                           width: 50,
@@ -338,35 +299,19 @@ class _CalendarTabViewState extends State<CalendarTabView> {
                                             keyboardType: TextInputType.number,
                                             decoration: const InputDecoration(
                                               hintText: '',
-                                              contentPadding:
-                                                  EdgeInsets.symmetric(
-                                                    horizontal: 8,
-                                                    vertical: 8,
-                                                  ),
-                                              border: OutlineInputBorder(
-                                                borderRadius: BorderRadius.all(
-                                                  Radius.circular(8),
-                                                ),
-                                              ),
+                                              contentPadding: EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+                                              border: OutlineInputBorder(borderRadius: BorderRadius.all(Radius.circular(8))),
                                             ),
-                                            onChanged: (v) =>
-                                                minutes = int.tryParse(v),
+                                            onChanged: (v) => minutes = int.tryParse(v),
                                           ),
                                         ),
                                         const SizedBox(width: 4),
-                                        const Text(
-                                          '분 전',
-                                          style: TextStyle(
-                                            fontSize: 13,
-                                            fontWeight: FontWeight.w600,
-                                          ),
-                                        ),
+                                        const Text('분 전', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
                                       ],
                                     )
                                   else
                                     Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.center,
+                                      mainAxisAlignment: MainAxisAlignment.center,
                                       children: [
                                         SizedBox(
                                           width: 60,
@@ -375,29 +320,14 @@ class _CalendarTabViewState extends State<CalendarTabView> {
                                             autofocus: true,
                                             decoration: const InputDecoration(
                                               hintText: '',
-                                              contentPadding:
-                                                  EdgeInsets.symmetric(
-                                                    horizontal: 8,
-                                                    vertical: 8,
-                                                  ),
-                                              border: OutlineInputBorder(
-                                                borderRadius: BorderRadius.all(
-                                                  Radius.circular(8),
-                                                ),
-                                              ),
+                                              contentPadding: EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+                                              border: OutlineInputBorder(borderRadius: BorderRadius.all(Radius.circular(8))),
                                             ),
-                                            onChanged: (v) =>
-                                                days = int.tryParse(v) ?? 1,
+                                            onChanged: (v) => days = int.tryParse(v) ?? 1,
                                           ),
                                         ),
                                         const SizedBox(width: 6),
-                                        const Text(
-                                          '일 전',
-                                          style: TextStyle(
-                                            fontSize: 13,
-                                            fontWeight: FontWeight.w600,
-                                          ),
-                                        ),
+                                        const Text('일 전', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
                                       ],
                                     ),
                                 ],
@@ -405,19 +335,12 @@ class _CalendarTabViewState extends State<CalendarTabView> {
                               actions: [
                                 TextButton(
                                   onPressed: () => Navigator.of(dCtx).pop(),
-                                  child: const Text(
-                                    '취소',
-                                    style: TextStyle(
-                                      color: AppColors.textSecondary,
-                                    ),
-                                  ),
+                                  child: Text('취소', style: TextStyle(color: AppColors.textSecondary)),
                                 ),
                                 ElevatedButton(
                                   style: ElevatedButton.styleFrom(
                                     backgroundColor: AppColors.primaryPurple,
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(8),
-                                    ),
+                                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                                   ),
                                   onPressed: () {
                                     String customRem = '';
@@ -437,40 +360,23 @@ class _CalendarTabViewState extends State<CalendarTabView> {
                                       customRem = '$days일 전';
                                     }
 
-                                    if (!availableReminders.contains(
-                                      customRem,
-                                    )) {
+                                    if (!availableReminders.contains(customRem)) {
                                       availableReminders.add(customRem);
                                     }
-                                    if (!selectedReminders.contains(
-                                      customRem,
-                                    )) {
+                                    if (!selectedReminders.contains(customRem)) {
                                       selectedReminders.add(customRem);
                                     }
                                     setMState(() {});
                                     Navigator.of(dCtx).pop();
                                   },
-                                  child: const Text(
-                                    '추가',
-                                    style: TextStyle(
-                                      color: Colors.white,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
+                                  child: const Text('추가', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
                                 ),
                               ],
                             ),
                           ),
                         );
                       },
-                      child: const Text(
-                        '직접 추가',
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: AppColors.primaryPurple,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
+                      child: Text('직접 추가', style: TextStyle(fontSize: 12, color: AppColors.primaryPurple, fontWeight: FontWeight.bold)),
                     ),
                   ],
                 ),
@@ -486,21 +392,15 @@ class _CalendarTabViewState extends State<CalendarTabView> {
                       showCheckmark: false,
                       labelStyle: TextStyle(
                         fontSize: 12,
-                        fontWeight: isChecked
-                            ? FontWeight.bold
-                            : FontWeight.w500,
-                        color: isChecked
-                            ? AppColors.primaryPurple
-                            : AppColors.textSecondary,
+                        fontWeight: isChecked ? FontWeight.bold : FontWeight.w500,
+                        color: isChecked ? AppColors.primaryPurple : AppColors.textSecondary,
                       ),
                       selectedColor: AppColors.lightLavender,
                       backgroundColor: const Color(0xFFF9FAFB),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(8),
                         side: BorderSide(
-                          color: isChecked
-                              ? AppColors.primaryPurple.withOpacity(0.5)
-                              : AppColors.divider,
+                          color: isChecked ? AppColors.primaryPurple.withValues(alpha: 0.5) : AppColors.divider,
                         ),
                       ),
                       onSelected: (val) {
@@ -521,17 +421,10 @@ class _CalendarTabViewState extends State<CalendarTabView> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    const Text(
-                      '반복 설정',
-                      style: TextStyle(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w600,
-                        color: AppColors.textPrimary,
-                      ),
-                    ),
+                    Text('반복 설정', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.textPrimary)),
                     Switch(
                       value: isRepeated,
-                      activeColor: AppColors.primaryPurple,
+                      activeThumbColor: AppColors.primaryPurple,
                       onChanged: (val) => setMState(() => isRepeated = val),
                     ),
                   ],
@@ -550,19 +443,13 @@ class _CalendarTabViewState extends State<CalendarTabView> {
                         labelStyle: TextStyle(
                           fontSize: 12,
                           fontWeight: isSel ? FontWeight.bold : FontWeight.w500,
-                          color: isSel
-                              ? AppColors.primaryPurple
-                              : AppColors.textSecondary,
+                          color: isSel ? AppColors.primaryPurple : AppColors.textSecondary,
                         ),
                         selectedColor: AppColors.lightLavender,
                         backgroundColor: const Color(0xFFF9FAFB),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(8),
-                          side: BorderSide(
-                            color: isSel
-                                ? AppColors.primaryPurple.withOpacity(0.5)
-                                : AppColors.divider,
-                          ),
+                          side: BorderSide(color: isSel ? AppColors.primaryPurple.withValues(alpha: 0.5) : AppColors.divider),
                         ),
                         onSelected: (val) {
                           if (val) setMState(() => repeatCycle = cycle);
@@ -593,26 +480,18 @@ class _CalendarTabViewState extends State<CalendarTabView> {
                             height: 32,
                             alignment: Alignment.center,
                             decoration: BoxDecoration(
-                              color: isDaySel
-                                  ? AppColors.lightLavender
-                                  : const Color(0xFFF9FAFB),
+                              color: isDaySel ? AppColors.lightLavender : const Color(0xFFF9FAFB),
                               borderRadius: BorderRadius.circular(6),
                               border: Border.all(
-                                color: isDaySel
-                                    ? AppColors.primaryPurple
-                                    : AppColors.divider,
+                                color: isDaySel ? AppColors.primaryPurple : AppColors.divider,
                               ),
                             ),
                             child: Text(
                               day,
                               style: TextStyle(
                                 fontSize: 12.5,
-                                fontWeight: isDaySel
-                                    ? FontWeight.bold
-                                    : FontWeight.w500,
-                                color: isDaySel
-                                    ? AppColors.primaryPurple
-                                    : AppColors.textSecondary,
+                                fontWeight: isDaySel ? FontWeight.bold : FontWeight.w500,
+                                color: isDaySel ? AppColors.primaryPurple : AppColors.textSecondary,
                               ),
                             ),
                           ),
@@ -629,9 +508,7 @@ class _CalendarTabViewState extends State<CalendarTabView> {
                   child: ElevatedButton(
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppColors.primaryPurple,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10),
-                      ),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                     ),
                     onPressed: () {
                       if (titleCtrl.text.trim().isEmpty) return;
@@ -669,14 +546,7 @@ class _CalendarTabViewState extends State<CalendarTabView> {
                         );
                       }
                     },
-                    child: Text(
-                      task != null ? '수정 완료' : '일정 저장',
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 15,
-                      ),
-                    ),
+                    child: Text(task != null ? '수정 완료' : '일정 저장', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 15)),
                   ),
                 ),
               ],
@@ -686,25 +556,19 @@ class _CalendarTabViewState extends State<CalendarTabView> {
       ),
     );
   }
-
   // 🌟 과거 복약 완료 기록 시 복용 시간 묻는 다이얼로그 (모름/기억 안 남 포함!)
   void _showPastMedTimeDialog(MedicationItem med, int slotIdx, DoseSlot slot) {
     showDialog(
       context: context,
       builder: (dCtx) => AlertDialog(
-        title: Text(
-          '${med.name} ${slot.label} 복용 시간',
-          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-        ),
+        title: Text('${med.name} ${slot.label} 복용 시간', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              '${_selectedDate.month}월 ${_selectedDate.day}일에 이 약을 언제 복용하셨나요?',
-            ),
+            Text('${_selectedDate.month}월 ${_selectedDate.day}일에 이 약을 언제 복용하셨나요?'),
             const SizedBox(height: 8),
-            const Text(
+            Text(
               '정확한 시간이 기억나지 않아도 괜찮아요.\n알고 계신 만큼만 기록해도 충분해요.',
               style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
             ),
@@ -720,14 +584,9 @@ class _CalendarTabViewState extends State<CalendarTabView> {
                 context,
                 title: '소중한 기록 완료',
                 message: '${med.name} ${slot.label} 복용을 기록했어요 (복용 시간 미지정).',
-
-                isCompletionFeedback: true,
               );
             },
-            child: const Text(
-              '기억 안 남 (모름)',
-              style: TextStyle(color: AppColors.textSecondary),
-            ),
+            child: Text('기억 안 남 (모름)', style: TextStyle(color: AppColors.textSecondary)),
           ),
           // 2) 예정 시각 그대로 복용 버튼
           TextButton(
@@ -738,33 +597,19 @@ class _CalendarTabViewState extends State<CalendarTabView> {
                 context,
                 title: '소중한 기록 완료',
                 message: '${med.name} ${slot.label} 예정 시각에 잘 챙겨 드셨어요.',
-
-                isCompletionFeedback: true,
               );
             },
-            child: Text(
-              '${slot.scheduledTime ?? '예정 시각'}에 복용',
-              style: const TextStyle(
-                color: AppColors.primaryPurple,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
+            child: Text('${slot.scheduledTime ?? '예정 시각'}에 복용', style: TextStyle(color: AppColors.primaryPurple, fontWeight: FontWeight.bold)),
           ),
           // 3) 직접 시간 선택 버튼
           ElevatedButton(
             style: ElevatedButton.styleFrom(
               backgroundColor: AppColors.primaryPurple,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8),
-              ),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
             ),
             onPressed: () async {
               Navigator.of(dCtx).pop();
-              final t = await AppTimePicker.show(
-                context,
-                initialTime: TimeOfDay.now(),
-                title: '${med.name} 복용 시각',
-              );
+              final t = await AppTimePicker.show(context, initialTime: TimeOfDay.now(), title: '${med.name} 복용 시각');
               _state.togglePastSlotCompleted(_selectedDate, med.id, slotIdx);
               final timeStr = t != null
                   ? '${t.period == DayPeriod.am ? '오전' : '오후'} ${t.hourOfPeriod == 0 ? 12 : t.hourOfPeriod}:${t.minute.toString().padLeft(2, '0')}'
@@ -773,17 +618,9 @@ class _CalendarTabViewState extends State<CalendarTabView> {
                 context,
                 title: '소중한 기록 완료',
                 message: '${med.name} $timeStr에 복약한 기록을 남겼어요.',
-
-                isCompletionFeedback: true,
               );
             },
-            child: const Text(
-              '직접 시간 입력',
-              style: TextStyle(
-                color: Colors.white,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
+            child: const Text('직접 시간 입력', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
           ),
         ],
       ),
@@ -791,35 +628,21 @@ class _CalendarTabViewState extends State<CalendarTabView> {
   }
 
   // 과거 복약 되돌리기 확인 다이얼로그
-  void _showPastMedRevertDialog(
-    MedicationItem med,
-    int slotIdx,
-    DoseSlot slot,
-  ) {
+  void _showPastMedRevertDialog(MedicationItem med, int slotIdx, DoseSlot slot) {
     showDialog(
       context: context,
       builder: (dCtx) => AlertDialog(
-        title: const Text(
-          '복약 상태 되돌리기',
-          style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-        ),
-        content: Text(
-          '${_selectedDate.month}월 ${_selectedDate.day}일 \'${med.name} ${slot.label}\' 복약 완료 기록을 미완료(대기)로 되돌릴까요?',
-        ),
+        title: const Text('복약 상태 되돌리기', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+        content: Text('${_selectedDate.month}월 ${_selectedDate.day}일 \'${med.name} ${slot.label}\' 복약 완료 기록을 미완료(대기)로 되돌릴까요?'),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(dCtx).pop(),
-            child: const Text(
-              '취소',
-              style: TextStyle(color: AppColors.textSecondary),
-            ),
+            child: Text('취소', style: TextStyle(color: AppColors.textSecondary)),
           ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(
               backgroundColor: AppColors.warmBrown,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8),
-              ),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
             ),
             onPressed: () {
               Navigator.of(dCtx).pop();
@@ -830,13 +653,7 @@ class _CalendarTabViewState extends State<CalendarTabView> {
                 message: '${med.name} ${slot.label} 상태를 미완료로 되돌렸어요.',
               );
             },
-            child: const Text(
-              '되돌리기 확정',
-              style: TextStyle(
-                color: Colors.white,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
+            child: const Text('되돌리기 확정', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
           ),
         ],
       ),
@@ -848,27 +665,17 @@ class _CalendarTabViewState extends State<CalendarTabView> {
     showDialog(
       context: context,
       builder: (dCtx) => AlertDialog(
-        title: const Text(
-          '습관 상태 되돌리기',
-          style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-        ),
-        content: Text(
-          '${_selectedDate.month}월 ${_selectedDate.day}일 \'${habit.title}\' 실천 상태를 대기로 되돌릴까요?',
-        ),
+        title: const Text('습관 상태 되돌리기', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+        content: Text('${_selectedDate.month}월 ${_selectedDate.day}일 \'${habit.title}\' 실천 상태를 대기로 되돌릴까요?'),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(dCtx).pop(),
-            child: const Text(
-              '취소',
-              style: TextStyle(color: AppColors.textSecondary),
-            ),
+            child: Text('취소', style: TextStyle(color: AppColors.textSecondary)),
           ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(
               backgroundColor: AppColors.warmBrown,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8),
-              ),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
             ),
             onPressed: () {
               Navigator.of(dCtx).pop();
@@ -879,31 +686,19 @@ class _CalendarTabViewState extends State<CalendarTabView> {
                 message: '\'${habit.title}\' 실천 상태를 대기로 되돌렸어요.',
               );
             },
-            child: const Text(
-              '되돌리기 확정',
-              style: TextStyle(
-                color: Colors.white,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
+            child: const Text('되돌리기 확정', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
           ),
         ],
       ),
     );
   }
-
   // 🌟 과거 습관 수정 시 바로 바뀌지 않고 상태를 신중히 선택하는 다이얼로그
   void _showPastHabitChoiceDialog(HabitItem habit, bool isFull, bool isPart) {
     showDialog(
       context: context,
       builder: (dCtx) => AlertDialog(
-        title: Text(
-          '\'${habit.title}\' 실천 기록',
-          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-        ),
-        content: Text(
-          '${_selectedDate.month}월 ${_selectedDate.day}일에 이 습관을 어떻게 실천하셨나요?',
-        ),
+        title: Text('\'${habit.title}\' 실천 기록', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+        content: Text('${_selectedDate.month}월 ${_selectedDate.day}일에 이 습관을 어떻게 실천하셨나요?'),
         actions: [
           // 1) 대기로 되돌리기
           TextButton(
@@ -916,10 +711,7 @@ class _CalendarTabViewState extends State<CalendarTabView> {
                 message: '\'${habit.title}\'을(를) 대기로 변경했어요.',
               );
             },
-            child: const Text(
-              '대기 (미실천)',
-              style: TextStyle(color: AppColors.textSecondary),
-            ),
+            child: Text('대기 (미실천)', style: TextStyle(color: AppColors.textSecondary)),
           ),
           // 2) 조금 실천
           TextButton(
@@ -931,25 +723,15 @@ class _CalendarTabViewState extends State<CalendarTabView> {
                 context,
                 title: '작은 발걸음 기록',
                 message: '조금이라도 실천한 것이 정말 큰 의미가 있어요.',
-
-                isCompletionFeedback: true,
               );
             },
-            child: const Text(
-              '조금 실천',
-              style: TextStyle(
-                color: AppColors.partialText,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
+            child: const Text('조금 실천', style: TextStyle(color: AppColors.partialText, fontWeight: FontWeight.bold)),
           ),
           // 3) 완료
           ElevatedButton(
             style: ElevatedButton.styleFrom(
               backgroundColor: AppColors.primaryPurple,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8),
-              ),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
             ),
             onPressed: () {
               Navigator.of(dCtx).pop();
@@ -960,17 +742,9 @@ class _CalendarTabViewState extends State<CalendarTabView> {
                 context,
                 title: '습관 실천 완료',
                 message: '\'${habit.title}\' 목표를 달성했어요. 언제든 멋져요.',
-
-                isCompletionFeedback: true,
               );
             },
-            child: const Text(
-              '완료',
-              style: TextStyle(
-                color: Colors.white,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
+            child: const Text('완료', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
           ),
         ],
       ),
@@ -981,17 +755,13 @@ class _CalendarTabViewState extends State<CalendarTabView> {
   Widget build(BuildContext context) {
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
-    final daysInMonth = DateUtils.getDaysInMonth(
-      _currentMonth.year,
-      _currentMonth.month,
-    );
-    final firstWeekday =
-        DateTime(_currentMonth.year, _currentMonth.month, 1).weekday %
-        7; // 일요일=0
+    final daysInMonth = DateUtils.getDaysInMonth(_currentMonth.year, _currentMonth.month);
+    final firstWeekday = DateTime(_currentMonth.year, _currentMonth.month, 1).weekday % 7; // 일요일=0
 
     final selectedDayTasks = _state.getTasksForDay(_selectedDate);
     final isSelectedDatePast = _selectedDate.isBefore(today);
     final isSelectedDateToday = _selectedDate.isAtSameMomentAs(today);
+    final isSelectedDateBeforeTracking = _state.isBeforeTrackingStart(_selectedDate);
     final selectedMedRate = _state.getMedRateForDay(_selectedDate);
     final selectedHabitRate = _state.getHabitRateForDay(_selectedDate);
     return ListView(
@@ -1005,56 +775,42 @@ class _CalendarTabViewState extends State<CalendarTabView> {
               children: [
                 Text(
                   '${_currentMonth.year}년 ${_currentMonth.month}월',
-                  style: const TextStyle(
-                    fontSize: 19,
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.textPrimary,
-                  ),
+                  style: TextStyle(fontSize: 19, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
                 ),
                 const SizedBox(width: 6),
                 IconButton(
-                  icon: const Icon(
-                    Icons.chevron_left,
-                    size: 22,
-                    color: AppColors.textSecondary,
-                  ),
+                  icon: Icon(Icons.chevron_left, size: 22, color: AppColors.textSecondary),
                   onPressed: () => _changeMonth(-1),
                   padding: EdgeInsets.zero,
                   constraints: const BoxConstraints(),
                 ),
                 IconButton(
-                  icon: const Icon(
-                    Icons.chevron_right,
-                    size: 22,
-                    color: AppColors.textSecondary,
-                  ),
+                  icon: Icon(Icons.chevron_right, size: 22, color: AppColors.textSecondary),
                   onPressed: () => _changeMonth(1),
                   padding: EdgeInsets.zero,
                   constraints: const BoxConstraints(),
                 ),
               ],
             ),
-            TextButton.icon(
-              style: TextButton.styleFrom(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 10,
-                  vertical: 4,
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextButton.icon(
+                  style: TextButton.styleFrom(padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4)),
+                  icon: Icon(Icons.today, size: 16, color: AppColors.primaryPurple),
+                  label: Text('\uC624\uB298', style: TextStyle(color: AppColors.primaryPurple, fontWeight: FontWeight.bold, fontSize: 13)),
+                  onPressed: _goToToday,
                 ),
-              ),
-              icon: const Icon(
-                Icons.today,
-                size: 16,
-                color: AppColors.primaryPurple,
-              ),
-              label: const Text(
-                '오늘',
-                style: TextStyle(
+                IconButton(
+                  tooltip: '\uD45C\uC2DC \uC548\uB0B4',
+                  onPressed: _showCalendarLegend,
+                  icon: const Icon(Icons.info_outline, size: 19),
                   color: AppColors.primaryPurple,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 13,
+                  visualDensity: VisualDensity.compact,
+                  constraints: const BoxConstraints(minWidth: 34, minHeight: 34),
+                  padding: EdgeInsets.zero,
                 ),
-              ),
-              onPressed: _goToToday,
+              ],
             ),
           ],
         ),
@@ -1066,79 +822,26 @@ class _CalendarTabViewState extends State<CalendarTabView> {
           decoration: BoxDecoration(
             color: Colors.white,
             borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: AppColors.divider.withOpacity(0.6)),
+            border: Border.all(color: AppColors.divider.withValues(alpha: 0.6)),
             boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.02),
-                blurRadius: 8,
-                offset: const Offset(0, 2),
-              ),
+              BoxShadow(color: Colors.black.withValues(alpha: 0.02), blurRadius: 8, offset: const Offset(0, 2)),
             ],
           ),
           child: Column(
             children: [
               // 요일 헤더 (안티-슬롭 폰트 웨이트 정돈: w600으로 단정하게)
-              const Padding(
+              Padding(
                 padding: EdgeInsets.only(bottom: 8),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceAround,
                   children: [
-                    Text(
-                      '일',
-                      style: TextStyle(
-                        color: AppColors.missedRed,
-                        fontWeight: FontWeight.w600,
-                        fontSize: 12,
-                      ),
-                    ),
-                    Text(
-                      '월',
-                      style: TextStyle(
-                        color: AppColors.textSecondary,
-                        fontWeight: FontWeight.w500,
-                        fontSize: 12,
-                      ),
-                    ),
-                    Text(
-                      '화',
-                      style: TextStyle(
-                        color: AppColors.textSecondary,
-                        fontWeight: FontWeight.w500,
-                        fontSize: 12,
-                      ),
-                    ),
-                    Text(
-                      '수',
-                      style: TextStyle(
-                        color: AppColors.textSecondary,
-                        fontWeight: FontWeight.w500,
-                        fontSize: 12,
-                      ),
-                    ),
-                    Text(
-                      '목',
-                      style: TextStyle(
-                        color: AppColors.textSecondary,
-                        fontWeight: FontWeight.w500,
-                        fontSize: 12,
-                      ),
-                    ),
-                    Text(
-                      '금',
-                      style: TextStyle(
-                        color: AppColors.textSecondary,
-                        fontWeight: FontWeight.w500,
-                        fontSize: 12,
-                      ),
-                    ),
-                    Text(
-                      '토',
-                      style: TextStyle(
-                        color: AppColors.primaryPurple,
-                        fontWeight: FontWeight.w600,
-                        fontSize: 12,
-                      ),
-                    ),
+                    Text('일', style: TextStyle(color: AppColors.missedRed, fontWeight: FontWeight.w600, fontSize: 12)),
+                    Text('월', style: TextStyle(color: AppColors.textSecondary, fontWeight: FontWeight.w500, fontSize: 12)),
+                    Text('화', style: TextStyle(color: AppColors.textSecondary, fontWeight: FontWeight.w500, fontSize: 12)),
+                    Text('수', style: TextStyle(color: AppColors.textSecondary, fontWeight: FontWeight.w500, fontSize: 12)),
+                    Text('목', style: TextStyle(color: AppColors.textSecondary, fontWeight: FontWeight.w500, fontSize: 12)),
+                    Text('금', style: TextStyle(color: AppColors.textSecondary, fontWeight: FontWeight.w500, fontSize: 12)),
+                    Text('토', style: TextStyle(color: AppColors.primaryPurple, fontWeight: FontWeight.w600, fontSize: 12)),
                   ],
                 ),
               ),
@@ -1150,9 +853,10 @@ class _CalendarTabViewState extends State<CalendarTabView> {
                 shrinkWrap: true,
                 physics: const NeverScrollableScrollPhysics(),
                 itemCount: 42, // 6주 x 7일
-                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                   crossAxisCount: 7,
                   mainAxisSpacing: 4,
+                  // 🌟 전체 달 공통 레이아웃 (8월 사용자 스크린샷 핏 통일: 독립형 카드, 간격 4, 종횡비 0.95)
                   crossAxisSpacing: 4,
                   childAspectRatio: 0.95,
                 ),
@@ -1162,35 +866,47 @@ class _CalendarTabViewState extends State<CalendarTabView> {
                     return const SizedBox.shrink(); // 이전/다음달 빈칸
                   }
 
-                  final cellDate = DateTime(
-                    _currentMonth.year,
-                    _currentMonth.month,
-                    dayOffset,
-                  );
+                  final cellDate = DateTime(_currentMonth.year, _currentMonth.month, dayOffset);
                   final isToday = cellDate.isAtSameMomentAs(today);
                   final isSelected = cellDate.isAtSameMomentAs(_selectedDate);
                   final medRate = _state.getMedRateForDay(cellDate);
                   final habitRate = _state.getHabitRateForDay(cellDate);
                   final dayTasks = _state.getTasksForDay(cellDate);
                   final hasTasks = dayTasks.isNotEmpty;
-                  final isTasksAllDone =
-                      hasTasks && dayTasks.every((t) => t.isCompleted);
-                  final hasMissedPrescription = _state
-                      .hasMissedPrescriptionForDay(cellDate);
+                  final isTasksAllDone = hasTasks && dayTasks.every((t) => t.isCompleted);
+                  final hasMissedPrescription = _state.hasMissedPrescriptionForDay(cellDate);
+                  // 🌟 26년 12월 등 미래 날짜에 하단 바 추가되던 예외를 완전히 떼어내고, 실제 미래 날짜는 깨끗하게 비표시!
                   final isFuture = cellDate.isAfter(today);
-                  final isBeforeTracking = _state.isBeforeTrackingStart(
-                    cellDate,
-                  );
+                  final isBeforeTracking = _state.isBeforeTrackingStart(cellDate);
 
-                  // 🌟 [통 연초록 틴트 규격]: 기록 시작일 이후이면서 미래가 아닐 때, "약과 습관 둘 다 100% 완료했을 때만" 통으로 연초록!
-                  // 기록 시작일 이전이거나 미래인 날짜는 완전 깨끗한 순백색 초기화!
+                  // 🌟 [전체 달 공통 레이아웃 & 5월 컬러 팔레트 전면 통일]:
+                  // - 레이아웃: 8월 스크린샷 핏 (독립형 카드 모서리 8px, 하단 바 두께 3.5px, 좌우 여백 8px)
+                  // - 색상: 5월 컬러 팔레트 (완료: 에메랄드 #059669, 미완료: 소프트 쿨그레이 #9CA3AF, 핀: 쿨그레이 #D1D5DB, 처방약 누락: 빨강 #EF4444)
+                  const Color currentDoneGreen = Color(0xFF059669);
+                  const Color pendingBarColor = Color(0xFF9CA3AF);
+                  const Color pendingPinColor = Color(0xFFD1D5DB);
+                  const double barThickness = 3.5;
+                  final BorderRadius cellRadius = BorderRadius.circular(8);
                   final isMed100 = medRate != null && medRate >= 1.0;
-                  final isHabit100 = habitRate != null && habitRate >= 1.0;
-                  final isAll100Done =
-                      !isFuture && !isBeforeTracking && isMed100 && isHabit100;
-                  final isPartial =
-                      medRate != null && medRate > 0.0 && medRate < 1.0;
-                  final isZero = medRate != null && medRate == 0.0;
+                  final isHabit100 = !isFuture && !isBeforeTracking && habitRate != null && habitRate >= 1.0;
+
+                  Color medBarColor = currentDoneGreen;
+                  bool hasMedBar = false;
+
+                  if (!isFuture && !isBeforeTracking) {
+                    if (isMed100) {
+                      medBarColor = currentDoneGreen;
+                      hasMedBar = true;
+                    } else if (!isToday) {
+                      if (hasMissedPrescription) {
+                        medBarColor = AppColors.missedRed;
+                        hasMedBar = true;
+                      } else {
+                        medBarColor = pendingBarColor;
+                        hasMedBar = true;
+                      }
+                    }
+                  }
                   return GestureDetector(
                     onTap: () {
                       setState(() {
@@ -1199,24 +915,20 @@ class _CalendarTabViewState extends State<CalendarTabView> {
                     },
                     child: Container(
                       decoration: BoxDecoration(
-                        color: isAll100Done
-                            ? AppColors.successBg
-                            : Colors.white,
-                        borderRadius: BorderRadius.circular(8),
+                        color: isHabit100 ? AppColors.successBg : Colors.white,
+                        borderRadius: cellRadius,
                         border: Border.all(
                           color: isSelected
                               ? AppColors.primaryPurple
-                              : (isToday
-                                    ? AppColors.primaryPurple.withOpacity(0.5)
-                                    : Colors.transparent),
+                              : (isToday ? AppColors.primaryPurple.withValues(alpha: 0.5) : Colors.transparent),
                           width: isSelected ? 1.8 : (isToday ? 1.2 : 0),
                         ),
                       ),
                       child: Stack(
                         children: [
                           // 🌟 [할일 모서리 핀]:
-                          // - 할일 전부 완료: 연초록 바탕(#E6F8F0)에서도 100% 선명하게 구분되는 딥 포레스트 그린(Deep Forest Green #044E36)
-                          // - 할일 덜 끝냄/진행 중: 은은하고 포근한 라벤더 퍼플(Lavender Purple #7B61A8)
+                          // - 할일 전부 완료: 연초록 바탕에서도 선명하게 구분되는 딥 포레스트 그린(Deep Forest Green #044E36)
+                          // - 할일 덜 끝냄/미완료: 초록색과 명도 대비가 극명하게 나는 밝고 부드러운 파스텔 연보라(#C4B5FD)
                           if (hasTasks)
                             Positioned(
                               top: 4,
@@ -1226,11 +938,8 @@ class _CalendarTabViewState extends State<CalendarTabView> {
                                 height: 5.5,
                                 decoration: BoxDecoration(
                                   color: isTasksAllDone
-                                      ? const Color(
-                                          0xFF044E36,
-                                        ) // 짙은 딥 포레스트 그린 (연초록 배경에서도 또렷하게 보임!)
-                                      : AppColors
-                                            .primaryPurple, // 덜 한 것: 라벤더 보라색
+                                      ? currentDoneGreen // 🌟 생생한 완료 초록 반영!
+                                      : pendingPinColor, // 🌟 월별 미완료 색상 (연보라 or 쿨그레이)
                                   shape: BoxShape.circle,
                                 ),
                               ),
@@ -1242,9 +951,7 @@ class _CalendarTabViewState extends State<CalendarTabView> {
                               '$dayOffset',
                               style: TextStyle(
                                 fontSize: 13,
-                                fontWeight: (isToday || isSelected)
-                                    ? FontWeight.bold
-                                    : FontWeight.w500,
+                                fontWeight: (isToday || isSelected) ? FontWeight.bold : FontWeight.w500,
                                 // 전체 완료한 날이라도 일요일이면 빨간색 유지! 평일은 기본 텍스트 색 유지!
                                 color: cellDate.weekday == DateTime.sunday
                                     ? AppColors.missedRed
@@ -1253,46 +960,26 @@ class _CalendarTabViewState extends State<CalendarTabView> {
                             ),
                           ),
 
-                          // 🌟 사용자 제안 3단계 극단적 단순화 규격:
-                          // 1) 전부 다 한 날: 통 연초록 틴트 (#E6F8F0) + 하단 바 없음!
-                          // 2) 처방약 안 먹은 날: 흰색 셀 + 🚨 빨간색 바 (#EF4444)
-                          // 3) 뭔가 덜 한 날: 흰색 셀 + 🟤 웜브라운 바 (#8B5E3C)
-                          // 4) 기록 시작일 이전이거나 아직 오지 않은 날짜(미래): 바 일체 없이 완전 깨끗한 순백색 초기화!
-                          // 오늘 날짜는 아직 하루가 끝나지 않았으므로 미복용(빨간 바)/일부 실천(갈색 바) 표시 금지!
-                          if (!isFuture &&
-                              !isToday &&
-                              !isBeforeTracking &&
-                              !isAll100Done) ...[
-                            if (hasMissedPrescription)
-                              Positioned(
-                                bottom: 4,
-                                left: 8,
-                                right: 8,
-                                child: Container(
-                                  height: 2.5,
-                                  decoration: BoxDecoration(
-                                    color: AppColors
-                                        .missedRed, // 선명한 처방약 미복용 경고 레드 바
-                                    borderRadius: BorderRadius.circular(2),
-                                  ),
-                                ),
-                              )
-                            else
-                              Positioned(
-                                bottom: 4,
-                                left: 8,
-                                right: 8,
-                                child: Container(
-                                  height: 2.5,
-                                  decoration: BoxDecoration(
-                                    color: AppColors.warmBrown.withOpacity(
-                                      0.6,
-                                    ), // 일반약이든 습관이든 뭔가 덜 한 날 웜브라운 바
-                                    borderRadius: BorderRadius.circular(2),
-                                  ),
+                          // 🌟 [복약 독립 하단 바 규격 (두께 3.5px 도톰하게 개선)]:
+                          // 1) 복약 100% 완료: 할일 핀 완료색과 같은 짙은 딥 포레스트 그린 바 (#044E36)
+                          // 2) 처방약 놓친 날: 🚨 선명한 경고 레드 바 (#EF4444)
+                          // 3) 일부 복용/일반약 미완료: 차분하고 통일감 있는 연보라 바 (#B39DDB)
+                          // - 과거 날짜: 상태에 따라 3가지 바 중 하나 표시
+                          // - 오늘 날짜: 아직 하루가 진행 중이므로 완료했을 때만 초록 바를 띄우고 미완료 경고는 보류
+                          if (hasMedBar)
+                            Positioned(
+                              bottom: 4,
+                              // 🌟 8월 레이아웃 통일: 좌우 8px 여백, 두께 3.5px, 둥근 모서리
+                              left: 8,
+                              right: 8,
+                              child: Container(
+                                height: barThickness,
+                                decoration: BoxDecoration(
+                                  color: medBarColor,
+                                  borderRadius: BorderRadius.circular(barThickness / 2),
                                 ),
                               ),
-                          ],
+                            ),
                         ],
                       ),
                     ),
@@ -1310,13 +997,9 @@ class _CalendarTabViewState extends State<CalendarTabView> {
           decoration: BoxDecoration(
             color: Colors.white,
             borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: AppColors.divider.withOpacity(0.6)),
+            border: Border.all(color: AppColors.divider.withValues(alpha: 0.6)),
             boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.02),
-                blurRadius: 8,
-                offset: const Offset(0, 2),
-              ),
+              BoxShadow(color: Colors.black.withValues(alpha: 0.02), blurRadius: 8, offset: const Offset(0, 2)),
             ],
           ),
           child: Column(
@@ -1329,35 +1012,22 @@ class _CalendarTabViewState extends State<CalendarTabView> {
                   Row(
                     children: [
                       Text(
-                        '${_selectedDate.month}월 ${_selectedDate.day}일',
-                        style: const TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                          color: AppColors.textPrimary,
-                        ),
+                        '${_selectedDate.month.toString().padLeft(2, '0')}/${_selectedDate.day.toString().padLeft(2, '0')}',
+                        style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
                       ),
                       const SizedBox(width: 8),
                       Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 7,
-                          vertical: 2,
-                        ),
+                        padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
                         decoration: BoxDecoration(
-                          color: isSelectedDateToday
-                              ? AppColors.lightLavender
-                              : const Color(0xFFF3F4F6),
+                          color: isSelectedDateToday ? AppColors.lightLavender : const Color(0xFFF3F4F6),
                           borderRadius: BorderRadius.circular(6),
                         ),
                         child: Text(
-                          isSelectedDateToday
-                              ? '오늘'
-                              : (isSelectedDatePast ? '지난 기록' : '예정일'),
+                          isSelectedDateToday ? '오늘' : (isSelectedDatePast ? '지난 기록' : '예정일'),
                           style: TextStyle(
                             fontSize: 11,
                             fontWeight: FontWeight.bold,
-                            color: isSelectedDateToday
-                                ? AppColors.primaryPurple
-                                : AppColors.textSecondary,
+                            color: isSelectedDateToday ? AppColors.primaryPurple : AppColors.textSecondary,
                           ),
                         ),
                       ),
@@ -1368,25 +1038,14 @@ class _CalendarTabViewState extends State<CalendarTabView> {
                     onTap: () => _showTaskModal(),
                     borderRadius: BorderRadius.circular(6),
                     child: Padding(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 6,
-                        vertical: 4,
-                      ),
+                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
                       child: Row(
                         children: [
-                          const Icon(
-                            Icons.add,
-                            size: 16,
-                            color: AppColors.primaryPurple,
-                          ),
+                          Icon(Icons.add, size: 16, color: AppColors.primaryPurple),
                           const SizedBox(width: 2),
                           Text(
                             isSelectedDatePast ? '한일 추가' : '할일 추가',
-                            style: const TextStyle(
-                              fontSize: 12.5,
-                              color: AppColors.primaryPurple,
-                              fontWeight: FontWeight.bold,
-                            ),
+                            style: TextStyle(fontSize: 12.5, color: AppColors.primaryPurple, fontWeight: FontWeight.bold),
                           ),
                         ],
                       ),
@@ -1403,11 +1062,7 @@ class _CalendarTabViewState extends State<CalendarTabView> {
                 builder: (context) {
                   final now = DateTime.now();
                   final today = DateTime(now.year, now.month, now.day);
-                  final sel = DateTime(
-                    _selectedDate.year,
-                    _selectedDate.month,
-                    _selectedDate.day,
-                  );
+                  final sel = DateTime(_selectedDate.year, _selectedDate.month, _selectedDate.day);
                   final String taskHeaderTitle = sel.isBefore(today)
                       ? '그날의 한일'
                       : (sel.isAtSameMomentAs(today) ? '오늘의 할일' : '그날의 할일');
@@ -1417,33 +1072,18 @@ class _CalendarTabViewState extends State<CalendarTabView> {
                     children: [
                       Row(
                         children: [
-                          Text(
-                            taskHeaderTitle,
-                            style: const TextStyle(
-                              fontSize: 13.5,
-                              fontWeight: FontWeight.bold,
-                              color: AppColors.textPrimary,
-                            ),
-                          ),
+                          Text(taskHeaderTitle, style: TextStyle(fontSize: 13.5, fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
                           const SizedBox(width: 6),
                           Text(
                             '(${selectedDayTasks.length}건)',
-                            style: const TextStyle(
-                              fontSize: 12,
-                              color: AppColors.textSecondary,
-                              fontWeight: FontWeight.w600,
-                            ),
+                            style: TextStyle(fontSize: 12, color: AppColors.textSecondary, fontWeight: FontWeight.w600),
                           ),
                         ],
                       ),
                       if (selectedDayTasks.isNotEmpty)
                         Text(
                           '${selectedDayTasks.where((t) => t.isCompleted).length}/${selectedDayTasks.length} 완료',
-                          style: const TextStyle(
-                            fontSize: 11.5,
-                            color: AppColors.primaryPurple,
-                            fontWeight: FontWeight.bold,
-                          ),
+                          style: TextStyle(fontSize: 11.5, color: AppColors.primaryPurple, fontWeight: FontWeight.bold),
                         ),
                     ],
                   );
@@ -1457,13 +1097,7 @@ class _CalendarTabViewState extends State<CalendarTabView> {
                   width: double.infinity,
                   padding: const EdgeInsets.symmetric(vertical: 14),
                   child: const Center(
-                    child: Text(
-                      '등록된 일정이 없어요.',
-                      style: TextStyle(
-                        fontSize: 12.5,
-                        color: AppColors.textMuted,
-                      ),
-                    ),
+                    child: Text('등록된 일정이 없어요.', style: TextStyle(fontSize: 12.5, color: AppColors.textMuted)),
                   ),
                 )
               else
@@ -1475,9 +1109,7 @@ class _CalendarTabViewState extends State<CalendarTabView> {
                         color: const Color(0xFFF9FAFB),
                         borderRadius: BorderRadius.circular(10),
                         border: Border.all(
-                          color: t.isExpanded
-                              ? AppColors.primaryPurple.withOpacity(0.3)
-                              : AppColors.divider.withOpacity(0.5),
+                          color: t.isExpanded ? AppColors.primaryPurple.withValues(alpha: 0.3) : AppColors.divider.withValues(alpha: 0.5),
                         ),
                       ),
                       child: Column(
@@ -1490,18 +1122,13 @@ class _CalendarTabViewState extends State<CalendarTabView> {
                               });
                             },
                             child: Padding(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 10,
-                                vertical: 8,
-                              ),
+                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
                               child: Row(
                                 children: [
                                   Checkbox(
                                     value: t.isCompleted,
                                     activeColor: AppColors.primaryPurple,
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(4),
-                                    ),
+                                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
                                     onChanged: (_) {
                                       final wasCompleted = t.isCompleted;
                                       _state.toggleTaskCompleted(t.id);
@@ -1510,52 +1137,37 @@ class _CalendarTabViewState extends State<CalendarTabView> {
                                           context,
                                           title: '일정 완료',
                                           message: '\'${t.title}\'을(를) 잘 마쳤어요.',
-
-                                          isCompletionFeedback: true,
                                         );
                                       } else {
                                         CelebrationToast.show(
                                           context,
                                           title: '일정 완료 취소',
                                           message: '\'${t.title}\' 완료를 취소했어요.',
-
-                                          isCompletionFeedback: true,
                                         );
                                       }
                                     },
                                   ),
                                   Expanded(
                                     child: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
+                                      crossAxisAlignment: CrossAxisAlignment.start,
                                       children: [
                                         Text(
                                           t.title,
                                           style: TextStyle(
                                             fontSize: 13,
                                             fontWeight: FontWeight.w600,
-                                            decoration: t.isCompleted
-                                                ? TextDecoration.lineThrough
-                                                : null,
-                                            color: t.isCompleted
-                                                ? AppColors.textMuted
-                                                : AppColors.textPrimary,
+                                            decoration: t.isCompleted ? TextDecoration.lineThrough : null,
+                                            color: t.isCompleted ? AppColors.textMuted : AppColors.textPrimary,
                                           ),
                                         ),
-                                        if (t.time != null ||
-                                            t.reminders.isNotEmpty ||
-                                            t.isRepeated)
+                                        if (t.time != null || t.reminders.isNotEmpty || t.isRepeated)
                                           Text(
                                             [
                                               if (t.time != null) t.time!,
-                                              if (t.reminders.isNotEmpty)
-                                                t.reminderSummary,
+                                              if (t.reminders.isNotEmpty) t.reminderSummary,
                                               if (t.isRepeated) t.repeatSummary,
                                             ].join(' · '),
-                                            style: const TextStyle(
-                                              fontSize: 11,
-                                              color: AppColors.textSecondary,
-                                            ),
+                                            style: TextStyle(fontSize: 11, color: AppColors.textSecondary),
                                           ),
                                       ],
                                     ),
@@ -1569,89 +1181,44 @@ class _CalendarTabViewState extends State<CalendarTabView> {
                           if (t.isExpanded) ...[
                             const Divider(height: 1, color: Color(0xFFE5E7EB)),
                             Padding(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 12,
-                                vertical: 6,
-                              ),
+                              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                               child: Row(
                                 children: [
                                   TextButton(
                                     style: TextButton.styleFrom(
-                                      padding: const EdgeInsets.symmetric(
-                                        horizontal: 6,
-                                        vertical: 4,
-                                      ),
+                                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
                                       minimumSize: Size.zero,
-                                      tapTargetSize:
-                                          MaterialTapTargetSize.shrinkWrap,
+                                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                                     ),
                                     onPressed: () => _showTaskModal(task: t),
-                                    child: const Text(
-                                      '정보 수정',
-                                      style: TextStyle(
-                                        color: AppColors.primaryPurple,
-                                        fontSize: 12,
-                                        fontWeight: FontWeight.w600,
-                                      ),
-                                    ),
+                                    child: Text('정보 수정', style: TextStyle(color: AppColors.primaryPurple, fontSize: 12, fontWeight: FontWeight.w600)),
                                   ),
                                   const SizedBox(width: 8),
                                   TextButton(
                                     style: TextButton.styleFrom(
-                                      padding: const EdgeInsets.symmetric(
-                                        horizontal: 6,
-                                        vertical: 4,
-                                      ),
+                                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
                                       minimumSize: Size.zero,
-                                      tapTargetSize:
-                                          MaterialTapTargetSize.shrinkWrap,
+                                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                                     ),
-                                    onPressed: () => _state.moveTask(
-                                      t.id,
-                                      -1,
-                                      _selectedDate,
-                                    ),
-                                    child: const Text(
-                                      '위로',
-                                      style: TextStyle(
-                                        color: AppColors.textSecondary,
-                                        fontSize: 12,
-                                        fontWeight: FontWeight.w600,
-                                      ),
-                                    ),
+                                    onPressed: () => _state.moveTask(t.id, -1, _selectedDate),
+                                    child: Text('위로', style: TextStyle(color: AppColors.textSecondary, fontSize: 12, fontWeight: FontWeight.w600)),
                                   ),
                                   const SizedBox(width: 4),
                                   TextButton(
                                     style: TextButton.styleFrom(
-                                      padding: const EdgeInsets.symmetric(
-                                        horizontal: 6,
-                                        vertical: 4,
-                                      ),
+                                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
                                       minimumSize: Size.zero,
-                                      tapTargetSize:
-                                          MaterialTapTargetSize.shrinkWrap,
+                                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                                     ),
-                                    onPressed: () =>
-                                        _state.moveTask(t.id, 1, _selectedDate),
-                                    child: const Text(
-                                      '아래로',
-                                      style: TextStyle(
-                                        color: AppColors.textSecondary,
-                                        fontSize: 12,
-                                        fontWeight: FontWeight.w600,
-                                      ),
-                                    ),
+                                    onPressed: () => _state.moveTask(t.id, 1, _selectedDate),
+                                    child: Text('아래로', style: TextStyle(color: AppColors.textSecondary, fontSize: 12, fontWeight: FontWeight.w600)),
                                   ),
                                   const Spacer(),
                                   TextButton(
                                     style: TextButton.styleFrom(
-                                      padding: const EdgeInsets.symmetric(
-                                        horizontal: 6,
-                                        vertical: 4,
-                                      ),
+                                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
                                       minimumSize: Size.zero,
-                                      tapTargetSize:
-                                          MaterialTapTargetSize.shrinkWrap,
+                                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                                     ),
                                     onPressed: () {
                                       _state.deleteTask(t.id);
@@ -1661,14 +1228,7 @@ class _CalendarTabViewState extends State<CalendarTabView> {
                                         message: '\'${t.title}\' 일정을 삭제했어요.',
                                       );
                                     },
-                                    child: const Text(
-                                      '삭제',
-                                      style: TextStyle(
-                                        color: AppColors.neutralDark,
-                                        fontSize: 12,
-                                        fontWeight: FontWeight.w600,
-                                      ),
-                                    ),
+                                    child: const Text('삭제', style: TextStyle(color: AppColors.neutralDark, fontSize: 12, fontWeight: FontWeight.w600)),
                                   ),
                                 ],
                               ),
@@ -1700,58 +1260,32 @@ class _CalendarTabViewState extends State<CalendarTabView> {
                     children: [
                       Row(
                         children: [
-                          const Text(
-                            '복약 현황',
-                            style: TextStyle(
-                              fontSize: 13.5,
-                              fontWeight: FontWeight.bold,
-                              color: AppColors.textPrimary,
-                            ),
-                          ),
+                          Text('복약 현황', style: TextStyle(fontSize: 13.5, fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
                           const SizedBox(width: 8),
                           // 전체 완료 여부 뱃지
                           Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 8,
-                              vertical: 2,
-                            ),
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                             decoration: BoxDecoration(
-                              color:
-                                  selectedMedRate != null &&
-                                      selectedMedRate >= 1.0
+                              color: selectedMedRate != null && selectedMedRate >= 1.0
                                   ? AppColors.completedBg
-                                  : (selectedMedRate != null &&
-                                            selectedMedRate > 0.0
-                                        ? AppColors.partialOrange.withOpacity(
-                                            0.12,
-                                          )
-                                        : const Color(0xFFF3F4F6)),
+                                  : (selectedMedRate != null && selectedMedRate > 0.0
+                                      ? AppColors.partialOrange.withValues(alpha: 0.12)
+                                      : const Color(0xFFF3F4F6)),
                               borderRadius: BorderRadius.circular(5),
-                              border:
-                                  selectedMedRate != null &&
-                                      selectedMedRate >= 1.0
-                                  ? Border.all(color: AppColors.completedBorder)
-                                  : null,
+                              border: selectedMedRate != null && selectedMedRate >= 1.0 ? Border.all(color: AppColors.completedBorder) : null,
                             ),
                             child: Text(
-                              selectedMedRate == null
-                                  ? '기록 대기'
-                                  : (selectedMedRate >= 1.0
-                                        ? '전체 완료'
-                                        : (selectedMedRate > 0.0
-                                              ? '일부 복용'
-                                              : '건너뜀/미기록')),
+                              isSelectedDateBeforeTracking
+                                  ? '기록 시작 전'
+                                  : (selectedMedRate == null
+                                      ? '기록 대기'
+                                      : (selectedMedRate >= 1.0 ? '전체 완료' : (selectedMedRate > 0.0 ? '일부 복용' : '건너뜀/미기록'))),
                               style: TextStyle(
                                 fontSize: 11.5,
                                 fontWeight: FontWeight.bold,
-                                color:
-                                    selectedMedRate != null &&
-                                        selectedMedRate >= 1.0
+                                color: selectedMedRate != null && selectedMedRate >= 1.0
                                     ? AppColors.completedText
-                                    : (selectedMedRate != null &&
-                                              selectedMedRate > 0.0
-                                          ? AppColors.partialOrange
-                                          : AppColors.textSecondary),
+                                    : (selectedMedRate != null && selectedMedRate > 0.0 ? AppColors.partialOrange : AppColors.textSecondary),
                               ),
                             ),
                           ),
@@ -1759,14 +1293,8 @@ class _CalendarTabViewState extends State<CalendarTabView> {
                       ),
                       if (isSelectedDatePast || isSelectedDateToday)
                         Text(
-                          _isMedDetailsExpanded
-                              ? '접기'
-                              : (isSelectedDatePast ? '수정하기' : '확인하기'),
-                          style: const TextStyle(
-                            fontSize: 12,
-                            color: AppColors.primaryPurple,
-                            fontWeight: FontWeight.bold,
-                          ),
+                          _isMedDetailsExpanded ? '접기' : (isSelectedDatePast ? '수정하기' : '확인하기'),
+                          style: TextStyle(fontSize: 12, color: AppColors.primaryPurple, fontWeight: FontWeight.bold),
                         ),
                     ],
                   ),
@@ -1776,140 +1304,89 @@ class _CalendarTabViewState extends State<CalendarTabView> {
               if (_isMedDetailsExpanded) ...[
                 const SizedBox(height: 10),
                 Column(
-                  children: _state.medications
-                      .where((m) => m.isDueOn(_selectedDate))
-                      .map((med) {
-                        return Container(
-                          margin: const EdgeInsets.only(bottom: 6),
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 4,
-                            vertical: 8,
-                          ),
-                          decoration: const BoxDecoration(
-                            border: Border(
-                              bottom: BorderSide(color: Color(0xFFF3F4F6)),
-                            ),
-                          ),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
+                  children: _state.allMedications.where((m) => m.isDueOn(_selectedDate)).map((med) {
+                    return Container(
+                      margin: const EdgeInsets.only(bottom: 6),
+                      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
+                      decoration: const BoxDecoration(
+                        border: Border(bottom: BorderSide(color: Color(0xFFF3F4F6))),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Text(
-                                    med.name,
-                                    style: const TextStyle(
-                                      fontSize: 13,
-                                      fontWeight: FontWeight.bold,
-                                      color: AppColors.textPrimary,
-                                    ),
-                                  ),
-                                  Text(
-                                    med.dosage,
-                                    style: const TextStyle(
-                                      fontSize: 11,
-                                      color: AppColors.textSecondary,
-                                    ),
-                                  ),
-                                ],
+                              Text(
+                                med.name,
+                                style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
                               ),
-                              const SizedBox(height: 8),
-
-                              // 회차별 칩 (클릭 시 소급 토글 및 하곰이 소급 축하!)
-                              Wrap(
-                                spacing: 6,
-                                runSpacing: 6,
-                                children: med.doseSlots.asMap().entries.map((
-                                  entry,
-                                ) {
-                                  final slotIdx = entry.key;
-                                  final slot = entry.value;
-                                  final isDone = _state.isSlotCompletedForDay(
-                                    _selectedDate,
-                                    med.id,
-                                    slotIdx,
-                                  );
-
-                                  return InkWell(
-                                    borderRadius: BorderRadius.circular(6),
-                                    onTap: isSelectedDatePast
-                                        ? () {
-                                            if (!isDone) {
-                                              _showPastMedTimeDialog(
-                                                med,
-                                                slotIdx,
-                                                slot,
-                                              );
-                                            } else {
-                                              _showPastMedRevertDialog(
-                                                med,
-                                                slotIdx,
-                                                slot,
-                                              );
-                                            }
-                                          }
-                                        : null, // 오늘 날짜는 확인만 가능 (수정은 복약 탭에서)
-                                    child: Container(
-                                      padding: const EdgeInsets.symmetric(
-                                        horizontal: 9,
-                                        vertical: 5,
-                                      ),
-                                      decoration: BoxDecoration(
-                                        color: isDone
-                                            ? AppColors.successBg
-                                            : Colors.white,
-                                        borderRadius: BorderRadius.circular(6),
-                                        border: Border.all(
-                                          color: isDone
-                                              ? AppColors.successGreen
-                                                    .withOpacity(0.4)
-                                              : AppColors.divider,
-                                          width: isDone ? 1.2 : 1.0,
-                                        ),
-                                      ),
-                                      child: Builder(
-                                        builder: (context) {
-                                          final takenTime = _state
-                                              .getSlotTakenTimeForDay(
-                                                _selectedDate,
-                                                med.id,
-                                                slotIdx,
-                                              );
-                                          final timePart =
-                                              takenTime != null &&
-                                                  takenTime.isNotEmpty
-                                              ? ' ${takenTime.split(' ').last}'
-                                              : (slot.scheduledTime != null
-                                                    ? ' ${slot.scheduledTime!.split(' ').last}'
-                                                    : '');
-                                          final statusText = isDone
-                                              ? '${slot.label}$timePart'
-                                              : '${slot.label} 미복용';
-
-                                          return Text(
-                                            statusText,
-                                            style: TextStyle(
-                                              fontSize: 11,
-                                              fontWeight: isDone
-                                                  ? FontWeight.bold
-                                                  : FontWeight.w500,
-                                              color: isDone
-                                                  ? AppColors.completedText
-                                                  : AppColors.textSecondary,
-                                            ),
-                                          );
-                                        },
-                                      ),
-                                    ),
-                                  );
-                                }).toList(),
+                              Text(
+                                med.dosage,
+                                style: TextStyle(fontSize: 11, color: AppColors.textSecondary),
                               ),
                             ],
                           ),
-                        );
-                      })
-                      .toList(),
+                          const SizedBox(height: 8),
+
+                          // 회차별 칩 (클릭 시 소급 토글 및 하곰이 소급 축하!)
+                          Wrap(
+                            spacing: 6,
+                            runSpacing: 6,
+                            children: med.doseSlots.asMap().entries.map((entry) {
+                              final slotIdx = entry.key;
+                              final slot = entry.value;
+                              final isDone = _state.isSlotCompletedForDay(_selectedDate, med.id, slotIdx);
+
+                              return InkWell(
+                                borderRadius: BorderRadius.circular(6),
+                                onTap: isSelectedDatePast
+                                    ? () {
+                                        if (!isDone) {
+                                          _showPastMedTimeDialog(med, slotIdx, slot);
+                                        } else {
+                                          _showPastMedRevertDialog(med, slotIdx, slot);
+                                        }
+                                      }
+                                    : null, // 오늘 날짜는 확인만 가능 (수정은 복약 탭에서)
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 5),
+                                  decoration: BoxDecoration(
+                                    color: isDone ? AppColors.successBg : Colors.white,
+                                    borderRadius: BorderRadius.circular(6),
+                                    border: Border.all(
+                                      color: isDone ? AppColors.successGreen.withValues(alpha: 0.4) : AppColors.divider,
+                                      width: isDone ? 1.2 : 1.0,
+                                    ),
+                                  ),
+                                  child: Builder(
+                                    builder: (context) {
+                                      final takenTime = _state.getSlotTakenTimeForDay(_selectedDate, med.id, slotIdx);
+                                      final timePart = takenTime != null && takenTime.isNotEmpty
+                                          ? ' ${takenTime.split(' ').last}'
+                                          : (slot.scheduledTime != null ? ' ${slot.scheduledTime!.split(' ').last}' : '');
+                                      final statusText = isDone
+                                          ? '${slot.label}$timePart'
+                                          : (isSelectedDateBeforeTracking ? '${slot.label} 기록 전' : '${slot.label} 미복용');
+
+                                      return Text(
+                                        statusText,
+                                        style: TextStyle(
+                                          fontSize: 11,
+                                          fontWeight: isDone ? FontWeight.bold : FontWeight.w500,
+                                          color: isDone ? AppColors.completedText : AppColors.textSecondary,
+                                        ),
+                                      );
+                                    },
+                                  ),
+                                ),
+                              );
+                            }).toList(),
+                          ),
+                        ],
+                      ),
+                    );
+                  }).toList(),
                 ),
               ],
               const SizedBox(height: 12),
@@ -1933,58 +1410,36 @@ class _CalendarTabViewState extends State<CalendarTabView> {
                     children: [
                       Row(
                         children: [
-                          const Text(
-                            '습관 현황',
-                            style: TextStyle(
-                              fontSize: 13.5,
-                              fontWeight: FontWeight.bold,
-                              color: AppColors.textPrimary,
-                            ),
-                          ),
+                          Text('습관 현황', style: TextStyle(fontSize: 13.5, fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
                           const SizedBox(width: 8),
                           // 습관 완료 여부 뱃지
                           Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 8,
-                              vertical: 2,
-                            ),
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                             decoration: BoxDecoration(
-                              color:
-                                  selectedHabitRate != null &&
-                                      selectedHabitRate >= 1.0
+                              color: selectedHabitRate != null && selectedHabitRate >= 1.0
                                   ? AppColors.completedBg
-                                  : (selectedHabitRate != null &&
-                                            selectedHabitRate > 0.0
-                                        ? AppColors.partialOrange.withOpacity(
-                                            0.12,
-                                          )
-                                        : const Color(0xFFF3F4F6)),
+                                  : (selectedHabitRate != null && selectedHabitRate > 0.0
+                                      ? AppColors.partialOrange.withValues(alpha: 0.12)
+                                      : const Color(0xFFF3F4F6)),
                               borderRadius: BorderRadius.circular(5),
-                              border:
-                                  selectedHabitRate != null &&
-                                      selectedHabitRate >= 1.0
-                                  ? Border.all(color: AppColors.completedBorder)
-                                  : null,
+                              border: selectedHabitRate != null && selectedHabitRate >= 1.0 ? Border.all(color: AppColors.completedBorder) : null,
                             ),
                             child: Text(
-                              selectedHabitRate == null
-                                  ? '기록 대기'
-                                  : (selectedHabitRate >= 1.0
-                                        ? '전체 달성'
-                                        : (selectedHabitRate > 0.0
-                                              ? '${(selectedHabitRate * _state.habits.where((h) => h.isDueOn(_selectedDate)).length).toStringAsFixed(1)}/${_state.habits.where((h) => h.isDueOn(_selectedDate)).length}개 실천'
-                                              : '미실천/기록 없음')),
+                              isSelectedDateBeforeTracking
+                                  ? '기록 시작 전'
+                                  : (selectedHabitRate == null
+                                      ? '기록 대기'
+                                      : (selectedHabitRate >= 1.0
+                                          ? '전체 달성'
+                                          : (selectedHabitRate > 0.0
+                                              ? '${(selectedHabitRate * _state.allHabits.where((h) => h.isDueOn(_selectedDate)).length).toStringAsFixed(1)}/${_state.allHabits.where((h) => h.isDueOn(_selectedDate)).length}개 실천'
+                                              : '미실천/기록 없음'))),
                               style: TextStyle(
                                 fontSize: 11.5,
                                 fontWeight: FontWeight.bold,
-                                color:
-                                    selectedHabitRate != null &&
-                                        selectedHabitRate >= 1.0
+                                color: selectedHabitRate != null && selectedHabitRate >= 1.0
                                     ? AppColors.completedText
-                                    : (selectedHabitRate != null &&
-                                              selectedHabitRate > 0.0
-                                          ? AppColors.partialOrange
-                                          : AppColors.textSecondary),
+                                    : (selectedHabitRate != null && selectedHabitRate > 0.0 ? AppColors.partialOrange : AppColors.textSecondary),
                               ),
                             ),
                           ),
@@ -1992,14 +1447,8 @@ class _CalendarTabViewState extends State<CalendarTabView> {
                       ),
                       if (isSelectedDatePast || isSelectedDateToday)
                         Text(
-                          _isHabitDetailsExpanded
-                              ? '접기'
-                              : (isSelectedDatePast ? '수정하기' : '확인하기'),
-                          style: const TextStyle(
-                            fontSize: 12,
-                            color: AppColors.primaryPurple,
-                            fontWeight: FontWeight.bold,
-                          ),
+                          _isHabitDetailsExpanded ? '접기' : (isSelectedDatePast ? '수정하기' : '확인하기'),
+                          style: TextStyle(fontSize: 12, color: AppColors.primaryPurple, fontWeight: FontWeight.bold),
                         ),
                     ],
                   ),
@@ -2010,107 +1459,73 @@ class _CalendarTabViewState extends State<CalendarTabView> {
               if (_isHabitDetailsExpanded) ...[
                 const SizedBox(height: 10),
                 Column(
-                  children: _state.habits
-                      .where((h) => h.isDueOn(_selectedDate))
-                      .map((habit) {
-                        final hScore = _state.getHabitScoreForDay(
-                          _selectedDate,
-                          habit.id,
-                        );
-                        final isFull = hScore >= 1.0;
-                        final isPart = hScore > 0.0 && hScore < 1.0;
-                        String label = '대기';
-                        Color bg = Colors.white;
-                        Color border = AppColors.divider;
-                        Color textCol = AppColors.textSecondary;
+                  children: _state.allHabits.where((h) => h.isDueOn(_selectedDate)).map((habit) {
+                    final hScore = _state.getHabitScoreForDay(_selectedDate, habit.id);
+                    final isFull = hScore >= 1.0;
+                    final isPart = hScore > 0.0 && hScore < 1.0;
+                    String label = isSelectedDateBeforeTracking && hScore == 0.0 ? '기록 전' : '대기';
+                    Color bg = Colors.white;
+                    Color border = AppColors.divider;
+                    Color textCol = AppColors.textSecondary;
 
-                        if (isFull) {
-                          label = '완료';
-                          bg = AppColors.completedBg;
-                          border = AppColors.completedBorder;
-                          textCol = AppColors.completedText;
-                        } else if (isPart) {
-                          label = '조금 실천';
-                          bg = AppColors.partialBg;
-                          border = AppColors.partialBorder;
-                          textCol = AppColors.partialText;
-                        }
-                        return Container(
-                          margin: const EdgeInsets.only(bottom: 4),
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 4,
-                            vertical: 8,
-                          ),
-                          decoration: const BoxDecoration(
-                            border: Border(
-                              bottom: BorderSide(color: Color(0xFFF3F4F6)),
+                    if (isFull) {
+                      label = '완료';
+                      bg = AppColors.completedBg;
+                      border = AppColors.completedBorder;
+                      textCol = AppColors.completedText;
+                    } else if (isPart) {
+                      label = '조금 실천';
+                      bg = AppColors.partialBg;
+                      border = AppColors.partialBorder;
+                      textCol = AppColors.partialText;
+                    }
+                    return Container(
+                      margin: const EdgeInsets.only(bottom: 4),
+                      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
+                      decoration: const BoxDecoration(
+                        border: Border(bottom: BorderSide(color: Color(0xFFF3F4F6))),
+                      ),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  habit.title,
+                                  style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
+                                ),
+                                const SizedBox(height: 2),
+                                Text(
+                                  habit.subtitle,
+                                  style: TextStyle(fontSize: 11, color: AppColors.textSecondary),
+                                ),
+                              ],
                             ),
                           ),
-                          child: Row(
-                            children: [
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      habit.title,
-                                      style: const TextStyle(
-                                        fontSize: 13,
-                                        fontWeight: FontWeight.bold,
-                                        color: AppColors.textPrimary,
-                                      ),
-                                    ),
-                                    const SizedBox(height: 2),
-                                    Text(
-                                      habit.subtitle,
-                                      style: const TextStyle(
-                                        fontSize: 11,
-                                        color: AppColors.textSecondary,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              const SizedBox(width: 8),
+                          const SizedBox(width: 8),
 
-                              // 습관 실천 소급 상태 선택 버튼 (클릭 시 확인 다이얼로그 팝업)
-                              InkWell(
+                          // 습관 실천 소급 상태 선택 버튼 (클릭 시 확인 다이얼로그 팝업)
+                          InkWell(
+                            borderRadius: BorderRadius.circular(6),
+                            onTap: isSelectedDatePast ? () => _showPastHabitChoiceDialog(habit, isFull, isPart) : null,
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                              decoration: BoxDecoration(
+                                color: bg,
                                 borderRadius: BorderRadius.circular(6),
-                                onTap: isSelectedDatePast
-                                    ? () => _showPastHabitChoiceDialog(
-                                        habit,
-                                        isFull,
-                                        isPart,
-                                      )
-                                    : null,
-                                child: Container(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 10,
-                                    vertical: 5,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    color: bg,
-                                    borderRadius: BorderRadius.circular(6),
-                                    border: Border.all(
-                                      color: border,
-                                      width: isFull ? 1.2 : 1.0,
-                                    ),
-                                  ),
-                                  child: Text(
-                                    label,
-                                    style: TextStyle(
-                                      fontSize: 11.5,
-                                      fontWeight: FontWeight.bold,
-                                      color: textCol,
-                                    ),
-                                  ),
-                                ),
+                                border: Border.all(color: border, width: isFull ? 1.2 : 1.0),
                               ),
-                            ],
+                              child: Text(
+                                label,
+                                style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.bold, color: textCol),
+                              ),
+                            ),
                           ),
-                        );
-                      })
-                      .toList(),
+                        ],
+                      ),
+                    );
+                  }).toList(),
                 ),
               ],
             ],
