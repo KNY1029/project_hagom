@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import '../constants/app_colors.dart';
 import '../constants/app_assets.dart';
 import '../state/app_state_manager.dart';
@@ -6,14 +7,14 @@ import '../widgets/celebration_toast.dart';
 import '../widgets/responsive_content.dart';
 
 /// 📱 스마트폰 홈 위젯 시뮬레이터 & 쇼룸 화면 (v0.22.82)
-/// 
+///
 /// 카카오톡 기획 논의 및 2x1 규격 공식 사양:
 /// [그룹 1: 마스코트 의욕 및 미접속 4대 감정 위젯 (2x1)]
 ///  1) 기쁨 (올클리어: 오늘 할 일 끝냄)
 ///  2) 할 수 있어! (평소 응원: 오늘 할 일 진행 중)
 ///  3) 돌아와... (1~3일 미접속: 무난하고 애절한 복귀 유도)
 ///  4) 왜 안 들어와 (4일 이상 미접속: 듀오링고 모드 부담 집중)
-/// 
+///
 /// [그룹 2: 인체공학적 1-Tap 즉시 체크 통합 위젯 (2x1)]
 ///  5) 복약 원탭 체크 (왼쪽: 복약 상세 / 오른쪽: 1-Tap 복용 완료)
 ///  6) 습관 원탭 체크 (왼쪽: 습관 상세 / 오른쪽: 1-Tap 실천 완료)
@@ -57,7 +58,8 @@ class _WidgetSimulatorScreenState extends State<WidgetSimulatorScreen> {
     final habitScore = _state.habitTotalScore;
 
     final bool isMedAll = totalMeds > 0 && compMeds >= totalMeds;
-    final bool isHabitAll = habitTotal > 0 && habitScore >= habitTotal.toDouble();
+    final bool isHabitAll =
+        habitTotal > 0 && habitScore >= habitTotal.toDouble();
 
     if (isMedAll && isHabitAll) {
       return 'joy'; // 오늘 할 일 끝냄 (기쁨)
@@ -90,99 +92,117 @@ class _WidgetSimulatorScreenState extends State<WidgetSimulatorScreen> {
         child: ListView(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
           children: [
-          // 💡 안내 배너
-          Container(
-            padding: const EdgeInsets.all(14),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: AppColors.divider.withValues(alpha: 0.5)),
-            ),
-            child: Row(
-              children: [
-                Icon(Icons.widgets_outlined, color: AppColors.primaryPurple, size: 28),
-                SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        '스마트폰 홈 화면 2×1 위젯',
-                        style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.bold,
-                          color: AppColors.textPrimary,
-                        ),
-                      ),
-                      SizedBox(height: 3),
-                      Text(
-                        '환자가 앱을 켜지 않고도 홈 화면에서 마스코트의 지지를 받고 1초 만에 복약/습관을 체크하는 인체공학적 위젯이에요.',
-                        style: TextStyle(fontSize: 12, color: AppColors.textSecondary, height: 1.35),
-                      ),
-                    ],
-                  ),
+            // 💡 안내 배너
+            Container(
+              padding: const EdgeInsets.all(14),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: AppColors.divider.withValues(alpha: 0.5),
                 ),
-              ],
+              ),
+              child: Row(
+                children: [
+                  Icon(
+                    Icons.widgets_outlined,
+                    color: AppColors.primaryPurple,
+                    size: 28,
+                  ),
+                  SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          '스마트폰 홈 화면 2×1 위젯',
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.textPrimary,
+                          ),
+                        ),
+                        SizedBox(height: 3),
+                        Text(
+                          '환자가 앱을 켜지 않고도 홈 화면에서 마스코트의 지지를 받고 1초 만에 복약/습관을 체크하는 인체공학적 위젯이에요.',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: AppColors.textSecondary,
+                            height: 1.35,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
             ),
-          ),
-          const SizedBox(height: 20),
+            const SizedBox(height: 20),
 
-          // -------------------------------------------------------------
-          // [그룹 1: 마스코트 의욕 & 미접속 4대 감정 위젯]
-          // -------------------------------------------------------------
-          Padding(
-            padding: EdgeInsets.only(left: 4, bottom: 6),
-            child: Text(
-              '그룹 1. 마스코트 감정 및 의욕 증진 위젯 (2×1)',
-              style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: AppColors.textSecondary),
+            // -------------------------------------------------------------
+            // [그룹 1: 마스코트 의욕 & 미접속 4대 감정 위젯]
+            // -------------------------------------------------------------
+            Padding(
+              padding: EdgeInsets.only(left: 4, bottom: 6),
+              child: Text(
+                '그룹 1. 마스코트 감정 및 의욕 증진 위젯 (2×1)',
+                style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.textSecondary,
+                ),
+              ),
             ),
-          ),
-          // 감정 상태 강제 테스트 칩 바
-          SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            child: Row(
-              children: [
-                _buildEmotionChip('auto', '앱 데이터 자동 연동'),
-                _buildEmotionChip('joy', '기쁨 (올클리어)'),
-                _buildEmotionChip('encourage', '할 수 있어요! (진행 중)'),
-                _buildEmotionChip('miss1to3', '기다리고 있어요 (1~3일 미접속)'),
-                _buildEmotionChip('miss4plus', '복약이 시급해요 (4일+ 미접속)'),
-              ],
+            // 감정 상태 강제 테스트 칩 바
+            SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Row(
+                children: [
+                  _buildEmotionChip('auto', '앱 데이터 자동 연동'),
+                  _buildEmotionChip('joy', '기쁨 (올클리어)'),
+                  _buildEmotionChip('encourage', '할 수 있어요! (진행 중)'),
+                  _buildEmotionChip('miss1to3', '기다리고 있어요 (1~3일 미접속)'),
+                  _buildEmotionChip('miss4plus', '복약이 시급해요 (4일+ 미접속)'),
+                ],
+              ),
             ),
-          ),
-          const SizedBox(height: 12),
-          _buildGroup1WidgetCard(),
-          const SizedBox(height: 24),
+            const SizedBox(height: 12),
+            _buildGroup1WidgetCard(),
+            const SizedBox(height: 24),
 
-          // -------------------------------------------------------------
-          // [그룹 2: 인체공학적 1-Tap 즉시 체크 통합 위젯 3종]
-          // -------------------------------------------------------------
-          Padding(
-            padding: EdgeInsets.only(left: 4, bottom: 4),
-            child: Text(
-              '그룹 2. 인체공학적 1-Tap 즉시 체크 위젯 (2×1)',
-              style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: AppColors.textSecondary),
+            // -------------------------------------------------------------
+            // [그룹 2: 인체공학적 1-Tap 즉시 체크 통합 위젯 3종]
+            // -------------------------------------------------------------
+            Padding(
+              padding: EdgeInsets.only(left: 4, bottom: 4),
+              child: Text(
+                '그룹 2. 인체공학적 1-Tap 즉시 체크 위젯 (2×1)',
+                style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.textSecondary,
+                ),
+              ),
             ),
-          ),
-          const Padding(
-            padding: EdgeInsets.only(left: 4, bottom: 10),
-            child: Text(
-              '왼쪽에 상세 정보, 오른쪽에 엄지손가락으로 즉시 누르는 대형 확인 버튼 배치',
-              style: TextStyle(fontSize: 11.5, color: AppColors.textMuted),
+            const Padding(
+              padding: EdgeInsets.only(left: 4, bottom: 10),
+              child: Text(
+                '왼쪽에 상세 정보, 오른쪽에 엄지손가락으로 즉시 누르는 대형 확인 버튼 배치',
+                style: TextStyle(fontSize: 11.5, color: AppColors.textMuted),
+              ),
             ),
-          ),
 
-          // 위젯 5: 복약 원탭 체크
-          _buildMedOneTapWidget(),
-          const SizedBox(height: 14),
+            // 위젯 5: 복약 원탭 체크
+            _buildMedOneTapWidget(),
+            const SizedBox(height: 14),
 
-          // 위젯 6: 습관 원탭 체크
-          _buildHabitOneTapWidget(),
-          const SizedBox(height: 14),
+            // 위젯 6: 습관 원탭 체크
+            _buildHabitOneTapWidget(),
+            const SizedBox(height: 14),
 
-          // 위젯 7: 할일 원탭 체크
-          _buildTaskOneTapWidget(),
-          const SizedBox(height: 32),
+            // 위젯 7: 할일 원탭 체크
+            _buildTaskOneTapWidget(),
+            const SizedBox(height: 32),
           ],
         ),
       ),
@@ -205,7 +225,9 @@ class _WidgetSimulatorScreenState extends State<WidgetSimulatorScreen> {
         ),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(8),
-          side: BorderSide(color: isSel ? AppColors.primaryPurple : AppColors.divider),
+          side: BorderSide(
+            color: isSel ? AppColors.primaryPurple : AppColors.divider,
+          ),
         ),
         onSelected: (val) {
           if (val) setState(() => _emotionMode = mode);
@@ -245,15 +267,15 @@ class _WidgetSimulatorScreenState extends State<WidgetSimulatorScreen> {
     } else if (emotion == 'encourage') {
       bg = Colors.white;
       border = const Color(0xFFE5E7EB);
-      tagBg = const Color(0xFFECFDF5);
-      tagText = const Color(0xFF059669);
+      tagBg = AppColors.successBg;
+      tagText = AppColors.successGreen;
       tagLabel = 'MENTAL CARE';
       badgeEmoji = '할 수 있어요!';
       mainQuote = '한 가지만 실천해도 충분해요.\n오늘 약 하나만 챙겨도 대단한 거예요.';
       final nextMed = _getNextDoseSummary();
       bottomChipText = nextMed;
-      bottomChipBg = const Color(0xFFECFDF5);
-      bottomChipFg = const Color(0xFF047857);
+      bottomChipBg = AppColors.successBg;
+      bottomChipFg = AppColors.successGreen;
     } else if (emotion == 'miss1to3') {
       bg = const Color(0xFFFAF9F7);
       border = const Color(0xFFEAE6E1);
@@ -267,16 +289,16 @@ class _WidgetSimulatorScreenState extends State<WidgetSimulatorScreen> {
       bottomChipFg = const Color(0xFF8C6D53);
     } else {
       // miss4plus (듀오링고 모드)
-      bg = const Color(0xFFFFF5F5);
-      border = const Color(0xFFFECACA);
-      tagBg = const Color(0xFFFEE2E2);
-      tagText = const Color(0xFFDC2626);
+      bg = AppColors.missedRed.withValues(alpha: 0.06);
+      border = AppColors.missedRed.withValues(alpha: 0.28);
+      tagBg = AppColors.missedRed.withValues(alpha: 0.14);
+      tagText = AppColors.missedRed;
       tagLabel = 'DUOLINGO MODE';
       badgeEmoji = '복약이 시급해요';
       mainQuote = '기다리고 있어요.\n건강을 위해 오늘 약 복용을 꼭 챙겨주세요.';
       bottomChipText = '4일째 미접속 · 오늘 약 복용 시급!';
-      bottomChipBg = const Color(0xFFFEE2E2);
-      bottomChipFg = const Color(0xFFDC2626);
+      bottomChipBg = AppColors.missedRed.withValues(alpha: 0.14);
+      bottomChipFg = AppColors.missedRed;
     }
 
     return Container(
@@ -320,7 +342,10 @@ class _WidgetSimulatorScreenState extends State<WidgetSimulatorScreen> {
                 ),
                 const SizedBox(height: 6),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 6,
+                    vertical: 2,
+                  ),
                   decoration: BoxDecoration(
                     color: tagBg,
                     borderRadius: BorderRadius.circular(4),
@@ -359,7 +384,10 @@ class _WidgetSimulatorScreenState extends State<WidgetSimulatorScreen> {
                     ),
                     const Text(
                       '2×1 하곰이 위젯',
-                      style: TextStyle(fontSize: 10, color: AppColors.textMuted),
+                      style: TextStyle(
+                        fontSize: 10,
+                        color: AppColors.textMuted,
+                      ),
                     ),
                   ],
                 ),
@@ -374,7 +402,10 @@ class _WidgetSimulatorScreenState extends State<WidgetSimulatorScreen> {
                 ),
                 Container(
                   width: double.infinity,
-                  padding: const EdgeInsets.symmetric(vertical: 5, horizontal: 8),
+                  padding: const EdgeInsets.symmetric(
+                    vertical: 5,
+                    horizontal: 8,
+                  ),
                   decoration: BoxDecoration(
                     color: bottomChipBg,
                     borderRadius: BorderRadius.circular(6),
@@ -461,7 +492,10 @@ class _WidgetSimulatorScreenState extends State<WidgetSimulatorScreen> {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppColors.divider.withValues(alpha: 0.8), width: 1.5),
+        border: Border.all(
+          color: AppColors.divider.withValues(alpha: 0.8),
+          width: 1.5,
+        ),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.04),
@@ -481,7 +515,10 @@ class _WidgetSimulatorScreenState extends State<WidgetSimulatorScreen> {
                 Row(
                   children: [
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 7,
+                        vertical: 3,
+                      ),
                       decoration: BoxDecoration(
                         color: const Color(0xFFF3EDF9),
                         borderRadius: BorderRadius.circular(6),
@@ -498,7 +535,11 @@ class _WidgetSimulatorScreenState extends State<WidgetSimulatorScreen> {
                     const SizedBox(width: 8),
                     Text(
                       '$comp/$total 완료',
-                      style: TextStyle(fontSize: 11.5, color: AppColors.textSecondary, fontWeight: FontWeight.w500),
+                      style: TextStyle(
+                        fontSize: 11.5,
+                        color: AppColors.textSecondary,
+                        fontWeight: FontWeight.w500,
+                      ),
                     ),
                   ],
                 ),
@@ -518,12 +559,18 @@ class _WidgetSimulatorScreenState extends State<WidgetSimulatorScreen> {
                     const SizedBox(height: 3),
                     Text(
                       medDetail,
-                      style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: AppColors.textSecondary,
+                      ),
                     ),
                   ],
                 ),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 6,
+                    vertical: 2,
+                  ),
                   decoration: BoxDecoration(
                     color: const Color(0xFFF8F9FA),
                     borderRadius: BorderRadius.circular(4),
@@ -531,7 +578,11 @@ class _WidgetSimulatorScreenState extends State<WidgetSimulatorScreen> {
                   ),
                   child: Text(
                     medType,
-                    style: TextStyle(fontSize: 10, fontWeight: FontWeight.w600, color: AppColors.textSecondary),
+                    style: TextStyle(
+                      fontSize: 10,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.textSecondary,
+                    ),
                   ),
                 ),
               ],
@@ -565,15 +616,23 @@ class _WidgetSimulatorScreenState extends State<WidgetSimulatorScreen> {
               width: 88,
               height: double.infinity,
               decoration: BoxDecoration(
-                color: isCompleted ? AppColors.completedBg : AppColors.primaryPurple,
+                color: isCompleted
+                    ? AppColors.completedBg
+                    : AppColors.primaryPurple,
                 borderRadius: BorderRadius.circular(16),
                 border: Border.all(
-                  color: isCompleted ? AppColors.completedBorder : AppColors.primaryPurple,
+                  color: isCompleted
+                      ? AppColors.completedBorder
+                      : AppColors.primaryPurple,
                   width: 1.5,
                 ),
                 boxShadow: [
                   BoxShadow(
-                    color: (isCompleted ? AppColors.completedBorder : AppColors.primaryPurple).withValues(alpha: 0.3),
+                    color:
+                        (isCompleted
+                                ? AppColors.completedBorder
+                                : AppColors.primaryPurple)
+                            .withValues(alpha: 0.3),
                     blurRadius: 8,
                     offset: const Offset(0, 3),
                   ),
@@ -587,7 +646,9 @@ class _WidgetSimulatorScreenState extends State<WidgetSimulatorScreen> {
                     style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.w800,
-                      color: isCompleted ? AppColors.completedText : Colors.white,
+                      color: isCompleted
+                          ? AppColors.completedText
+                          : Colors.white,
                     ),
                   ),
                   const SizedBox(height: 4),
@@ -596,7 +657,9 @@ class _WidgetSimulatorScreenState extends State<WidgetSimulatorScreen> {
                     style: TextStyle(
                       fontSize: 10.5,
                       fontWeight: FontWeight.w600,
-                      color: isCompleted ? AppColors.completedText.withValues(alpha: 0.8) : Colors.white.withValues(alpha: 0.9),
+                      color: isCompleted
+                          ? AppColors.completedText.withValues(alpha: 0.8)
+                          : Colors.white.withValues(alpha: 0.9),
                     ),
                   ),
                 ],
@@ -616,7 +679,9 @@ class _WidgetSimulatorScreenState extends State<WidgetSimulatorScreen> {
     final habit = todayHabits.isNotEmpty ? todayHabits.first : null;
 
     final String habitTitle = habit != null ? habit.title : '등록된 습관 없음';
-    final String habitSubtitle = habit != null ? habit.subtitle : '습관 탭에서 새로운 습관을 추가해 보세요';
+    final String habitSubtitle = habit != null
+        ? habit.subtitle
+        : '습관 탭에서 새로운 습관을 추가해 보세요';
     final String statusLabel = habit != null ? habit.statusLabel : '대기';
     final bool isAllDone = habit != null && habit.score >= 1.0;
 
@@ -630,7 +695,10 @@ class _WidgetSimulatorScreenState extends State<WidgetSimulatorScreen> {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppColors.divider.withValues(alpha: 0.8), width: 1.5),
+        border: Border.all(
+          color: AppColors.divider.withValues(alpha: 0.8),
+          width: 1.5,
+        ),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.04),
@@ -650,24 +718,31 @@ class _WidgetSimulatorScreenState extends State<WidgetSimulatorScreen> {
                 Row(
                   children: [
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 7,
+                        vertical: 3,
+                      ),
                       decoration: BoxDecoration(
-                        color: const Color(0xFFECFDF5),
+                        color: AppColors.successBg,
                         borderRadius: BorderRadius.circular(6),
                       ),
-                      child: const Text(
+                      child: Text(
                         '오늘의 습관',
                         style: TextStyle(
                           fontSize: 11,
                           fontWeight: FontWeight.bold,
-                          color: Color(0xFF059669),
+                          color: AppColors.successGreen,
                         ),
                       ),
                     ),
                     const SizedBox(width: 8),
                     Text(
                       '총 ${habitScore.toStringAsFixed(1)}/$habitTotal 실천 중',
-                      style: TextStyle(fontSize: 11.5, color: AppColors.textSecondary, fontWeight: FontWeight.w500),
+                      style: TextStyle(
+                        fontSize: 11.5,
+                        color: AppColors.textSecondary,
+                        fontWeight: FontWeight.w500,
+                      ),
                     ),
                   ],
                 ),
@@ -689,12 +764,18 @@ class _WidgetSimulatorScreenState extends State<WidgetSimulatorScreen> {
                       habitSubtitle,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: AppColors.textSecondary,
+                      ),
                     ),
                   ],
                 ),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 6,
+                    vertical: 2,
+                  ),
                   decoration: BoxDecoration(
                     color: const Color(0xFFF8F9FA),
                     borderRadius: BorderRadius.circular(4),
@@ -702,7 +783,11 @@ class _WidgetSimulatorScreenState extends State<WidgetSimulatorScreen> {
                   ),
                   child: Text(
                     '현재 상태: $statusLabel',
-                    style: TextStyle(fontSize: 10, fontWeight: FontWeight.w600, color: AppColors.textSecondary),
+                    style: TextStyle(
+                      fontSize: 10,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.textSecondary,
+                    ),
                   ),
                 ),
               ],
@@ -736,15 +821,23 @@ class _WidgetSimulatorScreenState extends State<WidgetSimulatorScreen> {
               width: 88,
               height: double.infinity,
               decoration: BoxDecoration(
-                color: isAllDone ? AppColors.completedBg : const Color(0xFF10B981),
+                color: isAllDone
+                    ? AppColors.completedBg
+                    : AppColors.successGreen,
                 borderRadius: BorderRadius.circular(16),
                 border: Border.all(
-                  color: isAllDone ? AppColors.completedBorder : const Color(0xFF10B981),
+                  color: isAllDone
+                      ? AppColors.completedBorder
+                      : AppColors.successGreen,
                   width: 1.5,
                 ),
                 boxShadow: [
                   BoxShadow(
-                    color: (isAllDone ? AppColors.completedBorder : const Color(0xFF10B981)).withValues(alpha: 0.3),
+                    color:
+                        (isAllDone
+                                ? AppColors.completedBorder
+                                : AppColors.successGreen)
+                            .withValues(alpha: 0.3),
                     blurRadius: 8,
                     offset: const Offset(0, 3),
                   ),
@@ -767,7 +860,9 @@ class _WidgetSimulatorScreenState extends State<WidgetSimulatorScreen> {
                     style: TextStyle(
                       fontSize: 10.5,
                       fontWeight: FontWeight.w600,
-                      color: isAllDone ? AppColors.completedText.withValues(alpha: 0.8) : Colors.white.withValues(alpha: 0.9),
+                      color: isAllDone
+                          ? AppColors.completedText.withValues(alpha: 0.8)
+                          : Colors.white.withValues(alpha: 0.9),
                     ),
                   ),
                 ],
@@ -785,11 +880,15 @@ class _WidgetSimulatorScreenState extends State<WidgetSimulatorScreen> {
   Widget _buildTaskOneTapWidget() {
     final now = DateTime.now();
     final todayTasks = _state.getTasksForDay(now);
-    final task = todayTasks.isNotEmpty ? todayTasks.first : (_state.tasks.isNotEmpty ? _state.tasks.first : null);
+    final task = todayTasks.isNotEmpty
+        ? todayTasks.first
+        : (_state.tasks.isNotEmpty ? _state.tasks.first : null);
 
     final String taskTitle = task != null ? task.title : '등록된 할일 없음';
     final String taskRepeat = task != null ? task.repeatSummary : '일반';
-    final String taskTime = (task != null && task.time != null) ? task.time! : '시간 미지정';
+    final String taskTime = (task != null && task.time != null)
+        ? task.time!
+        : '시간 미지정';
     final bool isCompleted = task != null && task.isCompleted;
 
     return Container(
@@ -799,7 +898,10 @@ class _WidgetSimulatorScreenState extends State<WidgetSimulatorScreen> {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppColors.divider.withValues(alpha: 0.8), width: 1.5),
+        border: Border.all(
+          color: AppColors.divider.withValues(alpha: 0.8),
+          width: 1.5,
+        ),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.04),
@@ -819,7 +921,10 @@ class _WidgetSimulatorScreenState extends State<WidgetSimulatorScreen> {
                 Row(
                   children: [
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 7,
+                        vertical: 3,
+                      ),
                       decoration: BoxDecoration(
                         color: const Color(0xFFFEF3C7),
                         borderRadius: BorderRadius.circular(6),
@@ -836,7 +941,11 @@ class _WidgetSimulatorScreenState extends State<WidgetSimulatorScreen> {
                     const SizedBox(width: 8),
                     Text(
                       taskTime,
-                      style: TextStyle(fontSize: 11.5, color: AppColors.textSecondary, fontWeight: FontWeight.w500),
+                      style: TextStyle(
+                        fontSize: 11.5,
+                        color: AppColors.textSecondary,
+                        fontWeight: FontWeight.w500,
+                      ),
                     ),
                   ],
                 ),
@@ -850,19 +959,29 @@ class _WidgetSimulatorScreenState extends State<WidgetSimulatorScreen> {
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
-                        color: isCompleted ? AppColors.textMuted : AppColors.textPrimary,
-                        decoration: isCompleted ? TextDecoration.lineThrough : null,
+                        color: isCompleted
+                            ? AppColors.textMuted
+                            : AppColors.textPrimary,
+                        decoration: isCompleted
+                            ? TextDecoration.lineThrough
+                            : null,
                       ),
                     ),
                     const SizedBox(height: 3),
                     Text(
                       '반복: $taskRepeat',
-                      style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: AppColors.textSecondary,
+                      ),
                     ),
                   ],
                 ),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 6,
+                    vertical: 2,
+                  ),
                   decoration: BoxDecoration(
                     color: const Color(0xFFF8F9FA),
                     borderRadius: BorderRadius.circular(4),
@@ -870,7 +989,11 @@ class _WidgetSimulatorScreenState extends State<WidgetSimulatorScreen> {
                   ),
                   child: Text(
                     isCompleted ? '상태: 완료됨' : '상태: 진행 대기',
-                    style: TextStyle(fontSize: 10, fontWeight: FontWeight.w600, color: AppColors.textSecondary),
+                    style: TextStyle(
+                      fontSize: 10,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.textSecondary,
+                    ),
                   ),
                 ),
               ],
@@ -894,15 +1017,23 @@ class _WidgetSimulatorScreenState extends State<WidgetSimulatorScreen> {
               width: 88,
               height: double.infinity,
               decoration: BoxDecoration(
-                color: isCompleted ? AppColors.completedBg : const Color(0xFFD97706),
+                color: isCompleted
+                    ? AppColors.completedBg
+                    : const Color(0xFFD97706),
                 borderRadius: BorderRadius.circular(16),
                 border: Border.all(
-                  color: isCompleted ? AppColors.completedBorder : const Color(0xFFD97706),
+                  color: isCompleted
+                      ? AppColors.completedBorder
+                      : const Color(0xFFD97706),
                   width: 1.5,
                 ),
                 boxShadow: [
                   BoxShadow(
-                    color: (isCompleted ? AppColors.completedBorder : const Color(0xFFD97706)).withValues(alpha: 0.3),
+                    color:
+                        (isCompleted
+                                ? AppColors.completedBorder
+                                : const Color(0xFFD97706))
+                            .withValues(alpha: 0.3),
                     blurRadius: 8,
                     offset: const Offset(0, 3),
                   ),
@@ -916,7 +1047,9 @@ class _WidgetSimulatorScreenState extends State<WidgetSimulatorScreen> {
                     style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.w800,
-                      color: isCompleted ? AppColors.completedText : Colors.white,
+                      color: isCompleted
+                          ? AppColors.completedText
+                          : Colors.white,
                     ),
                   ),
                   const SizedBox(height: 4),
@@ -925,7 +1058,9 @@ class _WidgetSimulatorScreenState extends State<WidgetSimulatorScreen> {
                     style: TextStyle(
                       fontSize: 10.5,
                       fontWeight: FontWeight.w600,
-                      color: isCompleted ? AppColors.completedText.withValues(alpha: 0.8) : Colors.white.withValues(alpha: 0.9),
+                      color: isCompleted
+                          ? AppColors.completedText.withValues(alpha: 0.8)
+                          : Colors.white.withValues(alpha: 0.9),
                     ),
                   ),
                 ],

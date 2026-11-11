@@ -32,31 +32,31 @@ class ThemePreset {
   List<Color> get previewColors => [primary, warmAccent, lightTint];
 
   Map<String, dynamic> toJson() => {
-        'key': key,
-        'name': name,
-        'description': description,
-        'primary': primary.toARGB32(),
-        'background': background.toARGB32(),
-        'lightTint': lightTint.toARGB32(),
-        'textPrimary': textPrimary.toARGB32(),
-        'textSecondary': textSecondary.toARGB32(),
-        'warmAccent': warmAccent.toARGB32(),
-        'divider': divider.toARGB32(),
-      };
+    'key': key,
+    'name': name,
+    'description': description,
+    'primary': primary.toARGB32(),
+    'background': background.toARGB32(),
+    'lightTint': lightTint.toARGB32(),
+    'textPrimary': textPrimary.toARGB32(),
+    'textSecondary': textSecondary.toARGB32(),
+    'warmAccent': warmAccent.toARGB32(),
+    'divider': divider.toARGB32(),
+  };
 
   factory ThemePreset.fromJson(Map<String, dynamic> json) => ThemePreset(
-        key: json['key'] as String,
-        name: json['name'] as String,
-        description: (json['description'] as String?) ?? '',
-        primary: Color(json['primary'] as int),
-        background: Color(json['background'] as int),
-        lightTint: Color(json['lightTint'] as int),
-        textPrimary: Color(json['textPrimary'] as int),
-        textSecondary: Color(json['textSecondary'] as int),
-        warmAccent: Color(json['warmAccent'] as int),
-        divider: Color(json['divider'] as int),
-        isCustom: true,
-      );
+    key: json['key'] as String,
+    name: json['name'] as String,
+    description: (json['description'] as String?) ?? '',
+    primary: Color(json['primary'] as int),
+    background: Color(json['background'] as int),
+    lightTint: Color(json['lightTint'] as int),
+    textPrimary: Color(json['textPrimary'] as int),
+    textSecondary: Color(json['textSecondary'] as int),
+    warmAccent: Color(json['warmAccent'] as int),
+    divider: Color(json['divider'] as int),
+    isCustom: true,
+  );
 }
 
 /// 하곰이 앱의 핵심 테마 시스템
@@ -65,6 +65,9 @@ class ThemePreset {
 /// 테마를 적용하면 앱 전체 화면과 홈 위젯이 같은 색으로 다시 그려집니다.
 /// 탭별 미니 테마(복약/습관/달력 제목·탭 아이콘·위젯 포인트)는 기본 테마와 별개로 지정합니다.
 class AppColors {
+  // 적록색맹 보조 모드: 완료/성공은 파랑, 경고/미완료는 노랑 계열로 구분합니다.
+  static bool colorVisionModeEnabled = false;
+
   // -------------------------------------------------------------
   // 1. 테마에 따라 바뀌는 팔레트 (applyTheme 으로 교체)
   // -------------------------------------------------------------
@@ -94,17 +97,29 @@ class AppColors {
   static const Color defaultTabHabitsColor = Color(0xFF8B5E3C);
   static const Color defaultTabCalendarColor = defaultTaskOcher;
 
-  static const Color completedBg = Color(0xFFEAF8F1);
-  static const Color completedText = Color(0xFF1B6B46);
-  static const Color completedBorder = Color(0xFFA3DBC0);
+  static Color completedBg = const Color(0xFFEAF8F1);
+  static Color completedText = const Color(0xFF1B6B46);
+  static Color completedBorder = const Color(0xFFA3DBC0);
   static const Color partialBg = Color(0xFFF7F3EE);
   static const Color partialText = Color(0xFF8B5E3C);
   static const Color partialBorder = Color(0xFFE5DDD0);
-  static const Color successGreen = Color(0xFF065F46);
-  static const Color successBg = Color(0xFFE6F8F0);
+  static Color successGreen = const Color(0xFF065F46);
+  static Color successBg = const Color(0xFFE6F8F0);
   static const Color partialOrange = Color(0xFF8B5E3C);
   static const Color neutralDark = Color(0xFF4B5563);
-  static const Color missedRed = Color(0xFFEF4444);
+  static Color missedRed = const Color(0xFFEF4444);
+
+  static void setColorVisionMode(bool enabled) {
+    colorVisionModeEnabled = enabled;
+    completedBg = enabled ? const Color(0xFFE8F1FF) : const Color(0xFFEAF8F1);
+    completedText = enabled ? const Color(0xFF1D4ED8) : const Color(0xFF1B6B46);
+    completedBorder = enabled
+        ? const Color(0xFF9CC2FF)
+        : const Color(0xFFA3DBC0);
+    successGreen = enabled ? const Color(0xFF1D4ED8) : const Color(0xFF065F46);
+    successBg = enabled ? const Color(0xFFE8F1FF) : const Color(0xFFE6F8F0);
+    missedRed = enabled ? const Color(0xFFD79B00) : const Color(0xFFEF4444);
+  }
 
   // -------------------------------------------------------------
   // 4. 기본 제공 테마 프리셋
@@ -124,7 +139,7 @@ class AppColors {
     divider: Color(0xFFE5E7EB),
   );
 
-    // 테마 키 상수 (settings_screen.dart에서 switch/case용으로 사용)
+  // 테마 키 상수 (settings_screen.dart에서 switch/case용으로 사용)
   static const String themeDeepViolet = 'deep_violet';
   static const String themeCustom = 'custom';
 
@@ -216,7 +231,6 @@ class AppColors {
     activeWarmAccent = theme.warmAccent;
     activeTextPrimary = theme.textPrimary;
   }
-
 
   static String toHex(Color c) =>
       '#${(c.toARGB32() & 0xFFFFFF).toRadixString(16).padLeft(6, '0').toUpperCase()}';

@@ -19,8 +19,7 @@ import UserNotifications
   func didInitializeImplicitFlutterEngine(_ engineBridge: FlutterImplicitEngineBridge) {
     GeneratedPluginRegistrant.register(with: engineBridge.pluginRegistry)
 
-    guard let controller = window?.rootViewController as? FlutterViewController ??
-          (application.windows.first?.rootViewController as? FlutterViewController) else {
+    guard let controller = window?.rootViewController as? FlutterViewController else {
       return
     }
 
@@ -127,6 +126,7 @@ import UserNotifications
               }
             }
             DispatchQueue.main.async { result(true) }
+          }
         } else {
           result(false)
         }
