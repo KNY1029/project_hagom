@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 import '../constants/app_colors.dart';
 import '../models/habit_item.dart';
 import '../state/app_state_manager.dart';
+import '../constants/app_assets.dart';
 import '../widgets/celebration_toast.dart';
 import '../widgets/app_time_picker.dart';
+import '../widgets/hagom_celebration_overlay.dart';
 /// 
 /// 1. 다중 알림 시각 지원:
 ///    - 하루 여러 번 하는 습관에 맞춰 [+ 시각 추가]로 여러 알림 시각을 등록 및 삭제 가능!
@@ -110,14 +112,15 @@ class _HabitsTabViewState extends State<HabitsTabView> {
                 color: Colors.white,
                 borderRadius: BorderRadius.circular(20),
                 boxShadow: [
-                  BoxShadow(color: Colors.black.withOpacity(0.12), blurRadius: 16, offset: const Offset(0, -4)),
+                  BoxShadow(color: Colors.black.withValues(alpha: 0.12), blurRadius: 16, offset: const Offset(0, -4)),
                 ],
               ),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
+              child: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(
@@ -330,7 +333,7 @@ class _HabitsTabViewState extends State<HabitsTabView> {
                           decoration: BoxDecoration(
                             color: AppColors.lightLavender,
                             borderRadius: BorderRadius.circular(8),
-                            border: Border.all(color: AppColors.primaryPurple.withOpacity(0.3)),
+                            border: Border.all(color: AppColors.primaryPurple.withValues(alpha: 0.3)),
                           ),
                           child: Row(
                             mainAxisSize: MainAxisSize.min,
@@ -433,7 +436,8 @@ class _HabitsTabViewState extends State<HabitsTabView> {
                       ),
                     ],
                   ),
-                ],
+                  ],
+                ),
               ),
             );
           },
@@ -468,6 +472,12 @@ class _HabitsTabViewState extends State<HabitsTabView> {
           width: double.infinity,
           height: 42,
           child: OutlinedButton(
+            onPressed: () => _showHabitEditModal(),
+            style: OutlinedButton.styleFrom(
+              side: BorderSide(color: AppColors.primaryPurple, width: 1.0),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+              backgroundColor: Colors.white,
+            ),
             child: Text(
               '작은 습관 추가',
               style: TextStyle(
@@ -475,12 +485,6 @@ class _HabitsTabViewState extends State<HabitsTabView> {
                 fontWeight: FontWeight.bold,
                 fontSize: 14,
               ),
-            ),
-            onPressed: () => _showHabitEditModal(),
-            style: OutlinedButton.styleFrom(
-              side: BorderSide(color: AppColors.primaryPurple, width: 1.0),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-              backgroundColor: Colors.white,
             ),
           ),
         ),
@@ -549,10 +553,10 @@ class _HabitsTabViewState extends State<HabitsTabView> {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppColors.divider.withOpacity(0.6)),
+        border: Border.all(color: AppColors.divider.withValues(alpha: 0.6)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.02),
+            color: Colors.black.withValues(alpha: 0.02),
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),
@@ -630,12 +634,12 @@ class _HabitsTabViewState extends State<HabitsTabView> {
         color: Colors.white,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: habit.isExpanded ? AppColors.primaryPurple.withOpacity(0.35) : AppColors.divider.withOpacity(0.6),
+          color: habit.isExpanded ? AppColors.primaryPurple.withValues(alpha: 0.35) : AppColors.divider.withValues(alpha: 0.6),
           width: 1.0,
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.015),
+            color: Colors.black.withValues(alpha: 0.015),
             blurRadius: 6,
             offset: const Offset(0, 1.5),
           ),
@@ -683,7 +687,7 @@ class _HabitsTabViewState extends State<HabitsTabView> {
                               Container(
                                 padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                                 decoration: BoxDecoration(
-                                  color: AppColors.warmBrown.withOpacity(0.12),
+                                  color: AppColors.warmBrown.withValues(alpha: 0.12),
                                   borderRadius: BorderRadius.circular(4),
                                 ),
                                 child: Text(
@@ -721,9 +725,20 @@ class _HabitsTabViewState extends State<HabitsTabView> {
                   // 🔒 [우측 상태 칩: 76x32dp 복약 탭과 칼정렬]
                   GestureDetector(
                     onTap: () {
+                      final todayHabits = _state.habits.where((h) => h.isDueToday).toList();
+                      final wasAllHabitsDoneBefore = todayHabits.isNotEmpty && todayHabits.every((h) => h.score >= 1.0);
                       final advanced = _state.advanceHabitProgress(habit.id);
                       if (advanced) {
-                        if (habit.score >= 1.0) {
+                        final isAllHabitsDoneNow = todayHabits.isNotEmpty && todayHabits.every((h) => h.score >= 1.0);
+                        if (!wasAllHabitsDoneBefore && isAllHabitsDoneNow) {
+                          // 🎉 오늘 하루 해야 하는 모든 습관 100% 올클리어! 축하 오버레이 팝업 등장!
+                          HagomCelebrationOverlay.show(
+                            context,
+                            assetPath: AppAssets.habitsAllDoneWebp,
+                            title: '오늘 습관 모두 실천 완료!',
+                            subtitle: '스스로와의 약속을 멋지게 지켜내셨어요.',
+                          );
+                        } else if (habit.score >= 1.0) {
                           CelebrationToast.show(
                             context,
                             title: '습관 실천 완료',
