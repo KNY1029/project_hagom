@@ -1,12 +1,12 @@
 import 'dart:async';
 import 'dart:convert';
-
+import 'package:excel/excel.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-
 import '../models/medication_item.dart';
 import '../models/habit_item.dart';
 import '../services/hagom_native_widget_sync.dart';
+import '../services/hagom_alarm_manager.dart';
 import '../models/task_item.dart';
 import '../constants/app_colors.dart';
 
@@ -33,6 +33,17 @@ class AppStateManager extends ChangeNotifier {
   Future<void> flushForWidget() async {
     await _saveDataToDisk();
     await HagomNativeWidgetSync.updateNativeWidget(this);
+    await HagomAlarmManager.syncScheduledAlarms(this);
+  }
+
+  /// 🌟 [백그라운드 전용]: 이미 네이티브가 위젯 UI를 최신 상태로 바꿨으므로,
+  /// 플러터가 옛날 값으로 위젯을 덮어쓰지 않고 로컬 DB에 데이터만 조용히 영구 저장!
+  Future<void> flushDataToDiskOnly() async {
+    await _saveDataToDisk();
+  }
+  /// ⚡ [초고속 Fast-path]: 달력 날짜 탭 시 불필요한 전체 위젯/디스크 연산을 건너뛰고 달력만 즉시 갱신!
+  Future<void> flushForCalendarWidgetOnly() async {
+    await HagomNativeWidgetSync.updateMonthCalendarOnly(this);
   }
 
   /// 앱이 포그라운드로 돌아올 때 위젯에서 변경한 최신 상태를 디스크에서 다시 읽어옴
@@ -42,51 +53,46 @@ class AppStateManager extends ChangeNotifier {
     await _loadDataFromDisk();
   }
 
+  bool suspendWidgetSync = false;
+
   @override
   void notifyListeners() {
     super.notifyListeners();
     _saveDataToDisk(); // 상태 변경 시마다 로컬 DB에 자동 영구 저장!
-    HagomNativeWidgetSync.updateNativeWidget(this);
+    if (!suspendWidgetSync) {
+      HagomNativeWidgetSync.updateNativeWidget(this);
+      HagomAlarmManager.syncScheduledAlarms(this);
+    }
   }
-
   // --- 💊 복약 데이터 ---
   final List<MedicationItem> _medications = [];
-  List<MedicationItem> get medications => _medications;
+  // 🌟 현재 탭에서 보이는 활성 복약 목록 (삭제되지 않은 항목만 표시)
+  List<MedicationItem> get medications => _medications.where((m) => !m.isArchived).toList();
+  // 🌟 전체 복약 목록 (소프트 삭제된 과거 항목 포함: 엑셀 다운로드 및 과거 달력 조회용)
+  List<MedicationItem> get allMedications => _medications;
 
-  // 🌟 오늘 복약 통계 (오늘 복용해야 하는 약들의 슬롯만 집계!)
-  int get totalDoseSlots => _medications
-      .where((m) => m.isDueToday)
-      .fold(0, (sum, m) => sum + m.totalSlotsCount);
-  int get completedDoseSlots => _medications
-      .where((m) => m.isDueToday)
-      .fold(0, (sum, m) => sum + m.completedSlotsCount);
+  // 🌟 오늘 복약 통계 (현재 복용 중인 활성 약물들만 집계!)
+  int get totalDoseSlots => medications.where((m) => m.isDueToday).fold(0, (sum, m) => sum + m.totalSlotsCount);
+  int get completedDoseSlots => medications.where((m) => m.isDueToday).fold(0, (sum, m) => sum + m.completedSlotsCount);
 
   // --- 🌱 습관 데이터 ---
   final List<HabitItem> _habits = [];
-  List<HabitItem> get habits => _habits;
+  // 🌟 현재 탭에서 보이는 활성 습관 목록
+  List<HabitItem> get habits => _habits.where((h) => !h.isArchived).toList();
+  // 🌟 전체 습관 목록 (과거 달력 및 엑셀 다운로드용)
+  List<HabitItem> get allHabits => _habits;
 
-  // 🌟 오늘 실천해야 하는 습관 통계 (오늘 실천 대상인 습관만 집계!)
-  int get todayHabitsCount => _habits.where((h) => h.isDueToday).length;
-  double get habitTotalScore => _habits
-      .where((h) => h.isDueToday)
-      .fold(0.0, (sum, item) => sum + item.score);
-  double get habitCompletionRate =>
-      todayHabitsCount == 0 ? 0.0 : (habitTotalScore / todayHabitsCount);
-
+  // 🌟 오늘 실천해야 하는 습관 통계 (활성 습관만 집계!)
+  int get todayHabitsCount => habits.where((h) => h.isDueToday).length;
+  double get habitTotalScore => habits.where((h) => h.isDueToday).fold(0.0, (sum, item) => sum + item.score);
+  double get habitCompletionRate => todayHabitsCount == 0 ? 0.0 : (habitTotalScore / todayHabitsCount);
   // --- ⚙️ 5대 알림 통합 설정 시스템 ---
-  bool medsNotificationEnabled = true; // 일반 복약 알림 (처방약은 항상 켜짐!)
-  bool habitNotificationEnabled = true; // 습관 알림
-  bool tasksNotificationEnabled = true; // 일정/할일 알림
-  bool mascotNotificationEnabled = true; // 하곰이 응원/넛지 알림
-  bool completionFeedbackEnabled = true; // 완료 기록 안내 표시 여부
-  String notificationFrequency =
-      '기본'; // '최소' (정시 1회), '기본' (정시+30분), '적극적' (15분 간격 3회)
-
-  void setCompletionFeedbackEnabled(bool value) {
-    completionFeedbackEnabled = value;
-    notifyListeners();
-  }
-
+  bool medsNotificationEnabled = true;     // 일반 복약 알림 (처방약은 항상 켜짐!)
+  bool habitNotificationEnabled = true;    // 습관 알림
+  bool tasksNotificationEnabled = true;    // 일정/할일 알림
+  bool mascotNotificationEnabled = true;   // 하곰이 응원/넛지 알림
+  bool completionFeedbackEnabled = true;   // 완료 기록 안내 토스트 팝업 표시 여부
+  String notificationFrequency = '기본';    // '최소' (정시 1회), '기본' (정시+30분), '적극적' (15분 간격 3회)
   void setMedsNotification(bool value) {
     medsNotificationEnabled = value;
     notifyListeners();
@@ -107,15 +113,33 @@ class AppStateManager extends ChangeNotifier {
     notifyListeners();
   }
 
+  // --- 🐻 하곰이 응원/상태 위젯 단계 (1~9단계) ---
+  int mascotStageIndex = 0; // 0: 기대, 1: 기다림, ..., 8: 붕괴
+
+  void nextMascotStage() {
+    mascotStageIndex = (mascotStageIndex + 1) % 9;
+    notifyListeners();
+  }
+
+  void setMascotStage(int index) {
+    mascotStageIndex = index.clamp(0, 8);
+    notifyListeners();
+  }
+  void setCompletionFeedbackEnabled(bool value) {
+    completionFeedbackEnabled = value;
+    _prefs?.setBool('hagom_completion_feedback', value);
+    notifyListeners();
+  }
+
   void setNotificationFrequency(String freq) {
     notificationFrequency = freq;
     notifyListeners();
   }
-
   // --- ☀️ 하루 시작 기준 시각 (기본 오전 8:00) & 일일 최초 접속 인사 애니메이션 ---
   int dailyResetHour = 8; // 기본 매일 8시 갱신 (0~23)
   int dailyResetMinute = 0; // 갱신 분 (0~59)
   String? _lastGreetingDayKey; // 'YYYY-MM-DD' 기준 마지막으로 일일 인사 본 날짜
+  final Set<String> _accessDayKeys = {};
 
   void setDailyResetTime(int hour, int minute) {
     dailyResetHour = hour.clamp(0, 23);
@@ -129,9 +153,7 @@ class AppStateManager extends ChangeNotifier {
 
   String get dailyResetTimeString {
     final period = dailyResetHour < 12 ? '오전' : '오후';
-    final h12 = dailyResetHour == 0
-        ? 12
-        : (dailyResetHour > 12 ? dailyResetHour - 12 : dailyResetHour);
+    final h12 = dailyResetHour == 0 ? 12 : (dailyResetHour > 12 ? dailyResetHour - 12 : dailyResetHour);
     final mStr = dailyResetMinute.toString().padLeft(2, '0');
     return '$period $h12:$mStr';
   }
@@ -149,6 +171,24 @@ class AppStateManager extends ChangeNotifier {
   }
 
   /// 오늘 이 '활동 하루'에 접속 인사를 본 적이 있는지 확인 (첫 실행 시 true 반환)
+  int get accessDayCount => _accessDayKeys.length;
+
+  Future<void> recordAccessDay() async {
+    await ensureInitialized();
+    if (_prefs == null) return;
+
+    final storedValue = _prefs!.getString('hagom_access_days');
+    if (_accessDayKeys.isEmpty && _lastGreetingDayKey != null) {
+      _accessDayKeys.add(_lastGreetingDayKey!);
+    }
+    final wasAdded = _accessDayKeys.add(getEffectiveDayKey());
+    if (!wasAdded && storedValue != null) return;
+
+    final sortedDays = _accessDayKeys.toList()..sort();
+    await _prefs!.setString('hagom_access_days', jsonEncode(sortedDays));
+    notifyListeners();
+  }
+
   bool shouldShowDailyGreeting() {
     final currentKey = getEffectiveDayKey();
     if (_lastGreetingDayKey == null) {
@@ -168,7 +208,6 @@ class AppStateManager extends ChangeNotifier {
     }
     notifyListeners();
   }
-
   // --- 🚀 앱 최초 실행 시 모드 선택 완료 여부 (온보딩 / 개발자 / 바로 시작) ---
   bool isInitialModeSelected = false;
 
@@ -189,24 +228,18 @@ class AppStateManager extends ChangeNotifier {
     }
     notifyListeners();
   }
-
   // --- 🚀 위젯 터치 시 특정 탭(복약:0, 습관:1, 달력:2) 및 하곰이 방 직행 1회성 이벤트 ---
   int? targetTabIndexRequested;
   bool shouldOpenCompanionRoom = false;
 
   DateTime? requestedCalendarDate;
 
-  void setTargetTab(
-    int index, {
-    bool openRoom = false,
-    DateTime? calendarDate,
-  }) {
+  void setTargetTab(int index, {bool openRoom = false, DateTime? calendarDate}) {
     targetTabIndexRequested = index;
     shouldOpenCompanionRoom = openRoom;
     requestedCalendarDate = calendarDate;
     notifyListeners();
   }
-
   int widgetMonthOffset = 0;
   DateTime? widgetSelectedDate; // 달력 위젯에서 현재 탭해보고 있는 실제 연-월-일 (null이면 오늘)
   int? get widgetSelectedDay => widgetSelectedDate?.day;
@@ -235,18 +268,28 @@ class AppStateManager extends ChangeNotifier {
     shouldOpenCompanionRoom = false;
     requestedCalendarDate = null;
   }
-
   // 🛠️ 개발자 모드(전체 예시 데이터 복원 상태) 여부
-  bool isDevSimulationMode = true; // 기본값은 개발자 예시 모드 (발표 및 시연용)
-  // 🎨 개발자 모드 전용 동적 테마 관리
+  bool isDevSimulationMode = false; // 기본값: 실사용 모드 (예시 데이터 없음)
+  // 🎨 테마 관리 (기본 제공 프리셋 + 사용자가 추가한 커스텀 테마)
   String currentThemeKey = AppColors.themeDefault;
-  Map<String, String> customThemeColors = {};
+  final List<ThemePreset> customThemes = [];
+
+  /// 색상이 바뀔 때마다 증가 → 앱 전체 위젯 트리를 강제 재빌드하는 신호
+  int themeRevision = 0;
+
+  List<ThemePreset> get allThemes => [...AppColors.builtInThemes, ...customThemes];
+
+  ThemePreset get currentTheme => _findTheme(currentThemeKey) ?? AppColors.defaultTheme;
+
+  ThemePreset? _findTheme(String key) {
+    for (final t in allThemes) {
+      if (t.key == key) return t;
+    }
+    return null;
+  }
 
   void setTheme(String themeKey) {
-    currentThemeKey = themeKey;
-    AppColors.applyPreset(themeKey);
-    notifyListeners();
-    HagomNativeWidgetSync.updateNativeWidget(this);
+    applyTheme(themeKey);
   }
 
   void setCustomTheme({
@@ -254,42 +297,72 @@ class AppStateManager extends ChangeNotifier {
     required Color background,
     required Color lightTint,
     required Color textPrimary,
-    required Color warmAccent,
+    Color? textSecondary,
+    Color? warmAccent,
   }) {
-    currentThemeKey = AppColors.themeCustom;
-    AppColors.applyCustomColors(
+    final key = 'custom_${DateTime.now().millisecondsSinceEpoch}';
+    final preset = ThemePreset(
+      key: key,
+      name: '사용자 지정',
+      description: '커스텀 테마',
       primary: primary,
       background: background,
       lightTint: lightTint,
       textPrimary: textPrimary,
-      warmAccent: warmAccent,
+      textSecondary: textSecondary ?? primary,
+      warmAccent: warmAccent ?? primary,
+      divider: AppColors.divider,
+      isCustom: true,
     );
-    customThemeColors = {
-      'primary': primary.value.toRadixString(16),
-      'background': background.value.toRadixString(16),
-      'lightTint': lightTint.value.toRadixString(16),
-      'textPrimary': textPrimary.value.toRadixString(16),
-      'warmAccent': warmAccent.value.toRadixString(16),
-    };
-    notifyListeners();
-    HagomNativeWidgetSync.updateNativeWidget(this);
+    customThemes.add(preset);
+    applyTheme(key);
   }
 
-  void setTabMiniThemeColors({
-    Color? meds,
-    Color? habits,
-    Color? calendar,
-    bool? enabled,
-  }) {
-    AppColors.setTabMiniColors(
-      meds: meds,
-      habits: habits,
-      calendar: calendar,
-      enabled: enabled,
-    );
+  void applyTheme(String themeKey) {
+    final theme = _findTheme(themeKey) ?? AppColors.defaultTheme;
+    currentThemeKey = theme.key;
+    AppColors.applyTheme(theme);
+    themeRevision++;
     notifyListeners();
-    HagomNativeWidgetSync.updateNativeWidget(this);
   }
+
+
+
+  /// 사용자 지정 테마를 목록에 추가하고 생성된 키를 반환 (적용은 applyTheme 으로 별도 수행)
+  String addCustomTheme({
+    required String name,
+    required Color primary,
+    required Color background,
+    required Color lightTint,
+    required Color textPrimary,
+  }) {
+    final key = 'custom_${DateTime.now().millisecondsSinceEpoch}';
+    customThemes.add(ThemePreset(
+      key: key,
+      name: name,
+      description: '사용자 지정 · ${AppColors.toHex(primary)} / ${AppColors.toHex(background)}',
+      primary: primary,
+      background: background,
+      lightTint: lightTint,
+      textPrimary: textPrimary,
+      textSecondary: Color.lerp(textPrimary, background, 0.35)!,
+      warmAccent: AppColors.defaultTheme.warmAccent,
+      divider: Color.lerp(lightTint, textPrimary, 0.08)!,
+      isCustom: true,
+    ));
+    notifyListeners();
+    return key;
+  }
+
+  void removeCustomTheme(String key) {
+    customThemes.removeWhere((t) => t.key == key);
+    if (currentThemeKey == key) {
+      applyTheme(AppColors.themeDefault);
+      return;
+    }
+    notifyListeners();
+  }
+
 
   // --- 📅 앱 사용 및 기록 시작일 (시작일 이전 날짜는 달력 바 및 초록색 미표시) ---
   DateTime? _trackingStartDate;
@@ -302,26 +375,48 @@ class AppStateManager extends ChangeNotifier {
 
   /// 특정 날짜가 기록 시작일 이전인지 확인
   bool isBeforeTrackingStart(DateTime date) {
-    // 개발자 모드에서는 1~7일 모든 임상 예시 데이터가 달력에 온전히 보여야 하므로 절대 가리지 않음!
     if (isDevSimulationMode) {
       return false;
     }
-    // 개발자 모드 시뮬레이션 중일 때는 달력에 1~7일 예시가 보여야 하므로 제외
-    if (_pastSlotRecords.isNotEmpty || _pastHabitRecords.isNotEmpty) {
+    // 사용자가 해당 날짜에 소급 수정한 기록이 있다면 기록 시작일 이전이라도 표시 허용
+    if (hasPastRecordForDay(date)) {
       return false;
     }
     final target = DateTime(date.year, date.month, date.day);
     return target.isBefore(trackingStartDate);
   }
-
   // --- 🐻 하곰이 통계 (누적 발걸음) ---
   // --- 🗓️ 할일 및 일정 데이터 ---
   final List<TaskItem> _tasks = [];
-  List<TaskItem> get tasks => _tasks;
+  // 🌟 현재 탭에서 보이는 활성 할일 목록
+  List<TaskItem> get tasks => _tasks.where((t) => !t.isArchived).toList();
+  // 🌟 전체 할일 목록 (과거 달력 및 엑셀 다운로드용)
+  List<TaskItem> get allTasks => _tasks;
+
+  // 가상 생성된 모의 할일 중 삭제된 ID 목록
+  final Set<String> _hiddenMockTaskIds = {};
 
   // 특정 날짜의 할일 목록 조회
   List<TaskItem> getTasksForDay(DateTime day) {
-    return _tasks.where((t) => t.isSameDay(day)).toList();
+    final existing = tasks.where((t) => t.isSameDay(day)).toList();
+    if (existing.isNotEmpty) return existing;
+
+    // 개발자 모드일 때만 예시 할일 제공
+    if (isDevSimulationMode) {
+      final d = day.day;
+      final mId = 't_mock_${day.year}_${day.month}_${d}';
+      if (_hiddenMockTaskIds.contains(mId)) return [];
+      if (d == 1 || d == 4 || d == 8 || d == 11 || d == 15 || d == 18 || d == 22 || d == 25 || d == 29) {
+        return [
+          TaskItem(id: mId, title: '병원 정기 상담 완료', date: day, time: '오전 10:00', isCompleted: true)
+        ];
+      } else if (d == 2 || d == 5 || d == 9 || d == 12 || d == 16 || d == 19 || d == 23 || d == 26 || d == 30) {
+        return [
+          TaskItem(id: mId, title: '복약 일지 점검', date: day, time: '오후 3:00', isCompleted: false)
+        ];
+      }
+    }
+    return [];
   }
 
   // --- 📅 날짜별 복약/습관 과거 기록 및 소급 달성 관리 (소급 축하 연동) ---
@@ -335,6 +430,14 @@ class AppStateManager extends ChangeNotifier {
   // 특정 날짜의 슬롯이 '소급 수정(달력에서 나중에 수정한 것)'인지 여부 (key: 'YYYY-MM-DD_medId_slotIdx')
   final Set<String> _retroactiveSlots = {};
 
+  /// 특정 날짜에 사용자가 직접 소급 수정한 복약/습관 기록이 있는지 확인
+  bool hasPastRecordForDay(DateTime day) {
+    final key = _dateKey(day);
+    final hasMedRecord = _pastSlotRecords.containsKey(key) && _pastSlotRecords[key]!.isNotEmpty;
+    final hasHabitRecord = _pastHabitRecords.containsKey(key) && _pastHabitRecords[key]!.isNotEmpty;
+    return hasMedRecord || hasHabitRecord;
+  }
+
   bool isSlotRetroactive(DateTime day, String medId, int slotIdx) {
     final key = '${_dateKey(day)}_${medId}_$slotIdx';
     return _retroactiveSlots.contains(key);
@@ -344,7 +447,6 @@ class AppStateManager extends ChangeNotifier {
     final key = '${_dateKey(day)}_${medId}_$slotIdx';
     _retroactiveSlots.add(key);
   }
-
   String _dateKey(DateTime dt) =>
       '${dt.year}-${dt.month.toString().padLeft(2, '0')}-${dt.day.toString().padLeft(2, '0')}';
 
@@ -355,10 +457,7 @@ class AppStateManager extends ChangeNotifier {
     final target = DateTime(day.year, day.month, day.day);
 
     if (target.isAtSameMomentAs(today)) {
-      final med = _medications.firstWhere(
-        (m) => m.id == medId,
-        orElse: () => _medications.first,
-      );
+      final med = _medications.firstWhere((m) => m.id == medId, orElse: () => _medications.first);
       if (slotIdx >= 0 && slotIdx < med.doseSlots.length) {
         return med.doseSlots[slotIdx].isCompleted;
       }
@@ -372,32 +471,63 @@ class AppStateManager extends ChangeNotifier {
 
     final key = _dateKey(day);
     final slotKey = '${medId}_$slotIdx';
-    if (_pastSlotRecords.containsKey(key) &&
-        _pastSlotRecords[key]!.containsKey(slotKey)) {
+    if (_pastSlotRecords.containsKey(key) && _pastSlotRecords[key]!.containsKey(slotKey)) {
       return _pastSlotRecords[key]![slotKey]!;
     }
-    // 🌟 사용자 요청 정확한 날짜별 임상 케이스 맵핑:
-    // 1일: 전부 다 한 날 (복약 100%, 습관 100%)
-    // 2일: 습관만 안 한 날 (복약 100%, 습관 0%)
-    // 3일: 일반약만 누락 (처방약 Focusin 100%, 일반약 0%, 습관 100%)
-    // 4일: 처방약 누락 (처방약 Focusin 0%, 일반약 100%, 습관 100%)
-    // 5일: 습관이랑 일반약 누락 (처방약 Focusin 100%, 일반약 0%, 습관 0%)
-    // 6일: 처방약이랑 습관 누락 (처방약 Focusin 0%, 일반약 100%, 습관 0%)
-    // 7일: 약(처방+일반)이랑 습관 전부 다 누락 (0%)
+    // 개발자 모드가 아니면 사용자가 소급 수정한 기록(_pastSlotRecords)만 반환하고 기본값은 미완료(false)
+    if (!isDevSimulationMode) {
+      return false;
+    }
+
     final d = day.day;
-    if (d == 1 || d == 2) {
-      return true; // 복약 전부 완료
+    if ((day.year == 2025 || day.year == 2026) && day.month == 12) {
+      switch (d) {
+        case 1:
+        case 8:
+        case 15:
+        case 22:
+        case 29:
+          return true;
+        case 2:
+        case 9:
+        case 16:
+        case 23:
+        case 30:
+          return true;
+        case 3:
+        case 10:
+        case 17:
+        case 24:
+        case 31:
+          return medId.contains('1');
+        case 4:
+        case 11:
+        case 18:
+        case 25:
+          return !medId.contains('1');
+        case 5:
+        case 12:
+        case 19:
+        case 26:
+          return false;
+        case 6:
+        case 13:
+        case 20:
+        case 27:
+          return medId.contains('1');
+        case 7:
+        case 14:
+        case 21:
+        case 28:
+        default:
+          return false;
+      }
     }
-    if (d == 3 || d == 5) {
-      return medId.contains('1'); // 일반약 누락 -> med_1(처방약)만 복용
-    }
-    if (d == 4 || d == 6) {
-      return !medId.contains('1'); // 처방약 누락 -> med_1(처방약) 미복용, med_2(일반약)는 복용
-    }
-    if (d == 7) {
-      return false; // 복약 전부 미복용
-    }
-    // 8일 이후 패턴 반복 (테스트용)
+
+    if (d == 1 || d == 2) return true;
+    if (d == 3 || d == 5) return medId.contains('1');
+    if (d == 4 || d == 6) return !medId.contains('1');
+    if (d == 7) return false;
     if (d % 6 == 1) return true;
     if (d % 6 == 2) return true;
     if (d % 6 == 3) return medId.contains('1');
@@ -405,7 +535,6 @@ class AppStateManager extends ChangeNotifier {
     if (d % 6 == 5) return medId.contains('1');
     return !medId.contains('1');
   }
-
   /// 특정 날짜의 특정 약/슬롯 복용 시각 문자열 가져오기
   String? getSlotTakenTimeForDay(DateTime day, String medId, int slotIdx) {
     final now = DateTime.now();
@@ -413,10 +542,7 @@ class AppStateManager extends ChangeNotifier {
     final target = DateTime(day.year, day.month, day.day);
 
     if (target.isAtSameMomentAs(today)) {
-      final med = _medications.firstWhere(
-        (m) => m.id == medId,
-        orElse: () => _medications.first,
-      );
+      final med = _medications.firstWhere((m) => m.id == medId, orElse: () => _medications.first);
       if (slotIdx >= 0 && slotIdx < med.doseSlots.length) {
         return med.doseSlots[slotIdx].takenTime;
       }
@@ -425,8 +551,7 @@ class AppStateManager extends ChangeNotifier {
 
     final key = _dateKey(day);
     final slotKey = '${medId}_$slotIdx';
-    if (_pastSlotTimes.containsKey(key) &&
-        _pastSlotTimes[key]!.containsKey(slotKey)) {
+    if (_pastSlotTimes.containsKey(key) && _pastSlotTimes[key]!.containsKey(slotKey)) {
       return _pastSlotTimes[key]![slotKey];
     }
     // 예시 데이터 1~7일 기본 복용 시간대 맵핑
@@ -436,12 +561,7 @@ class AppStateManager extends ChangeNotifier {
     return null;
   }
 
-  void setPastSlotTime(
-    DateTime day,
-    String medId,
-    int slotIdx,
-    String timeStr,
-  ) {
+  void setPastSlotTime(DateTime day, String medId, int slotIdx, String timeStr) {
     final key = _dateKey(day);
     final slotKey = '${medId}_$slotIdx';
     _pastSlotTimes.putIfAbsent(key, () => {})[slotKey] = timeStr;
@@ -473,12 +593,11 @@ class AppStateManager extends ChangeNotifier {
 
     _pastSlotRecords.putIfAbsent(key, () => {})[slotKey] = nextVal;
     _retroactiveSlots.add('${key}_$slotKey');
-    gentleAttempts++;
     notifyListeners();
     return nextVal;
   }
 
-  // 날짜별 상태 반환: 1.0(완전달성-연초록), 0.1~0.99(부분달성-오렌지바), 0.0(미복용/비처벌적그레이바), null(미래)
+  // 날짜별 상태 반환: 1.0(완전달성-연초록), 0.1~0.99(부분달성-오렌지바), 0.0(미복용/그레이바), null(미래)
   double? getMedRateForDay(DateTime day) {
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
@@ -487,9 +606,8 @@ class AppStateManager extends ChangeNotifier {
     if (target.isAfter(today)) return null; // 미래 날짜는 깨끗하게 비움
 
     // 등록된 약이 하나도 없거나 오늘 복용할 약이 없으면 0.0 처리!
-    final dueMeds = _medications.where((m) => m.isDueOn(day)).toList();
+    final dueMeds = medications.where((m) => m.isDueOn(day)).toList();
     if (dueMeds.isEmpty) return 0.0;
-
     int total = 0;
     int completed = 0;
 
@@ -505,7 +623,6 @@ class AppStateManager extends ChangeNotifier {
     if (total == 0) return 0.0;
     return completed / total;
   }
-
   // 특정 날짜에 '처방 필수 약물' 중 하나라도 놓친 것이 있는지 여부 (보건약학 임상 안전 관리)
   bool hasMissedPrescriptionForDay(DateTime day) {
     final now = DateTime.now();
@@ -514,9 +631,7 @@ class AppStateManager extends ChangeNotifier {
 
     if (target.isAfter(today)) return false; // 미래 날짜는 제외
 
-    final duePrescriptions = _medications.where(
-      (m) => m.isPrescription && m.isDueOn(day),
-    );
+    final duePrescriptions = _medications.where((m) => m.isPrescription && m.isDueOn(day));
     for (final med in duePrescriptions) {
       for (int i = 0; i < med.doseSlots.length; i++) {
         if (!isSlotCompletedForDay(day, med.id, i)) {
@@ -536,10 +651,7 @@ class AppStateManager extends ChangeNotifier {
     final target = DateTime(day.year, day.month, day.day);
 
     if (target.isAtSameMomentAs(today)) {
-      final habit = _habits.firstWhere(
-        (h) => h.id == habitId,
-        orElse: () => _habits.first,
-      );
+      final habit = _habits.firstWhere((h) => h.id == habitId, orElse: () => _habits.first);
       return habit.score;
     }
 
@@ -549,26 +661,56 @@ class AppStateManager extends ChangeNotifier {
     }
 
     final key = _dateKey(day);
-    if (_pastHabitRecords.containsKey(key) &&
-        _pastHabitRecords[key]!.containsKey(habitId)) {
+    if (_pastHabitRecords.containsKey(key) && _pastHabitRecords[key]!.containsKey(habitId)) {
       return _pastHabitRecords[key]![habitId]!;
     }
-    // 🌟 사용자 요청 정확한 날짜별 임상 케이스에 맞춘 습관 시뮬레이션:
-    // 1일: 습관 100% (전부 다 함)
-    // 2일: 습관 0% (습관만 안 함)
-    // 3일: 습관 100% (일반약만 누락)
-    // 4일: 습관 100% (처방약만 누락)
-    // 5일: 습관 0% (습관 + 일반약 누락)
-    // 6일: 습관 0% (습관 + 처방약 누락)
-    // 7일: 습관 0% (전부 다 누락)
+    // 개발자 모드가 아니면 사용자가 소급 수정한 기록(_pastHabitRecords)만 반환하고 기본값은 대기(0.0)
+    if (!isDevSimulationMode) {
+      return 0.0;
+    }
+
     final d = day.day;
-    if (d == 1 || d == 3 || d == 4) {
-      return 1.0; // 습관 완료
+    if ((day.year == 2025 || day.year == 2026) && day.month == 12) {
+      switch (d) {
+        case 1:
+        case 3:
+        case 4:
+        case 5:
+        case 8:
+        case 10:
+        case 11:
+        case 12:
+        case 15:
+        case 17:
+        case 18:
+        case 19:
+        case 22:
+        case 24:
+        case 25:
+        case 26:
+        case 29:
+        case 31:
+          return 1.0;
+        case 2:
+        case 6:
+        case 7:
+        case 9:
+        case 13:
+        case 14:
+        case 16:
+        case 20:
+        case 21:
+        case 23:
+        case 27:
+        case 28:
+        case 30:
+        default:
+          return 0.0;
+      }
     }
-    if (d == 2 || d == 5 || d == 6 || d == 7) {
-      return 0.0; // 습관 미완료
-    }
-    // 8일 이후 패턴 반복
+
+    if (d == 1 || d == 3 || d == 4) return 1.0;
+    if (d == 2 || d == 5 || d == 6 || d == 7) return 0.0;
     return (d % 2 == 0) ? 0.0 : 1.0;
   }
 
@@ -579,9 +721,8 @@ class AppStateManager extends ChangeNotifier {
     final target = DateTime(day.year, day.month, day.day);
 
     if (target.isAfter(today)) return null;
-    final dueHabits = _habits.where((h) => h.isDueOn(day)).toList();
+    final dueHabits = habits.where((h) => h.isDueOn(day)).toList();
     if (dueHabits.isEmpty) return 1.0;
-
     double sum = 0.0;
     for (final h in dueHabits) {
       sum += getHabitScoreForDay(day, h.id);
@@ -613,7 +754,6 @@ class AppStateManager extends ChangeNotifier {
 
     _pastHabitRecords.putIfAbsent(key, () => {})[habitId] = nextVal;
     if (nextVal > current) {
-      gentleAttempts++;
     }
     notifyListeners();
     return nextVal;
@@ -634,9 +774,6 @@ class AppStateManager extends ChangeNotifier {
     _pastHabitRecords.putIfAbsent(key, () => {})[habitId] = 0.0;
     notifyListeners();
   }
-
-  int returnedCount = 7; // 다시 돌아온 횟수
-  int gentleAttempts = 5; // 부드럽게 시도한 횟수
 
   // 사용자 맞춤 루틴 시간 기억 (아침, 점심, 저녁, 취침 전)
   // 사용자 맞춤 루틴 시간 기억 (아침, 점심, 저녁, 취침 전 + 식전/식후/식간)
@@ -675,7 +812,6 @@ class AppStateManager extends ChangeNotifier {
   SharedPreferences? _prefs;
 
   Future<void> _initDataAndStorage() async {
-    _initDefaultData();
     try {
       _prefs = await SharedPreferences.getInstance();
       await _loadDataFromDisk();
@@ -699,64 +835,31 @@ class AppStateManager extends ChangeNotifier {
       await _prefs!.setString('hagom_medications', medsJson);
       await _prefs!.setString('hagom_habits', habitsJson);
       await _prefs!.setString('hagom_tasks', tasksJson);
-      await _prefs!.setInt('hagom_gentle_attempts', gentleAttempts);
-      await _prefs!.setInt('hagom_returned_count', returnedCount);
       await _prefs!.setBool('hagom_meds_noti', medsNotificationEnabled);
       await _prefs!.setBool('hagom_habit_noti', habitNotificationEnabled);
       await _prefs!.setBool('hagom_tasks_noti', tasksNotificationEnabled);
       await _prefs!.setBool('hagom_mascot_noti', mascotNotificationEnabled);
-      await _prefs!.setBool(
-        'hagom_completion_feedback',
-        completionFeedbackEnabled,
-      );
+      await _prefs!.setInt('hagom_mascot_stage_index', mascotStageIndex);
+      await _prefs!.setBool('hagom_completion_feedback', completionFeedbackEnabled);
       await _prefs!.setString('hagom_noti_freq', notificationFrequency);
       await _prefs!.setInt('hagom_daily_reset_hour', dailyResetHour);
       await _prefs!.setInt('hagom_daily_reset_minute', dailyResetMinute);
       if (_lastGreetingDayKey != null) {
-        await _prefs!.setString(
-          'hagom_last_greeting_day',
-          _lastGreetingDayKey!,
-        );
+        await _prefs!.setString('hagom_last_greeting_day', _lastGreetingDayKey!);
       }
-      await _prefs!.setBool(
-        'hagom_initial_mode_selected',
-        isInitialModeSelected,
-      );
+      final sortedAccessDays = _accessDayKeys.toList()..sort();
+      await _prefs!.setString('hagom_access_days', jsonEncode(sortedAccessDays));
+      await _prefs!.setBool('hagom_initial_mode_selected', isInitialModeSelected);
       if (_trackingStartDate != null) {
-        await _prefs!.setString(
-          'hagom_tracking_start_date',
-          _dateKey(_trackingStartDate!),
-        );
+        await _prefs!.setString('hagom_tracking_start_date', _dateKey(_trackingStartDate!));
       }
       await _prefs!.setStringList('hagom_custom_time_slots', customTimeSlots);
       await _prefs!.setString('hagom_routine_times', jsonEncode(routineTimes));
       await _prefs!.setString('hagom_theme_key', currentThemeKey);
-      await _prefs!.setString(
-        'hagom_custom_theme',
-        jsonEncode(customThemeColors),
-      );
-      await _prefs!.setBool(
-        'hagom_use_tab_mini_themes',
-        AppColors.useTabMiniThemes,
-      );
-      await _prefs!.setString(
-        'hagom_tab_meds_color',
-        AppColors.tabMedsColor.value.toRadixString(16),
-      );
-      await _prefs!.setString(
-        'hagom_tab_habits_color',
-        AppColors.tabHabitsColor.value.toRadixString(16),
-      );
-      await _prefs!.setString(
-        'hagom_tab_calendar_color',
-        AppColors.tabCalendarColor.value.toRadixString(16),
-      );
+      await _prefs!.setString('hagom_custom_themes', jsonEncode(customThemes.map((t) => t.toJson()).toList()));
       await _prefs!.setInt('hagom_widget_month_offset', widgetMonthOffset);
       if (widgetSelectedDate != null) {
-        await _prefs!.setString(
-          'hagom_widget_selected_date',
-          _dateKey(widgetSelectedDate!),
-        );
+        await _prefs!.setString('hagom_widget_selected_date', _dateKey(widgetSelectedDate!));
       } else {
         await _prefs!.remove('hagom_widget_selected_date');
       }
@@ -768,49 +871,16 @@ class AppStateManager extends ChangeNotifier {
     if (_prefs == null) return;
     try {
       final medsRaw = _prefs!.getString('hagom_medications');
-      final savedTheme = _prefs!.getString('hagom_theme_key');
-      if (savedTheme != null) {
-        currentThemeKey = savedTheme;
-        if (savedTheme == AppColors.themeCustom) {
-          final customRaw = _prefs!.getString('hagom_custom_theme');
-          if (customRaw != null) {
-            final Map<String, dynamic> cMap = jsonDecode(customRaw);
-            customThemeColors = cMap.map((k, v) => MapEntry(k, v.toString()));
-            if (customThemeColors.containsKey('primary')) {
-              AppColors.applyCustomColors(
-                primary: Color(
-                  int.parse(customThemeColors['primary']!, radix: 16),
-                ),
-                background: Color(
-                  int.parse(customThemeColors['background']!, radix: 16),
-                ),
-                lightTint: Color(
-                  int.parse(customThemeColors['lightTint']!, radix: 16),
-                ),
-                textPrimary: Color(
-                  int.parse(customThemeColors['textPrimary']!, radix: 16),
-                ),
-                warmAccent: Color(
-                  int.parse(customThemeColors['warmAccent']!, radix: 16),
-                ),
-              );
-            }
-          }
-        } else {
-          AppColors.applyPreset(savedTheme);
-        }
+      final customThemesRaw = _prefs!.getString('hagom_custom_themes');
+      customThemes.clear();
+      if (customThemesRaw != null) {
+        final List<dynamic> decodedThemes = jsonDecode(customThemesRaw);
+        customThemes.addAll(decodedThemes.map((e) => ThemePreset.fromJson(e as Map<String, dynamic>)));
       }
-      AppColors.useTabMiniThemes =
-          _prefs!.getBool('hagom_use_tab_mini_themes') ?? true;
-      final savedMedsC = _prefs!.getString('hagom_tab_meds_color');
-      final savedHabitsC = _prefs!.getString('hagom_tab_habits_color');
-      final savedCalC = _prefs!.getString('hagom_tab_calendar_color');
-      if (savedMedsC != null)
-        AppColors.tabMedsColor = Color(int.parse(savedMedsC, radix: 16));
-      if (savedHabitsC != null)
-        AppColors.tabHabitsColor = Color(int.parse(savedHabitsC, radix: 16));
-      if (savedCalC != null)
-        AppColors.tabCalendarColor = Color(int.parse(savedCalC, radix: 16));
+      currentThemeKey = _prefs!.getString('hagom_theme_key') ?? AppColors.themeDefault;
+      AppColors.applyTheme(currentTheme);
+      currentThemeKey = currentTheme.key;
+      themeRevision++;
       widgetMonthOffset = _prefs!.getInt('hagom_widget_month_offset') ?? 0;
       final savedSelDate = _prefs!.getString('hagom_widget_selected_date');
       if (savedSelDate != null) {
@@ -819,13 +889,26 @@ class AppStateManager extends ChangeNotifier {
       if (medsRaw != null) {
         final List<dynamic> decoded = jsonDecode(medsRaw);
         _medications.clear();
-        _medications.addAll(
-          decoded.map(
-            (e) => MedicationItem.fromJson(e as Map<String, dynamic>),
-          ),
-        );
-        // 만약 주 1회 약물 예시(med_3)가 아직 없다면 추가!
-        if (!_medications.any((m) => m.id == 'med_3')) {
+        _medications.addAll(decoded.map((e) => MedicationItem.fromJson(e as Map<String, dynamic>)));
+        // One-time cleanup of the already-created extra PRN dose entries (2회차 이후).
+        if (!(_prefs!.getBool('hagom_prn_extra_doses_cleaned') ?? false)) {
+          var prnRecordsChanged = false;
+          for (final med in _medications) {
+            if (med.recurrenceSummary == '필요 시' && med.doseSlots.length > 1) {
+              med.doseSlots.removeRange(1, med.doseSlots.length);
+              prnRecordsChanged = true;
+            }
+          }
+          if (prnRecordsChanged) {
+            await _prefs!.setString(
+              'hagom_medications',
+              jsonEncode(_medications.map((med) => med.toJson()).toList()),
+            );
+          }
+          await _prefs!.setBool('hagom_prn_extra_doses_cleaned', true);
+        }
+        // 개발자 모드일 때만 예시 주 1회 약물(med_3) 추가
+        if (isDevSimulationMode && !_medications.any((m) => m.id == 'med_3')) {
           _medications.add(
             MedicationItem(
               id: 'med_3',
@@ -859,19 +942,14 @@ class AppStateManager extends ChangeNotifier {
         // 최초 로드 시 오늘 날짜를 기록 시작일로 고정
         final now = DateTime.now();
         _trackingStartDate = DateTime(now.year, now.month, now.day);
-        await _prefs!.setString(
-          'hagom_tracking_start_date',
-          _dateKey(_trackingStartDate!),
-        );
+        await _prefs!.setString('hagom_tracking_start_date', _dateKey(_trackingStartDate!));
       }
       final habitsRaw = _prefs!.getString('hagom_habits');
       if (habitsRaw != null) {
         final List<dynamic> decoded = jsonDecode(habitsRaw);
         _habits.clear();
-        _habits.addAll(
-          decoded.map((e) => HabitItem.fromJson(e as Map<String, dynamic>)),
-        );
-        if (!_habits.any((h) => h.id == 'habit_5')) {
+        _habits.addAll(decoded.map((e) => HabitItem.fromJson(e as Map<String, dynamic>)));
+        if (isDevSimulationMode && !_habits.any((h) => h.id == 'habit_5')) {
           _habits.add(
             HabitItem(
               id: 'habit_5',
@@ -880,7 +958,7 @@ class AppStateManager extends ChangeNotifier {
               recurrenceSummary: '주 1회',
               targetPerDay: 1,
               currentCount: 0,
-              weeklyCompletedCount: 1, // 🌟 이번 주에 이미 1회 완료하여 오늘은 쉴 수 있는 상태!
+              weeklyCompletedCount: 1, // 이번 주 완료 상태
             ),
           );
         }
@@ -889,50 +967,53 @@ class AppStateManager extends ChangeNotifier {
       if (tasksRaw != null) {
         final List<dynamic> decoded = jsonDecode(tasksRaw);
         _tasks.clear();
-        _tasks.addAll(
-          decoded.map((e) => TaskItem.fromJson(e as Map<String, dynamic>)),
-        );
+        _tasks.addAll(decoded.map((e) => TaskItem.fromJson(e as Map<String, dynamic>)));
       }
-      gentleAttempts =
-          _prefs!.getInt('hagom_gentle_attempts') ?? gentleAttempts;
-      returnedCount = _prefs!.getInt('hagom_returned_count') ?? returnedCount;
       medsNotificationEnabled = _prefs!.getBool('hagom_meds_noti') ?? true;
       habitNotificationEnabled = _prefs!.getBool('hagom_habit_noti') ?? true;
       tasksNotificationEnabled = _prefs!.getBool('hagom_tasks_noti') ?? true;
       mascotNotificationEnabled = _prefs!.getBool('hagom_mascot_noti') ?? true;
-      completionFeedbackEnabled =
-          _prefs!.getBool('hagom_completion_feedback') ?? true;
+      mascotStageIndex = _prefs!.getInt('hagom_mascot_stage_index') ?? 0;
+      completionFeedbackEnabled = _prefs!.getBool('hagom_completion_feedback') ?? true;
       notificationFrequency = _prefs!.getString('hagom_noti_freq') ?? '기본';
       dailyResetHour = _prefs!.getInt('hagom_daily_reset_hour') ?? 8;
       dailyResetMinute = _prefs!.getInt('hagom_daily_reset_minute') ?? 0;
       _lastGreetingDayKey = _prefs!.getString('hagom_last_greeting_day');
-      isInitialModeSelected =
-          _prefs!.getBool('hagom_initial_mode_selected') ?? false;
-      final loadedCustomSlots = _prefs!.getStringList(
-        'hagom_custom_time_slots',
-      );
+      _accessDayKeys.clear();
+      final accessDaysRaw = _prefs!.getString('hagom_access_days');
+      if (accessDaysRaw != null) {
+        try {
+          final decodedAccessDays = jsonDecode(accessDaysRaw);
+          if (decodedAccessDays is List) {
+            _accessDayKeys.addAll(decodedAccessDays.whereType<String>());
+          }
+        } catch (_) {}
+      }
+      if (_accessDayKeys.isEmpty && _lastGreetingDayKey != null) {
+        _accessDayKeys.add(_lastGreetingDayKey!);
+      }
+      isInitialModeSelected = _prefs!.getBool('hagom_initial_mode_selected') ?? false;
+      final loadedCustomSlots = _prefs!.getStringList('hagom_custom_time_slots');
       if (loadedCustomSlots != null) {
         customTimeSlots.clear();
         customTimeSlots.addAll(loadedCustomSlots);
       }
+      customTimeSlots.removeWhere(
+        (label) => label == '복용' || RegExp(r'^\d+회차$').hasMatch(label),
+      );
       // 이미 약에 저장된 비표준 시간대 라벨도 커스텀 칩 목록에 자동 복원 (레이스 유실 방어)
       const standardLabels = {
-        '아침',
-        '아침 식전',
-        '아침 식후',
-        '점심',
-        '점심 식전',
-        '점심 식후',
-        '저녁',
-        '저녁 식전',
-        '저녁 식후',
-        '취침 전',
-        '식간',
+        '아침', '아침 식전', '아침 식후',
+        '점심', '점심 식전', '점심 식후',
+        '저녁', '저녁 식전', '저녁 식후',
+        '취침 전', '식간',
       };
       for (final med in _medications) {
         for (final slot in med.doseSlots) {
           final l = slot.label.trim();
+          final isDoseRoundLabel = l == '복용' || RegExp(r'^\d+회차$').hasMatch(l);
           if (l.isNotEmpty &&
+              !isDoseRoundLabel &&
               !standardLabels.contains(l) &&
               !customTimeSlots.contains(l)) {
             customTimeSlots.add(l);
@@ -942,9 +1023,7 @@ class AppStateManager extends ChangeNotifier {
       final loadedRoutineTimesRaw = _prefs!.getString('hagom_routine_times');
       if (loadedRoutineTimesRaw != null) {
         try {
-          final Map<String, dynamic> decoded = jsonDecode(
-            loadedRoutineTimesRaw,
-          );
+          final Map<String, dynamic> decoded = jsonDecode(loadedRoutineTimesRaw);
           routineTimes.clear();
           decoded.forEach((key, value) {
             routineTimes[key] = value.toString();
@@ -971,7 +1050,11 @@ class AppStateManager extends ChangeNotifier {
             isCompleted: true,
             takenTime: '오전 8:05',
           ),
-          DoseSlot(label: '점심', scheduledTime: '오후 12:30', isCompleted: false),
+          DoseSlot(
+            label: '점심',
+            scheduledTime: '오후 12:30',
+            isCompleted: false,
+          ),
         ],
       ),
       MedicationItem(
@@ -982,7 +1065,11 @@ class AppStateManager extends ChangeNotifier {
         durationSummary: '계속 복용',
         isPrescription: false,
         doseSlots: [
-          DoseSlot(label: '저녁', scheduledTime: '오후 7:00', isCompleted: false),
+          DoseSlot(
+            label: '저녁',
+            scheduledTime: '오후 7:00',
+            isCompleted: false,
+          ),
         ],
       ),
       // 🌟 일주일에 한 번만 복용하는 약 예시
@@ -995,7 +1082,11 @@ class AppStateManager extends ChangeNotifier {
         durationSummary: '계속 복용',
         isPrescription: false,
         doseSlots: [
-          DoseSlot(label: '아침', scheduledTime: '오전 9:00', isCompleted: false),
+          DoseSlot(
+            label: '아침',
+            scheduledTime: '오전 9:00',
+            isCompleted: false,
+          ),
         ],
       ),
     ]);
@@ -1040,32 +1131,66 @@ class AppStateManager extends ChangeNotifier {
       ),
     ]);
     // 기본 예시 일정 (PRD 5.3절 명세: 보고서 작성, 병원 진료 등)
+    // 🌟 [할일 검증용]: 11월 1일(1개), 2일(2개), 3일(3개), 4일(4개), 5일(5개), 6일(6개)
     final now = DateTime.now();
+    final y = now.year;
+    final m = now.month;
+
     _tasks.addAll([
-      TaskItem(
-        id: 'task_1',
-        title: '약학 실습 보고서 작성',
-        date: DateTime(now.year, now.month, now.day),
-        time: '오후 6:00',
-        reminder: '30분 전',
-        isCompleted: false,
-      ),
-      TaskItem(
-        id: 'task_2',
-        title: '병원 정기 상담 및 처방전 받기',
-        date: DateTime(now.year, now.month, now.day + 2),
-        time: '오후 2:30',
-        reminder: '1시간 전',
-        isCompleted: false,
-      ),
-      TaskItem(
-        id: 'task_3',
-        title: '지난주 복약 상담 일지 정리',
-        date: DateTime(now.year, now.month, now.day - 3),
-        time: '오전 11:00',
-        reminder: '정시',
-        isCompleted: true,
-      ),
+      // 11/01 (1개)
+      TaskItem(id: 't_nov1_1', title: '산책하며 햇볕 쬐기', date: DateTime(y, m, 1), time: '오후 2:00', isCompleted: true),
+
+      // 11/02 (2개)
+      TaskItem(id: 't_nov2_1', title: '약국에서 비타민 구매', date: DateTime(y, m, 2), time: '오전 10:30', isCompleted: true),
+      TaskItem(id: 't_nov2_2', title: '스트레칭 10분 하기', date: DateTime(y, m, 2), time: '오후 7:00', isCompleted: false),
+
+      // 11/03 (3개)
+      TaskItem(id: 't_nov3_1', title: '병원 정기 상담 및 처방전', date: DateTime(y, m, 3), time: '오전 11:00', isCompleted: true),
+      TaskItem(id: 't_nov3_2', title: '복약 상담 일지 정리', date: DateTime(y, m, 3), time: '오후 3:00', isCompleted: false),
+      TaskItem(id: 't_nov3_3', title: '따뜻한 차 마시며 쉬기', date: DateTime(y, m, 3), time: '오후 9:00', isCompleted: false),
+
+      // 11/04 (4개: 2x2 대칭 분할 테스트)
+      TaskItem(id: 't_nov4_1', title: '유기화학 과제 12장 예제 풀기', date: DateTime(y, m, 4), time: '오후 1:00', isCompleted: false),
+      TaskItem(id: 't_nov4_2', title: '도서관 책 반납하기', date: DateTime(y, m, 4), time: '오후 3:30', isCompleted: false),
+      TaskItem(id: 't_nov4_3', title: '약학 실습 예습 리포트', date: DateTime(y, m, 4), time: '오후 5:00', isCompleted: true),
+      TaskItem(id: 't_nov4_4', title: '가벼운 저녁 러닝', date: DateTime(y, m, 4), time: '오후 8:00', isCompleted: false),
+
+      // 11/05 (5개: 좌3 + 우2 분할 테스트)
+      TaskItem(id: 't_nov5_1', title: '정신건강의학과 진료 방문', date: DateTime(y, m, 5), time: '오전 10:00', isCompleted: true),
+      TaskItem(id: 't_nov5_2', title: '영양제 재고 확인하기', date: DateTime(y, m, 5), time: '오후 12:30', isCompleted: false),
+      TaskItem(id: 't_nov5_3', title: '동기들과 스터디 모임', date: DateTime(y, m, 5), time: '오후 3:00', isCompleted: false),
+      TaskItem(id: 't_nov5_4', title: '식물 물 주기', date: DateTime(y, m, 5), time: '오후 6:00', isCompleted: true),
+      TaskItem(id: 't_nov5_5', title: '하루 마무리 일기 쓰기', date: DateTime(y, m, 5), time: '오후 10:00', isCompleted: false),
+
+      // 11/06 (6개: 좌3 + 우3 꽉 찬 분할 테스트)
+      TaskItem(id: 't_nov6_1', title: '약물 치료학 수업 필기 정리', date: DateTime(y, m, 6), time: '오전 9:30', isCompleted: false),
+      TaskItem(id: 't_nov6_2', title: '혈압 및 맥박 체크하기', date: DateTime(y, m, 6), time: '오후 1:30', isCompleted: true),
+      TaskItem(id: 't_nov6_3', title: '동네 한 바퀴 산책', date: DateTime(y, m, 6), time: '오후 4:00', isCompleted: false),
+      TaskItem(id: 't_nov6_4', title: '수면 위생 체크리스트 확인', date: DateTime(y, m, 6), time: '오후 7:00', isCompleted: false),
+      TaskItem(id: 't_nov6_5', title: '내일 복약 파우치 미리 챙기기', date: DateTime(y, m, 6), time: '오후 9:30', isCompleted: true),
+      TaskItem(id: 't_nov6_6', title: '잠들기 전 스마트폰 멀리 두기', date: DateTime(y, m, 6), time: '오후 11:00', isCompleted: false),
+
+      // 오늘 날짜 기본 예시
+      TaskItem(id: 'task_today_1', title: '약학 실습 보고서 작성', date: DateTime(y, m, now.day), time: '오후 6:00', isCompleted: false),
+      TaskItem(id: 'task_today_2', title: '병원 정기 상담 및 처방전 받기', date: DateTime(y, m, now.day), time: '오후 2:30', isCompleted: false),
+
+      // 🌟 [비교 시뮬레이션용]: 1월~10월 할일 샘플 (완료 초록핀 & 미완료 연보라핀 골고루 배치)
+      for (final simMonth in [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]) ...[
+        // 1일: 완료된 일정 (초록 핀)
+        TaskItem(id: 't_sim_${simMonth}_1', title: '아침 가벼운 스트레칭', date: DateTime(2026, simMonth, 1), time: '오전 8:30', isCompleted: true),
+        // 3일: 미완료 일정 (연보라 핀)
+        TaskItem(id: 't_sim_${simMonth}_3', title: '약국에서 영양제 상담', date: DateTime(2026, simMonth, 3), time: '오후 2:00', isCompleted: false),
+        // 5일: 완료된 일정 (초록 핀)
+        TaskItem(id: 't_sim_${simMonth}_5', title: '비타민D 햇빛 쬐기', date: DateTime(2026, simMonth, 5), time: '오후 1:00', isCompleted: true),
+        // 8일: 미완료 일정 (연보라 핀)
+        TaskItem(id: 't_sim_${simMonth}_8', title: '실습 보고서 3장 읽기', date: DateTime(2026, simMonth, 8), time: '오후 4:30', isCompleted: false),
+        // 12일: 완료된 일정 (초록 핀)
+        TaskItem(id: 't_sim_${simMonth}_12', title: '수면 위생 체크하기', date: DateTime(2026, simMonth, 12), time: '오후 9:30', isCompleted: true),
+        // 15일: 미완료 일정 (연보라 핀)
+        TaskItem(id: 't_sim_${simMonth}_15', title: '도서관 대출 도서 반납', date: DateTime(2026, simMonth, 15), time: '오후 3:00', isCompleted: false),
+        // 20일: 완료된 일정 (초록 핀)
+        TaskItem(id: 't_sim_${simMonth}_20', title: '따뜻한 물 한 잔 마시기', date: DateTime(2026, simMonth, 20), time: '오전 9:00', isCompleted: true),
+      ],
     ]);
   }
 
@@ -1077,6 +1202,32 @@ class AppStateManager extends ChangeNotifier {
   //    방금 '지금 복용'한 실제 시각을 기준으로 다음 회차의 예정 시각을 실시간 재계산하여 알림 갱신!
   void completeNextSlot(String medId, {String? customTakenTime}) {
     final med = _medications.firstWhere((m) => m.id == medId);
+    if (med.recurrenceSummary == '필요 시') {
+      final now = DateTime.now();
+      final hour = now.hour;
+      final minute = now.minute.toString().padLeft(2, '0');
+      final period = hour >= 12 ? '오후' : '오전';
+      final displayHour = hour > 12 ? hour - 12 : (hour == 0 ? 12 : hour);
+      final legacyEmptySlotIndex = med.doseSlots.indexWhere(
+        (slot) => slot.label == '복용' && !slot.isCompleted,
+      );
+      if (legacyEmptySlotIndex != -1) {
+        med.doseSlots[legacyEmptySlotIndex]
+          ..label = '1회차'
+          ..isCompleted = true
+          ..takenTime = customTakenTime ?? '$period $displayHour:$minute';
+        notifyListeners();
+        return;
+      }
+      final nextIndex = med.doseSlots.length + 1;
+      med.doseSlots.add(DoseSlot(
+        label: '${nextIndex}회차',
+        isCompleted: true,
+        takenTime: customTakenTime ?? '$period $displayHour:$minute',
+      ));
+      notifyListeners();
+      return;
+    }
     final targetSlot = med.nextPendingSlot;
     if (targetSlot != null) {
       targetSlot.isCompleted = true;
@@ -1089,8 +1240,6 @@ class AppStateManager extends ChangeNotifier {
 
       // N시간 간격 약물인 경우 다음 회차 시간 동적 재계산
       _recalculateHourlyNextSlot(med, now);
-
-      gentleAttempts++;
       notifyListeners();
     }
   }
@@ -1098,6 +1247,26 @@ class AppStateManager extends ChangeNotifier {
   // 특정 슬롯 직접 완료
   void completeSlot(String medId, int slotIndex) {
     final med = _medications.firstWhere((m) => m.id == medId);
+    if (med.recurrenceSummary == '필요 시') {
+      final target = slotIndex >= 0 && slotIndex < med.doseSlots.length
+          ? med.doseSlots[slotIndex]
+          : null;
+      if (target != null && target.isCompleted) return;
+
+      final now = DateTime.now();
+      final hour = now.hour;
+      final minute = now.minute.toString().padLeft(2, '0');
+      final period = hour >= 12 ? '오후' : '오전';
+      final displayHour = hour > 12 ? hour - 12 : (hour == 0 ? 12 : hour);
+      final nextIndex = med.doseSlots.length + 1;
+      med.doseSlots.add(DoseSlot(
+        label: '${nextIndex}회차',
+        isCompleted: true,
+        takenTime: '$period $displayHour:$minute',
+      ));
+      notifyListeners();
+      return;
+    }
     if (slotIndex >= 0 && slotIndex < med.doseSlots.length) {
       final slot = med.doseSlots[slotIndex];
       if (!slot.isCompleted) {
@@ -1110,8 +1279,6 @@ class AppStateManager extends ChangeNotifier {
         slot.takenTime = '$period $displayHour:$minute';
 
         _recalculateHourlyNextSlot(med, now);
-
-        gentleAttempts++;
         notifyListeners();
       }
     }
@@ -1119,9 +1286,7 @@ class AppStateManager extends ChangeNotifier {
 
   // N시간 간격 약물의 다음 회차 예정 시각 재계산 로직
   void _recalculateHourlyNextSlot(MedicationItem med, DateTime takenDateTime) {
-    if (med.recurrenceSummary.contains('시간') ||
-        med.recurrenceSummary.contains('분') ||
-        med.doseSlots.any((s) => s.label.contains('회차'))) {
+    if (med.recurrenceSummary.contains('시간') || med.recurrenceSummary.contains('분') || med.doseSlots.any((s) => s.label.contains('회차'))) {
       final hMatch = RegExp(r'(\d+)시간').firstMatch(med.recurrenceSummary);
       final mMatch = RegExp(r'(\d+)분').firstMatch(med.recurrenceSummary);
       final intHours = hMatch != null ? int.parse(hMatch.group(1)!) : 0;
@@ -1143,9 +1308,7 @@ class AppStateManager extends ChangeNotifier {
       } else {
         // 이미 있는 슬롯이 모두 완료되었으므로, 다음 회차를 새로 추가!
         final nextIndex = med.doseSlots.length + 1;
-        med.doseSlots.add(
-          DoseSlot(label: '${nextIndex}회차', scheduledTime: nextTimeStr),
-        );
+        med.doseSlots.add(DoseSlot(label: '$nextIndex회차', scheduledTime: nextTimeStr));
       }
     }
   }
@@ -1159,14 +1322,21 @@ class AppStateManager extends ChangeNotifier {
       notifyListeners();
     }
   }
-
   // 특정 회차만 핀셋 복약 취소 (뒤쪽 회차 건드리지 않고 해당 슬롯만 쏙 취소)
   void cancelSpecificSlot(String medId, int slotIndex) {
     final med = _medications.firstWhere((m) => m.id == medId);
     if (slotIndex >= 0 && slotIndex < med.doseSlots.length) {
-      med.doseSlots[slotIndex].isCompleted = false;
-      med.doseSlots[slotIndex].takenTime = null;
+      if (med.recurrenceSummary == '필요 시') {
+        med.doseSlots.removeAt(slotIndex);
+        for (var index = slotIndex; index < med.doseSlots.length; index++) {
+          med.doseSlots[index].label = '${index + 1}회차';
+        }
+      } else {
+        med.doseSlots[slotIndex].isCompleted = false;
+        med.doseSlots[slotIndex].takenTime = null;
+      }
       notifyListeners();
+      flushForWidget();
     }
   }
 
@@ -1180,7 +1350,9 @@ class AppStateManager extends ChangeNotifier {
         break;
       }
     }
+    suspendWidgetSync = false;
     notifyListeners();
+    flushForWidget();
   }
 
   // cancelLastCompletedSlot 별칭
@@ -1271,9 +1443,22 @@ class AppStateManager extends ChangeNotifier {
     notifyListeners();
   }
 
-  // 약 삭제
+  // 🌟 약 삭제 (소프트 삭제: 현재 탭 화면에서만 숨기고, 과거 달력 및 엑셀 데이터에는 영구 보존!)
   void deleteMedication(String id) {
+    final idx = _medications.indexWhere((m) => m.id == id);
+    if (idx != -1) {
+      _medications[idx].isArchived = true;
+      notifyListeners();
+    }
+  }
+
+  // 🌟 약 완전 영구 삭제 (설정 관리자용)
+  void permanentlyDeleteMedication(String id) {
     _medications.removeWhere((m) => m.id == id);
+    // 관련 과거 슬롯 기록도 함께 정돈
+    _pastSlotRecords.forEach((_, slots) {
+      slots.removeWhere((k, _) => k.startsWith('${id}_'));
+    });
     notifyListeners();
   }
 
@@ -1283,7 +1468,6 @@ class AppStateManager extends ChangeNotifier {
     final habit = _habits.firstWhere((h) => h.id == id);
     final advanced = habit.advanceProgress();
     if (advanced) {
-      gentleAttempts++;
       notifyListeners();
     }
     return advanced;
@@ -1292,7 +1476,9 @@ class AppStateManager extends ChangeNotifier {
   void resetHabitProgress(String id) {
     final habit = _habits.firstWhere((h) => h.id == id);
     habit.resetProgress();
+    suspendWidgetSync = false;
     notifyListeners();
+    flushForWidget();
   }
 
   void toggleHabitExpanded(String id) {
@@ -1342,8 +1528,21 @@ class AppStateManager extends ChangeNotifier {
     notifyListeners();
   }
 
+  // 🌟 습관 삭제 (소프트 삭제: 현재 탭 화면에서만 숨기고, 과거 달력 및 엑셀 데이터에는 영구 보존!)
   void deleteHabit(String id) {
+    final idx = _habits.indexWhere((h) => h.id == id);
+    if (idx != -1) {
+      _habits[idx].isArchived = true;
+      notifyListeners();
+    }
+  }
+
+  // 🌟 습관 완전 영구 삭제 (설정 관리자용)
+  void permanentlyDeleteHabit(String id) {
     _habits.removeWhere((h) => h.id == id);
+    _pastHabitRecords.forEach((_, habits) {
+      habits.remove(id);
+    });
     notifyListeners();
   }
 
@@ -1383,7 +1582,6 @@ class AppStateManager extends ChangeNotifier {
     );
     notifyListeners();
   }
-
   void toggleTaskCompleted(String id) {
     final task = _tasks.firstWhere((t) => t.id == id);
     task.isCompleted = !task.isCompleted;
@@ -1434,61 +1632,90 @@ class AppStateManager extends ChangeNotifier {
     notifyListeners();
   }
 
+  // 🌟 할일 삭제 (소프트 삭제: 현재 탭 화면에서만 숨기고, 과거 달력 및 엑셀 데이터에는 영구 보존!)
   void deleteTask(String id) {
+    final idx = _tasks.indexWhere((t) => t.id == id);
+    if (idx != -1) {
+      _tasks[idx].isArchived = true;
+      notifyListeners();
+    } else if (id.startsWith('t_mock_')) {
+      _hiddenMockTaskIds.add(id);
+      notifyListeners();
+    }
+  }
+  // 🌟 할일 완전 영구 삭제 (설정 관리자용)
+  void permanentlyDeleteTask(String id) {
     _tasks.removeWhere((t) => t.id == id);
     notifyListeners();
   }
 
-  // 🌟 모든 데이터 초기화 (스토어 심사 및 테스트용)
+  // 🌟 [설정 탭 전용] 특정 기간 동안의 기록 부분 삭제
+  void deleteRecordsForDateRange({
+    required DateTime startDate,
+    required DateTime endDate,
+    bool deleteMeds = true,
+    bool deleteHabits = true,
+    bool deleteTasks = true,
+  }) {
+    DateTime cur = DateTime(startDate.year, startDate.month, startDate.day);
+    final end = DateTime(endDate.year, endDate.month, endDate.day);
+
+    while (!cur.isAfter(end)) {
+      final key = _dateKey(cur);
+      if (deleteMeds) {
+        _pastSlotRecords.remove(key);
+        _pastSlotTimes.remove(key);
+      }
+      if (deleteHabits) {
+        _pastHabitRecords.remove(key);
+      }
+      if (deleteTasks) {
+        final targetDate = cur;
+        _tasks.removeWhere((t) => t.isSameDay(targetDate));
+      }
+      cur = cur.add(const Duration(days: 1));
+    }
+    notifyListeners();
+  }
+
+  // 🌟 모든 데이터 초기화: 실사용 모드에서는 예시까지 완전히 백지화!
   Future<void> resetAllData() async {
     _medications.clear();
     _habits.clear();
     _tasks.clear();
     _pastSlotRecords.clear();
     _pastHabitRecords.clear();
-    gentleAttempts = 0;
-    returnedCount = 0;
-    _initDefaultData();
+    _pastSlotTimes.clear();
+    _retroactiveSlots.clear();
+    customTimeSlots.clear(); // 커스텀 시간대도 깨끗하게 초기화!
+    final now = DateTime.now();
+    _trackingStartDate = DateTime(now.year, now.month, now.day);
+
+    if (isDevSimulationMode) {
+      _initDefaultData();
+    }
+
     if (_prefs != null) {
       await _prefs!.clear();
     }
+    await _saveDataToDisk();
     notifyListeners();
   }
 
-  // 🌟 [온보딩 튜토리얼 종료 후 클린 슬레이트 전환]
-  // - 복약 및 할일: 예시 데이터 완전 삭제 (사용자가 직접 등록하도록 백지화!)
-  // - 습관 3종(계획 점검, 물 마시기, 스트레칭): 모두 '대기(0회)' 상태로 초기화되어 실사용 대기!
+  // 🌟 [온보딩 튜토리얼 종료 후 클린 슬레이트 전환]: 모든 예시 약/습관/할일 완전 삭제 백지화
   Future<void> finishTutorialCleanSlate() async {
     _medications.clear();
+    _habits.clear(); // 습관 예시도 완전 삭제하여 백지 상태로 제공
     _tasks.clear();
     _pastSlotRecords.clear();
     _pastHabitRecords.clear();
-    isDevSimulationMode = false; // 클린 슬레이트: 실사용 모드 (기록 시작일 이전 숨김 적용)
+    _pastSlotTimes.clear();
+    _retroactiveSlots.clear();
+    customTimeSlots.clear();
+    isDevSimulationMode = false;
+    final now = DateTime.now();
+    _trackingStartDate = DateTime(now.year, now.month, now.day);
 
-    _habits.clear();
-    _habits.addAll([
-      HabitItem(
-        id: 'habit_plan',
-        title: '오늘 계획 가볍게 보기',
-        subtitle: '유연하게 · 1분이라도 충분해요',
-        targetPerDay: 1,
-        currentCount: 0, // 대기
-      ),
-      HabitItem(
-        id: 'habit_water',
-        title: '물 마시기',
-        subtitle: '하루 4잔 시원하게',
-        targetPerDay: 4,
-        currentCount: 0, // 대기
-      ),
-      HabitItem(
-        id: 'habit_stretch',
-        title: '스트레칭 및 가볍게 걷기',
-        subtitle: '몸 깨우기 · 5~10분',
-        targetPerDay: 1,
-        currentCount: 0, // 대기
-      ),
-    ]);
     await _saveDataToDisk();
     notifyListeners();
   }
@@ -1521,125 +1748,375 @@ class AppStateManager extends ChangeNotifier {
 
     notifyListeners();
   }
-
-  // 🌟 [보건약학 임상 연구 & 교수님 자문용] 4대 영역 종합 건강 데이터 CSV 생성기
-  String generateComprehensiveHealthDataReport({
+  // 🌟 [통합 건강 데이터 단일 엑셀(XLSX) 다중 시트 생성기]:
+  // 하나의 엑셀 파일 안에 4대 카테고리가 각기 다른 탭(Sheet)으로 깔끔하게 분리되어 저장됩니다.
+  List<int> generateExcelWorkbook({
+    required DateTime startDate,
+    required DateTime endDate,
     bool includePrescription = true,
     bool includeOtc = true,
     bool includeHabits = true,
     bool includeTasks = true,
   }) {
-    final buffer = StringBuffer();
-    // 엑셀에서 한글 깨짐 방지 UTF-8 BOM
-    buffer.write('\uFEFF');
-    buffer.writeln('하곰이(Hagom) 비처벌적 환자 케어 솔루션 - 통합 건강 기록 데이터');
-    buffer.writeln('추출 일시,${DateTime.now().toString().substring(0, 19)}');
-    buffer.writeln(
-      '기록 시작일,${_trackingStartDate != null ? _dateKey(_trackingStartDate!) : "기록 전"}',
-    );
-    buffer.writeln('다정한 시도 횟수,$gentleAttempts,돌아온 횟수,$returnedCount');
-    buffer.writeln('');
+    final excel = Excel.createExcel();
+    final sDate = DateTime(startDate.year, startDate.month, startDate.day);
+    final eDate = DateTime(endDate.year, endDate.month, endDate.day);
 
-    final nowStr =
-        '${DateTime.now().year}-${DateTime.now().month.toString().padLeft(2, '0')}-${DateTime.now().day.toString().padLeft(2, '0')}';
+    final List<DateTime> dateRange = [];
+    DateTime cur = sDate;
+    while (!cur.isAfter(eDate)) {
+      dateRange.add(cur);
+      cur = cur.add(const Duration(days: 1));
+    }
 
-    // 1. 💊 처방약 데이터 (별도 분리)
+    // 1. 💊 1. 처방약 관리 데이터 시트
     if (includePrescription) {
-      buffer.writeln('--- [1. 처방약 관리 데이터] ---');
-      buffer.writeln(
-        '기록 일자,약물 ID,약품명,복용법,기타 메모,복용 주기,복용 기간,회차(시간대),예정 시각,복용 여부,실제 복용 시각,기록 방식(실시간/사후수정)',
-      );
-      final rxMeds = _medications.where((m) => m.isPrescription);
-      for (final med in rxMeds) {
-        for (final slot in med.doseSlots) {
-          final statusStr = slot.isCompleted
-              ? '복용 완료'
-              : (slot.isSkipped ? '건너뜀' : '미복용/대기');
-          final recordMethod = !slot.isCompleted
-              ? '-'
-              : (isSlotRetroactive(
-                      DateTime.now(),
-                      med.id,
-                      med.doseSlots.indexOf(slot),
-                    )
-                    ? '달력 사후 수정'
-                    : '당일 실시간 체크');
-          buffer.writeln(
-            '"$nowStr","${med.id}","${med.name}","${med.dosage}","${med.memo ?? '-'}","${med.recurrenceSummary}","${med.durationSummary}","${slot.label}","${slot.scheduledTime ?? '-'}","$statusStr","${slot.takenTime ?? '-'}","$recordMethod"',
-          );
+      final Sheet sheet = excel['1. 처방약 관리'];
+      sheet.appendRow([TextCellValue('1. 처방약 관리 데이터')]);
+      sheet.appendRow([TextCellValue('조회 기간: ${_dateKey(sDate)} ~ ${_dateKey(eDate)}')]);
+      sheet.appendRow([TextCellValue('추출 일시: ${DateTime.now().toString().substring(0, 19)}')]);
+      sheet.appendRow([TextCellValue('')]);
+      sheet.appendRow([
+        TextCellValue('기록 일자'),
+        TextCellValue('약물 ID'),
+        TextCellValue('약품명'),
+        TextCellValue('복용법'),
+        TextCellValue('기타 메모'),
+        TextCellValue('복용 주기'),
+        TextCellValue('복용 기간'),
+        TextCellValue('회차(시간대)'),
+        TextCellValue('예정 시각'),
+        TextCellValue('복용 여부'),
+        TextCellValue('실제 복용 시각'),
+        TextCellValue('기록 방식'),
+      ]);
+
+      final rxMeds = _medications.where((m) => m.isPrescription).toList();
+      for (final day in dateRange) {
+        final dStr = _dateKey(day);
+        for (final med in rxMeds) {
+          for (int slotIdx = 0; slotIdx < med.doseSlots.length; slotIdx++) {
+            final slot = med.doseSlots[slotIdx];
+            final isDone = isSlotCompletedForDay(day, med.id, slotIdx);
+            final takenTime = getSlotTakenTimeForDay(day, med.id, slotIdx) ?? (isDone ? (slot.scheduledTime ?? '완료') : '-');
+            final statusStr = isDone ? '복용 완료' : (slot.isSkipped ? '건너뜀' : '미복용/대기');
+            final recordMethod = !isDone
+                ? '-'
+                : (isSlotRetroactive(day, med.id, slotIdx) ? '달력 사후 수정' : '당일 실시간 체크');
+
+            sheet.appendRow([
+              TextCellValue(dStr),
+              TextCellValue(med.id),
+              TextCellValue(med.name),
+              TextCellValue(med.dosage),
+              TextCellValue(med.memo ?? '-'),
+              TextCellValue(med.recurrenceSummary),
+              TextCellValue(med.durationSummary),
+              TextCellValue(slot.label),
+              TextCellValue(slot.scheduledTime ?? '-'),
+              TextCellValue(statusStr),
+              TextCellValue(takenTime),
+              TextCellValue(recordMethod),
+            ]);
+          }
         }
       }
-      buffer.writeln('');
     }
 
-    // 2. 🌿 일반의약품 및 영양제 데이터 (별도 분리)
+    // 2. 🌿 2. 일반의약품 및 영양제 데이터 시트
     if (includeOtc) {
-      buffer.writeln('--- [2. 일반의약품 및 영양제 데이터] ---');
-      buffer.writeln(
-        '기록 일자,약물 ID,약품명,복용법,기타 메모,복용 주기,복용 기간,회차(시간대),예정 시각,복용 여부,실제 복용 시각,기록 방식(실시간/사후수정)',
-      );
-      final otcMeds = _medications.where((m) => !m.isPrescription);
-      for (final med in otcMeds) {
-        for (final slot in med.doseSlots) {
-          final statusStr = slot.isCompleted
-              ? '복용 완료'
-              : (slot.isSkipped ? '건너뜀' : '미복용/대기');
-          final recordMethod = !slot.isCompleted
-              ? '-'
-              : (isSlotRetroactive(
-                      DateTime.now(),
-                      med.id,
-                      med.doseSlots.indexOf(slot),
-                    )
-                    ? '달력 사후 수정'
-                    : '당일 실시간 체크');
-          buffer.writeln(
-            '"$nowStr","${med.id}","${med.name}","${med.dosage}","${med.memo ?? '-'}","${med.recurrenceSummary}","${med.durationSummary}","${slot.label}","${slot.scheduledTime ?? '-'}","$statusStr","${slot.takenTime ?? '-'}","$recordMethod"',
-          );
+      final Sheet sheet = excel['2. 일반약 및 영양제'];
+      sheet.appendRow([TextCellValue('2. 일반의약품 및 영양제 데이터')]);
+      sheet.appendRow([TextCellValue('조회 기간: ${_dateKey(sDate)} ~ ${_dateKey(eDate)}')]);
+      sheet.appendRow([TextCellValue('추출 일시: ${DateTime.now().toString().substring(0, 19)}')]);
+      sheet.appendRow([TextCellValue('')]);
+      sheet.appendRow([
+        TextCellValue('기록 일자'),
+        TextCellValue('약물 ID'),
+        TextCellValue('약품명'),
+        TextCellValue('복용법'),
+        TextCellValue('기타 메모'),
+        TextCellValue('복용 주기'),
+        TextCellValue('복용 기간'),
+        TextCellValue('회차(시간대)'),
+        TextCellValue('예정 시각'),
+        TextCellValue('복용 여부'),
+        TextCellValue('실제 복용 시각'),
+        TextCellValue('기록 방식'),
+      ]);
+
+      final otcMeds = _medications.where((m) => !m.isPrescription).toList();
+      for (final day in dateRange) {
+        final dStr = _dateKey(day);
+        for (final med in otcMeds) {
+          for (int slotIdx = 0; slotIdx < med.doseSlots.length; slotIdx++) {
+            final slot = med.doseSlots[slotIdx];
+            final isDone = isSlotCompletedForDay(day, med.id, slotIdx);
+            final takenTime = getSlotTakenTimeForDay(day, med.id, slotIdx) ?? (isDone ? (slot.scheduledTime ?? '완료') : '-');
+            final statusStr = isDone ? '복용 완료' : (slot.isSkipped ? '건너뜀' : '미복용/대기');
+            final recordMethod = !isDone
+                ? '-'
+                : (isSlotRetroactive(day, med.id, slotIdx) ? '달력 사후 수정' : '당일 실시간 체크');
+
+            sheet.appendRow([
+              TextCellValue(dStr),
+              TextCellValue(med.id),
+              TextCellValue(med.name),
+              TextCellValue(med.dosage),
+              TextCellValue(med.memo ?? '-'),
+              TextCellValue(med.recurrenceSummary),
+              TextCellValue(med.durationSummary),
+              TextCellValue(slot.label),
+              TextCellValue(slot.scheduledTime ?? '-'),
+              TextCellValue(statusStr),
+              TextCellValue(takenTime),
+              TextCellValue(recordMethod),
+            ]);
+          }
         }
       }
-      buffer.writeln('');
     }
 
-    // 3. 🌱 작은 습관 데이터
+    // 3. 🌱 3. 작은 습관 관리 데이터 시트
     if (includeHabits) {
-      buffer.writeln('--- [3. 작은 습관 관리 데이터] ---');
-      buffer.writeln(
-        '기록 일자,습관 ID,습관 제목,상세 설명,실천 주기,1일 목표 횟수,오늘 실천 횟수,주간 완료 횟수,달성률(%),비처벌적 평가 상태',
-      );
+      final Sheet sheet = excel['3. 작은 습관'];
+      sheet.appendRow([TextCellValue('3. 작은 습관 관리 데이터')]);
+      sheet.appendRow([TextCellValue('조회 기간: ${_dateKey(sDate)} ~ ${_dateKey(eDate)}')]);
+      sheet.appendRow([TextCellValue('추출 일시: ${DateTime.now().toString().substring(0, 19)}')]);
+      sheet.appendRow([TextCellValue('')]);
+      sheet.appendRow([
+        TextCellValue('기록 일자'),
+        TextCellValue('습관 ID'),
+        TextCellValue('습관 제목'),
+        TextCellValue('상세 설명'),
+        TextCellValue('실천 주기'),
+        TextCellValue('1일 목표 횟수'),
+        TextCellValue('해당일 실천 점수'),
+        TextCellValue('달성률(%)'),
+        TextCellValue('평가 상태'),
+      ]);
 
-      for (final habit in _habits) {
-        final percent = (habit.score * 100).toInt();
-        final evaluation = habit.score >= 1.0
-            ? '목표 달성'
-            : (habit.score > 0 ? '다정한 일부 실천' : '실천 대기');
-        buffer.writeln(
-          '"$nowStr","${habit.id}","${habit.title}","${habit.subtitle}","${habit.recurrenceSummary}","${habit.targetPerDay}회","${habit.currentCount}회","${habit.weeklyCompletedCount}회","$percent%","$evaluation"',
-        );
+      for (final day in dateRange) {
+        final dStr = _dateKey(day);
+        for (final habit in _habits) {
+          final score = getHabitScoreForDay(day, habit.id);
+          final percent = (score * 100).toInt();
+          final evaluation = score >= 1.0 ? '목표 달성' : (score > 0 ? '일부 실천' : '실천 대기');
+          sheet.appendRow([
+            TextCellValue(dStr),
+            TextCellValue(habit.id),
+            TextCellValue(habit.title),
+            TextCellValue(habit.subtitle),
+            TextCellValue(habit.recurrenceSummary),
+            TextCellValue('${habit.targetPerDay}회'),
+            TextCellValue(score.toString()),
+            TextCellValue('$percent%'),
+            TextCellValue(evaluation),
+          ]);
+        }
       }
-      buffer.writeln('');
     }
 
-    // 4. 🗓️ 할일 및 진료 일정 데이터
+    // 4. 🗓️ 4. 할일 및 일정 관리 데이터 시트
     if (includeTasks) {
-      buffer.writeln('--- [4. 할일 및 일정 관리 데이터] ---');
-      buffer.writeln('대상 일자,일정 ID,일정명,예정 시각,완료 여부,반복 설정,알림 설정');
+      final Sheet sheet = excel['4. 할일 및 일정'];
+      sheet.appendRow([TextCellValue('4. 할일 및 일정 관리 데이터')]);
+      sheet.appendRow([TextCellValue('조회 기간: ${_dateKey(sDate)} ~ ${_dateKey(eDate)}')]);
+      sheet.appendRow([TextCellValue('추출 일시: ${DateTime.now().toString().substring(0, 19)}')]);
+      sheet.appendRow([TextCellValue('')]);
+      sheet.appendRow([
+        TextCellValue('대상 일자'),
+        TextCellValue('일정 ID'),
+        TextCellValue('일정명'),
+        TextCellValue('예정 시각'),
+        TextCellValue('완료 여부'),
+        TextCellValue('반복 설정'),
+        TextCellValue('알림 설정'),
+      ]);
 
-      for (final task in _tasks) {
-        final dateStr =
-            '${task.date.year}-${task.date.month.toString().padLeft(2, '0')}-${task.date.day.toString().padLeft(2, '0')}';
-        final statusStr = task.isCompleted ? '완료' : '진행 대기';
-        buffer.writeln(
-          '"$dateStr","${task.id}","${task.title}","${task.time ?? '-'}","$statusStr","${task.repeatSummary}","${task.reminderSummary}"',
-        );
+      for (final day in dateRange) {
+        final dayTasks = getTasksForDay(day);
+        final dStr = _dateKey(day);
+        for (final task in dayTasks) {
+          final statusStr = task.isCompleted ? '완료' : '진행 대기';
+          sheet.appendRow([
+            TextCellValue(dStr),
+            TextCellValue(task.id),
+            TextCellValue(task.title),
+            TextCellValue(task.time ?? '-'),
+            TextCellValue(statusStr),
+            TextCellValue(task.repeatSummary),
+            TextCellValue(task.reminderSummary),
+          ]);
+        }
       }
-      buffer.writeln('');
     }
-    return buffer.toString();
+
+    // 기본 생성되는 빈 Sheet1 제거 (원하는 시트가 하나라도 생성된 경우)
+    if (excel.sheets.keys.any((k) => k != 'Sheet1')) {
+      excel.delete('Sheet1');
+    }
+
+    return excel.encode() ?? <int>[];
   }
 
-  // 🌟 기존 레거시 함수 호환
+  // 🌟 [통합 건강 데이터 다중 섹션 추출기 (CSV 호환)]:
+  Map<String, String> generateHealthDataReportsBySection({
+    required DateTime startDate,
+    required DateTime endDate,
+    bool includePrescription = true,
+    bool includeOtc = true,
+    bool includeHabits = true,
+    bool includeTasks = true,
+  }) {
+    final Map<String, String> result = {};
+    final sDate = DateTime(startDate.year, startDate.month, startDate.day);
+    final eDate = DateTime(endDate.year, endDate.month, endDate.day);
+
+    // 날짜 목록 생성
+    final List<DateTime> dateRange = [];
+    DateTime cur = sDate;
+    while (!cur.isAfter(eDate)) {
+      dateRange.add(cur);
+      cur = cur.add(const Duration(days: 1));
+    }
+
+    // 1. 💊 1. 처방약 관리 데이터
+    if (includePrescription) {
+      final buf = StringBuffer();
+      buf.write('\uFEFF');
+      buf.writeln('1. 처방약 관리 데이터');
+      buf.writeln('조회 기간,${_dateKey(sDate)} ~ ${_dateKey(eDate)}');
+      buf.writeln('추출 일시,${DateTime.now().toString().substring(0, 19)}');
+      buf.writeln('');
+      buf.writeln('기록 일자,약물 ID,약품명,복용법,기타 메모,복용 주기,복용 기간,회차(시간대),예정 시각,복용 여부,실제 복용 시각,기록 방식');
+
+      final rxMeds = _medications.where((m) => m.isPrescription).toList();
+      for (final day in dateRange) {
+        final dStr = _dateKey(day);
+        for (final med in rxMeds) {
+          for (int slotIdx = 0; slotIdx < med.doseSlots.length; slotIdx++) {
+            final slot = med.doseSlots[slotIdx];
+            final isDone = isSlotCompletedForDay(day, med.id, slotIdx);
+            final takenTime = getSlotTakenTimeForDay(day, med.id, slotIdx) ?? (isDone ? (slot.scheduledTime ?? '완료') : '-');
+            final statusStr = isDone ? '복용 완료' : (slot.isSkipped ? '건너뜀' : '미복용/대기');
+            final recordMethod = !isDone
+                ? '-'
+                : (isSlotRetroactive(day, med.id, slotIdx) ? '달력 사후 수정' : '당일 실시간 체크');
+            buf.writeln(
+              '"$dStr","${med.id}","${med.name}","${med.dosage}","${med.memo ?? '-'}","${med.recurrenceSummary}","${med.durationSummary}","${slot.label}","${slot.scheduledTime ?? '-'}","$statusStr","$takenTime","$recordMethod"',
+            );
+          }
+        }
+      }
+      result['1_처방약_관리_데이터'] = buf.toString();
+    }
+
+    // 2. 🌿 2. 일반의약품 및 영양제 데이터
+    if (includeOtc) {
+      final buf = StringBuffer();
+      buf.write('\uFEFF');
+      buf.writeln('2. 일반의약품 및 영양제 데이터');
+      buf.writeln('조회 기간,${_dateKey(sDate)} ~ ${_dateKey(eDate)}');
+      buf.writeln('추출 일시,${DateTime.now().toString().substring(0, 19)}');
+      buf.writeln('');
+      buf.writeln('기록 일자,약물 ID,약품명,복용법,기타 메모,복용 주기,복용 기간,회차(시간대),예정 시각,복용 여부,실제 복용 시각,기록 방식');
+
+      final otcMeds = _medications.where((m) => !m.isPrescription).toList();
+      for (final day in dateRange) {
+        final dStr = _dateKey(day);
+        for (final med in otcMeds) {
+          for (int slotIdx = 0; slotIdx < med.doseSlots.length; slotIdx++) {
+            final slot = med.doseSlots[slotIdx];
+            final isDone = isSlotCompletedForDay(day, med.id, slotIdx);
+            final takenTime = getSlotTakenTimeForDay(day, med.id, slotIdx) ?? (isDone ? (slot.scheduledTime ?? '완료') : '-');
+            final statusStr = isDone ? '복용 완료' : (slot.isSkipped ? '건너뜀' : '미복용/대기');
+            final recordMethod = !isDone
+                ? '-'
+                : (isSlotRetroactive(day, med.id, slotIdx) ? '달력 사후 수정' : '당일 실시간 체크');
+            buf.writeln(
+              '"$dStr","${med.id}","${med.name}","${med.dosage}","${med.memo ?? '-'}","${med.recurrenceSummary}","${med.durationSummary}","${slot.label}","${slot.scheduledTime ?? '-'}","$statusStr","$takenTime","$recordMethod"',
+            );
+          }
+        }
+      }
+      result['2_일반의약품_영양제_데이터'] = buf.toString();
+    }
+
+    // 3. 🌱 3. 작은 습관 관리 데이터
+    if (includeHabits) {
+      final buf = StringBuffer();
+      buf.write('\uFEFF');
+      buf.writeln('3. 작은 습관 관리 데이터');
+      buf.writeln('조회 기간,${_dateKey(sDate)} ~ ${_dateKey(eDate)}');
+      buf.writeln('추출 일시,${DateTime.now().toString().substring(0, 19)}');
+      buf.writeln('');
+      buf.writeln('기록 일자,습관 ID,습관 제목,상세 설명,실천 주기,1일 목표 횟수,해당일 실천 점수,달성률(%),평가 상태');
+
+      for (final day in dateRange) {
+        final dStr = _dateKey(day);
+        for (final habit in _habits) {
+          final score = getHabitScoreForDay(day, habit.id);
+          final percent = (score * 100).toInt();
+          final evaluation = score >= 1.0 ? '목표 달성' : (score > 0 ? '일부 실천' : '실천 대기');
+          buf.writeln(
+            '"$dStr","${habit.id}","${habit.title}","${habit.subtitle}","${habit.recurrenceSummary}","${habit.targetPerDay}회","$score","$percent%","$evaluation"',
+          );
+        }
+      }
+      result['3_작은_습관_관리_데이터'] = buf.toString();
+    }
+
+    // 4. 🗓️ 4. 할일 및 일정 관리 데이터
+    if (includeTasks) {
+      final buf = StringBuffer();
+      buf.write('\uFEFF');
+      buf.writeln('4. 할일 및 일정 관리 데이터');
+      buf.writeln('조회 기간,${_dateKey(sDate)} ~ ${_dateKey(eDate)}');
+      buf.writeln('추출 일시,${DateTime.now().toString().substring(0, 19)}');
+      buf.writeln('');
+      buf.writeln('대상 일자,일정 ID,일정명,예정 시각,완료 여부,반복 설정,알림 설정');
+
+      for (final day in dateRange) {
+        final dayTasks = getTasksForDay(day);
+        final dStr = _dateKey(day);
+        for (final task in dayTasks) {
+          final statusStr = task.isCompleted ? '완료' : '진행 대기';
+          buf.writeln(
+            '"$dStr","${task.id}","${task.title}","${task.time ?? '-'}","$statusStr","${task.repeatSummary}","${task.reminderSummary}"',
+          );
+        }
+      }
+      result['4_할일_및_일정_데이터'] = buf.toString();
+    }
+
+    return result;
+  }
+
+  // 🌟 기존 레거시 함수 호환 (단일 문자열로 합침)
+  String generateComprehensiveHealthDataReport({
+    DateTime? startDate,
+    DateTime? endDate,
+    bool includePrescription = true,
+    bool includeOtc = true,
+    bool includeHabits = true,
+    bool includeTasks = true,
+  }) {
+    final sDate = startDate ?? trackingStartDate;
+    final eDate = endDate ?? DateTime.now();
+    final map = generateHealthDataReportsBySection(
+      startDate: sDate,
+      endDate: eDate,
+      includePrescription: includePrescription,
+      includeOtc: includeOtc,
+      includeHabits: includeHabits,
+      includeTasks: includeTasks,
+    );
+    return map.values.join('\n\n');
+  }
+
   String generateMedicalCsvReport() {
     return generateComprehensiveHealthDataReport();
   }
 }
+
