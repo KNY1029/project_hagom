@@ -40,6 +40,9 @@ class HagomAlarmManager {
               '${med.name} (${slot.label})',
             ),
             'isEssential': true,
+            'actionUri':
+                'hagomwidget://checkmed?id=${Uri.encodeComponent(med.id)}&slot=$i',
+            'actionLabel': '복용 완료',
             'repeatDays': _getRepeatDaysList(
               med.recurrenceSummary,
               med.repeatDays,
@@ -57,6 +60,9 @@ class HagomAlarmManager {
               'title': '하곰이 복약 재알림',
               'message': '애써 돈 들여서 타온 약, 낭비하지 말자구요^^;',
               'isEssential': true,
+              'actionUri':
+                  'hagomwidget://checkmed?id=${Uri.encodeComponent(med.id)}&slot=$i',
+              'actionLabel': '복용 완료',
             });
           }
         }
@@ -77,6 +83,9 @@ class HagomAlarmManager {
               'title': '하곰이 습관 알림',
               'message': HagomDialogue.getRequiredReminder(habit.title),
               'isEssential': true,
+              'actionUri':
+                  'hagomwidget://checkhabit?id=${Uri.encodeComponent(habit.id)}&cur=${habit.currentCount}&target=${habit.targetPerDay}',
+              'actionLabel': '실천 완료',
               'repeatDays': _getRepeatDaysList(
                 habit.recurrenceSummary,
                 habit.repeatDays,
@@ -121,6 +130,9 @@ class HagomAlarmManager {
               'title': '하곰이 할 일 알림',
               'message': HagomDialogue.getRequiredReminder(task.title),
               'isEssential': true,
+              'actionUri':
+                  'hagomwidget://checktask?id=${Uri.encodeComponent(task.id)}',
+              'actionLabel': '완료',
             });
           } else if (alarmDate.isAfter(now)) {
             schedules.add({
@@ -129,6 +141,9 @@ class HagomAlarmManager {
               'title': '하곰이 할 일 알림',
               'message': HagomDialogue.getRequiredReminder(task.title),
               'isEssential': true,
+              'actionUri':
+                  'hagomwidget://checktask?id=${Uri.encodeComponent(task.id)}',
+              'actionLabel': '완료',
             });
           }
         }
