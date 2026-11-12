@@ -752,13 +752,6 @@ class _MedsTabViewState extends State<MedsTabView> {
                                       : FontWeight.normal,
                                 ),
                                 onSelected: (sel) async {
-                                  setModalState(() {
-                                    if (sel) {
-                                      currentSlots.removeWhere(
-                                        (slot) => slot.label == '복용',
-                                      );
-                                    }
-                                  });
                                   if (sel) {
                                     final selectedTime = await ensureRoutineTime(label);
                                     if (selectedTime == null) return;
@@ -827,9 +820,6 @@ class _MedsTabViewState extends State<MedsTabView> {
                                         await ensureRoutineTime(customLabel);
                                     if (selectedTime == null) return;
                                     setModalState(() {
-                                      currentSlots.removeWhere(
-                                        (slot) => slot.label == '복용',
-                                      );
                                       currentSlots.add(
                                         DoseSlot(
                                           label: customLabel,
@@ -977,12 +967,12 @@ class _MedsTabViewState extends State<MedsTabView> {
                                     : time.hourOfPeriod;
                                 final minute = time.minute.toString().padLeft(2, '0');
                                 setModalState(() {
-                                  currentSlots = [
+                                  currentSlots.add(
                                     DoseSlot(
                                       label: '복용',
                                       scheduledTime: '$period $hour:$minute',
                                     ),
-                                  ];
+                                  );
                                 });
                               },
                             ),
