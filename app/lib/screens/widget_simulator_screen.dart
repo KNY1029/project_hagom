@@ -548,6 +548,7 @@ class _WidgetSimulatorScreenState extends State<WidgetSimulatorScreen> {
                   context,
                   title: '복약 취소',
                   message: '복약 기록을 취소했어요.',
+                  isCompletionFeedback: false,
                 );
               } else {
                 _state.completeSlot(medId, slotIndex);
@@ -613,7 +614,9 @@ class _WidgetSimulatorScreenState extends State<WidgetSimulatorScreen> {
     final habit = todayHabits.isNotEmpty ? todayHabits.first : null;
 
     final String habitTitle = habit != null ? habit.title : '등록된 습관 없음';
-    final String habitSubtitle = habit != null ? habit.subtitle : '습관 탭에서 새로운 습관을 추가해 보세요';
+    final String habitSubtitle = habit != null
+        ? '${habit.subtitle}${habit.scheduledTimes.isEmpty ? '' : ' (${habit.scheduledTimes.join(', ')})'}'
+        : '습관 탭에서 새로운 습관을 추가해 보세요';
     final String statusLabel = habit != null ? habit.statusLabel : '대기';
     final bool isAllDone = habit != null && habit.score >= 1.0;
 
@@ -719,6 +722,7 @@ class _WidgetSimulatorScreenState extends State<WidgetSimulatorScreen> {
                   context,
                   title: '습관 리셋',
                   message: '습관 진행을 초기화했어요.',
+                  isCompletionFeedback: false,
                 );
               } else {
                 _state.advanceHabitProgress(habit.id);
@@ -885,6 +889,7 @@ class _WidgetSimulatorScreenState extends State<WidgetSimulatorScreen> {
                 context,
                 title: !isCompleted ? '할일 완료' : '할일 취소',
                 message: !isCompleted ? '위젯에서 할일을 완료했어요!' : '할일 완료를 취소했어요.',
+                isCompletionFeedback: !isCompleted,
               );
             },
             child: Container(
