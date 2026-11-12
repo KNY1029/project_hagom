@@ -168,22 +168,22 @@ class HagomMonthCalendarWidgetProvider : HomeWidgetProvider() {
                             when (status) {
                                 "today" -> R.drawable.hagom_widget_today_bg_sel
                                 "today_pin" -> R.drawable.hagom_widget_today_pin_sel
-                                "today_done" -> R.drawable.hagom_widget_today_done_bg_sel
-                                "today_done_pin" -> R.drawable.hagom_widget_today_done_pin_sel
+                                "today_done" -> if (isColorVision) R.drawable.hagom_widget_today_done_bg_cv_sel else R.drawable.hagom_widget_today_done_bg_sel
+                                "today_done_pin" -> if (isColorVision) R.drawable.hagom_widget_today_done_pin_cv_sel else R.drawable.hagom_widget_today_done_pin_sel
                                 "today_med_done" -> if (isColorVision) R.drawable.hagom_widget_today_med_done_cv_sel else R.drawable.hagom_widget_today_med_done_sel
                                 "today_med_done_pin" -> if (isColorVision) R.drawable.hagom_widget_today_med_done_pin_cv_sel else R.drawable.hagom_widget_today_med_done_pin_sel
-                                "all_done" -> R.drawable.hagom_widget_done_bg_sel
-                                "all_done_pin" -> R.drawable.hagom_widget_done_pin_green_sel
-                                "mdone" -> R.drawable.hagom_widget_done_med_bar_sel
-                                "mdone_pin" -> R.drawable.hagom_widget_done_med_bar_pin_sel
-                                "hdone_mdone" -> R.drawable.hagom_widget_habit_done_med_done_sel
-                                "hdone_mdone_pin" -> R.drawable.hagom_widget_habit_done_med_done_pin_sel
-                                "hdone_mmissed" -> R.drawable.hagom_widget_habit_done_med_missed_sel
-                                "hdone_mmissed_pin" -> R.drawable.hagom_widget_habit_done_med_missed_pin_sel
+                                "all_done" -> if (isColorVision) R.drawable.hagom_widget_done_bg_cv_sel else R.drawable.hagom_widget_done_bg_sel
+                                "all_done_pin" -> if (isColorVision) R.drawable.hagom_widget_done_pin_green_cv_sel else R.drawable.hagom_widget_done_pin_green_sel
+                                "mdone" -> if (isColorVision) R.drawable.hagom_widget_done_med_bar_cv_sel else R.drawable.hagom_widget_done_med_bar_sel
+                                "mdone_pin" -> if (isColorVision) R.drawable.hagom_widget_done_med_bar_pin_cv_sel else R.drawable.hagom_widget_done_med_bar_pin_sel
+                                "hdone_mdone" -> if (isColorVision) R.drawable.hagom_widget_habit_done_med_done_cv_sel else R.drawable.hagom_widget_habit_done_med_done_sel
+                                "hdone_mdone_pin" -> if (isColorVision) R.drawable.hagom_widget_habit_done_med_done_pin_cv_sel else R.drawable.hagom_widget_habit_done_med_done_pin_sel
+                                "hdone_mmissed" -> if (isColorVision) R.drawable.hagom_widget_habit_done_med_missed_cv_sel else R.drawable.hagom_widget_habit_done_med_missed_sel
+                                "hdone_mmissed_pin" -> if (isColorVision) R.drawable.hagom_widget_habit_done_med_missed_pin_cv_sel else R.drawable.hagom_widget_habit_done_med_missed_pin_sel
                                 "hdone_mpartial" -> R.drawable.hagom_widget_habit_done_med_partial_sel
                                 "hdone_mpartial_pin" -> R.drawable.hagom_widget_habit_done_med_partial_pin_sel
-                                "missed_med" -> R.drawable.hagom_widget_bar_red_sel
-                                "missed_med_pin" -> R.drawable.hagom_widget_bar_red_pin_sel
+                                "missed_med" -> if (isColorVision) R.drawable.hagom_widget_bar_red_cv_sel else R.drawable.hagom_widget_bar_red_sel
+                                "missed_med_pin" -> if (isColorVision) R.drawable.hagom_widget_bar_red_pin_cv_sel else R.drawable.hagom_widget_bar_red_pin_sel
                                 "partial" -> R.drawable.hagom_widget_bar_brown_sel
                                 "partial_pin" -> R.drawable.hagom_widget_bar_brown_pin_sel
                                 "pin_only" -> R.drawable.hagom_widget_pin_lavender_sel
@@ -193,22 +193,22 @@ class HagomMonthCalendarWidgetProvider : HomeWidgetProvider() {
                             when (status) {
                                 "today" -> R.drawable.hagom_widget_today_bg
                                 "today_pin" -> R.drawable.hagom_widget_today_pin
-                                "today_done" -> R.drawable.hagom_widget_today_done_bg
-                                "today_done_pin" -> R.drawable.hagom_widget_today_done_pin
+                                "today_done" -> if (isColorVision) R.drawable.hagom_widget_today_done_bg_cv else R.drawable.hagom_widget_today_done_bg
+                                "today_done_pin" -> if (isColorVision) R.drawable.hagom_widget_today_done_pin_cv else R.drawable.hagom_widget_today_done_pin
                                 "today_med_done" -> if (isColorVision) R.drawable.hagom_widget_today_med_done_cv else R.drawable.hagom_widget_today_med_done
                                 "today_med_done_pin" -> if (isColorVision) R.drawable.hagom_widget_today_med_done_pin_cv else R.drawable.hagom_widget_today_med_done_pin
-                                "all_done" -> R.drawable.hagom_widget_done_bg
-                                "all_done_pin" -> R.drawable.hagom_widget_done_pin_green
-                                "mdone" -> R.drawable.hagom_widget_done_med_bar
-                                "mdone_pin" -> R.drawable.hagom_widget_done_med_bar_pin
-                                "hdone_mdone" -> R.drawable.hagom_widget_habit_done_med_done
-                                "hdone_mdone_pin" -> R.drawable.hagom_widget_habit_done_med_done_pin
-                                "hdone_mmissed" -> R.drawable.hagom_widget_habit_done_med_missed
-                                "hdone_mmissed_pin" -> R.drawable.hagom_widget_habit_done_med_missed_pin
+                                "all_done" -> if (isColorVision) R.drawable.hagom_widget_done_bg_cv else R.drawable.hagom_widget_done_bg
+                                "all_done_pin" -> if (isColorVision) R.drawable.hagom_widget_done_pin_green_cv else R.drawable.hagom_widget_done_pin_green
+                                "mdone" -> if (isColorVision) R.drawable.hagom_widget_done_med_bar_cv else R.drawable.hagom_widget_done_med_bar
+                                "mdone_pin" -> if (isColorVision) R.drawable.hagom_widget_done_med_bar_pin_cv else R.drawable.hagom_widget_done_med_bar_pin
+                                "hdone_mdone" -> if (isColorVision) R.drawable.hagom_widget_habit_done_med_done_cv else R.drawable.hagom_widget_habit_done_med_done
+                                "hdone_mdone_pin" -> if (isColorVision) R.drawable.hagom_widget_habit_done_med_done_pin_cv else R.drawable.hagom_widget_habit_done_med_done_pin
+                                "hdone_mmissed" -> if (isColorVision) R.drawable.hagom_widget_habit_done_med_missed_cv else R.drawable.hagom_widget_habit_done_med_missed
+                                "hdone_mmissed_pin" -> if (isColorVision) R.drawable.hagom_widget_habit_done_med_missed_pin_cv else R.drawable.hagom_widget_habit_done_med_missed_pin
                                 "hdone_mpartial" -> R.drawable.hagom_widget_habit_done_med_partial
                                 "hdone_mpartial_pin" -> R.drawable.hagom_widget_habit_done_med_partial_pin
-                                "missed_med" -> R.drawable.hagom_widget_bar_red
-                                "missed_med_pin" -> R.drawable.hagom_widget_bar_red_pin
+                                "missed_med" -> if (isColorVision) R.drawable.hagom_widget_bar_red_cv else R.drawable.hagom_widget_bar_red
+                                "missed_med_pin" -> if (isColorVision) R.drawable.hagom_widget_bar_red_pin_cv else R.drawable.hagom_widget_bar_red_pin
                                 "partial" -> R.drawable.hagom_widget_bar_brown
                                 "partial_pin" -> R.drawable.hagom_widget_bar_brown_pin
                                 "pin_only" -> R.drawable.hagom_widget_pin_lavender
