@@ -87,13 +87,29 @@ class _MedsTabViewState extends State<MedsTabView> {
           : '',
     );
 
-    List<DoseSlot> currentSlots = isEditing
+    final existingAsNeededHistory = isEditing && med.recurrenceSummary == '필요 시'
+        ? med.doseSlots
+              .where((s) => s.isCompleted || s.isSkipped)
+              .map(
+                (s) => DoseSlot(
+                  label: s.label,
+                  scheduledTime: s.scheduledTime,
+                  isCompleted: s.isCompleted,
+                  isSkipped: s.isSkipped,
+                  takenTime: s.takenTime,
+                ),
+              )
+              .toList()
+        : <DoseSlot>[];
+
+    List<DoseSlot> currentSlots = isEditing && med.recurrenceSummary != '필요 시'
         ? med.doseSlots
               .map(
                 (s) => DoseSlot(
                   label: s.label,
                   scheduledTime: s.scheduledTime,
                   isCompleted: s.isCompleted,
+                  isSkipped: s.isSkipped,
                   takenTime: s.takenTime,
                 ),
               )
@@ -854,7 +870,8 @@ class _MedsTabViewState extends State<MedsTabView> {
 
                         // 등록된 회차 목록 표시 (시간 간격 약물은 첫 복용 시각만 위에 표시하므로 숨김!)
                         if (currentSlots.isNotEmpty &&
-                            recurrenceType != '시간 간격')
+                            recurrenceType != '시간 간격' &&
+                            recurrenceType != '필요 시')
                           Container(
                             width: double.infinity,
                             padding: const EdgeInsets.symmetric(
@@ -1179,7 +1196,8 @@ class _MedsTabViewState extends State<MedsTabView> {
                                         scheduledTime: firstTime,
                                       ),
                                     ];
-                                  } else if (currentSlots.isEmpty) {
+                                  } else if (currentSlots.isEmpty &&
+                                      recurrenceType != '필요 시') {
                                     currentSlots.add(
                                       DoseSlot(
                                         label: '복용',
@@ -1187,6 +1205,12 @@ class _MedsTabViewState extends State<MedsTabView> {
                                       ),
                                     );
                                   }
+                                  final slotsToSave = recurrenceType == '필요 시'
+                                      ? [
+                                          ...existingAsNeededHistory,
+                                          ...currentSlots,
+                                        ]
+                                      : currentSlots;
                                   if (isEditing) {
                                     _state.updateMedication(
                                       id: med.id,
@@ -1194,7 +1218,7 @@ class _MedsTabViewState extends State<MedsTabView> {
                                       dosage: dosageCtrl.text.trim().isEmpty
                                           ? '1정'
                                           : dosageCtrl.text.trim(),
-                                      doseSlots: currentSlots,
+                                      doseSlots: slotsToSave,
                                       recurrenceSummary: recurrenceSummary,
                                       durationSummary: durationSummary,
                                       isPrescription: isPrescription,
@@ -1211,7 +1235,7 @@ class _MedsTabViewState extends State<MedsTabView> {
                                       dosage: dosageCtrl.text.trim().isEmpty
                                           ? '1정'
                                           : dosageCtrl.text.trim(),
-                                      doseSlots: currentSlots,
+                                      doseSlots: slotsToSave,
                                       recurrenceSummary: recurrenceSummary,
                                       durationSummary: durationSummary,
                                       isPrescription: isPrescription,
