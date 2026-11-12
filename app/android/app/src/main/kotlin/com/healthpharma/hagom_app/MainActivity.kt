@@ -25,6 +25,7 @@ class MainActivity : FlutterActivity() {
     private val testNotificationChannelId = "hagom_test_notifications"
     private val notificationPermissionRequestCode = 3007
     private var pendingNotificationResult: MethodChannel.Result? = null
+    private var notificationPermissionRequested = false
 
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
@@ -45,6 +46,7 @@ class MainActivity : FlutterActivity() {
                 }
                 "showTestNotification" -> showTestNotification(result)
                 "syncAlarms" -> {
+                    requestNotificationPermissionIfNeeded()
                     val schedulesJson = call.argument<String>("schedulesJson") ?: "[]"
                     HagomAlarmScheduler.scheduleAlarmsFromJson(this, schedulesJson)
                     result.success(true)
@@ -212,6 +214,19 @@ class MainActivity : FlutterActivity() {
             return
         }
         result.success(postTestNotification())
+    }
+
+    private fun requestNotificationPermissionIfNeeded() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
+            checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED &&
+            !notificationPermissionRequested
+        ) {
+            notificationPermissionRequested = true
+            requestPermissions(
+                arrayOf(Manifest.permission.POST_NOTIFICATIONS),
+                notificationPermissionRequestCode
+            )
+        }
     }
 
     private fun postTestNotification(): Boolean {

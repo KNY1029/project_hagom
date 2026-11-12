@@ -103,7 +103,10 @@ object HagomAlarmScheduler {
             }
         }
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && !am.canScheduleExactAlarms()) {
+            // 정확한 알람 권한을 아직 허용하지 않은 기기에서도 알림 자체는 놓치지 않도록 fallback.
+            am.setAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, cal.timeInMillis, pi)
+        } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             am.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, cal.timeInMillis, pi)
         } else {
             am.setExact(AlarmManager.RTC_WAKEUP, cal.timeInMillis, pi)
