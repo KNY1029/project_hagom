@@ -1883,105 +1883,122 @@ class _MedsTabViewState extends State<MedsTabView> {
                         Wrap(
                           spacing: 6,
                           runSpacing: 4,
-                          children: med.doseSlots.asMap().entries.map((entry) {
-                            final idx = entry.key;
-                            final slot = entry.value;
-                            return MouseRegion(
-                              cursor: SystemMouseCursors.click,
-                              child: GestureDetector(
-                                behavior: HitTestBehavior.opaque,
-                                onTap: () {
-                                  if (!slot.isCompleted && !slot.isSkipped) {
-                                    final todayMeds = _state.medications
-                                        .where((m) => m.isDueToday)
-                                        .toList();
-                                    final wasAllMedsDoneBefore =
-                                        todayMeds.isNotEmpty &&
-                                        todayMeds.every(
-                                          (m) => m.isAllCompleted,
-                                        );
-                                    _state.completeSlot(med.id, idx);
-                                    final isAllMedsDoneNow =
-                                        todayMeds.isNotEmpty &&
-                                        todayMeds.every(
-                                          (m) => m.isAllCompleted,
-                                        );
+                          children: med.doseSlots
+                              .asMap()
+                              .entries
+                              .where((entry) {
+                                // 필요 시 약은 복용 전 예정 회차를 표시하지 않고,
+                                // 실제 복용한 회차만 이력으로 보여준다.
+                                return !isAsNeeded ||
+                                    entry.value.isCompleted ||
+                                    entry.value.isSkipped;
+                              })
+                              .map((entry) {
+                                final idx = entry.key;
+                                final slot = entry.value;
+                                return MouseRegion(
+                                  cursor: SystemMouseCursors.click,
+                                  child: GestureDetector(
+                                    behavior: HitTestBehavior.opaque,
+                                    onTap: () {
+                                      if (!slot.isCompleted &&
+                                          !slot.isSkipped) {
+                                        final todayMeds = _state.medications
+                                            .where((m) => m.isDueToday)
+                                            .toList();
+                                        final wasAllMedsDoneBefore =
+                                            todayMeds.isNotEmpty &&
+                                            todayMeds.every(
+                                              (m) => m.isAllCompleted,
+                                            );
+                                        _state.completeSlot(med.id, idx);
+                                        final isAllMedsDoneNow =
+                                            todayMeds.isNotEmpty &&
+                                            todayMeds.every(
+                                              (m) => m.isAllCompleted,
+                                            );
 
-                                    if (!wasAllMedsDoneBefore &&
-                                        isAllMedsDoneNow) {
-                                      // 🎉 오늘 하루 먹어야 하는 모든 복약 100% 올클리어! 축하 오버레이 팝업 등장!
-                                      HagomCelebrationOverlay.show(
-                                        context,
-                                        assetPath: AppAssets.medsAllDoneWebp,
-                                        title: '오늘 복약 모두 완료!',
-                                        subtitle: '정말 대단해요! 오늘 복약을 전부 챙기셨어요.',
-                                      );
-                                    } else {
-                                      final toast =
-                                          HagomDialogue.getRandomMedToast(
-                                            '${med.name} ${slot.label}',
+                                        if (!wasAllMedsDoneBefore &&
+                                            isAllMedsDoneNow) {
+                                          // 🎉 오늘 하루 먹어야 하는 모든 복약 100% 올클리어! 축하 오버레이 팝업 등장!
+                                          HagomCelebrationOverlay.show(
+                                            context,
+                                            assetPath:
+                                                AppAssets.medsAllDoneWebp,
+                                            title: '오늘 복약 모두 완료!',
+                                            subtitle:
+                                                '정말 대단해요! 오늘 복약을 전부 챙기셨어요.',
                                           );
-                                      CelebrationToast.show(
-                                        context,
-                                        title: toast['title']!,
-                                        message: toast['message']!,
-                                      );
-                                    }
-                                  } else {
-                                    _showSlotActionSheet(med, idx, slot);
-                                  }
-                                },
-                                child: Container(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 8,
-                                    vertical: 3,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    color: slot.isCompleted
-                                        ? AppColors.completedBg
-                                        : (slot.isSkipped
-                                              ? const Color(0xFFF9FAFB)
-                                              : const Color(0xFFF3F4F6)),
-                                    borderRadius: BorderRadius.circular(6),
-                                    border: Border.all(
-                                      color: slot.isCompleted
-                                          ? AppColors.completedBorder
-                                          : (slot.isSkipped
-                                                ? AppColors.divider.withValues(
-                                                    alpha: 0.3,
-                                                  )
-                                                : AppColors.divider),
+                                        } else {
+                                          final toast =
+                                              HagomDialogue.getRandomMedToast(
+                                                '${med.name} ${slot.label}',
+                                              );
+                                          CelebrationToast.show(
+                                            context,
+                                            title: toast['title']!,
+                                            message: toast['message']!,
+                                          );
+                                        }
+                                      } else {
+                                        _showSlotActionSheet(med, idx, slot);
+                                      }
+                                    },
+                                    child: Container(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 8,
+                                        vertical: 3,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color: slot.isCompleted
+                                            ? AppColors.completedBg
+                                            : (slot.isSkipped
+                                                  ? const Color(0xFFF9FAFB)
+                                                  : const Color(0xFFF3F4F6)),
+                                        borderRadius: BorderRadius.circular(6),
+                                        border: Border.all(
+                                          color: slot.isCompleted
+                                              ? AppColors.completedBorder
+                                              : (slot.isSkipped
+                                                    ? AppColors.divider
+                                                          .withValues(
+                                                            alpha: 0.3,
+                                                          )
+                                                    : AppColors.divider),
+                                        ),
+                                      ),
+                                      child: Text(
+                                        slot.isSkipped
+                                            ? '${slot.label} 건너뜀'
+                                            : (slot.isCompleted
+                                                  ? '${slot.label} ${slot.takenTime?.split(' ').last ?? slot.scheduledTime?.split(' ').last ?? ''}'
+                                                        .trim()
+                                                  : '${slot.label} ${slot.scheduledTime?.split(' ').last ?? ''}'
+                                                        .trim()),
+                                        textAlign: TextAlign.center,
+                                        style: TextStyle(
+                                          fontSize: 11.0,
+                                          fontWeight: slot.isCompleted
+                                              ? FontWeight.bold
+                                              : FontWeight.w500,
+                                          color: slot.isCompleted
+                                              ? AppColors.completedText
+                                              : (slot.isSkipped
+                                                    ? AppColors.textMuted
+                                                          .withValues(
+                                                            alpha: 0.6,
+                                                          )
+                                                    : AppColors.textPrimary),
+                                          decoration: slot.isSkipped
+                                              ? TextDecoration.lineThrough
+                                              : null,
+                                        ),
+                                      ),
                                     ),
                                   ),
-                                  child: Text(
-                                    slot.isSkipped
-                                        ? '${slot.label} 건너뜀'
-                                        : (slot.isCompleted
-                                              ? '${slot.label} ${slot.takenTime?.split(' ').last ?? slot.scheduledTime?.split(' ').last ?? ''}'
-                                                    .trim()
-                                              : '${slot.label} ${slot.scheduledTime?.split(' ').last ?? ''}'
-                                                    .trim()),
-                                    textAlign: TextAlign.center,
-                                    style: TextStyle(
-                                      fontSize: 11.0,
-                                      fontWeight: slot.isCompleted
-                                          ? FontWeight.bold
-                                          : FontWeight.w500,
-                                      color: slot.isCompleted
-                                          ? AppColors.completedText
-                                          : (slot.isSkipped
-                                                ? AppColors.textMuted
-                                                      .withValues(alpha: 0.6)
-                                                : AppColors.textPrimary),
-                                      decoration: slot.isSkipped
-                                          ? TextDecoration.lineThrough
-                                          : null,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            );
-                          }).toList(),
+                                );
+                              })
+                              .toList(),
                         ),
                       ],
                     ),
