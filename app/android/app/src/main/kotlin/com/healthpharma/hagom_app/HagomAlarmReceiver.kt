@@ -33,6 +33,9 @@ class HagomAlarmReceiver : BroadcastReceiver() {
         val actionLabel = intent.getStringExtra("actionLabel") ?: "완료"
 
         sendNotification(context, notiId, title, message, isEssential, actionUri, actionLabel)
+
+        // AlarmManager 알람은 일회성이므로, 남아 있는 반복 일정은 다음 회차로 다시 등록한다.
+        HagomAlarmScheduler.rescheduleAll(context)
     }
 
     private fun sendNotification(context: Context, notiId: Int, title: String, message: String, isEssential: Boolean, actionUri: String, actionLabel: String) {

@@ -20,6 +20,8 @@ class HagomAlarmManager {
 
     // 1. 복약 알림 (일반 복약 알림 켜짐이거나 처방약인 경우)
     for (final med in state.medications) {
+      // 시작일 전이거나 종료일이 지난 약은 오늘 알림을 등록하지 않는다.
+      if (!med.isDueToday) continue;
       final shouldNotify = state.medsNotificationEnabled || med.isPrescription;
       if (!shouldNotify) continue;
 
@@ -121,20 +123,43 @@ class HagomAlarmManager {
             task.date.day,
           );
           final dueMinutes = time['hour']! * 60 + time['minute']!;
-          final alarmDate = dueDay.add(Duration(minutes: dueMinutes - offset));
-          if (task.isRepeated && task.repeatCycle == '매일') {
+          final totalAlarmMinutes = dueMinutes - offset;
+          final dayShift = totalAlarmMinutes < 0
+              ? (-totalAlarmMinutes + 1439) ~/ 1440
+              : 0;
+          final alarmHour = ((totalAlarmMinutes % 1440 + 1440) % 1440) ~/ 60;
+          final alarmMinute = (totalAlarmMinutes % 1440 + 1440) % 60;
+          final isDaily = task.isRepeated && task.repeatCycle == '매일';
+          final isWeekly =
+              task.isRepeated && task.repeatCycle == '매주 특정 요일';
+
+          if (isDaily || isWeekly) {
+            var repeatDays = isWeekly
+                ? _getRepeatDaysList('', task.repeatDays)
+                : <int>[];
+            if (isWeekly && repeatDays.isEmpty) continue;
+            if (repeatDays.isNotEmpty && dayShift > 0) {
+              repeatDays = repeatDays
+                  .map((day) => ((day - 1 - dayShift) % 7 + 7) % 7 + 1)
+                  .toList();
+            }
             schedules.add({
               'id': nextId++,
-              'hour': alarmDate.hour,
-              'minute': alarmDate.minute,
+              'hour': alarmHour,
+              'minute': alarmMinute,
               'title': '하곰이 할 일 알림',
               'message': HagomDialogue.getRequiredReminder(task.title),
               'isEssential': true,
               'actionUri':
                   'hagomwidget://checktask?id=${Uri.encodeComponent(task.id)}',
               'actionLabel': '완료',
+              if (repeatDays.isNotEmpty) 'repeatDays': repeatDays,
             });
-          } else if (alarmDate.isAfter(now)) {
+          } else {
+            final alarmDate = dueDay.add(
+              Duration(minutes: dueMinutes - offset),
+            );
+            if (!alarmDate.isAfter(now)) continue;
             schedules.add({
               'id': nextId++,
               'triggerAtMillis': alarmDate.millisecondsSinceEpoch,

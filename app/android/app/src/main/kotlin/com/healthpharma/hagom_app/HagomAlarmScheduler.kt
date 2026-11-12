@@ -14,6 +14,10 @@ object HagomAlarmScheduler {
     fun scheduleAlarmsFromJson(context: Context, schedulesJson: String) {
         val am = context.getSystemService(Context.ALARM_SERVICE) as? AlarmManager ?: return
         val prefs = context.getSharedPreferences("HagomAlarmPrefs", Context.MODE_PRIVATE)
+        val previousSchedulesJson = prefs.getString("last_schedules_json", null)
+        if (!previousSchedulesJson.isNullOrEmpty()) {
+            cancelAlarmsFromJson(context, am, previousSchedulesJson)
+        }
         prefs.edit().putString("last_schedules_json", schedulesJson).apply()
 
         try {
@@ -29,6 +33,15 @@ object HagomAlarmScheduler {
                 val actionUri = item.optString("actionUri", "")
                 val actionLabel = item.optString("actionLabel", "완료")
                 val repeatDays = item.optJSONArray("repeatDays") // e.g. [1, 2, 3...] 1=일요일
+                val triggerAtMillis = item.optLong("triggerAtMillis", -1L)
+
+                if (triggerAtMillis > 0L) {
+                    scheduleSingleAlarm(
+                        context, am, id, hour, minute, -1, title, message,
+                        isEssential, actionUri, actionLabel, triggerAtMillis
+                    )
+                    continue
+                }
 
                 val targetDays = mutableListOf<Int>()
                 if (repeatDays != null && repeatDays.length() > 0) {
@@ -51,6 +64,48 @@ object HagomAlarmScheduler {
         } catch (_: Exception) {}
     }
 
+    /** 일정이 바뀌었을 때 이전에 등록한 알람과 이미 표시된 알림도 함께 정리한다. */
+    private fun cancelAlarmsFromJson(context: Context, am: AlarmManager, schedulesJson: String) {
+        try {
+            val arr = JSONArray(schedulesJson)
+            val manager = context.getSystemService(Context.NOTIFICATION_SERVICE) as? android.app.NotificationManager
+            for (i in 0 until arr.length()) {
+                val item = arr.getJSONObject(i)
+                val id = item.getInt("id")
+                val repeatDays = item.optJSONArray("repeatDays")
+                if (repeatDays == null || repeatDays.length() == 0) {
+                    cancelAlarm(context, am, manager, id)
+                } else {
+                    for (dayIndex in 0 until repeatDays.length()) {
+                        cancelAlarm(context, am, manager, id * 10 + dayIndex)
+                    }
+                }
+            }
+        } catch (_: Exception) {}
+    }
+
+    private fun cancelAlarm(
+        context: Context,
+        am: AlarmManager,
+        manager: android.app.NotificationManager?,
+        alarmId: Int
+    ) {
+        val intent = Intent(context, HagomAlarmReceiver::class.java).apply {
+            action = HagomAlarmReceiver.ACTION_TRIGGER
+        }
+        val pi = PendingIntent.getBroadcast(
+            context,
+            alarmId,
+            intent,
+            PendingIntent.FLAG_NO_CREATE or PendingIntent.FLAG_IMMUTABLE
+        )
+        if (pi != null) {
+            am.cancel(pi)
+            pi.cancel()
+        }
+        manager?.cancel(alarmId)
+    }
+
     private fun scheduleSingleAlarm(
         context: Context,
         am: AlarmManager,
@@ -62,7 +117,8 @@ object HagomAlarmScheduler {
         message: String,
         isEssential: Boolean,
         actionUri: String,
-        actionLabel: String
+        actionLabel: String,
+        triggerAtMillis: Long? = null
     ) {
         val intent = Intent(context, HagomAlarmReceiver::class.java).apply {
             action = HagomAlarmReceiver.ACTION_TRIGGER
@@ -103,13 +159,16 @@ object HagomAlarmScheduler {
             }
         }
 
+        val triggerTime = triggerAtMillis ?: cal.timeInMillis
+        if (triggerTime <= System.currentTimeMillis()) return
+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && !am.canScheduleExactAlarms()) {
             // 정확한 알람 권한을 아직 허용하지 않은 기기에서도 알림 자체는 놓치지 않도록 fallback.
-            am.setAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, cal.timeInMillis, pi)
+            am.setAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, triggerTime, pi)
         } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            am.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, cal.timeInMillis, pi)
+            am.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, triggerTime, pi)
         } else {
-            am.setExact(AlarmManager.RTC_WAKEUP, cal.timeInMillis, pi)
+            am.setExact(AlarmManager.RTC_WAKEUP, triggerTime, pi)
         }
     }
 
