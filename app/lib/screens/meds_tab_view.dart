@@ -124,6 +124,7 @@ class _MedsTabViewState extends State<MedsTabView> {
       (isEditing ? med.startDate : DateTime.now()).month,
       (isEditing ? med.startDate : DateTime.now()).day,
     );
+    DateTime? endDate = isEditing ? med.endDate : null;
     String formatDate(DateTime date) =>
         '${date.year}.${date.month.toString().padLeft(2, '0')}.${date.day.toString().padLeft(2, '0')}';
     final durationDaysCtrl = TextEditingController(
@@ -998,76 +999,7 @@ class _MedsTabViewState extends State<MedsTabView> {
                         const SizedBox(height: 10),
                       ],
 
-                      // 3. 복약 시작일 및 기간
-                      Text(
-                        '복약 시작일',
-                        style: TextStyle(
-                          fontSize: 12.5,
-                          fontWeight: FontWeight.bold,
-                          color: AppColors.textSecondary,
-                        ),
-                      ),
-                      const SizedBox(height: 6),
-                      InkWell(
-                        borderRadius: BorderRadius.circular(8),
-                        onTap: () async {
-                          final picked = await showDatePicker(
-                            context: context,
-                            initialDate: startDate,
-                            firstDate: DateTime(2020),
-                            lastDate: DateTime(2100),
-                            helpText: '복약 시작일 선택',
-                          );
-                          if (picked != null) {
-                            setModalState(() {
-                              startDate = DateTime(
-                                picked.year,
-                                picked.month,
-                                picked.day,
-                              );
-                            });
-                          }
-                        },
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 12,
-                            vertical: 9,
-                          ),
-                          decoration: BoxDecoration(
-                            color: const Color(0xFFF9FAFB),
-                            borderRadius: BorderRadius.circular(8),
-                            border: Border.all(color: AppColors.divider),
-                          ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Icon(
-                                Icons.calendar_today_outlined,
-                                size: 15,
-                                color: AppColors.primaryPurple,
-                              ),
-                              const SizedBox(width: 7),
-                              Text(
-                                formatDate(startDate),
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  color: AppColors.textPrimary,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
-                              const SizedBox(width: 5),
-                              Text(
-                                '변경',
-                                style: TextStyle(
-                                  fontSize: 11,
-                                  color: AppColors.primaryPurple,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 10),
+                      // 3. 복용 기간
                       if (recurrenceType != '오늘만') ...[
                         Text(
                           '복용 기간',
@@ -1118,6 +1050,10 @@ class _MedsTabViewState extends State<MedsTabView> {
                               onSelected: (selected) {
                                 setModalState(() {
                                   isOngoing = false;
+                                  final days = int.tryParse(durationDaysCtrl.text) ?? 7;
+                                  endDate = startDate.add(
+                                    Duration(days: (days < 1 ? 1 : days) - 1),
+                                  );
                                 });
                               },
                             ),
@@ -1133,6 +1069,16 @@ class _MedsTabViewState extends State<MedsTabView> {
                                   controller: durationDaysCtrl,
                                   keyboardType: TextInputType.number,
                                   textAlign: TextAlign.center,
+                                  onChanged: (value) {
+                                    final days = int.tryParse(value) ?? 0;
+                                    if (days > 0) {
+                                      setModalState(() {
+                                        endDate = startDate.add(
+                                          Duration(days: days - 1),
+                                        );
+                                      });
+                                    }
+                                  },
                                   decoration: InputDecoration(
                                     isDense: true,
                                     border: OutlineInputBorder(
@@ -1158,6 +1104,103 @@ class _MedsTabViewState extends State<MedsTabView> {
                         ],
                         const SizedBox(height: 14),
                       ],
+
+                      // 4. 복약 시작일 및 종료일
+                      Text(
+                        '복약 시작일',
+                        style: TextStyle(
+                          fontSize: 12.5,
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.textSecondary,
+                        ),
+                      ),
+                      const SizedBox(height: 6),
+                      InkWell(
+                        borderRadius: BorderRadius.circular(8),
+                        onTap: () async {
+                          final picked = await showDatePicker(
+                            context: context,
+                            initialDate: startDate,
+                            firstDate: DateTime(2020),
+                            lastDate: DateTime(2100),
+                            helpText: '복약 시작일 선택',
+                          );
+                          if (picked != null) {
+                            setModalState(() {
+                              startDate = DateTime(picked.year, picked.month, picked.day);
+                              if (!isOngoing) {
+                                final days = int.tryParse(durationDaysCtrl.text) ?? 7;
+                                endDate = startDate.add(Duration(days: (days < 1 ? 1 : days) - 1));
+                              }
+                            });
+                          }
+                        },
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFF9FAFB),
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(color: AppColors.divider),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(Icons.calendar_today_outlined, size: 15, color: AppColors.primaryPurple),
+                              const SizedBox(width: 7),
+                              Text(formatDate(startDate), style: TextStyle(fontSize: 12, color: AppColors.textPrimary, fontWeight: FontWeight.w600)),
+                              const SizedBox(width: 5),
+                              Text('변경', style: TextStyle(fontSize: 11, color: AppColors.primaryPurple)),
+                            ],
+                          ),
+                        ),
+                      ),
+                      if (!isOngoing) ...[
+                        const SizedBox(height: 10),
+                        Text(
+                          '복약 종료일',
+                          style: TextStyle(fontSize: 12.5, fontWeight: FontWeight.bold, color: AppColors.textSecondary),
+                        ),
+                        const SizedBox(height: 6),
+                        InkWell(
+                          borderRadius: BorderRadius.circular(8),
+                          onTap: () async {
+                            final picked = await showDatePicker(
+                              context: context,
+                              initialDate: endDate ?? startDate,
+                              firstDate: startDate,
+                              lastDate: DateTime(2100),
+                              helpText: '복약 종료일 선택',
+                            );
+                            if (picked != null) {
+                              final pickedEnd = DateTime(picked.year, picked.month, picked.day);
+                              setModalState(() {
+                                endDate = pickedEnd;
+                                durationDaysCtrl.text =
+                                    '${pickedEnd.difference(startDate).inDays + 1}';
+                              });
+                            }
+                          },
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFF9FAFB),
+                              borderRadius: BorderRadius.circular(8),
+                              border: Border.all(color: AppColors.divider),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(Icons.event_available_outlined, size: 15, color: AppColors.primaryPurple),
+                                const SizedBox(width: 7),
+                                Text(formatDate(endDate ?? startDate), style: TextStyle(fontSize: 12, color: AppColors.textPrimary, fontWeight: FontWeight.w600)),
+                                const SizedBox(width: 5),
+                                Text('변경', style: TextStyle(fontSize: 11, color: AppColors.primaryPurple)),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ],
+                      const SizedBox(height: 14),
 
                       // 하단 이전 / 저장 버튼
                       Row(
@@ -1267,7 +1310,6 @@ class _MedsTabViewState extends State<MedsTabView> {
                                   }
 
                                   String durationSummary = '계속 복용';
-                                  DateTime? endDate;
                                   if (recurrenceType == '오늘만') {
                                     durationSummary = '오늘만';
                                     endDate = startDate;
