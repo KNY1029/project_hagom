@@ -757,6 +757,7 @@ class _HabitsTabViewState extends State<HabitsTabView> {
                           context,
                           title: '이미 완료한 습관이에요',
                           message: '\'${habit.title}\' 목표를 달성한 상태예요.',
+                          isCompletionFeedback: false,
                           actionLabel: '되돌리기',
                           onAction: () {
                             _state.resetHabitProgress(habit.id);
@@ -764,6 +765,7 @@ class _HabitsTabViewState extends State<HabitsTabView> {
                               context,
                               title: '되돌리기 완료',
                               message: '\'${habit.title}\' 상태를 대기로 되돌렸어요.',
+                              isCompletionFeedback: false,
                             );
                           },
                         );
@@ -850,6 +852,7 @@ class _HabitsTabViewState extends State<HabitsTabView> {
                           context,
                           title: '되돌리기 완료',
                           message: '\'${habit.title}\' 실천 상태를 대기로 되돌렸어요.',
+                          isCompletionFeedback: false,
                         );
                       },
                       child: Text('되돌리기', style: TextStyle(color: AppColors.warmBrown, fontSize: 12, fontWeight: FontWeight.w600)),
