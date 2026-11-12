@@ -29,11 +29,13 @@ class HagomAlarmReceiver : BroadcastReceiver() {
         val message = intent.getStringExtra("message") ?: "실천할 시간이에요!"
         val notiId = intent.getIntExtra("notiId", (System.currentTimeMillis() % 100000).toInt())
         val isEssential = intent.getBooleanExtra("isEssential", false)
+        val actionUri = intent.getStringExtra("actionUri") ?: ""
+        val actionLabel = intent.getStringExtra("actionLabel") ?: "완료"
 
-        sendNotification(context, notiId, title, message, isEssential)
+        sendNotification(context, notiId, title, message, isEssential, actionUri, actionLabel)
     }
 
-    private fun sendNotification(context: Context, notiId: Int, title: String, message: String, isEssential: Boolean) {
+    private fun sendNotification(context: Context, notiId: Int, title: String, message: String, isEssential: Boolean, actionUri: String, actionLabel: String) {
         val manager = context.getSystemService(NotificationManager::class.java) ?: return
         val channelId = if (isEssential) CHANNEL_ID_ESSENTIAL else CHANNEL_ID_TALK
         val channelName = if (isEssential) "하곰이 필수 실천 알림" else "하곰이 일상 & 토크 알림"
@@ -64,6 +66,21 @@ class HagomAlarmReceiver : BroadcastReceiver() {
                 .setPriority(if (isEssential) Notification.PRIORITY_HIGH else Notification.PRIORITY_DEFAULT)
         }
 
+        if (actionUri.isNotEmpty()) {
+            val completeIntent = Intent(context, WidgetActionReceiver::class.java).apply {
+                action = "com.healthpharma.hagom_app.ACTION_NOTIFICATION_COMPLETE"
+                data = android.net.Uri.parse(actionUri)
+                putExtra("notificationId", notiId)
+            }
+            val completePendingIntent = PendingIntent.getBroadcast(
+                context,
+                notiId + 500000,
+                completeIntent,
+                PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+            )
+            builder.addAction(android.R.drawable.ic_menu_send, actionLabel, completePendingIntent)
+        }
+
         builder
             .setSmallIcon(R.drawable.hagom_notification)
             .setContentTitle(title)
@@ -73,5 +90,15 @@ class HagomAlarmReceiver : BroadcastReceiver() {
             .setAutoCancel(true)
 
         manager.notify(notiId, builder.build())
+
+        // 같은 항목의 원래 알림과 재알림을 한 번에 닫을 수 있도록
+        // 현재 표시 중인 알림 ID를 액션 URI별로 기억한다.
+        if (actionUri.isNotEmpty()) {
+            val prefs = context.getSharedPreferences("HagomNotificationPrefs", Context.MODE_PRIVATE)
+            val key = "active_${actionUri.hashCode()}"
+            val ids = prefs.getStringSet(key, emptySet())?.toMutableSet() ?: mutableSetOf()
+            ids.add(notiId.toString())
+            prefs.edit().putStringSet(key, ids).apply()
+        }
     }
 }

@@ -6,6 +6,7 @@ import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
+import android.app.NotificationManager
 import android.os.Handler
 import android.os.Looper
 import java.text.SimpleDateFormat
@@ -31,6 +32,30 @@ class WidgetActionReceiver : BroadcastReceiver() {
         val uri = intent.data ?: return
         val host = uri.host ?: uri.path?.replace("/", "") ?: return
         val action = host.lowercase()
+
+        if (intent.action == "com.healthpharma.hagom_app.ACTION_NOTIFICATION_COMPLETE") {
+            val notificationPrefs = context.getSharedPreferences("HagomNotificationPrefs", Context.MODE_PRIVATE)
+            val actionKey = uri.toString().hashCode()
+            val activeKey = "active_$actionKey"
+            val activeIds = notificationPrefs.getStringSet(activeKey, emptySet()).orEmpty()
+            val notificationManager = context.getSystemService(NotificationManager::class.java)
+            activeIds.forEach { it.toIntOrNull()?.let { id -> notificationManager?.cancel(id) } }
+            notificationManager?.cancel(intent.getIntExtra("notificationId", -1))
+            notificationPrefs.edit().remove(activeKey).apply()
+
+            // 원래 알림과 재알림이 함께 쌓여 있어도 같은 항목은 하루 한 번만 처리한다.
+            val today = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
+            val handledKey = "handled_${today}_$actionKey"
+            if (notificationPrefs.getBoolean(handledKey, false)) {
+                return
+            }
+            notificationPrefs.edit().putBoolean(handledKey, true).apply()
+
+            val notificationId = intent.getIntExtra("notificationId", -1)
+            if (notificationId >= 0) {
+                notificationManager?.cancel(notificationId)
+            }
+        }
 
         if (action != "noop") {
             val accessPrefs = HomeWidgetPlugin.getData(context)

@@ -26,6 +26,8 @@ object HagomAlarmScheduler {
                 val title = item.optString("title", "하곰이 알림")
                 val message = item.optString("message", "실천할 시간이에요!")
                 val isEssential = item.optBoolean("isEssential", false)
+                val actionUri = item.optString("actionUri", "")
+                val actionLabel = item.optString("actionLabel", "완료")
                 val repeatDays = item.optJSONArray("repeatDays") // e.g. [1, 2, 3...] 1=일요일
 
                 val targetDays = mutableListOf<Int>()
@@ -37,12 +39,12 @@ object HagomAlarmScheduler {
 
                 if (targetDays.isEmpty()) {
                     // 특정 요일 지정이 없으면 매일 울림
-                    scheduleSingleAlarm(context, am, id, hour, minute, -1, title, message, isEssential)
+                    scheduleSingleAlarm(context, am, id, hour, minute, -1, title, message, isEssential, actionUri, actionLabel)
                 } else {
                     // 지정된 특정 요일(예: 1=일요일)에만 정확히 알림 등록!
                     for ((index, dayOfWeek) in targetDays.withIndex()) {
                         val subId = id * 10 + index
-                        scheduleSingleAlarm(context, am, subId, hour, minute, dayOfWeek, title, message, isEssential)
+                        scheduleSingleAlarm(context, am, subId, hour, minute, dayOfWeek, title, message, isEssential, actionUri, actionLabel)
                     }
                 }
             }
@@ -58,7 +60,9 @@ object HagomAlarmScheduler {
         targetDayOfWeek: Int, // Calendar.SUNDAY(1) ~ Calendar.SATURDAY(7), 또는 -1 (매일)
         title: String,
         message: String,
-        isEssential: Boolean
+        isEssential: Boolean,
+        actionUri: String,
+        actionLabel: String
     ) {
         val intent = Intent(context, HagomAlarmReceiver::class.java).apply {
             action = HagomAlarmReceiver.ACTION_TRIGGER
@@ -66,6 +70,9 @@ object HagomAlarmScheduler {
             putExtra("title", title)
             putExtra("message", message)
             putExtra("isEssential", isEssential)
+            putExtra("actionUri", actionUri)
+            putExtra("actionLabel", actionLabel)
+            putExtra("notificationId", alarmId)
         }
 
         val pi = PendingIntent.getBroadcast(
