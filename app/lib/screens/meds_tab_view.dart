@@ -1522,7 +1522,7 @@ class _MedsTabViewState extends State<MedsTabView> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              '\'${med.name} ($slotName)\' 복용을 건너뛸까요?\n\n건너뛴 복용은 실패가 아니에요. 무리하지 않고 다음 복용에 집중하면 충분해요.',
+              '\'${med.name} ($slotName)\' 복용을 건너뛸까요?',
             ),
             const SizedBox(height: 14),
             TextField(
