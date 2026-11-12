@@ -1,94 +1,161 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
-<uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
-<uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM"/>
-<application android:label="@string/app_name" android:name="${applicationName}" android:icon="@mipmap/ic_launcher">
-<activity android:name=".MainActivity" android:exported="true" android:launchMode="singleTop" android:taskAffinity="" android:theme="@style/LaunchTheme" android:configChanges="orientation|keyboardHidden|keyboard|screenSize|smallestScreenSize|locale|layoutDirection|fontScale|screenLayout|density|uiMode" android:hardwareAccelerated="true" android:windowSoftInputMode="adjustResize">
-<!--   Specifies an Android theme to apply to this Activity as soon as
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+    <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
+    <uses-permission android:name="android.permission.USE_EXACT_ALARM" />
+    <application
+        android:label="@string/app_name"
+        android:name="${applicationName}"
+        android:icon="@mipmap/ic_launcher">
+        <activity
+            android:name=".MainActivity"
+            android:exported="true"
+            android:launchMode="singleTop"
+            android:taskAffinity=""
+            android:theme="@style/LaunchTheme"
+            android:configChanges="orientation|keyboardHidden|keyboard|screenSize|smallestScreenSize|locale|layoutDirection|fontScale|screenLayout|density|uiMode"
+            android:hardwareAccelerated="true"
+            android:windowSoftInputMode="adjustResize">
+            <!-- Specifies an Android theme to apply to this Activity as soon as
                  the Android process has started. This theme is visible to the user
                  while the Flutter UI initializes. After that, this theme continues
-                 to determine the Window background behind the Flutter UI.   -->
-<meta-data android:name="io.flutter.embedding.android.NormalTheme" android:resource="@style/NormalTheme"/>
-<intent-filter>
-<action android:name="android.intent.action.MAIN"/>
-<category android:name="android.intent.category.LAUNCHER"/>
-</intent-filter>
-<!--   ?? home_widget 1-Tap ?�치 ?�션 ?�우?�을 ?�한 ?�텐???�터   -->
-<intent-filter>
-<action android:name="es.antonborri.home_widget.action.LAUNCH"/>
-<category android:name="android.intent.category.DEFAULT"/>
-</intent-filter>
-<intent-filter>
-<action android:name="android.intent.action.VIEW"/>
-<category android:name="android.intent.category.DEFAULT"/>
-<category android:name="android.intent.category.BROWSABLE"/>
-<data android:scheme="hagomwidget"/>
-</intent-filter>
-</activity>
-<!--   Don't delete the meta-data below.
-             This is used by the Flutter tool to generate GeneratedPluginRegistrant.java   -->
-<meta-data android:name="flutterEmbedding" android:value="2"/>
-<receiver android:name=".HagomAlarmReceiver" android:exported="false"/>
-<!--   1) ?�� ?�곰??마스코트 ?�원 ?�마???�젯 리시�?  -->
-<receiver android:name=".HagomMascotWidgetProvider" android:exported="true">
-<intent-filter>
-<action android:name="android.appwidget.action.APPWIDGET_UPDATE"/>
-</intent-filter>
-<meta-data android:name="android.appwidget.provider" android:resource="@xml/hagom_mascot_widget_provider_info"/>
-</receiver>
-<!--   2) ?�� ?�곰??복약 관�?1-Tap ?�젯 리시�?  -->
-<receiver android:name=".HagomMedsWidgetProvider" android:exported="true">
-<intent-filter>
-<action android:name="android.appwidget.action.APPWIDGET_UPDATE"/>
-</intent-filter>
-<meta-data android:name="android.appwidget.provider" android:resource="@xml/hagom_meds_widget_provider_info"/>
-</receiver>
-<!--   3) ?�� ?�곰???��? 관�?1-Tap ?�젯 리시�?  -->
-<receiver android:name=".HagomHabitsWidgetProvider" android:exported="true">
-<intent-filter>
-<action android:name="android.appwidget.action.APPWIDGET_UPDATE"/>
-</intent-filter>
-<meta-data android:name="android.appwidget.provider" android:resource="@xml/hagom_habits_widget_provider_info"/>
-</receiver>
-<!--   4) ?���??�곰???�력/?�일 1-Tap ?�젯 리시�?  -->
-<receiver android:name=".HagomCalendarWidgetProvider" android:exported="true">
-<intent-filter>
-<action android:name="android.appwidget.action.APPWIDGET_UPDATE"/>
-</intent-filter>
-<meta-data android:name="android.appwidget.provider" android:resource="@xml/hagom_calendar_widget_provider_info"/>
-</receiver>
-<!--   5) ?���??�곰??4×4 ????기록 ?�력 ?�?�보???�젯 리시�?  -->
-<receiver android:name=".HagomMonthCalendarWidgetProvider" android:exported="true">
-<intent-filter>
-<action android:name="android.appwidget.action.APPWIDGET_UPDATE"/>
-</intent-filter>
-<meta-data android:name="android.appwidget.provider" android:resource="@xml/hagom_month_calendar_widget_provider_info"/>
-</receiver>
-<!--   ?? home_widget 백그?�운??1-Tap 즉시 체크 리시�?& ?�비??(???�행 ?�이 ?�작)   -->
-<receiver android:name="es.antonborri.home_widget.HomeWidgetBackgroundReceiver" android:exported="true">
-<intent-filter>
-<action android:name="es.antonborri.home_widget.action.BACKGROUND"/>
-</intent-filter>
-</receiver>
-<service android:name="es.antonborri.home_widget.HomeWidgetBackgroundService" android:exported="true" android:permission="android.permission.BIND_JOB_SERVICE"/>
-<!--   ?�� ?��? CSV ?�일 ?�전 ?�보?�기 & ?�스??공유??FileProvider   -->
-<provider android:name="androidx.core.content.FileProvider" android:authorities="${applicationId}.fileprovider" android:exported="false" android:grantUriPermissions="true">
-<meta-data android:name="android.support.FILE_PROVIDER_PATHS" android:resource="@xml/file_paths"/>
-</provider>
-</application>
-<!--   Required to query activities that can process text, see:
+                 to determine the Window background behind the Flutter UI. -->
+            <meta-data
+              android:name="io.flutter.embedding.android.NormalTheme"
+              android:resource="@style/NormalTheme"
+              />
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN"/>
+                <category android:name="android.intent.category.LAUNCHER"/>
+            </intent-filter>
+            <!-- 🚀 home_widget 1-Tap 터치 액션 라우팅을 위한 인텐트 필터 -->
+            <intent-filter>
+                <action android:name="es.antonborri.home_widget.action.LAUNCH" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="hagomwidget" />
+            </intent-filter>
+        </activity>
+        <!-- Don't delete the meta-data below.
+             This is used by the Flutter tool to generate GeneratedPluginRegistrant.java -->
+        <meta-data
+            android:name="flutterEmbedding"
+            android:value="2" />
+        <!-- 1) 🐻 하곰이 마스코트 응원 한마디 위젯 리시버 -->
+        <receiver
+            android:name=".HagomMascotWidgetProvider"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/hagom_mascot_widget_provider_info" />
+        </receiver>
+
+        <!-- 2) 💊 하곰이 복약 관리 1-Tap 위젯 리시버 -->
+        <receiver
+            android:name=".HagomMedsWidgetProvider"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/hagom_meds_widget_provider_info" />
+        </receiver>
+
+        <!-- 3) 🌱 하곰이 습관 관리 1-Tap 위젯 리시버 -->
+        <receiver
+            android:name=".HagomHabitsWidgetProvider"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/hagom_habits_widget_provider_info" />
+        </receiver>
+
+        <!-- 4) 🗓️ 하곰이 달력/할일 1-Tap 위젯 리시버 -->
+        <receiver
+            android:name=".HagomCalendarWidgetProvider"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/hagom_calendar_widget_provider_info" />
+        </receiver>
+        <!-- 5) 🗓️ 하곰이 4×4 한 달 기록 달력 대시보드 위젯 리시버 -->
+        <receiver
+            android:name=".HagomMonthCalendarWidgetProvider"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/hagom_month_calendar_widget_provider_info" />
+        </receiver>
+        <!-- ⚡ 0.01초 즉각 반응 네이티브 위젯 액션 리시버 (플러터 엔진 의존 없이 네이티브 직통 처리) -->
+        <receiver
+            android:name=".WidgetActionReceiver"
+            android:exported="true" />
+
+        <!-- ⏰ 정밀 백그라운드 복약/습관 실천 및 하곰이 토크 알림 리시버 -->
+        <receiver
+            android:name=".HagomAlarmReceiver"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+                <action android:name="com.healthpharma.hagom_app.ACTION_ALARM_TRIGGER" />
+            </intent-filter>
+        </receiver>
+        <!-- 🚀 home_widget 백그라운드 1-Tap 즉시 체크 리시버 & 서비스 (앱 실행 없이 동작) -->
+        <receiver
+            android:name="es.antonborri.home_widget.HomeWidgetBackgroundReceiver"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="es.antonborri.home_widget.action.BACKGROUND" />
+            </intent-filter>
+        </receiver>
+
+        <service
+            android:name="es.antonborri.home_widget.HomeWidgetBackgroundService"
+            android:exported="true"
+            android:permission="android.permission.BIND_JOB_SERVICE" />
+        <!-- 📥 엑셀 CSV 파일 안전 내보내기 & 시스템 공유용 FileProvider -->
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="${applicationId}.fileprovider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/file_paths" />
+        </provider>
+    </application>
+    <!-- Required to query activities that can process text, see:
          https://developer.android.com/training/package-visibility and
          https://developer.android.com/reference/android/content/Intent#ACTION_PROCESS_TEXT.
 
-         In particular, this is used by the Flutter engine in io.flutter.plugin.text.ProcessTextPlugin.   -->
-<queries>
-<package android:name="com.kakao.talk"/>
-<intent>
-<action android:name="android.intent.action.SEND"/>
-<data android:mimeType="*/*"/>
-</intent>
-<intent>
-<action android:name="android.intent.action.PROCESS_TEXT"/>
-<data android:mimeType="text/plain"/>
-</intent>
-</queries>
+         In particular, this is used by the Flutter engine in io.flutter.plugin.text.ProcessTextPlugin. -->
+    <queries>
+        <package android:name="com.kakao.talk" />
+        <intent>
+            <action android:name="android.intent.action.SEND" />
+            <data android:mimeType="*/*" />
+        </intent>
+        <intent>
+            <action android:name="android.intent.action.PROCESS_TEXT"/>
+            <data android:mimeType="text/plain"/>
+        </intent>
+    </queries>
 </manifest>

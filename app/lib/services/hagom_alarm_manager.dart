@@ -1,11 +1,15 @@
 import 'dart:convert';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
+
 import '../constants/hagom_dialogue.dart';
 import '../state/app_state_manager.dart';
 
 class HagomAlarmManager {
-  static const MethodChannel _channel = MethodChannel('com.healthpharma.hagom_app/export');
+  static const MethodChannel _channel = MethodChannel(
+    'com.healthpharma.hagom_app/export',
+  );
 
   /// 현재 등록된 복약, 습관, 할일 및 모드별 토크 알림을 안드로이드 AlarmManager로 전송
   static Future<void> syncScheduledAlarms(AppStateManager state) async {
@@ -16,12 +20,14 @@ class HagomAlarmManager {
 
     // 1. 복약 알림 (일반 복약 알림 켜짐이거나 처방약인 경우)
     for (final med in state.medications) {
+      // 시작일 전이거나 종료일이 지난 약은 오늘 알림을 등록하지 않는다.
+      if (!med.isDueToday) continue;
       final shouldNotify = state.medsNotificationEnabled || med.isPrescription;
       if (!shouldNotify) continue;
 
       for (int i = 0; i < med.doseSlots.length; i++) {
         final slot = med.doseSlots[i];
-        if (slot.isCompleted) continue;
+        if (slot.isCompleted || slot.isSkipped) continue;
         final timeStr = slot.scheduledTime;
         if (timeStr == null || timeStr.isEmpty) continue;
 
@@ -32,9 +38,17 @@ class HagomAlarmManager {
             'hour': time['hour'],
             'minute': time['minute'],
             'title': '하곰이 복약 알림',
-            'message': HagomDialogue.getRequiredReminder('${med.name} (${slot.label})'),
+            'message': HagomDialogue.getRequiredReminder(
+              '${med.name} (${slot.label})',
+            ),
             'isEssential': true,
-            'repeatDays': _getRepeatDaysList(med.recurrenceSummary, med.repeatDays),
+            'actionUri':
+                'hagomwidget://checkmed?id=${Uri.encodeComponent(med.id)}&slot=$i',
+            'actionLabel': '복용 완료',
+            'repeatDays': _getRepeatDaysList(
+              med.recurrenceSummary,
+              med.repeatDays,
+            ),
           });
 
           // 적극적 모드: 30분 뒤 재알림 추가 등록!
@@ -48,6 +62,9 @@ class HagomAlarmManager {
               'title': '하곰이 복약 재알림',
               'message': '애써 돈 들여서 타온 약, 낭비하지 말자구요^^;',
               'isEssential': true,
+              'actionUri':
+                  'hagomwidget://checkmed?id=${Uri.encodeComponent(med.id)}&slot=$i',
+              'actionLabel': '복용 완료',
             });
           }
         }
@@ -68,69 +85,97 @@ class HagomAlarmManager {
               'title': '하곰이 습관 알림',
               'message': HagomDialogue.getRequiredReminder(habit.title),
               'isEssential': true,
-              'repeatDays': _getRepeatDaysList(habit.recurrenceSummary, habit.repeatDays),
+              'actionUri':
+                  'hagomwidget://checkhabit?id=${Uri.encodeComponent(habit.id)}&cur=${habit.currentCount}&target=${habit.targetPerDay}',
+              'actionLabel': '실천 완료',
+              'repeatDays': _getRepeatDaysList(
+                habit.recurrenceSummary,
+                habit.repeatDays,
+              ),
             });
           }
         }
       }
     }
 
-    // 3. 토크 알림 (기본: 1회, 적극적: 3회)
-    // ? ? ??: ??? ??? ???? ????.
+    // 3. 할일 알림: 완료된 할일은 더 이상 알리지 않는다.
     if (state.tasksNotificationEnabled) {
       final now = DateTime.now();
       for (final task in state.tasks) {
-        if (task.isCompleted || task.time == null || task.time!.isEmpty || task.reminders.isEmpty) continue;
+        if (task.isCompleted ||
+            task.time == null ||
+            task.time!.isEmpty ||
+            task.reminders.isEmpty)
+          continue;
         final time = _parseKoreanTime(task.time!);
         if (time == null) continue;
-
         for (final reminder in task.reminders) {
-          final offsetMinutes = reminder.contains('\uC815\uC2DC')
+          final offset = reminder.contains('정시')
               ? 0
-              : (reminder.contains('30\uBD84')
-                  ? 30
-                  : (reminder.contains('1\uC2DC\uAC04')
-                      ? 60
-                      : (reminder.contains('\uD558\uB8E8') ? 24 * 60 : 0)));
-          final dueDay = DateTime(task.date.year, task.date.month, task.date.day);
-          final dueTimeMinutes = time['hour']! * 60 + time['minute']!;
-          final totalAlarmMinutes = dueTimeMinutes - offsetMinutes;
-          final dayShift = totalAlarmMinutes < 0 ? (-totalAlarmMinutes + 1439) ~/ 1440 : 0;
+              : (reminder.contains('30분')
+                    ? 30
+                    : (reminder.contains('1시간')
+                          ? 60
+                          : (reminder.contains('하루') ? 1440 : 0)));
+          final dueDay = DateTime(
+            task.date.year,
+            task.date.month,
+            task.date.day,
+          );
+          final dueMinutes = time['hour']! * 60 + time['minute']!;
+          final totalAlarmMinutes = dueMinutes - offset;
+          final dayShift = totalAlarmMinutes < 0
+              ? (-totalAlarmMinutes + 1439) ~/ 1440
+              : 0;
           final alarmHour = ((totalAlarmMinutes % 1440 + 1440) % 1440) ~/ 60;
-          final alarmMinute = totalAlarmMinutes % 60;
-          final isDaily = task.isRepeated && task.repeatCycle == '\uB9E4\uC77C';
-          final isWeekly = task.isRepeated && task.repeatCycle == '\uB9E4\uC8FC \uD2B9\uC815 \uC694\uC77C';
+          final alarmMinute = (totalAlarmMinutes % 1440 + 1440) % 60;
+          final isDaily = task.isRepeated && task.repeatCycle == '매일';
+          final isWeekly =
+              task.isRepeated && task.repeatCycle == '매주 특정 요일';
 
           if (isDaily || isWeekly) {
-            var repeatDays = isWeekly ? _getRepeatDaysList('', task.repeatDays) : <int>[];
+            var repeatDays = isWeekly
+                ? _getRepeatDaysList('', task.repeatDays)
+                : <int>[];
             if (isWeekly && repeatDays.isEmpty) continue;
             if (repeatDays.isNotEmpty && dayShift > 0) {
-              repeatDays = repeatDays.map((day) => ((day - 1 - dayShift) % 7 + 7) % 7 + 1).toList();
+              repeatDays = repeatDays
+                  .map((day) => ((day - 1 - dayShift) % 7 + 7) % 7 + 1)
+                  .toList();
             }
             schedules.add({
               'id': nextId++,
               'hour': alarmHour,
               'minute': alarmMinute,
-              'title': '\uD558\uACE0\uC774 \uD560 \uC77C \uC54C\uB9BC',
+              'title': '하곰이 할 일 알림',
               'message': HagomDialogue.getRequiredReminder(task.title),
               'isEssential': true,
+              'actionUri':
+                  'hagomwidget://checktask?id=${Uri.encodeComponent(task.id)}',
+              'actionLabel': '완료',
               if (repeatDays.isNotEmpty) 'repeatDays': repeatDays,
             });
           } else {
-            final alarmDateTime = dueDay.add(Duration(minutes: dueTimeMinutes - offsetMinutes));
-            if (!alarmDateTime.isAfter(now)) continue;
+            final alarmDate = dueDay.add(
+              Duration(minutes: dueMinutes - offset),
+            );
+            if (!alarmDate.isAfter(now)) continue;
             schedules.add({
               'id': nextId++,
-              'triggerAtMillis': alarmDateTime.millisecondsSinceEpoch,
-              'title': '\uD558\uACE0\uC774 \uD560 \uC77C \uC54C\uB9BC',
+              'triggerAtMillis': alarmDate.millisecondsSinceEpoch,
+              'title': '하곰이 할 일 알림',
               'message': HagomDialogue.getRequiredReminder(task.title),
               'isEssential': true,
+              'actionUri':
+                  'hagomwidget://checktask?id=${Uri.encodeComponent(task.id)}',
+              'actionLabel': '완료',
             });
           }
         }
       }
     }
 
+    // 4. 토크 알림 (기본: 1회, 적극적: 3회)
     if (state.mascotNotificationEnabled) {
       if (state.notificationFrequency == '기본') {
         // 오후 2:30 일상 토크 1회
@@ -175,15 +220,14 @@ class HagomAlarmManager {
       await _channel.invokeMethod('syncAlarms', {
         'schedulesJson': jsonEncode(schedules),
       });
-    } on PlatformException catch (e) {
-      debugPrint('알림 일정 동기화 실패: ${e.code} ${e.message}');
-    } catch (e) {
-      debugPrint('알림 일정 동기화 실패: $e');
-    }
+    } catch (_) {}
   }
 
   /// 한국어 요일명(['일', '월', ...]) 또는 주기 요약문에서 요일 번호 목록(1=일요일..7=토요일) 추출
-  static List<int> _getRepeatDaysList(String recurrenceSummary, List<String> repeatDays) {
+  static List<int> _getRepeatDaysList(
+    String recurrenceSummary,
+    List<String> repeatDays,
+  ) {
     final Map<String, int> dayToCalNum = {
       '일': 1,
       '월': 2,

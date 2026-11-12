@@ -680,7 +680,7 @@ class _WidgetSimulatorScreenState extends State<WidgetSimulatorScreen> {
 
     final String habitTitle = habit != null ? habit.title : '등록된 습관 없음';
     final String habitSubtitle = habit != null
-        ? habit.subtitle
+        ? '${habit.subtitle}${habit.scheduledTimes.isEmpty ? '' : ' (${habit.scheduledTimes.join(', ')})'}'
         : '습관 탭에서 새로운 습관을 추가해 보세요';
     final String statusLabel = habit != null ? habit.statusLabel : '대기';
     final bool isAllDone = habit != null && habit.score >= 1.0;

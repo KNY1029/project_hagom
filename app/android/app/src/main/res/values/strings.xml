@@ -1,8 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
 <resources>
-<string name="app_name">하곰이</string>
-<string name="widget_mascot_description">하곰이 마스코트 응원 한마디 위젯</string>
-<string name="widget_meds_description">하곰이 복약 관리 1-Tap 위젯</string>
-<string name="widget_habits_description">하곰이 작은 습관 관리 1-Tap 위젯</string>
-<string name="widget_calendar_description">하곰이 기록 달력 및 할일 위젯</string>
-<string name="widget_month_calendar_description">하곰이 4×4 한 달 기록 달력 대시보드 위젯</string>
+    <string name="app_name">하곰이</string>
+    <string name="widget_mascot_description">하곰이 마스코트 응원 한마디 위젯</string>
+    <string name="widget_meds_description">하곰이 복약 관리 1-Tap 위젯</string>
+    <string name="widget_habits_description">하곰이 작은 습관 관리 1-Tap 위젯</string>
+    <string name="widget_calendar_description">하곰이 기록 달력 및 할일 위젯</string>
+    <string name="widget_month_calendar_description">하곰이 4×4 한 달 기록 달력 대시보드 위젯</string>
 </resources>

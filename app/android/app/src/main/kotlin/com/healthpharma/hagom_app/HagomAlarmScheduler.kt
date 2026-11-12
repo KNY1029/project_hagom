@@ -11,13 +11,21 @@ import java.util.Calendar
 
 object HagomAlarmScheduler {
 
-    fun scheduleAlarmsFromJson(context: Context, schedulesJson: String) {
+    fun scheduleAlarmsFromJson(
+        context: Context,
+        schedulesJson: String,
+        cancelPostedNotifications: Boolean = true
+    ) {
         val am = context.getSystemService(Context.ALARM_SERVICE) as? AlarmManager ?: return
         val prefs = context.getSharedPreferences("HagomAlarmPrefs", Context.MODE_PRIVATE)
+        val previousSchedulesJson = prefs.getString("last_schedules_json", null)
+        if (!previousSchedulesJson.isNullOrEmpty()) {
+            cancelAlarmsFromJson(context, am, previousSchedulesJson, cancelPostedNotifications)
+        }
+        prefs.edit().putString("last_schedules_json", schedulesJson).apply()
 
         try {
             val arr = JSONArray(schedulesJson)
-            cancelPreviousSchedules(context, am, prefs.getString("last_schedules_json", null))
             for (i in 0 until arr.length()) {
                 val item = arr.getJSONObject(i)
                 val id = item.getInt("id")
@@ -26,10 +34,16 @@ object HagomAlarmScheduler {
                 val title = item.optString("title", "하곰이 알림")
                 val message = item.optString("message", "실천할 시간이에요!")
                 val isEssential = item.optBoolean("isEssential", false)
+                val actionUri = item.optString("actionUri", "")
+                val actionLabel = item.optString("actionLabel", "완료")
                 val repeatDays = item.optJSONArray("repeatDays") // e.g. [1, 2, 3...] 1=일요일
                 val triggerAtMillis = item.optLong("triggerAtMillis", -1L)
+
                 if (triggerAtMillis > 0L) {
-                    scheduleSingleAlarm(context, am, id, hour, minute, -1, title, message, isEssential, triggerAtMillis)
+                    scheduleSingleAlarm(
+                        context, am, id, hour, minute, -1, title, message,
+                        isEssential, actionUri, actionLabel, triggerAtMillis
+                    )
                     continue
                 }
 
@@ -42,47 +56,65 @@ object HagomAlarmScheduler {
 
                 if (targetDays.isEmpty()) {
                     // 특정 요일 지정이 없으면 매일 울림
-                    scheduleSingleAlarm(context, am, id, hour, minute, -1, title, message, isEssential)
+                    scheduleSingleAlarm(context, am, id, hour, minute, -1, title, message, isEssential, actionUri, actionLabel)
                 } else {
                     // 지정된 특정 요일(예: 1=일요일)에만 정확히 알림 등록!
                     for ((index, dayOfWeek) in targetDays.withIndex()) {
                         val subId = id * 10 + index
-                        scheduleSingleAlarm(context, am, subId, hour, minute, dayOfWeek, title, message, isEssential)
+                        scheduleSingleAlarm(context, am, subId, hour, minute, dayOfWeek, title, message, isEssential, actionUri, actionLabel)
                     }
                 }
             }
-            prefs.edit().putString("last_schedules_json", schedulesJson).apply()
         } catch (_: Exception) {}
     }
 
-    private fun cancelPreviousSchedules(context: Context, am: AlarmManager, schedulesJson: String?) {
-        if (schedulesJson.isNullOrBlank()) return
+    /** 일정이 바뀌었을 때 이전에 등록한 알람과 이미 표시된 알림도 함께 정리한다. */
+    private fun cancelAlarmsFromJson(
+        context: Context,
+        am: AlarmManager,
+        schedulesJson: String,
+        cancelPostedNotifications: Boolean
+    ) {
         try {
             val arr = JSONArray(schedulesJson)
+            val manager = if (cancelPostedNotifications) {
+                context.getSystemService(Context.NOTIFICATION_SERVICE) as? android.app.NotificationManager
+            } else null
             for (i in 0 until arr.length()) {
                 val item = arr.getJSONObject(i)
                 val id = item.getInt("id")
                 val repeatDays = item.optJSONArray("repeatDays")
-                val hasRepeatDays = repeatDays != null && repeatDays.length() > 0
-                val count = if (hasRepeatDays) repeatDays!!.length() else 1
-                for (index in 0 until count) {
-                    val requestId = if (hasRepeatDays) id * 10 + index else id
-                    val intent = Intent(context, HagomAlarmReceiver::class.java).apply {
-                        action = HagomAlarmReceiver.ACTION_TRIGGER
-                    }
-                    val pendingIntent = PendingIntent.getBroadcast(
-                        context,
-                        requestId,
-                        intent,
-                        PendingIntent.FLAG_NO_CREATE or PendingIntent.FLAG_IMMUTABLE
-                    )
-                    if (pendingIntent != null) {
-                        am.cancel(pendingIntent)
-                        pendingIntent.cancel()
+                if (repeatDays == null || repeatDays.length() == 0) {
+                    cancelAlarm(context, am, manager, id)
+                } else {
+                    for (dayIndex in 0 until repeatDays.length()) {
+                        cancelAlarm(context, am, manager, id * 10 + dayIndex)
                     }
                 }
             }
         } catch (_: Exception) {}
+    }
+
+    private fun cancelAlarm(
+        context: Context,
+        am: AlarmManager,
+        manager: android.app.NotificationManager?,
+        alarmId: Int
+    ) {
+        val intent = Intent(context, HagomAlarmReceiver::class.java).apply {
+            action = HagomAlarmReceiver.ACTION_TRIGGER
+        }
+        val pi = PendingIntent.getBroadcast(
+            context,
+            alarmId,
+            intent,
+            PendingIntent.FLAG_NO_CREATE or PendingIntent.FLAG_IMMUTABLE
+        )
+        if (pi != null) {
+            am.cancel(pi)
+            pi.cancel()
+        }
+        manager?.cancel(alarmId)
     }
 
     private fun scheduleSingleAlarm(
@@ -95,6 +127,8 @@ object HagomAlarmScheduler {
         title: String,
         message: String,
         isEssential: Boolean,
+        actionUri: String,
+        actionLabel: String,
         triggerAtMillis: Long? = null
     ) {
         val intent = Intent(context, HagomAlarmReceiver::class.java).apply {
@@ -103,6 +137,9 @@ object HagomAlarmScheduler {
             putExtra("title", title)
             putExtra("message", message)
             putExtra("isEssential", isEssential)
+            putExtra("actionUri", actionUri)
+            putExtra("actionLabel", actionLabel)
+            putExtra("notificationId", alarmId)
         }
 
         val pi = PendingIntent.getBroadcast(
@@ -135,8 +172,9 @@ object HagomAlarmScheduler {
 
         val triggerTime = triggerAtMillis ?: cal.timeInMillis
         if (triggerTime <= System.currentTimeMillis()) return
+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && !am.canScheduleExactAlarms()) {
-            // Keep reminders active when exact-alarm access is unavailable.
+            // 정확한 알람 권한을 아직 허용하지 않은 기기에서도 알림 자체는 놓치지 않도록 fallback.
             am.setAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, triggerTime, pi)
         } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             am.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, triggerTime, pi)
@@ -148,6 +186,7 @@ object HagomAlarmScheduler {
     fun rescheduleAll(context: Context) {
         val prefs = context.getSharedPreferences("HagomAlarmPrefs", Context.MODE_PRIVATE)
         val json = prefs.getString("last_schedules_json", null) ?: return
-        scheduleAlarmsFromJson(context, json)
+        // 반복 알림이 울린 직후에는 현재 표시된 알림을 유지한다.
+        scheduleAlarmsFromJson(context, json, cancelPostedNotifications = false)
     }
 }
