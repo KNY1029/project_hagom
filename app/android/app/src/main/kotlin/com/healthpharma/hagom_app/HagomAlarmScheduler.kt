@@ -11,12 +11,16 @@ import java.util.Calendar
 
 object HagomAlarmScheduler {
 
-    fun scheduleAlarmsFromJson(context: Context, schedulesJson: String) {
+    fun scheduleAlarmsFromJson(
+        context: Context,
+        schedulesJson: String,
+        cancelPostedNotifications: Boolean = true
+    ) {
         val am = context.getSystemService(Context.ALARM_SERVICE) as? AlarmManager ?: return
         val prefs = context.getSharedPreferences("HagomAlarmPrefs", Context.MODE_PRIVATE)
         val previousSchedulesJson = prefs.getString("last_schedules_json", null)
         if (!previousSchedulesJson.isNullOrEmpty()) {
-            cancelAlarmsFromJson(context, am, previousSchedulesJson)
+            cancelAlarmsFromJson(context, am, previousSchedulesJson, cancelPostedNotifications)
         }
         prefs.edit().putString("last_schedules_json", schedulesJson).apply()
 
@@ -65,10 +69,17 @@ object HagomAlarmScheduler {
     }
 
     /** 일정이 바뀌었을 때 이전에 등록한 알람과 이미 표시된 알림도 함께 정리한다. */
-    private fun cancelAlarmsFromJson(context: Context, am: AlarmManager, schedulesJson: String) {
+    private fun cancelAlarmsFromJson(
+        context: Context,
+        am: AlarmManager,
+        schedulesJson: String,
+        cancelPostedNotifications: Boolean
+    ) {
         try {
             val arr = JSONArray(schedulesJson)
-            val manager = context.getSystemService(Context.NOTIFICATION_SERVICE) as? android.app.NotificationManager
+            val manager = if (cancelPostedNotifications) {
+                context.getSystemService(Context.NOTIFICATION_SERVICE) as? android.app.NotificationManager
+            } else null
             for (i in 0 until arr.length()) {
                 val item = arr.getJSONObject(i)
                 val id = item.getInt("id")
@@ -175,6 +186,7 @@ object HagomAlarmScheduler {
     fun rescheduleAll(context: Context) {
         val prefs = context.getSharedPreferences("HagomAlarmPrefs", Context.MODE_PRIVATE)
         val json = prefs.getString("last_schedules_json", null) ?: return
-        scheduleAlarmsFromJson(context, json)
+        // 반복 알림이 울린 직후에는 현재 표시된 알림을 유지한다.
+        scheduleAlarmsFromJson(context, json, cancelPostedNotifications = false)
     }
 }
