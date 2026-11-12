@@ -189,13 +189,29 @@ class _CompanionRoomScreenState extends State<CompanionRoomScreen> {
                       ),
                     ),
                     const SizedBox(height: 12),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceAround,
-                      children: [
-                        _buildStatItem('${_state.returnedCount}회', '다시 돌아옴', AppColors.primaryPurple),
-                        _buildStatItem('${_state.gentleAttempts}회', '부드럽게 시도', AppColors.warmBrown),
-                        _buildStatItem('100%', '나를 위한 마음', AppColors.successGreen),
-                      ],
+                    Center(
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            'D+${_state.accessDayCount}',
+                            style: TextStyle(
+                              fontSize: 24,
+                              fontWeight: FontWeight.bold,
+                              color: AppColors.primaryPurple,
+                            ),
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            '접속일수',
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w500,
+                              color: AppColors.textSecondary,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ],
                 ),
@@ -225,26 +241,4 @@ class _CompanionRoomScreenState extends State<CompanionRoomScreen> {
     );
   }
 
-  Widget _buildStatItem(String count, String label, Color color) {
-    return Column(
-      children: [
-        Text(
-          count,
-          style: TextStyle(
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
-            color: color,
-          ),
-        ),
-        const SizedBox(height: 4),
-        Text(
-          label,
-          style: TextStyle(
-            fontSize: 12,
-            color: AppColors.textSecondary,
-          ),
-        ),
-      ],
-    );
-  }
 }
