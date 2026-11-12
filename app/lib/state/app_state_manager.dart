@@ -85,9 +85,11 @@ class AppStateManager extends ChangeNotifier {
   // 🌟 오늘 복약 통계 (현재 복용 중인 활성 약물들만 집계!)
   int get totalDoseSlots => medications
       .where((m) => m.isDueToday)
+      .where((m) => m.recurrenceSummary != '필요 시')
       .fold(0, (sum, m) => sum + m.totalSlotsCount);
   int get completedDoseSlots => medications
       .where((m) => m.isDueToday)
+      .where((m) => m.recurrenceSummary != '필요 시')
       .fold(0, (sum, m) => sum + m.completedSlotsCount);
 
   // --- 🌱 습관 데이터 ---
