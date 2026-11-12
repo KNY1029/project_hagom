@@ -1496,6 +1496,7 @@ class _CalendarTabViewState extends State<CalendarTabView> {
                   shrinkWrap: true,
                   physics: const NeverScrollableScrollPhysics(),
                   buildDefaultDragHandles: false,
+                  proxyDecorator: (child, index, animation) => child,
                   itemCount: selectedDayTasks.length,
                   onReorder: (oldIndex, newIndex) {
                     if (newIndex > oldIndex) newIndex--;

@@ -651,6 +651,7 @@ class _HabitsTabViewState extends State<HabitsTabView> {
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
             buildDefaultDragHandles: false,
+            proxyDecorator: (child, index, animation) => child,
             itemCount: todayHabits.length,
             onReorder: (oldIndex, newIndex) {
               if (newIndex > oldIndex) newIndex--;
@@ -677,6 +678,7 @@ class _HabitsTabViewState extends State<HabitsTabView> {
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
             buildDefaultDragHandles: false,
+            proxyDecorator: (child, index, animation) => child,
             itemCount: otherHabits.length,
             onReorder: (oldIndex, newIndex) {
               if (newIndex > oldIndex) newIndex--;
