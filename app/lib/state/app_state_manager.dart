@@ -441,6 +441,7 @@ class AppStateManager extends ChangeNotifier {
 
   // 가상 생성된 모의 할일 중 삭제된 ID 목록
   final Set<String> _hiddenMockTaskIds = {};
+  final Set<String> _completedMockTaskIds = {};
 
   bool _isSimulationPreviewMonth(DateTime day) =>
       day.year == simulationPreviewYear && day.month == simulationPreviewMonth;
@@ -472,7 +473,7 @@ class AppStateManager extends ChangeNotifier {
             title: '병원 정기 상담 완료',
             date: day,
             time: '오전 10:00',
-            isCompleted: true,
+            isCompleted: !_completedMockTaskIds.contains(mId),
           ),
         ];
       } else if (d == 2 ||
@@ -490,7 +491,7 @@ class AppStateManager extends ChangeNotifier {
             title: '복약 일지 점검',
             date: day,
             time: '오후 3:00',
-            isCompleted: false,
+            isCompleted: _completedMockTaskIds.contains(mId),
           ),
         ];
       }
@@ -1836,6 +1837,15 @@ class AppStateManager extends ChangeNotifier {
   }
 
   void toggleTaskCompleted(String id) {
+    if (id.startsWith('t_mock_')) {
+      if (_completedMockTaskIds.contains(id)) {
+        _completedMockTaskIds.remove(id);
+      } else {
+        _completedMockTaskIds.add(id);
+      }
+      notifyListeners();
+      return;
+    }
     final task = _tasks.firstWhere((t) => t.id == id);
     task.isCompleted = !task.isCompleted;
     notifyListeners();
