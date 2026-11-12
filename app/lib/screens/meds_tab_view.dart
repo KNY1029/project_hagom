@@ -720,14 +720,6 @@ class _MedsTabViewState extends State<MedsTabView> {
                           ),
                         ),
                         const SizedBox(height: 6),
-                        Text(
-                          '시간대를 처음 누르면 알림 시각을 설정하고, 다음부터는 저장된 시간으로 바로 추가돼요.',
-                          style: TextStyle(
-                            fontSize: 11,
-                            color: AppColors.textSecondary,
-                          ),
-                        ),
-                        const SizedBox(height: 6),
                         Wrap(
                           spacing: 6,
                           runSpacing: 0,

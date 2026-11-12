@@ -84,6 +84,68 @@ class _CalendarTabViewState extends State<CalendarTabView> {
     });
   }
 
+  void _showCalendarLegend() {
+    Widget row({required Widget marker, required String label}) => Padding(
+      padding: const EdgeInsets.symmetric(vertical: 6),
+      child: Row(
+        children: [
+          SizedBox(width: 42, child: Center(child: marker)),
+          const SizedBox(width: 10),
+          Expanded(child: Text(label, style: const TextStyle(fontSize: 14))),
+        ],
+      ),
+    );
+    Widget bar(Color color) => Container(
+      width: 28,
+      height: 4,
+      decoration: BoxDecoration(
+        color: color,
+        borderRadius: BorderRadius.circular(4),
+      ),
+    );
+    Widget dot(Color color) => Container(
+      width: 12,
+      height: 12,
+      decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+    );
+    Widget cell(Color color) => Container(
+      width: 15,
+      height: 15,
+      decoration: BoxDecoration(
+        color: color,
+        borderRadius: BorderRadius.circular(3),
+        border: Border.all(color: AppColors.divider),
+      ),
+    );
+
+    showDialog<void>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('달력 표시 안내'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            row(marker: bar(AppColors.missedRed), label: '처방약 미복용'),
+            row(marker: bar(AppColors.successGreen), label: '복약 완료'),
+            row(marker: bar(const Color(0xFF9CA3AF)), label: '복약 미완료'),
+            const Divider(),
+            row(marker: dot(AppColors.successGreen), label: '할일 완료'),
+            row(marker: dot(const Color(0xFFD1D5DB)), label: '할일 미완료'),
+            const Divider(),
+            row(marker: cell(AppColors.successBg), label: '습관 완료'),
+            row(marker: cell(Colors.white), label: '습관 미완료'),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(),
+            child: const Text('확인'),
+          ),
+        ],
+      ),
+    );
+  }
+
   // 🌟 [전체 달 공통 완료 초록 컬러]: 5월의 싱그럽고 선명한 에메랄드 그린 (Emerald 600 #059669)으로 통일!
   Color _getDoneGreenColor(int m) {
     return AppColors.successGreen;
@@ -1037,23 +1099,40 @@ class _CalendarTabViewState extends State<CalendarTabView> {
                 ),
               ],
             ),
-            TextButton.icon(
-              style: TextButton.styleFrom(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 10,
-                  vertical: 4,
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextButton.icon(
+                  style: TextButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 4,
+                    ),
+                  ),
+                  icon: Icon(Icons.today, size: 16, color: AppColors.primaryPurple),
+                  label: Text(
+                    '오늘',
+                    style: TextStyle(
+                      color: AppColors.primaryPurple,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 13,
+                    ),
+                  ),
+                  onPressed: _goToToday,
                 ),
-              ),
-              icon: Icon(Icons.today, size: 16, color: AppColors.primaryPurple),
-              label: Text(
-                '오늘',
-                style: TextStyle(
+                IconButton(
+                  tooltip: '달력 표시 안내',
+                  onPressed: _showCalendarLegend,
+                  icon: const Icon(Icons.info_outline, size: 19),
                   color: AppColors.primaryPurple,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 13,
+                  visualDensity: VisualDensity.compact,
+                  constraints: const BoxConstraints(
+                    minWidth: 34,
+                    minHeight: 34,
+                  ),
+                  padding: EdgeInsets.zero,
                 ),
-              ),
-              onPressed: _goToToday,
+              ],
             ),
           ],
         ),
