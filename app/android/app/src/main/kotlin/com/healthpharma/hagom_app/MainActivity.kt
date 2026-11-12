@@ -25,61 +25,24 @@ class MainActivity : FlutterActivity() {
     private val testNotificationChannelId = "hagom_test_notifications"
     private val notificationPermissionRequestCode = 3007
     private var pendingNotificationResult: MethodChannel.Result? = null
-    private var notificationPermissionRequested = false
 
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
 
         MethodChannel(flutterEngine.dartExecutor.binaryMessenger, CHANNEL).setMethodCallHandler { call, result ->
             when (call.method) {
-                "openUrl" -> {
-                    val urlStr = call.argument<String>("url") ?: "https://lit.link/ko/hagom"
-                    try {
-                        val browserIntent = Intent(Intent.ACTION_VIEW, Uri.parse(urlStr)).apply {
-                            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                        }
-                        startActivity(browserIntent)
-                        result.success(true)
-                    } catch (e: Exception) {
-                        result.error("OPEN_URL_ERROR", e.message, null)
-                    }
-                }
                 "showTestNotification" -> showTestNotification(result)
                 "syncAlarms" -> {
-                    requestNotificationPermissionIfNeeded()
-                    val schedulesJson = call.argument<String>("schedulesJson") ?: "[]"
-                    HagomAlarmScheduler.scheduleAlarmsFromJson(this, schedulesJson)
-                    result.success(true)
-                }
-                "downloadExcel" -> {
-                    val fileName = call.argument<String>("fileName") ?: "hagom_건강기록.xlsx"
-                    val bytes = call.argument<ByteArray>("bytes") ?: ByteArray(0)
-                    try {
-                        var savedPath = ""
-                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                            val values = ContentValues().apply {
-                                put(MediaStore.MediaColumns.DISPLAY_NAME, fileName)
-                                put(MediaStore.MediaColumns.MIME_TYPE, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
-                                put(MediaStore.MediaColumns.RELATIVE_PATH, Environment.DIRECTORY_DOWNLOADS)
-                            }
-                            val uri = contentResolver.insert(MediaStore.Downloads.EXTERNAL_CONTENT_URI, values)
-                            if (uri != null) {
-                                contentResolver.openOutputStream(uri)?.use { output ->
-                                    output.write(bytes)
-                                }
-                                savedPath = "다운로드 폴더 ($fileName)"
-                            }
-                        } else {
-                            val downloadsDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
-                            val file = File(downloadsDir, fileName)
-                            FileOutputStream(file).use { output ->
-                                output.write(bytes)
-                            }
-                            savedPath = file.absolutePath
+                    val schedulesJson = call.argument<String>("schedulesJson")
+                    if (schedulesJson.isNullOrBlank()) {
+                        result.error("INVALID_SCHEDULES", "알림 일정이 비어 있습니다.", null)
+                    } else {
+                        try {
+                            HagomAlarmScheduler.scheduleAlarmsFromJson(this, schedulesJson)
+                            result.success(true)
+                        } catch (e: Exception) {
+                            result.error("ALARM_SYNC_FAILED", e.message, null)
                         }
-                        result.success(mapOf("success" to true, "path" to savedPath, "fileName" to fileName))
-                    } catch (e: Exception) {
-                        result.error("EXPORT_ERROR", e.message, null)
                     }
                 }
                 "downloadCsv" -> {
@@ -111,43 +74,17 @@ class MainActivity : FlutterActivity() {
                             savedPath = file.absolutePath
                         }
 
+                        val cacheFile = File(cacheDir, fileName)
+                        FileOutputStream(cacheFile).use { output ->
+                            output.write(content.toByteArray(Charsets.UTF_8))
+                        }
+
                         result.success(mapOf("success" to true, "path" to savedPath, "fileName" to fileName))
                     } catch (e: Exception) {
                         result.error("EXPORT_ERROR", e.message, null)
                     }
                 }
-                "downloadMultipleCsv" -> {
-                    val files = call.argument<Map<String, String>>("files") ?: emptyMap()
-                    try {
-                        val savedNames = mutableListOf<String>()
-                        for ((fName, fContent) in files) {
-                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                                val values = ContentValues().apply {
-                                    put(MediaStore.MediaColumns.DISPLAY_NAME, fName)
-                                    put(MediaStore.MediaColumns.MIME_TYPE, "text/csv")
-                                    put(MediaStore.MediaColumns.RELATIVE_PATH, Environment.DIRECTORY_DOWNLOADS)
-                                }
-                                val uri = contentResolver.insert(MediaStore.Downloads.EXTERNAL_CONTENT_URI, values)
-                                if (uri != null) {
-                                    contentResolver.openOutputStream(uri)?.use { output ->
-                                        output.write(fContent.toByteArray(Charsets.UTF_8))
-                                    }
-                                    savedNames.add(fName)
-                                }
-                            } else {
-                                val downloadsDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
-                                val file = File(downloadsDir, fName)
-                                FileOutputStream(file).use { output ->
-                                    output.write(fContent.toByteArray(Charsets.UTF_8))
-                                }
-                                savedNames.add(fName)
-                            }
-                        }
-                        result.success(mapOf("success" to true, "fileNames" to savedNames))
-                    } catch (e: Exception) {
-                        result.error("EXPORT_ERROR", e.message, null)
-                    }
-                }
+
                 "shareCsv" -> {
                     val fileName = call.argument<String>("fileName") ?: "하곰이_건강기록.csv"
                     val content = call.argument<String>("content") ?: ""
@@ -213,24 +150,12 @@ class MainActivity : FlutterActivity() {
             )
             return
         }
+
         result.success(postTestNotification())
     }
 
-    private fun requestNotificationPermissionIfNeeded() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
-            checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED &&
-            !notificationPermissionRequested
-        ) {
-            notificationPermissionRequested = true
-            requestPermissions(
-                arrayOf(Manifest.permission.POST_NOTIFICATIONS),
-                notificationPermissionRequestCode
-            )
-        }
-    }
-
     private fun postTestNotification(): Boolean {
-        val manager = getSystemService(NotificationManager::class.java) ?: return false
+        val manager = getSystemService(NotificationManager::class.java)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             manager.createNotificationChannel(
                 NotificationChannel(
