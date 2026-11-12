@@ -446,8 +446,8 @@ class _MedsTabViewState extends State<MedsTabView> {
                           ),
                           child: Text(
                             recurrenceType == '오늘만'
-                                ? '오늘만: 구충제, 타이레놀처럼 오늘 날짜에만 복용하는 약이에요. 오늘만 복약 목록에 표시되고 내일부터는 사라져요. 정기 복약 성공·실패와 복약 퍼센트에는 포함되지 않아요.'
-                                : '필요 시: 멜라토닌이나 집중을 위해 먹는 저용량 메디키넷처럼 복약지도에는 계속 남아 있지만, 실제로 먹었을 때만 기록하는 약이에요. 정기 복약 성공·실패와 복약 퍼센트에는 포함되지 않아요.',
+                                ? '오늘만: 등록한 당일에만 복약 목록에 표시되고 내일부터는 사라지는 약이에요. 정기 복약 성공·실패와 복약 퍼센트에는 포함되지 않아요.'
+                                : '필요 시: 직접 삭제하기 전까지 복약지도에 계속 남아 있지만, 실제로 복용했을 때만 기록하는 약이에요. 정기 복약 성공·실패와 복약 퍼센트에는 포함되지 않아요.',
                             style: TextStyle(
                               fontSize: 11.5,
                               height: 1.45,
@@ -748,41 +748,31 @@ class _MedsTabViewState extends State<MedsTabView> {
                                 selected: isSel,
                                 selectedColor: AppColors.primaryPurple
                                     .withValues(alpha: 0.2),
-                                label: Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    Text(
-                                      customLabel,
-                                      style: TextStyle(
-                                        fontSize: 11.5,
-                                        color: isSel
-                                            ? AppColors.primaryPurple
-                                            : AppColors.textPrimary,
-                                        fontWeight: isSel
-                                            ? FontWeight.bold
-                                            : FontWeight.normal,
-                                      ),
-                                    ),
-                                    const SizedBox(width: 4),
-                                    GestureDetector(
-                                      onTap: () {
-                                        setModalState(() {
-                                          currentSlots.removeWhere(
-                                            (s) => s.label == customLabel,
-                                          );
-                                          _state.removeCustomTimeSlot(
-                                            customLabel,
-                                          );
-                                        });
-                                      },
-                                      child: const Icon(
-                                        Icons.close,
-                                        size: 13,
-                                        color: AppColors.textMuted,
-                                      ),
-                                    ),
-                                  ],
+                                label: Text(
+                                  customLabel,
+                                  style: TextStyle(
+                                    fontSize: 11.5,
+                                    color: isSel
+                                        ? AppColors.primaryPurple
+                                        : AppColors.textPrimary,
+                                    fontWeight: isSel
+                                        ? FontWeight.bold
+                                        : FontWeight.normal,
+                                  ),
                                 ),
+                                deleteIcon: const Icon(
+                                  Icons.close,
+                                  size: 13,
+                                  color: AppColors.textMuted,
+                                ),
+                                onDeleted: () {
+                                  setModalState(() {
+                                    currentSlots.removeWhere(
+                                      (s) => s.label == customLabel,
+                                    );
+                                    _state.removeCustomTimeSlot(customLabel);
+                                  });
+                                },
                                 onSelected: (sel) {
                                   if (sel) {
                                     // 🌟 시간 설정을 강제하지 않고 옵셔널로 즉시 추가!
