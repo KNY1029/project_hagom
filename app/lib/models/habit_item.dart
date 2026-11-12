@@ -9,6 +9,7 @@ class HabitItem {
   int targetPerDay;          // 하루 목표 횟수 (기본 1회, 물 마시기 등은 4회)
   int currentCount;          // 오늘 실천한 횟수
   int weeklyCompletedCount;  // 🌟 이번 주에 이미 완료한 누적 횟수 (예: 주 1회 목표 중 1회 완료)
+  DateTime startDate;        // 습관 시작일
   bool isExpanded;           // 카드 아코디언 옵션 펼침 여부
 
   HabitItem({
@@ -23,12 +24,20 @@ class HabitItem {
     this.weeklyCompletedCount = 0,
     this.isExpanded = false,
     this.isArchived = false,
-  });
+    DateTime? startDate,
+  }) : startDate = DateTime(
+         (startDate ?? DateTime.now()).year,
+         (startDate ?? DateTime.now()).month,
+         (startDate ?? DateTime.now()).day,
+       );
   bool isArchived;
   /// 🌟 오늘(Today) 실천해야 하는 습관인지 판별하는 스마트 로직
   bool isDueOn(DateTime date) {
+    final target = DateTime(date.year, date.month, date.day);
+    final start = DateTime(startDate.year, startDate.month, startDate.day);
+    if (target.isBefore(start)) return false;
     if (recurrenceSummary == '매일' || recurrenceSummary == '오늘만') {
-      return true;
+      return recurrenceSummary != '오늘만' || target == start;
     }
     // 주 N회 (예: 주 1회)인 경우:
     if (recurrenceSummary.contains('주') && (recurrenceSummary.contains('회') || recurrenceSummary.contains('횟수'))) {
@@ -68,6 +77,7 @@ class HabitItem {
     'currentCount': currentCount,
     'weeklyCompletedCount': weeklyCompletedCount,
     'isArchived': isArchived,
+    'startDate': startDate.toIso8601String(),
   };
   factory HabitItem.fromJson(Map<String, dynamic> json) => HabitItem(
     id: json['id'] as String,
@@ -80,6 +90,7 @@ class HabitItem {
     currentCount: json['currentCount'] as int? ?? 0,
     weeklyCompletedCount: json['weeklyCompletedCount'] as int? ?? 0,
     isArchived: json['isArchived'] as bool? ?? false,
+    startDate: DateTime.tryParse(json['startDate'] as String? ?? ''),
   );
   // 점수 환산 (0.0 ~ 1.0)
   double get score {

@@ -975,6 +975,7 @@ class _CalendarTabViewState extends State<CalendarTabView> {
     final selectedDayTasks = _state.getTasksForDay(_selectedDate);
     final isSelectedDatePast = _selectedDate.isBefore(today);
     final isSelectedDateToday = _selectedDate.isAtSameMomentAs(today);
+    final isSelectedDateFuture = _selectedDate.isAfter(today);
     final isSelectedDateBeforeTracking = _state.isBeforeTrackingStart(
       _selectedDate,
     );
@@ -1218,7 +1219,7 @@ class _CalendarTabViewState extends State<CalendarTabView> {
                       Color medBarColor = currentDoneGreen;
                       bool hasMedBar = false;
 
-                      if (!isFuture && !isBeforeTracking) {
+                      if (!isFuture && !isBeforeTracking && medRate != null) {
                         if (isMed100) {
                           medBarColor = currentDoneGreen;
                           hasMedBar = true;
@@ -1717,15 +1718,23 @@ class _CalendarTabViewState extends State<CalendarTabView> {
                                   : null,
                             ),
                             child: Text(
-                              isSelectedDateBeforeTracking
+                              isSelectedDateBeforeTracking ||
+                                  (!isSelectedDateFuture &&
+                                      !_state.allMedications.any(
+                                        (m) =>
+                                            !m.isArchived &&
+                                            m.isDueOn(_selectedDate) &&
+                                            m.recurrenceSummary != '필요 시' &&
+                                            m.recurrenceSummary != '오늘만',
+                                      ))
                                   ? '기록 전'
-                                  : (selectedMedRate == null
+                                  : (isSelectedDateFuture || selectedMedRate == null
                                         ? '기록 대기'
                                         : (selectedMedRate >= 1.0
                                               ? '전체 완료'
                                               : (selectedMedRate > 0.0
                                                     ? '일부 복용'
-                                                    : '건너뜀/미기록'))),
+                                                    : '미복용'))),
                               style: TextStyle(
                                 fontSize: 11.5,
                                 fontWeight: FontWeight.bold,
@@ -1961,15 +1970,19 @@ class _CalendarTabViewState extends State<CalendarTabView> {
                                   : null,
                             ),
                             child: Text(
-                              isSelectedDateBeforeTracking
+                              isSelectedDateBeforeTracking ||
+                                  (!isSelectedDateFuture &&
+                                      !_state.allHabits.any(
+                                        (h) => !h.isArchived && h.isDueOn(_selectedDate),
+                                      ))
                                   ? '기록 전'
-                                  : (selectedHabitRate == null
+                                  : (isSelectedDateFuture || selectedHabitRate == null
                                         ? '기록 대기'
                                         : (selectedHabitRate >= 1.0
                                               ? '전체 달성'
                                               : (selectedHabitRate > 0.0
                                                     ? '${(selectedHabitRate * _state.allHabits.where((h) => h.isDueOn(_selectedDate)).length).toStringAsFixed(1)}/${_state.allHabits.where((h) => h.isDueOn(_selectedDate)).length}개 실천'
-                                                    : '미실천/기록 없음'))),
+                                                    : '미실천'))),
                               style: TextStyle(
                                 fontSize: 11.5,
                                 fontWeight: FontWeight.bold,
