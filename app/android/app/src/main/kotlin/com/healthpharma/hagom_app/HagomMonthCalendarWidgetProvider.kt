@@ -40,6 +40,7 @@ class HagomMonthCalendarWidgetProvider : HomeWidgetProvider() {
             val selectedDateStr = widgetData.getString("month_selected_date", "") ?: ""
             val inspectingIso = widgetData.getString("month_inspecting_iso", "") ?: ""
             val todayIso = widgetData.getString("month_today_iso", "") ?: ""
+            val isColorVision = widgetData.getString("theme_color_vision", "false") == "true"
             val hasSelectedOtherDay = inspectingIso.isNotEmpty()
             val views = RemoteViews(context.packageName, R.layout.hagom_month_calendar_widget).apply {
                 // 🌟 [세로 높이 반응형 3단계 헤더]:
@@ -169,6 +170,8 @@ class HagomMonthCalendarWidgetProvider : HomeWidgetProvider() {
                                 "today_pin" -> R.drawable.hagom_widget_today_pin_sel
                                 "today_done" -> R.drawable.hagom_widget_today_done_bg_sel
                                 "today_done_pin" -> R.drawable.hagom_widget_today_done_pin_sel
+                                "today_med_done" -> if (isColorVision) R.drawable.hagom_widget_today_med_done_cv_sel else R.drawable.hagom_widget_today_med_done_sel
+                                "today_med_done_pin" -> if (isColorVision) R.drawable.hagom_widget_today_med_done_pin_cv_sel else R.drawable.hagom_widget_today_med_done_pin_sel
                                 "all_done" -> R.drawable.hagom_widget_done_bg_sel
                                 "all_done_pin" -> R.drawable.hagom_widget_done_pin_green_sel
                                 "mdone" -> R.drawable.hagom_widget_done_med_bar_sel
@@ -192,6 +195,8 @@ class HagomMonthCalendarWidgetProvider : HomeWidgetProvider() {
                                 "today_pin" -> R.drawable.hagom_widget_today_pin
                                 "today_done" -> R.drawable.hagom_widget_today_done_bg
                                 "today_done_pin" -> R.drawable.hagom_widget_today_done_pin
+                                "today_med_done" -> if (isColorVision) R.drawable.hagom_widget_today_med_done_cv else R.drawable.hagom_widget_today_med_done
+                                "today_med_done_pin" -> if (isColorVision) R.drawable.hagom_widget_today_med_done_pin_cv else R.drawable.hagom_widget_today_med_done_pin
                                 "all_done" -> R.drawable.hagom_widget_done_bg
                                 "all_done_pin" -> R.drawable.hagom_widget_done_pin_green
                                 "mdone" -> R.drawable.hagom_widget_done_med_bar
