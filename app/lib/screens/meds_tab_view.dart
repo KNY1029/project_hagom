@@ -133,6 +133,23 @@ class _MedsTabViewState extends State<MedsTabView> {
     DateTime? endDate = isEditing ? med.endDate : null;
     String formatDate(DateTime date) =>
         '${date.year}.${date.month.toString().padLeft(2, '0')}.${date.day.toString().padLeft(2, '0')}';
+    Future<String?> ensureRoutineTime(String label) async {
+      if (_state.isRoutineTimeConfigured(label)) {
+        return _state.routineTimes[label];
+      }
+      final time = await AppTimePicker.show(
+        context,
+        initialTime: null,
+        title: '$label 알림 시각 설정',
+      );
+      if (time == null) return null;
+      final period = time.period == DayPeriod.am ? '오전' : '오후';
+      final hour = time.hourOfPeriod == 0 ? 12 : time.hourOfPeriod;
+      final minute = time.minute.toString().padLeft(2, '0');
+      final formatted = '$period $hour:$minute';
+      _state.setRoutineTime(label, formatted);
+      return formatted;
+    }
     final durationDaysCtrl = TextEditingController(
       text: isEditing && med.durationSummary.contains('일간')
           ? med.durationSummary.replaceAll(RegExp(r'[^0-9]'), '')
@@ -713,36 +730,19 @@ class _MedsTabViewState extends State<MedsTabView> {
                           spacing: 6,
                           runSpacing: 6,
                           children: [
-                            FilterChip(
-                              showCheckmark: false,
-                              label: const Text('1회 복용(시간 미정)'),
-                              selected: isSingleUntimedDose,
-                              selectedColor: AppColors.primaryPurple.withValues(
-                                alpha: 0.2,
-                              ),
-                              labelStyle: TextStyle(
-                                fontSize: 12,
-                                color: isSingleUntimedDose
-                                    ? AppColors.primaryPurple
-                                    : AppColors.textPrimary,
-                                fontWeight: isSingleUntimedDose
-                                    ? FontWeight.bold
-                                    : FontWeight.normal,
-                              ),
-                              onSelected: (selected) {
+                            TextButton.icon(
+                              onPressed: () {
                                 setModalState(() {
-                                  isSingleUntimedDose = selected;
-                                  if (selected) {
-                                    currentSlots = [
-                                      DoseSlot(label: '복용'),
-                                    ];
-                                  } else {
-                                    currentSlots.removeWhere(
-                                      (slot) => slot.label == '복용',
-                                    );
-                                  }
+                                  isSingleUntimedDose = true;
+                                  currentSlots = [DoseSlot(label: '복용')];
                                 });
                               },
+                              icon: const Icon(Icons.add, size: 14),
+                              label: const Text('시간 없이 1회 추가'),
+                              style: TextButton.styleFrom(
+                                padding: const EdgeInsets.symmetric(horizontal: 8),
+                                foregroundColor: AppColors.primaryPurple,
+                              ),
                             ),
                             ...['아침', '점심', '저녁', '취침 전'].map((label) {
                               final isSel = currentSlots.any(
@@ -763,28 +763,33 @@ class _MedsTabViewState extends State<MedsTabView> {
                                       ? FontWeight.bold
                                       : FontWeight.normal,
                                 ),
-                                onSelected: (sel) {
+                                onSelected: (sel) async {
                                   setModalState(() {
                                     if (sel) {
                                       isSingleUntimedDose = false;
                                       currentSlots.removeWhere(
                                         (slot) => slot.label == '복용',
                                       );
-                                      final defaultTime =
-                                          _state.routineTimes[label] ??
-                                          '오전 8:00';
+                                    }
+                                  });
+                                  if (sel) {
+                                    final selectedTime = await ensureRoutineTime(label);
+                                    if (selectedTime == null) return;
+                                    setModalState(() {
                                       currentSlots.add(
                                         DoseSlot(
                                           label: label,
-                                          scheduledTime: defaultTime,
+                                          scheduledTime: selectedTime,
                                         ),
                                       );
-                                    } else {
+                                    });
+                                  } else {
+                                    setModalState(() {
                                       currentSlots.removeWhere(
                                         (s) => s.label.startsWith(label),
                                       );
-                                    }
-                                  });
+                                    });
+                                  }
                                 },
                               );
                             }),
@@ -828,12 +833,12 @@ class _MedsTabViewState extends State<MedsTabView> {
                                     _state.removeCustomTimeSlot(customLabel);
                                   });
                                 },
-                                onSelected: (sel) {
+                                onSelected: (sel) async {
                                   if (sel) {
                                     // 🌟 시간 설정을 강제하지 않고 옵셔널로 즉시 추가!
-                                    final defaultTime =
-                                        _state.routineTimes[customLabel] ??
-                                        '오전 8:00';
+                                    final selectedTime =
+                                        await ensureRoutineTime(customLabel);
+                                    if (selectedTime == null) return;
                                     setModalState(() {
                                       isSingleUntimedDose = false;
                                       currentSlots.removeWhere(
@@ -842,7 +847,7 @@ class _MedsTabViewState extends State<MedsTabView> {
                                       currentSlots.add(
                                         DoseSlot(
                                           label: customLabel,
-                                          scheduledTime: defaultTime,
+                                          scheduledTime: selectedTime,
                                         ),
                                       );
                                     });
@@ -924,7 +929,9 @@ class _MedsTabViewState extends State<MedsTabView> {
                                       '0',
                                     );
                                     finalTime = '$period $hour:$min';
-                                    _state.routineTimes[name] = finalTime;
+                                    if (finalTime != null) {
+                                      _state.setRoutineTime(name, finalTime);
+                                    }
                                   }
                                   setModalState(() {
                                     currentSlots.add(
@@ -1017,6 +1024,45 @@ class _MedsTabViewState extends State<MedsTabView> {
                                               slot.scheduledTime =
                                                   '$period $hour:$min';
                                             });
+                                            final updateDefault =
+                                                await showDialog<bool>(
+                                                  context: context,
+                                                  builder: (dialogContext) =>
+                                                      AlertDialog(
+                                                        title: const Text(
+                                                          '시간대 기본값 변경',
+                                                        ),
+                                                        content: Text(
+                                                          '${slot.label} 칩을 다음에 선택할 때도 이 시간을 사용할까요?',
+                                                        ),
+                                                        actions: [
+                                                          TextButton(
+                                                            onPressed: () =>
+                                                                Navigator.of(
+                                                                  dialogContext,
+                                                                ).pop(false),
+                                                            child: const Text(
+                                                              '이번 복용만',
+                                                            ),
+                                                          ),
+                                                          ElevatedButton(
+                                                            onPressed: () =>
+                                                                Navigator.of(
+                                                                  dialogContext,
+                                                                ).pop(true),
+                                                            child: const Text(
+                                                              '기본값도 변경',
+                                                            ),
+                                                          ),
+                                                        ],
+                                                      ),
+                                                );
+                                            if (updateDefault == true) {
+                                              _state.setRoutineTime(
+                                                slot.label,
+                                                '$period $hour:$min',
+                                              );
+                                            }
                                           }
                                         },
                                         child: const Text(

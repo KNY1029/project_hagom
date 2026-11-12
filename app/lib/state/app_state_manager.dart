@@ -915,6 +915,16 @@ class AppStateManager extends ChangeNotifier {
   };
   // 사용자가 직접 추가한 커스텀 복약 시간대 슬롯 목록 (모든 약 추가/수정에서 영구 공유)
   final List<String> customTimeSlots = [];
+  final Set<String> configuredRoutineTimeLabels = {};
+
+  bool isRoutineTimeConfigured(String label) =>
+      isDevSimulationMode || configuredRoutineTimeLabels.contains(label);
+
+  void setRoutineTime(String label, String time) {
+    routineTimes[label] = time;
+    configuredRoutineTimeLabels.add(label);
+    notifyListeners();
+  }
 
   void addCustomTimeSlot(String slotName, {String? defaultTime}) {
     if (!customTimeSlots.contains(slotName)) {
@@ -993,6 +1003,10 @@ class AppStateManager extends ChangeNotifier {
         );
       }
       await _prefs!.setStringList('hagom_custom_time_slots', customTimeSlots);
+      await _prefs!.setStringList(
+        'hagom_configured_routine_time_labels',
+        configuredRoutineTimeLabels.toList(),
+      );
       await _prefs!.setString('hagom_routine_times', jsonEncode(routineTimes));
       await _prefs!.setString('hagom_theme_key', currentThemeKey);
       await _prefs!.setString(
@@ -1182,6 +1196,11 @@ class AppStateManager extends ChangeNotifier {
         customTimeSlots.clear();
         customTimeSlots.addAll(loadedCustomSlots);
       }
+      configuredRoutineTimeLabels
+        ..clear()
+        ..addAll(
+          _prefs!.getStringList('hagom_configured_routine_time_labels') ?? [],
+        );
       // 예전에 자동 생성된 기본 회차 라벨은 사용자 커스텀 시간대가 아니다.
       customTimeSlots.removeWhere(
         (label) =>
