@@ -1,5 +1,7 @@
 import 'dart:async';
+
 import 'package:flutter/material.dart';
+
 import '../constants/app_colors.dart';
 import '../constants/app_assets.dart';
 import '../constants/hagom_dialogue.dart';
@@ -10,6 +12,7 @@ import 'companion_room_screen.dart';
 import 'settings_screen.dart';
 import '../state/app_state_manager.dart';
 import '../widgets/tutorial_overlay.dart';
+
 /// 메인 화면 셸 (Shell):
 /// - 상단 헤더: 타이틀 + 설정 버튼 + 하곰이 미니 아바타
 /// - 하단 탭 바: 복약 / 습관 / 달력
@@ -74,9 +77,8 @@ class _MainNavigationShellState extends State<MainNavigationShell> {
     }
     if (wantsRoom) {
       state.shouldOpenCompanionRoom = false;
-      Navigator.of(context).push(
-        MaterialPageRoute(builder: (_) => const CompanionRoomScreen()),
-      );
+      Navigator.of(context)
+          .push(MaterialPageRoute(builder: (_) => const CompanionRoomScreen()));
     }
   }
 
@@ -93,11 +95,7 @@ class _MainNavigationShellState extends State<MainNavigationShell> {
     CalendarTabView(),
   ];
 
-  final List<String> _tabTitles = const [
-    '복약 관리',
-    '습관 관리',
-    '기록 달력',
-  ];
+  final List<String> _tabTitles = const ['복약 관리', '습관 관리', '기록 달력'];
   String _currentBubbleMessage = '한 가지만 실천해도 충분해요';
   // 논블로킹 말풍선 표시 여부 및 자동 숨김 타이머
   bool _isBubbleVisible = false;
@@ -179,10 +177,12 @@ class _MainNavigationShellState extends State<MainNavigationShell> {
                     width: 1.5,
                   ),
                 ),
-                child: ClipOval(
+                child: Padding(
+                  padding: const EdgeInsets.all(3),
                   child: Image.asset(
                     AppAssets.headerCompanionAvatar,
                     fit: BoxFit.contain,
+                    alignment: Alignment.center,
                   ),
                 ),
               ),
@@ -227,12 +227,21 @@ class _MainNavigationShellState extends State<MainNavigationShell> {
                     opacity: _isBubbleVisible ? 1.0 : 0.0,
                     duration: const Duration(milliseconds: 150),
                     child: Container(
-                      constraints: const BoxConstraints(maxWidth: 340), // 넉넉하게 확장하여 두 줄 줄바꿈 방지!
-                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 9),
+                      constraints: const BoxConstraints(
+                        maxWidth: 340,
+                      ), // 넉넉하게 확장하여 두 줄 줄바꿈 방지!
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 14,
+                        vertical: 9,
+                      ),
                       decoration: BoxDecoration(
                         color: Colors.white,
                         borderRadius: BorderRadius.circular(14),
-                        border: Border.all(color: AppColors.primaryPurple.withValues(alpha: 0.25)),
+                        border: Border.all(
+                          color: AppColors.primaryPurple.withValues(
+                            alpha: 0.25,
+                          ),
+                        ),
                         boxShadow: [
                           BoxShadow(
                             color: Colors.black.withValues(alpha: 0.08),
@@ -296,16 +305,25 @@ class _MainNavigationShellState extends State<MainNavigationShell> {
           },
           type: BottomNavigationBarType.fixed,
           enableFeedback: false,
-    selectedItemColor: AppColors.primaryPurple,
+          selectedItemColor: AppColors.primaryPurple,
           unselectedItemColor: AppColors.textMuted,
           backgroundColor: Colors.white,
           elevation: 8,
-          selectedLabelStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
-          unselectedLabelStyle: const TextStyle(fontWeight: FontWeight.normal, fontSize: 12),
+          selectedLabelStyle: const TextStyle(
+            fontWeight: FontWeight.bold,
+            fontSize: 12,
+          ),
+          unselectedLabelStyle: const TextStyle(
+            fontWeight: FontWeight.normal,
+            fontSize: 12,
+          ),
           items: [
             BottomNavigationBarItem(
               icon: const Icon(Icons.medication_outlined),
-              activeIcon: Icon(Icons.medication, color: AppColors.primaryPurple),
+              activeIcon: Icon(
+                Icons.medication,
+                color: AppColors.primaryPurple,
+              ),
               label: '복약',
             ),
             BottomNavigationBarItem(
@@ -315,7 +333,10 @@ class _MainNavigationShellState extends State<MainNavigationShell> {
             ),
             BottomNavigationBarItem(
               icon: const Icon(Icons.calendar_month_outlined),
-              activeIcon: Icon(Icons.calendar_month, color: AppColors.primaryPurple),
+              activeIcon: Icon(
+                Icons.calendar_month,
+                color: AppColors.primaryPurple,
+              ),
               label: '달력',
             ),
           ],
@@ -323,5 +344,4 @@ class _MainNavigationShellState extends State<MainNavigationShell> {
       ),
     );
   }
-
 }

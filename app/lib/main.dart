@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:home_widget/home_widget.dart';
+
 import 'constants/app_colors.dart';
 import 'screens/splash_screen.dart';
 import 'services/hagom_native_widget_sync.dart';
@@ -20,12 +21,15 @@ Future<void> handleWidgetUriAction(Uri? uri) async {
   await state.ensureInitialized();
   await state.reloadFromDisk();
 
-  final rawAction = uri.host.isNotEmpty ? uri.host : uri.path.replaceAll('/', '');
+  final rawAction = uri.host.isNotEmpty
+      ? uri.host
+      : uri.path.replaceAll('/', '');
   final action = rawAction.toLowerCase();
   if (action == 'noop') {
     // 이미 완료된 복약/습관 버튼 탭: 앱 실행도 취소도 하지 않고 버튼 터치감만 제공
     return;
   }
+  await state.recordAccessDay();
   final id = uri.queryParameters['id'];
   final slotParam = uri.queryParameters['slot'];
 
@@ -33,7 +37,9 @@ Future<void> handleWidgetUriAction(Uri? uri) async {
     if (id != null && slotParam != null) {
       final slotIdx = int.tryParse(slotParam) ?? -1;
       final idx = state.medications.indexWhere((m) => m.id == id);
-      if (idx != -1 && slotIdx >= 0 && slotIdx < state.medications[idx].doseSlots.length) {
+      if (idx != -1 &&
+          slotIdx >= 0 &&
+          slotIdx < state.medications[idx].doseSlots.length) {
         final med = state.medications[idx];
         final slot = med.doseSlots[slotIdx];
         if (!slot.isCompleted) {
@@ -122,8 +128,14 @@ Future<void> handleWidgetUriAction(Uri? uri) async {
         final day = int.tryParse(dayStr);
         if (day != null) {
           final now = DateTime.now();
-          final displayMonth = DateTime(now.year, now.month + state.widgetMonthOffset, 1);
-          state.selectWidgetDate(DateTime(displayMonth.year, displayMonth.month, day));
+          final displayMonth = DateTime(
+            now.year,
+            now.month + state.widgetMonthOffset,
+            1,
+          );
+          state.selectWidgetDate(
+            DateTime(displayMonth.year, displayMonth.month, day),
+          );
           await state.flushForCalendarWidgetOnly();
         }
       }
@@ -160,7 +172,11 @@ void main() async {
   runApp(const HagomApp());
   if (!kIsWeb) {
     final state = AppStateManager();
-    state.ensureInitialized().then((_) {
+    state.ensureInitialized().then((_) async {
+      final widgetDay = await HomeWidget.getWidgetData<String>(
+        'hagom_widget_access_day',
+      );
+      await state.recordAccessDay(widgetDay);
       HagomNativeWidgetSync.updateNativeWidget(state);
     });
   }
@@ -205,8 +221,8 @@ class _HagomAppState extends State<HagomApp> with WidgetsBindingObserver {
       if (lifecycleState == AppLifecycleState.resumed) {
         AppStateManager().reloadFromDisk();
       } else if (lifecycleState == AppLifecycleState.paused ||
-                 lifecycleState == AppLifecycleState.inactive ||
-                 lifecycleState == AppLifecycleState.hidden) {
+          lifecycleState == AppLifecycleState.inactive ||
+          lifecycleState == AppLifecycleState.hidden) {
         // 🌟 [앱 내 되돌리기/취소 즉시 위젯 반영]:
         // 앱 안에서 복약/습관 '되돌리기'를 누른 후 홈 화면으로 나가면(paused/inactive/hidden)
         // 위젯을 즉시 최신 상태로 강제 동기화하여 앱 재시작 없이도 취소 내역이 위젯에 100% 반영!
@@ -216,6 +232,7 @@ class _HagomAppState extends State<HagomApp> with WidgetsBindingObserver {
       }
     }
   }
+
   @override
   Widget build(BuildContext context) {
     final state = AppStateManager();

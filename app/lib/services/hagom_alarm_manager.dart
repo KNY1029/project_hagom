@@ -1,11 +1,15 @@
 import 'dart:convert';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
+
 import '../constants/hagom_dialogue.dart';
 import '../state/app_state_manager.dart';
 
 class HagomAlarmManager {
-  static const MethodChannel _channel = MethodChannel('com.healthpharma.hagom_app/export');
+  static const MethodChannel _channel = MethodChannel(
+    'com.healthpharma.hagom_app/export',
+  );
 
   /// 현재 등록된 복약, 습관, 할일 및 모드별 토크 알림을 안드로이드 AlarmManager로 전송
   static Future<void> syncScheduledAlarms(AppStateManager state) async {
@@ -21,6 +25,7 @@ class HagomAlarmManager {
 
       for (int i = 0; i < med.doseSlots.length; i++) {
         final slot = med.doseSlots[i];
+        if (slot.isCompleted || slot.isSkipped) continue;
         final timeStr = slot.scheduledTime;
         if (timeStr == null || timeStr.isEmpty) continue;
 
@@ -31,9 +36,14 @@ class HagomAlarmManager {
             'hour': time['hour'],
             'minute': time['minute'],
             'title': '하곰이 복약 알림',
-            'message': HagomDialogue.getRequiredReminder('${med.name} (${slot.label})'),
+            'message': HagomDialogue.getRequiredReminder(
+              '${med.name} (${slot.label})',
+            ),
             'isEssential': true,
-            'repeatDays': _getRepeatDaysList(med.recurrenceSummary, med.repeatDays),
+            'repeatDays': _getRepeatDaysList(
+              med.recurrenceSummary,
+              med.repeatDays,
+            ),
           });
 
           // 적극적 모드: 30분 뒤 재알림 추가 등록!
@@ -56,6 +66,7 @@ class HagomAlarmManager {
     // 2. 습관 알림
     if (state.habitNotificationEnabled) {
       for (final habit in state.habits) {
+        if (!habit.isDueToday || habit.score >= 1.0) continue;
         for (final timeStr in habit.scheduledTimes) {
           final time = _parseKoreanTime(timeStr);
           if (time != null) {
@@ -66,14 +77,65 @@ class HagomAlarmManager {
               'title': '하곰이 습관 알림',
               'message': HagomDialogue.getRequiredReminder(habit.title),
               'isEssential': true,
-              'repeatDays': _getRepeatDaysList(habit.recurrenceSummary, habit.repeatDays),
+              'repeatDays': _getRepeatDaysList(
+                habit.recurrenceSummary,
+                habit.repeatDays,
+              ),
             });
           }
         }
       }
     }
 
-    // 3. 토크 알림 (기본: 1회, 적극적: 3회)
+    // 3. 할일 알림: 완료된 할일은 더 이상 알리지 않는다.
+    if (state.tasksNotificationEnabled) {
+      final now = DateTime.now();
+      for (final task in state.tasks) {
+        if (task.isCompleted ||
+            task.time == null ||
+            task.time!.isEmpty ||
+            task.reminders.isEmpty)
+          continue;
+        final time = _parseKoreanTime(task.time!);
+        if (time == null) continue;
+        for (final reminder in task.reminders) {
+          final offset = reminder.contains('정시')
+              ? 0
+              : (reminder.contains('30분')
+                    ? 30
+                    : (reminder.contains('1시간')
+                          ? 60
+                          : (reminder.contains('하루') ? 1440 : 0)));
+          final dueDay = DateTime(
+            task.date.year,
+            task.date.month,
+            task.date.day,
+          );
+          final dueMinutes = time['hour']! * 60 + time['minute']!;
+          final alarmDate = dueDay.add(Duration(minutes: dueMinutes - offset));
+          if (task.isRepeated && task.repeatCycle == '매일') {
+            schedules.add({
+              'id': nextId++,
+              'hour': alarmDate.hour,
+              'minute': alarmDate.minute,
+              'title': '하곰이 할 일 알림',
+              'message': HagomDialogue.getRequiredReminder(task.title),
+              'isEssential': true,
+            });
+          } else if (alarmDate.isAfter(now)) {
+            schedules.add({
+              'id': nextId++,
+              'triggerAtMillis': alarmDate.millisecondsSinceEpoch,
+              'title': '하곰이 할 일 알림',
+              'message': HagomDialogue.getRequiredReminder(task.title),
+              'isEssential': true,
+            });
+          }
+        }
+      }
+    }
+
+    // 4. 토크 알림 (기본: 1회, 적극적: 3회)
     if (state.mascotNotificationEnabled) {
       if (state.notificationFrequency == '기본') {
         // 오후 2:30 일상 토크 1회
@@ -122,7 +184,10 @@ class HagomAlarmManager {
   }
 
   /// 한국어 요일명(['일', '월', ...]) 또는 주기 요약문에서 요일 번호 목록(1=일요일..7=토요일) 추출
-  static List<int> _getRepeatDaysList(String recurrenceSummary, List<String> repeatDays) {
+  static List<int> _getRepeatDaysList(
+    String recurrenceSummary,
+    List<String> repeatDays,
+  ) {
     final Map<String, int> dayToCalNum = {
       '일': 1,
       '월': 2,

@@ -8,6 +8,9 @@ import android.content.Intent
 import android.net.Uri
 import android.os.Handler
 import android.os.Looper
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 import es.antonborri.home_widget.HomeWidgetPlugin
 /**
  * ⚡ [초고속 네이티브 위젯 인터랙션 리시버]
@@ -28,6 +31,13 @@ class WidgetActionReceiver : BroadcastReceiver() {
         val uri = intent.data ?: return
         val host = uri.host ?: uri.path?.replace("/", "") ?: return
         val action = host.lowercase()
+
+        if (action != "noop") {
+            val accessPrefs = HomeWidgetPlugin.getData(context)
+            accessPrefs.edit()
+                .putString("hagom_widget_access_day", SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date()))
+                .apply()
+        }
 
         // 🔒 글로벌 락 검사: 450ms 대기시간 동안에는 어떤 위젯 버튼 클릭도 무시
         val now = System.currentTimeMillis()
