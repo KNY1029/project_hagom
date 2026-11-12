@@ -1718,7 +1718,8 @@ class _MedsTabViewState extends State<MedsTabView> {
 
   // 1약 1카드 구조
   Widget _buildMedCard(MedicationItem med) {
-    final isAllDone = med.isAllCompleted;
+    final isAsNeeded = med.recurrenceSummary == '필요 시';
+    final isAllDone = !isAsNeeded && med.isAllCompleted;
     final isSkipped = med.skipReason != null;
 
     return Container(

@@ -160,6 +160,21 @@ class AppStateManager extends ChangeNotifier {
   int dailyResetHour = 8; // 기본 매일 8시 갱신 (0~23)
   int dailyResetMinute = 0; // 갱신 분 (0~59)
   String? _lastGreetingDayKey; // 'YYYY-MM-DD' 기준 마지막으로 일일 인사 본 날짜
+  final Set<String> _accessDayKeys = <String>{};
+
+  int get accessDayCount => _accessDayKeys.length;
+
+  /// 앱 또는 위젯에서 활동한 날을 하루에 한 번만 누적한다.
+  Future<void> recordAccessDay([String? activityDayKey]) async {
+    await ensureInitialized();
+    final key = activityDayKey ?? getEffectiveDayKey();
+    if (!_accessDayKeys.add(key)) return;
+    final sorted = _accessDayKeys.toList()..sort();
+    if (_prefs != null) {
+      await _prefs!.setString('hagom_access_days', jsonEncode(sorted));
+    }
+    notifyListeners();
+  }
 
   void setDailyResetTime(int hour, int minute) {
     dailyResetHour = hour.clamp(0, 23);
@@ -947,6 +962,8 @@ class AppStateManager extends ChangeNotifier {
           _lastGreetingDayKey!,
         );
       }
+      final accessDays = _accessDayKeys.toList()..sort();
+      await _prefs!.setString('hagom_access_days', jsonEncode(accessDays));
       await _prefs!.setBool(
         'hagom_initial_mode_selected',
         isInitialModeSelected,
@@ -1120,6 +1137,15 @@ class AppStateManager extends ChangeNotifier {
       dailyResetHour = _prefs!.getInt('hagom_daily_reset_hour') ?? 8;
       dailyResetMinute = _prefs!.getInt('hagom_daily_reset_minute') ?? 0;
       _lastGreetingDayKey = _prefs!.getString('hagom_last_greeting_day');
+      final accessDaysRaw = _prefs!.getString('hagom_access_days');
+      _accessDayKeys.clear();
+      if (accessDaysRaw != null) {
+        final decodedAccessDays = jsonDecode(accessDaysRaw) as List<dynamic>;
+        _accessDayKeys.addAll(decodedAccessDays.whereType<String>());
+      }
+      if (_accessDayKeys.isEmpty && _lastGreetingDayKey != null) {
+        _accessDayKeys.add(_lastGreetingDayKey!);
+      }
       isInitialModeSelected =
           _prefs!.getBool('hagom_initial_mode_selected') ?? false;
       final loadedCustomSlots = _prefs!.getStringList(
@@ -1445,7 +1471,15 @@ class AppStateManager extends ChangeNotifier {
   //    방금 '지금 복용'한 실제 시각을 기준으로 다음 회차의 예정 시각을 실시간 재계산하여 알림 갱신!
   void completeNextSlot(String medId, {String? customTakenTime}) {
     final med = _medications.firstWhere((m) => m.id == medId);
-    final targetSlot = med.nextPendingSlot;
+    final isAsNeeded = med.recurrenceSummary == '필요 시';
+    DoseSlot? targetSlot = med.nextPendingSlot;
+    if (isAsNeeded && targetSlot == null) {
+      targetSlot = DoseSlot(
+        label: '${med.doseSlots.length + 1}회차',
+        scheduledTime: null,
+      );
+      med.doseSlots.add(targetSlot);
+    }
     if (targetSlot != null) {
       targetSlot.isCompleted = true;
       final now = DateTime.now();
