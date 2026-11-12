@@ -1737,6 +1737,31 @@ class AppStateManager extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// 앱 복약 탭에 표시된 약 카드의 순서만 변경한다.
+  /// 위젯은 별도로 복용 시간순으로 정렬해서 표시한다.
+  void reorderMedications(List<String> visibleIds, int oldIndex, int newIndex) {
+    if (oldIndex == newIndex || oldIndex < 0 || newIndex < 0) return;
+    final ids = List<String>.from(visibleIds);
+    if (oldIndex >= ids.length || newIndex >= ids.length) return;
+    final moved = ids.removeAt(oldIndex);
+    ids.insert(newIndex, moved);
+    final selected = visibleIds
+        .map((id) => _medications.where((med) => med.id == id).firstOrNull)
+        .whereType<MedicationItem>()
+        .toList();
+    final slots = <int>[];
+    for (var i = 0; i < _medications.length; i++) {
+      if (visibleIds.contains(_medications[i].id)) slots.add(i);
+    }
+    if (selected.length != slots.length) return;
+    _medications.removeWhere((med) => visibleIds.contains(med.id));
+    for (var i = 0; i < ids.length; i++) {
+      final item = selected.firstWhere((med) => med.id == ids[i]);
+      _medications.insert(slots[i].clamp(0, _medications.length), item);
+    }
+    notifyListeners();
+  }
+
   // --- 🌱 습관 액션 메서드 ---
 
   bool advanceHabitProgress(String id) {
