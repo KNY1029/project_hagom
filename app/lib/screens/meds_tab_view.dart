@@ -1508,6 +1508,7 @@ class _MedsTabViewState extends State<MedsTabView> {
   void _showSkipConfirmDialog(MedicationItem med) {
     final targetSlot = med.nextPendingSlot;
     final slotName = targetSlot?.label ?? '이번 회차';
+    final reasonController = TextEditingController();
 
     showDialog(
       context: context,
@@ -1516,8 +1517,28 @@ class _MedsTabViewState extends State<MedsTabView> {
           '$slotName 복약 건너뛰기',
           style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
         ),
-        content: Text(
-          '\'${med.name} ($slotName)\' 복용을 건너뛸까요?\n\n건너뛴 복용은 실패가 아니에요. 무리하지 않고 다음 복용에 집중하면 충분해요.',
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              '\'${med.name} ($slotName)\' 복용을 건너뛸까요?\n\n건너뛴 복용은 실패가 아니에요. 무리하지 않고 다음 복용에 집중하면 충분해요.',
+            ),
+            const SizedBox(height: 14),
+            TextField(
+              controller: reasonController,
+              maxLines: 3,
+              textInputAction: TextInputAction.done,
+              decoration: InputDecoration(
+                labelText: '건너뛴 이유 (선택사항)',
+                hintText: '이유를 남기지 않아도 괜찮아요',
+                alignLabelWithHint: true,
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+              ),
+            ),
+          ],
         ),
         actions: [
           TextButton(
@@ -1530,7 +1551,7 @@ class _MedsTabViewState extends State<MedsTabView> {
             ),
             onPressed: () {
               Navigator.of(dCtx).pop();
-              _state.skipNextSlot(med.id);
+              _state.skipNextSlot(med.id, reason: reasonController.text);
               CelebrationToast.show(
                 context,
                 title: '이번 복용을 건너뛰었어요',

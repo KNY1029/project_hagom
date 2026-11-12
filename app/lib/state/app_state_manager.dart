@@ -1606,11 +1606,15 @@ class AppStateManager extends ChangeNotifier {
   // cancelLastCompletedSlot 별칭
   void cancelLastCompletedSlot(String id) => revertMedication(id);
   // 🌿 특정 회차만 건너뛰기 처리 (다음 대기 회차 슬롯 건너뜀)
-  void skipNextSlot(String id) {
+  void skipNextSlot(String id, {String? reason}) {
     final med = _medications.firstWhere((m) => m.id == id);
     final target = med.nextPendingSlot;
     if (target != null) {
       target.isSkipped = true;
+      final trimmedReason = reason?.trim();
+      med.skipReason = trimmedReason == null || trimmedReason.isEmpty
+          ? null
+          : trimmedReason;
       notifyListeners();
     }
   }
@@ -1629,6 +1633,9 @@ class AppStateManager extends ChangeNotifier {
     final med = _medications.firstWhere((m) => m.id == id);
     if (slotIndex >= 0 && slotIndex < med.doseSlots.length) {
       med.doseSlots[slotIndex].isSkipped = false;
+      if (!med.doseSlots.any((slot) => slot.isSkipped)) {
+        med.skipReason = null;
+      }
       notifyListeners();
     }
   }
