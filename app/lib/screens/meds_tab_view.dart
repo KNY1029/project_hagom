@@ -1029,6 +1029,7 @@ class _MedsTabViewState extends State<MedsTabView> {
                               onSelected: (selected) {
                                 setModalState(() {
                                   isOngoing = true;
+                                  endDate = null;
                                 });
                               },
                             ),
@@ -1048,12 +1049,14 @@ class _MedsTabViewState extends State<MedsTabView> {
                                     : FontWeight.normal,
                               ),
                               onSelected: (selected) {
+                                if (!selected) return;
                                 setModalState(() {
-                                  isOngoing = false;
-                                  final days = int.tryParse(durationDaysCtrl.text) ?? 7;
-                                  endDate = startDate.add(
-                                    Duration(days: (days < 1 ? 1 : days) - 1),
-                                  );
+                                  if (isOngoing) {
+                                    isOngoing = false;
+                                    // 사용자가 일수를 입력하기 전에는 종료일을 임의로 만들지 않는다.
+                                    durationDaysCtrl.clear();
+                                    endDate = null;
+                                  }
                                 });
                               },
                             ),
@@ -1071,13 +1074,15 @@ class _MedsTabViewState extends State<MedsTabView> {
                                   textAlign: TextAlign.center,
                                   onChanged: (value) {
                                     final days = int.tryParse(value) ?? 0;
-                                    if (days > 0) {
-                                      setModalState(() {
+                                    setModalState(() {
+                                      if (days > 0) {
                                         endDate = startDate.add(
                                           Duration(days: days - 1),
                                         );
-                                      });
-                                    }
+                                      } else {
+                                        endDate = null;
+                                      }
+                                    });
                                   },
                                   decoration: InputDecoration(
                                     isDense: true,
@@ -1129,8 +1134,10 @@ class _MedsTabViewState extends State<MedsTabView> {
                             setModalState(() {
                               startDate = DateTime(picked.year, picked.month, picked.day);
                               if (!isOngoing) {
-                                final days = int.tryParse(durationDaysCtrl.text) ?? 7;
-                                endDate = startDate.add(Duration(days: (days < 1 ? 1 : days) - 1));
+                                final days = int.tryParse(durationDaysCtrl.text) ?? 0;
+                                endDate = days > 0
+                                    ? startDate.add(Duration(days: days - 1))
+                                    : null;
                               }
                             });
                           }
@@ -1163,7 +1170,9 @@ class _MedsTabViewState extends State<MedsTabView> {
                         const SizedBox(height: 6),
                         InkWell(
                           borderRadius: BorderRadius.circular(8),
-                          onTap: () async {
+                          onTap: endDate == null
+                              ? null
+                              : () async {
                             final picked = await showDatePicker(
                               context: context,
                               initialDate: endDate ?? startDate,
@@ -1179,7 +1188,7 @@ class _MedsTabViewState extends State<MedsTabView> {
                                     '${pickedEnd.difference(startDate).inDays + 1}';
                               });
                             }
-                          },
+                                },
                           child: Container(
                             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
                             decoration: BoxDecoration(
@@ -1192,7 +1201,18 @@ class _MedsTabViewState extends State<MedsTabView> {
                               children: [
                                 Icon(Icons.event_available_outlined, size: 15, color: AppColors.primaryPurple),
                                 const SizedBox(width: 7),
-                                Text(formatDate(endDate ?? startDate), style: TextStyle(fontSize: 12, color: AppColors.textPrimary, fontWeight: FontWeight.w600)),
+                                Text(
+                                  endDate == null
+                                      ? '일수를 입력하면 계산돼요'
+                                      : formatDate(endDate!),
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    color: endDate == null
+                                        ? AppColors.textMuted
+                                        : AppColors.textPrimary,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
                                 const SizedBox(width: 5),
                                 Text('변경', style: TextStyle(fontSize: 11, color: AppColors.primaryPurple)),
                               ],
@@ -1269,6 +1289,16 @@ class _MedsTabViewState extends State<MedsTabView> {
                               height: 44,
                               child: ElevatedButton(
                                 onPressed: () {
+                                  if (recurrenceType != '오늘만' &&
+                                      !isOngoing &&
+                                      (int.tryParse(durationDaysCtrl.text.trim()) ?? 0) < 1) {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(
+                                        content: Text('투약 일수를 입력해주세요.'),
+                                      ),
+                                    );
+                                    return;
+                                  }
                                   String recurrenceSummary = '매일';
                                   if (recurrenceType == '오늘만') {
                                     recurrenceSummary = '오늘만';
@@ -1314,12 +1344,9 @@ class _MedsTabViewState extends State<MedsTabView> {
                                     durationSummary = '오늘만';
                                     endDate = startDate;
                                   } else if (!isOngoing) {
-                                    final days =
-                                        durationDaysCtrl.text.trim().isEmpty
-                                        ? '7'
-                                        : durationDaysCtrl.text.trim();
+                                    final days = durationDaysCtrl.text.trim();
                                     durationSummary = '$days일간';
-                                    final dayCount = int.tryParse(days) ?? 7;
+                                    final dayCount = int.tryParse(days) ?? 1;
                                     endDate = startDate.add(
                                       Duration(days: (dayCount < 1 ? 1 : dayCount) - 1),
                                     );
