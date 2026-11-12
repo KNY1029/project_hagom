@@ -730,7 +730,7 @@ class _MedsTabViewState extends State<MedsTabView> {
                         const SizedBox(height: 6),
                         Wrap(
                           spacing: 6,
-                          runSpacing: 6,
+                          runSpacing: 0,
                           children: [
                             ...['아침', '점심', '저녁', '취침 전'].map((label) {
                               final isSel = currentSlots.any(
