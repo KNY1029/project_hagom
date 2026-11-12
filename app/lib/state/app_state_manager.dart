@@ -32,6 +32,8 @@ class AppStateManager extends ChangeNotifier {
     }
     _initCompleter = Completer<void>();
     await _initDataAndStorage();
+    // 앱을 새로 열었을 때 저장된 복약·습관·할일 기준으로 알람을 복구한다.
+    await HagomAlarmManager.syncScheduledAlarms(this);
     _initCompleter!.complete();
   }
 
@@ -58,6 +60,8 @@ class AppStateManager extends ChangeNotifier {
     _prefs ??= await SharedPreferences.getInstance();
     await _prefs!.reload();
     await _loadDataFromDisk();
+    // 위젯에서 바뀐 기록을 다시 읽은 뒤 알람도 최신 상태로 맞춘다.
+    await HagomAlarmManager.syncScheduledAlarms(this);
   }
 
   bool suspendWidgetSync = false;

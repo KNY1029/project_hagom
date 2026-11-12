@@ -47,9 +47,17 @@ class MainActivity : FlutterActivity() {
                 "showTestNotification" -> showTestNotification(result)
                 "syncAlarms" -> {
                     requestNotificationPermissionIfNeeded()
-                    val schedulesJson = call.argument<String>("schedulesJson") ?: "[]"
-                    HagomAlarmScheduler.scheduleAlarmsFromJson(this, schedulesJson)
-                    result.success(true)
+                    val schedulesJson = call.argument<String>("schedulesJson")
+                    if (schedulesJson.isNullOrBlank()) {
+                        result.error("INVALID_SCHEDULES", "알림 일정이 비어 있습니다.", null)
+                    } else {
+                        try {
+                            HagomAlarmScheduler.scheduleAlarmsFromJson(this, schedulesJson)
+                            result.success(true)
+                        } catch (e: Exception) {
+                            result.error("ALARM_SYNC_FAILED", e.message, null)
+                        }
+                    }
                 }
                 "downloadExcel" -> {
                     val fileName = call.argument<String>("fileName") ?: "hagom_건강기록.xlsx"
