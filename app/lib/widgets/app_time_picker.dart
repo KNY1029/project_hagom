@@ -12,11 +12,15 @@ class AppTimePicker {
     BuildContext context, {
     TimeOfDay? initialTime,
     String title = '시간 설정',
+    bool showDefaultCheckbox = false,
+    bool initialDefault = false,
+    ValueChanged<bool>? onDefaultChanged,
   }) async {
     // initialTime이 주어지면 해당 period를 쓰고, 없으면 현재 시각 기준 오전/오후
     final now = TimeOfDay.now();
     final baseTime = initialTime ?? now;
     String period = baseTime.period == DayPeriod.am ? '오전' : '오후';
+    bool updateDefault = initialDefault;
 
     // 🌟 사용자가 기존 시간을 수정하는 경우가 아니면 빈칸("")으로 시작!
     final hourCtrl = TextEditingController(
@@ -115,6 +119,22 @@ class AppTimePicker {
                 textAlign: TextAlign.center,
                 style: TextStyle(fontSize: 11, color: AppColors.textMuted, height: 1.3),
               ),
+              if (showDefaultCheckbox) ...[
+                const SizedBox(height: 8),
+                CheckboxListTile(
+                  dense: true,
+                  contentPadding: EdgeInsets.zero,
+                  value: updateDefault,
+                  activeColor: AppColors.primaryPurple,
+                  onChanged: (value) => setState(
+                    () => updateDefault = value ?? false,
+                  ),
+                  title: const Text(
+                    '이 시간대의 기본 시간도 변경',
+                    style: TextStyle(fontSize: 12),
+                  ),
+                ),
+              ],
             ],
           ),
           actions: [
@@ -143,6 +163,9 @@ class AppTimePicker {
                   hour24 = (h == 12) ? 0 : h;
                 } else {
                   hour24 = (h == 12) ? 12 : h + 12;
+                }
+                if (showDefaultCheckbox) {
+                  onDefaultChanged?.call(updateDefault);
                 }
                 Navigator.of(ctx).pop(TimeOfDay(hour: hour24, minute: m));
               },

@@ -726,24 +726,57 @@ class _MedsTabViewState extends State<MedsTabView> {
                           ),
                         ),
                         const SizedBox(height: 6),
+                        Align(
+                          alignment: Alignment.centerLeft,
+                          child: TextButton.icon(
+                            style: TextButton.styleFrom(
+                              padding: EdgeInsets.zero,
+                              minimumSize: Size.zero,
+                            ),
+                            icon: Icon(
+                              Icons.add,
+                              size: 14,
+                              color: AppColors.primaryPurple,
+                            ),
+                            label: Text(
+                              '시각 추가',
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: AppColors.primaryPurple,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            onPressed: () async {
+                              final time = await AppTimePicker.show(
+                                context,
+                                initialTime: null,
+                                title: '새로운 복용 시각 추가',
+                              );
+                              if (time == null) return;
+                              final period = time.period == DayPeriod.am
+                                  ? '오전'
+                                  : '오후';
+                              final hour = time.hourOfPeriod == 0
+                                  ? 12
+                                  : time.hourOfPeriod;
+                              final minute = time.minute.toString().padLeft(2, '0');
+                              setModalState(() {
+                                isSingleUntimedDose = true;
+                                currentSlots = [
+                                  DoseSlot(
+                                    label: '복용',
+                                    scheduledTime: '$period $hour:$minute',
+                                  ),
+                                ];
+                              });
+                            },
+                          ),
+                        ),
+                        const SizedBox(height: 4),
                         Wrap(
                           spacing: 6,
                           runSpacing: 6,
                           children: [
-                            TextButton.icon(
-                              onPressed: () {
-                                setModalState(() {
-                                  isSingleUntimedDose = true;
-                                  currentSlots = [DoseSlot(label: '복용')];
-                                });
-                              },
-                              icon: const Icon(Icons.add, size: 14),
-                              label: const Text('시간 없이 1회 추가'),
-                              style: TextButton.styleFrom(
-                                padding: const EdgeInsets.symmetric(horizontal: 8),
-                                foregroundColor: AppColors.primaryPurple,
-                              ),
-                            ),
                             ...['아침', '점심', '저녁', '취침 전'].map((label) {
                               final isSel = currentSlots.any(
                                 (s) => s.label.startsWith(label),
@@ -1004,10 +1037,17 @@ class _MedsTabViewState extends State<MedsTabView> {
                                               MaterialTapTargetSize.shrinkWrap,
                                         ),
                                         onPressed: () async {
+                                          var updateDefault = false;
                                           final time = await AppTimePicker.show(
                                             context,
                                             initialTime: TimeOfDay.now(),
                                             title: '${slot.label} 알림 예정 시각 변경',
+                                            showDefaultCheckbox: true,
+                                            initialDefault: _state
+                                                .isRoutineTimeConfigured(slot.label),
+                                            onDefaultChanged: (value) {
+                                              updateDefault = value;
+                                            },
                                           );
                                           if (time != null) {
                                             final period =
@@ -1024,40 +1064,7 @@ class _MedsTabViewState extends State<MedsTabView> {
                                               slot.scheduledTime =
                                                   '$period $hour:$min';
                                             });
-                                            final updateDefault =
-                                                await showDialog<bool>(
-                                                  context: context,
-                                                  builder: (dialogContext) =>
-                                                      AlertDialog(
-                                                        title: const Text(
-                                                          '시간대 기본값 변경',
-                                                        ),
-                                                        content: Text(
-                                                          '${slot.label} 칩을 다음에 선택할 때도 이 시간을 사용할까요?',
-                                                        ),
-                                                        actions: [
-                                                          TextButton(
-                                                            onPressed: () =>
-                                                                Navigator.of(
-                                                                  dialogContext,
-                                                                ).pop(false),
-                                                            child: const Text(
-                                                              '이번 복용만',
-                                                            ),
-                                                          ),
-                                                          ElevatedButton(
-                                                            onPressed: () =>
-                                                                Navigator.of(
-                                                                  dialogContext,
-                                                                ).pop(true),
-                                                            child: const Text(
-                                                              '기본값도 변경',
-                                                            ),
-                                                          ),
-                                                        ],
-                                                      ),
-                                                );
-                                            if (updateDefault == true) {
+                                            if (updateDefault) {
                                               _state.setRoutineTime(
                                                 slot.label,
                                                 '$period $hour:$min',
