@@ -117,6 +117,12 @@ class _MedsTabViewState extends State<MedsTabView> {
               )
               .toList()
         : [];
+    bool isSingleUntimedDose =
+        isEditing &&
+        med.recurrenceSummary != '필요 시' &&
+        med.doseSlots.length == 1 &&
+        med.doseSlots.first.label == '복용' &&
+        med.doseSlots.first.scheduledTime == null;
 
     bool isOngoing = isEditing ? (med.durationSummary == '계속 복용') : true;
     DateTime startDate = DateTime(
@@ -707,6 +713,37 @@ class _MedsTabViewState extends State<MedsTabView> {
                           spacing: 6,
                           runSpacing: 6,
                           children: [
+                            FilterChip(
+                              showCheckmark: false,
+                              label: const Text('1회 복용(시간 미정)'),
+                              selected: isSingleUntimedDose,
+                              selectedColor: AppColors.primaryPurple.withValues(
+                                alpha: 0.2,
+                              ),
+                              labelStyle: TextStyle(
+                                fontSize: 12,
+                                color: isSingleUntimedDose
+                                    ? AppColors.primaryPurple
+                                    : AppColors.textPrimary,
+                                fontWeight: isSingleUntimedDose
+                                    ? FontWeight.bold
+                                    : FontWeight.normal,
+                              ),
+                              onSelected: (selected) {
+                                setModalState(() {
+                                  isSingleUntimedDose = selected;
+                                  if (selected) {
+                                    currentSlots = [
+                                      DoseSlot(label: '복용'),
+                                    ];
+                                  } else {
+                                    currentSlots.removeWhere(
+                                      (slot) => slot.label == '복용',
+                                    );
+                                  }
+                                });
+                              },
+                            ),
                             ...['아침', '점심', '저녁', '취침 전'].map((label) {
                               final isSel = currentSlots.any(
                                 (s) => s.label.startsWith(label),
@@ -729,6 +766,10 @@ class _MedsTabViewState extends State<MedsTabView> {
                                 onSelected: (sel) {
                                   setModalState(() {
                                     if (sel) {
+                                      isSingleUntimedDose = false;
+                                      currentSlots.removeWhere(
+                                        (slot) => slot.label == '복용',
+                                      );
                                       final defaultTime =
                                           _state.routineTimes[label] ??
                                           '오전 8:00';
@@ -748,7 +789,11 @@ class _MedsTabViewState extends State<MedsTabView> {
                               );
                             }),
                             // 커스텀 시간대 슬롯들 (기본 칩들과 동일한 FilterChip 크기, 높이, 라운딩 및 삭제 버튼 적용!)
-                            ..._state.customTimeSlots.map((customLabel) {
+                            ..._state.customTimeSlots.where((label) {
+                              final trimmed = label.trim();
+                              return trimmed != '복용' &&
+                                  !RegExp(r'^\d+회차$').hasMatch(trimmed);
+                            }).map((customLabel) {
                               final existingIdx = currentSlots.indexWhere(
                                 (s) => s.label == customLabel,
                               );
@@ -790,6 +835,10 @@ class _MedsTabViewState extends State<MedsTabView> {
                                         _state.routineTimes[customLabel] ??
                                         '오전 8:00';
                                     setModalState(() {
+                                      isSingleUntimedDose = false;
+                                      currentSlots.removeWhere(
+                                        (slot) => slot.label == '복용',
+                                      );
                                       currentSlots.add(
                                         DoseSlot(
                                           label: customLabel,

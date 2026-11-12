@@ -1182,6 +1182,11 @@ class AppStateManager extends ChangeNotifier {
         customTimeSlots.clear();
         customTimeSlots.addAll(loadedCustomSlots);
       }
+      // 예전에 자동 생성된 기본 회차 라벨은 사용자 커스텀 시간대가 아니다.
+      customTimeSlots.removeWhere(
+        (label) =>
+            label.trim() == '복용' || RegExp(r'^\d+회차$').hasMatch(label.trim()),
+      );
       // 이미 약에 저장된 비표준 시간대 라벨도 커스텀 칩 목록에 자동 복원 (레이스 유실 방어)
       const standardLabels = {
         '아침',
@@ -1200,6 +1205,8 @@ class AppStateManager extends ChangeNotifier {
         for (final slot in med.doseSlots) {
           final l = slot.label.trim();
           if (l.isNotEmpty &&
+              l != '복용' &&
+              !RegExp(r'^\d+회차$').hasMatch(l) &&
               !standardLabels.contains(l) &&
               !customTimeSlots.contains(l)) {
             customTimeSlots.add(l);
