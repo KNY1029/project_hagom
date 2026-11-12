@@ -2141,7 +2141,7 @@ class _MedsTabViewState extends State<MedsTabView> {
                   ),
                   const Spacer(),
                   // 🌟 [건너뛰기] 버튼 복원 (남은 다음 회차 핀셋 건너뜀)
-                  if (!isAllDone && med.nextPendingSlot != null)
+                  if (!isAsNeeded && !isAllDone && med.nextPendingSlot != null)
                     TextButton(
                       style: TextButton.styleFrom(
                         padding: const EdgeInsets.symmetric(
