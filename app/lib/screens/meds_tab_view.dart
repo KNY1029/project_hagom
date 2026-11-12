@@ -1975,6 +1975,11 @@ class _MedsTabViewState extends State<MedsTabView> {
                                           !slot.isSkipped) {
                                         final todayMeds = _state.medications
                                             .where((m) => m.isDueToday)
+                                            .where(
+                                              (m) =>
+                                                  m.recurrenceSummary != '오늘만' &&
+                                                  m.recurrenceSummary != '필요 시',
+                                            )
                                             .toList();
                                         final wasAllMedsDoneBefore =
                                             todayMeds.isNotEmpty &&
@@ -2082,6 +2087,11 @@ class _MedsTabViewState extends State<MedsTabView> {
                       if (!isAllDone) {
                         final todayMeds = _state.medications
                             .where((m) => m.isDueToday)
+                            .where(
+                              (m) =>
+                                  m.recurrenceSummary != '오늘만' &&
+                                  m.recurrenceSummary != '필요 시',
+                            )
                             .toList();
                         final wasAllMedsDoneBefore =
                             todayMeds.isNotEmpty &&
