@@ -48,6 +48,8 @@ class MedicationItem {
   String? memo; // 기타 참고 메모 (용량, 보관법, 주의사항 등)
   List<String> repeatDays; // 특정 요일 복용 목록 (['일'] 등)
   DateTime createdDate; // 약을 등록한 날짜 (오늘만 복용의 기준일)
+  DateTime startDate; // 복약 시작일
+  DateTime? endDate; // 복약 종료일 (투약 일수 입력 시 설정)
 
   List<DoseSlot> doseSlots; // 아침, 점심, 저녁 등 회차별 상태 목록!
   String? skipReason; // 건너뛴 사유
@@ -69,11 +71,22 @@ class MedicationItem {
     this.isArchived = false,
     this.memo,
     DateTime? createdDate,
+    DateTime? startDate,
+    this.endDate,
   }) : repeatDays = repeatDays ?? [],
-       createdDate = createdDate ?? DateTime.now();
+       createdDate = createdDate ?? startDate ?? DateTime.now(),
+       startDate = startDate ?? createdDate ?? DateTime.now();
 
   /// 🌟 오늘(Today) 복용해야 하는 약인지 판별하는 스마트 게터
   bool isDueOn(DateTime date) {
+    final target = DateTime(date.year, date.month, date.day);
+    final start = DateTime(startDate.year, startDate.month, startDate.day);
+    final end = endDate == null
+        ? null
+        : DateTime(endDate!.year, endDate!.month, endDate!.day);
+    if (target.isBefore(start) || (end != null && target.isAfter(end))) {
+      return false;
+    }
     if (recurrenceSummary == '매일' ||
         recurrenceSummary.contains('시간') ||
         recurrenceSummary.contains('하루') ||
@@ -118,6 +131,8 @@ class MedicationItem {
     'memo': memo,
     'isArchived': isArchived,
     'createdDate': createdDate.toIso8601String(),
+    'startDate': startDate.toIso8601String(),
+    'endDate': endDate?.toIso8601String(),
   };
   factory MedicationItem.fromJson(Map<String, dynamic> json) => MedicationItem(
     id: json['id'] as String,
@@ -140,6 +155,10 @@ class MedicationItem {
     memo: json['memo'] as String?,
     isArchived: json['isArchived'] as bool? ?? false,
     createdDate: DateTime.tryParse(json['createdDate'] as String? ?? ''),
+    startDate: DateTime.tryParse(
+      json['startDate'] as String? ?? json['createdDate'] as String? ?? '',
+    ),
+    endDate: DateTime.tryParse(json['endDate'] as String? ?? ''),
   );
   // 오늘 먹어야 할 모든 회차가 완료되거나 건너뛰어 정리되었는지 확인
   bool get isAllCompleted =>
