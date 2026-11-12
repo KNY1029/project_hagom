@@ -6,7 +6,7 @@
 ///   이 파일의 경로만 바꾸면 전 화면에 쉽게 교체될 수 있도록 구성합니다.
 class AppAssets {
   // 기본 하곰 원본 이미지
-  static const String _defaultHagom = 'assets/images/hagom.png';
+  static const String _defaultHagom = 'assets/images/hagom.webp';
   /// 1. 앱 시작 스플래시 화면 마스코트
   static const String splashMascot = _defaultHagom;
 
@@ -23,7 +23,7 @@ class AppAssets {
   static const String calendarEmptyState = _defaultHagom;
 
   /// 6. 동반자 인터랙션 룸 마스코트
-  static const String companionRoomMascot = 'assets/images/Hagomroom.png';
+  static const String companionRoomMascot = 'assets/images/Hagomroom.webp';
 
   /// 7. 설정 화면 마스코트
   static const String settingsMascot = _defaultHagom;

@@ -37,17 +37,28 @@ class AppStateManager extends ChangeNotifier {
     _initCompleter!.complete();
   }
 
+  // 화면이 여러 번 갱신되는 동안 저장/위젯 작업이 겹쳐 실행되지 않도록
+  // 짧은 시간 동안 발생한 변경을 하나의 동기화 작업으로 합친다.
+  Timer? _persistenceDebounce;
+  Future<void> _persistenceQueue = Future<void>.value();
+
   /// 백그라운드 위젯 콜백에서 변경된 내용을 디스크와 위젯에 즉시 확정 저장
   Future<void> flushForWidget() async {
-    await _saveDataToDisk();
-    await HagomNativeWidgetSync.updateNativeWidget(this);
-    await HagomAlarmManager.syncScheduledAlarms(this);
+    _persistenceDebounce?.cancel();
+    _persistenceQueue = _persistenceQueue.then((_) async {
+      await _saveDataToDisk();
+      await HagomNativeWidgetSync.updateNativeWidget(this);
+      await HagomAlarmManager.syncScheduledAlarms(this);
+    });
+    await _persistenceQueue;
   }
 
   /// 🌟 [백그라운드 전용]: 이미 네이티브가 위젯 UI를 최신 상태로 바꿨으므로,
   /// 플러터가 옛날 값으로 위젯을 덮어쓰지 않고 로컬 DB에 데이터만 조용히 영구 저장!
   Future<void> flushDataToDiskOnly() async {
-    await _saveDataToDisk();
+    _persistenceDebounce?.cancel();
+    _persistenceQueue = _persistenceQueue.then((_) => _saveDataToDisk());
+    await _persistenceQueue;
   }
 
   /// ⚡ [초고속 Fast-path]: 달력 날짜 탭 시 불필요한 전체 위젯/디스크 연산을 건너뛰고 달력만 즉시 갱신!
@@ -71,11 +82,20 @@ class AppStateManager extends ChangeNotifier {
     super.notifyListeners();
     // 가이드 체험 데이터는 실제 사용자 데이터로 저장하지 않는다.
     if (isTutorialDemoMode) return;
-    _saveDataToDisk(); // 상태 변경 시마다 로컬 DB에 자동 영구 저장!
-    if (!suspendWidgetSync) {
-      HagomNativeWidgetSync.updateNativeWidget(this);
-      HagomAlarmManager.syncScheduledAlarms(this);
-    }
+
+    // 단순 화면 재빌드마다 저장 작업과 위젯 전체 갱신을 새로 시작하지 않는다.
+    // 실제 변경은 250ms 안에 모아서 한 번만 저장하고 동기화한다.
+    _persistenceDebounce?.cancel();
+    _persistenceDebounce = Timer(const Duration(milliseconds: 250), () {
+      _persistenceQueue = _persistenceQueue.then((_) async {
+        await _saveDataToDisk();
+        // 개발자 미리보기는 앱 화면만 갱신하고 홈 위젯을 반복 갱신하지 않는다.
+        if (!isDevSimulationMode && !suspendWidgetSync) {
+          await HagomNativeWidgetSync.updateNativeWidget(this);
+          await HagomAlarmManager.syncScheduledAlarms(this);
+        }
+      });
+    });
   }
 
   // --- 💊 복약 데이터 ---
@@ -2147,7 +2167,9 @@ class AppStateManager extends ChangeNotifier {
     isTutorialDemoMode = false;
     isDevSimulationMode = true; // 개발자 모드 복원: 전체 예시 노출 모드
 
-    await _saveDataToDisk();
+    // 개발자 모드 진입 시에만 현재 예시 데이터를 홈 위젯에 한 번 반영한다.
+    // 이후 미리보기 화면의 단순 재빌드에서는 위젯 전체를 반복 갱신하지 않는다.
+    await flushForWidget();
     notifyListeners();
   }
 
