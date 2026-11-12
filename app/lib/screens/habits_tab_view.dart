@@ -646,12 +646,55 @@ class _HabitsTabViewState extends State<HabitsTabView> {
         const SizedBox(height: 12),
 
         // 1. 오늘의 습관 카드들
-        ...todayHabits.map((habit) => _buildHabitCard(habit)),
+        if (todayHabits.isNotEmpty)
+          ReorderableListView.builder(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            buildDefaultDragHandles: false,
+            itemCount: todayHabits.length,
+            onReorder: (oldIndex, newIndex) {
+              if (newIndex > oldIndex) newIndex--;
+              _state.reorderHabits(
+                todayHabits.map((habit) => habit.id).toList(),
+                oldIndex,
+                newIndex,
+              );
+            },
+            itemBuilder: (context, index) {
+              final habit = todayHabits[index];
+              return ReorderableDelayedDragStartListener(
+                key: ValueKey('habit_${habit.id}'),
+                index: index,
+                child: _buildHabitCard(habit),
+              );
+            },
+          ),
 
         // 2. 오늘은 아니지만 관리 중인 습관 (하단에 아주 얇고 조용한 1줄로 표시!)
         if (otherHabits.isNotEmpty) ...[
           const SizedBox(height: 12),
-          ...otherHabits.map((habit) => _buildCompactOtherHabitCard(habit)),
+          ReorderableListView.builder(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            buildDefaultDragHandles: false,
+            itemCount: otherHabits.length,
+            onReorder: (oldIndex, newIndex) {
+              if (newIndex > oldIndex) newIndex--;
+              _state.reorderHabits(
+                otherHabits.map((habit) => habit.id).toList(),
+                oldIndex,
+                newIndex,
+              );
+            },
+            itemBuilder: (context, index) {
+              final habit = otherHabits[index];
+              return ReorderableDelayedDragStartListener(
+                key: ValueKey('other_habit_${habit.id}'),
+                index: index,
+                child: _buildCompactOtherHabitCard(habit),
+              );
+            },
+          ),
         ],
 
         const SizedBox(height: 14),
@@ -1062,45 +1105,6 @@ class _HabitsTabViewState extends State<HabitsTabView> {
                     ),
                   ),
                   const SizedBox(width: 8),
-                  TextButton(
-                    style: TextButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 6,
-                        vertical: 4,
-                      ),
-                      minimumSize: Size.zero,
-                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                    ),
-                    onPressed: () => _state.moveHabit(habit.id, -1),
-                    child: Text(
-                      '위로',
-                      style: TextStyle(
-                        color: AppColors.textSecondary,
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 4),
-                  TextButton(
-                    style: TextButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 6,
-                        vertical: 4,
-                      ),
-                      minimumSize: Size.zero,
-                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                    ),
-                    onPressed: () => _state.moveHabit(habit.id, 1),
-                    child: Text(
-                      '아래로',
-                      style: TextStyle(
-                        color: AppColors.textSecondary,
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ),
                   const Spacer(),
                   if (habit.score > 0.0)
                     TextButton(
