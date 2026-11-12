@@ -662,13 +662,7 @@ class HagomNativeWidgetSync {
         if (isTodayCell) {
           final mRate = state.getMedRateForDay(cellDate);
           final hRate = state.getHabitRateForDay(cellDate);
-          if (!isBeforeTrack &&
-              mRate != null &&
-              mRate >= 1.0 &&
-              hRate != null &&
-              hRate >= 1.0) {
-            status = hasT ? 'today_done_pin' : 'today_done';
-          } else if (!isBeforeTrack && mRate != null && mRate >= 1.0) {
+          if (!isBeforeTrack && mRate != null && mRate >= 1.0) {
             status = hasT ? 'today_med_done_pin' : 'today_med_done';
           } else {
             status = hasT ? 'today_pin' : 'today';
@@ -960,13 +954,7 @@ class HagomNativeWidgetSync {
         if (isTodayCell) {
           final mRate = state.getMedRateForDay(cellDate);
           final hRate = state.getHabitRateForDay(cellDate);
-          if (!isBeforeTrack &&
-              mRate != null &&
-              mRate >= 1.0 &&
-              hRate != null &&
-              hRate >= 1.0) {
-            status = hasT ? 'today_done_pin' : 'today_done';
-          } else if (!isBeforeTrack && mRate != null && mRate >= 1.0) {
+          if (!isBeforeTrack && mRate != null && mRate >= 1.0) {
             status = hasT ? 'today_med_done_pin' : 'today_med_done';
           } else {
             status = hasT ? 'today_pin' : 'today';

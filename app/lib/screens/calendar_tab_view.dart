@@ -1835,92 +1835,107 @@ class _CalendarTabViewState extends State<CalendarTabView> {
                               Wrap(
                                 spacing: 6,
                                 runSpacing: 6,
-                                children: med.doseSlots.asMap().entries.map((
-                                  entry,
-                                ) {
-                                  final slotIdx = entry.key;
-                                  final slot = entry.value;
-                                  final isDone = _state.isSlotCompletedForDay(
-                                    _selectedDate,
-                                    med.id,
-                                    slotIdx,
-                                  );
-
-                                  return InkWell(
-                                    borderRadius: BorderRadius.circular(6),
-                                    onTap: isSelectedDatePast
-                                        ? () {
-                                            if (!isDone) {
-                                              _showPastMedTimeDialog(
-                                                med,
-                                                slotIdx,
-                                                slot,
-                                              );
-                                            } else {
-                                              _showPastMedRevertDialog(
-                                                med,
-                                                slotIdx,
-                                                slot,
-                                              );
-                                            }
-                                          }
-                                        : null, // 오늘 날짜는 확인만 가능 (수정은 복약 탭에서)
-                                    child: Container(
-                                      padding: const EdgeInsets.symmetric(
-                                        horizontal: 9,
-                                        vertical: 5,
-                                      ),
-                                      decoration: BoxDecoration(
-                                        color: isDone
-                                            ? AppColors.successBg
-                                            : Colors.white,
-                                        borderRadius: BorderRadius.circular(6),
-                                        border: Border.all(
-                                          color: isDone
-                                              ? AppColors.successGreen
-                                                    .withValues(alpha: 0.4)
-                                              : AppColors.divider,
-                                          width: isDone ? 1.2 : 1.0,
-                                        ),
-                                      ),
-                                      child: Builder(
-                                        builder: (context) {
-                                          final takenTime = _state
-                                              .getSlotTakenTimeForDay(
-                                                _selectedDate,
-                                                med.id,
-                                                slotIdx,
-                                              );
-                                          final timePart =
-                                              takenTime != null &&
-                                                  takenTime.isNotEmpty
-                                              ? ' ${takenTime.split(' ').last}'
-                                              : (slot.scheduledTime != null
-                                                    ? ' ${slot.scheduledTime!.split(' ').last}'
-                                                    : '');
-                                          final statusText = isDone
-                                              ? '${slot.label}$timePart'
-                                              : (isSelectedDateBeforeTracking
-                                                    ? '${slot.label} 기록 전'
-                                                    : '${slot.label} 미복용');
-
-                                          return Text(
-                                            statusText,
-                                            style: TextStyle(
-                                              fontSize: 11,
-                                              fontWeight: isDone
-                                                  ? FontWeight.bold
-                                                  : FontWeight.w500,
-                                              color: isDone
-                                                  ? AppColors.completedText
-                                                  : AppColors.textSecondary,
-                                            ),
+                                children: med.doseSlots
+                                    .asMap()
+                                    .entries
+                                    .where((entry) {
+                                      if (med.recurrenceSummary != '필요 시') {
+                                        return true;
+                                      }
+                                      final date = entry.value.takenDate;
+                                      return date != null &&
+                                          date.year == _selectedDate.year &&
+                                          date.month == _selectedDate.month &&
+                                          date.day == _selectedDate.day;
+                                    })
+                                    .map((entry) {
+                                      final slotIdx = entry.key;
+                                      final slot = entry.value;
+                                      final isDone = _state
+                                          .isSlotCompletedForDay(
+                                            _selectedDate,
+                                            med.id,
+                                            slotIdx,
                                           );
-                                        },
-                                      ),
-                                    ),
-                                  );
-                                }).toList(),
+
+                                      return InkWell(
+                                        borderRadius: BorderRadius.circular(6),
+                                        onTap: isSelectedDatePast
+                                            ? () {
+                                                if (!isDone) {
+                                                  _showPastMedTimeDialog(
+                                                    med,
+                                                    slotIdx,
+                                                    slot,
+                                                  );
+                                                } else {
+                                                  _showPastMedRevertDialog(
+                                                    med,
+                                                    slotIdx,
+                                                    slot,
+                                                  );
+                                                }
+                                              }
+                                            : null, // 오늘 날짜는 확인만 가능 (수정은 복약 탭에서)
+                                        child: Container(
+                                          padding: const EdgeInsets.symmetric(
+                                            horizontal: 9,
+                                            vertical: 5,
+                                          ),
+                                          decoration: BoxDecoration(
+                                            color: isDone
+                                                ? AppColors.successBg
+                                                : Colors.white,
+                                            borderRadius: BorderRadius.circular(
+                                              6,
+                                            ),
+                                            border: Border.all(
+                                              color: isDone
+                                                  ? AppColors.successGreen
+                                                        .withValues(alpha: 0.4)
+                                                  : AppColors.divider,
+                                              width: isDone ? 1.2 : 1.0,
+                                            ),
+                                          ),
+                                          child: Builder(
+                                            builder: (context) {
+                                              final takenTime = _state
+                                                  .getSlotTakenTimeForDay(
+                                                    _selectedDate,
+                                                    med.id,
+                                                    slotIdx,
+                                                  );
+                                              final timePart =
+                                                  takenTime != null &&
+                                                      takenTime.isNotEmpty
+                                                  ? ' ${takenTime.split(' ').last}'
+                                                  : (slot.scheduledTime != null
+                                                        ? ' ${slot.scheduledTime!.split(' ').last}'
+                                                        : '');
+                                              final statusText = isDone
+                                                  ? '${slot.label}$timePart'
+                                                  : (isSelectedDateBeforeTracking
+                                                        ? '${slot.label} 기록 전'
+                                                        : '${slot.label} 미복용');
+
+                                              return Text(
+                                                statusText,
+                                                style: TextStyle(
+                                                  fontSize: 11,
+                                                  fontWeight: isDone
+                                                      ? FontWeight.bold
+                                                      : FontWeight.w500,
+                                                  color: isDone
+                                                      ? AppColors.completedText
+                                                      : AppColors.textSecondary,
+                                                ),
+                                              );
+                                            },
+                                          ),
+                                        ),
+                                      );
+                                    })
+                                    .toList(),
                               ),
                             ],
                           ),

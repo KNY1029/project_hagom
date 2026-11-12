@@ -1490,10 +1490,16 @@ class AppStateManager extends ChangeNotifier {
     final isAsNeeded = med.recurrenceSummary == '필요 시';
     DoseSlot? targetSlot = med.nextPendingSlot;
     if (isAsNeeded && targetSlot == null) {
-      targetSlot = DoseSlot(
-        label: '${med.doseSlots.length + 1}회차',
-        scheduledTime: null,
-      );
+      final today = DateTime.now();
+      final todayCount = med.doseSlots.where((slot) {
+        final date = slot.takenDate;
+        return slot.isCompleted &&
+            date != null &&
+            date.year == today.year &&
+            date.month == today.month &&
+            date.day == today.day;
+      }).length;
+      targetSlot = DoseSlot(label: '${todayCount + 1}회차', scheduledTime: null);
       med.doseSlots.add(targetSlot);
     }
     if (targetSlot != null) {
@@ -1504,6 +1510,7 @@ class AppStateManager extends ChangeNotifier {
       final period = hour >= 12 ? '오후' : '오전';
       final displayHour = hour > 12 ? hour - 12 : (hour == 0 ? 12 : hour);
       targetSlot.takenTime = customTakenTime ?? '$period $displayHour:$minute';
+      targetSlot.takenDate = DateTime(now.year, now.month, now.day);
 
       // N시간 간격 약물인 경우 다음 회차 시간 동적 재계산
       _recalculateHourlyNextSlot(med, now);
@@ -1526,6 +1533,7 @@ class AppStateManager extends ChangeNotifier {
         final period = hour >= 12 ? '오후' : '오전';
         final displayHour = hour > 12 ? hour - 12 : (hour == 0 ? 12 : hour);
         slot.takenTime = '$period $displayHour:$minute';
+        slot.takenDate = DateTime(now.year, now.month, now.day);
 
         _recalculateHourlyNextSlot(med, now);
 
@@ -1574,6 +1582,12 @@ class AppStateManager extends ChangeNotifier {
     if (slotIndex >= 0 && slotIndex < med.doseSlots.length) {
       med.doseSlots[slotIndex].takenTime = newTakenTime;
       med.doseSlots[slotIndex].isCompleted = true;
+      final now = DateTime.now();
+      med.doseSlots[slotIndex].takenDate = DateTime(
+        now.year,
+        now.month,
+        now.day,
+      );
       notifyListeners();
     }
   }
@@ -1584,6 +1598,7 @@ class AppStateManager extends ChangeNotifier {
     if (slotIndex >= 0 && slotIndex < med.doseSlots.length) {
       med.doseSlots[slotIndex].isCompleted = false;
       med.doseSlots[slotIndex].takenTime = null;
+      med.doseSlots[slotIndex].takenDate = null;
       notifyListeners();
     }
   }
@@ -1595,6 +1610,7 @@ class AppStateManager extends ChangeNotifier {
       if (med.doseSlots[i].isCompleted) {
         med.doseSlots[i].isCompleted = false;
         med.doseSlots[i].takenTime = null;
+        med.doseSlots[i].takenDate = null;
         break;
       }
     }

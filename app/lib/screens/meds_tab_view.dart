@@ -97,6 +97,7 @@ class _MedsTabViewState extends State<MedsTabView> {
                   isCompleted: s.isCompleted,
                   isSkipped: s.isSkipped,
                   takenTime: s.takenTime,
+                  takenDate: s.takenDate,
                 ),
               )
               .toList()
@@ -111,6 +112,7 @@ class _MedsTabViewState extends State<MedsTabView> {
                   isCompleted: s.isCompleted,
                   isSkipped: s.isSkipped,
                   takenTime: s.takenTime,
+                  takenDate: s.takenDate,
                 ),
               )
               .toList()
@@ -1521,9 +1523,7 @@ class _MedsTabViewState extends State<MedsTabView> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              '\'${med.name} ($slotName)\' 복용을 건너뛸까요?',
-            ),
+            Text('\'${med.name} ($slotName)\' 복용을 건너뛸까요?'),
             const SizedBox(height: 14),
             TextField(
               controller: reasonController,
@@ -1783,6 +1783,16 @@ class _MedsTabViewState extends State<MedsTabView> {
     final isAsNeeded = med.recurrenceSummary == '필요 시';
     final isAllDone = !isAsNeeded && med.isAllCompleted;
     final isSkipped = med.skipReason != null;
+    final now = DateTime.now();
+    final visibleDoseEntries = med.doseSlots.asMap().entries.where((entry) {
+      if (!isAsNeeded) return true;
+      final date = entry.value.takenDate;
+      return entry.value.isCompleted &&
+          date != null &&
+          date.year == now.year &&
+          date.month == now.month &&
+          date.day == now.day;
+    }).toList();
 
     return Container(
       margin: const EdgeInsets.only(bottom: 8),
@@ -1945,9 +1955,7 @@ class _MedsTabViewState extends State<MedsTabView> {
                         Wrap(
                           spacing: 6,
                           runSpacing: 4,
-                          children: med.doseSlots
-                              .asMap()
-                              .entries
+                          children: visibleDoseEntries
                               .where((entry) {
                                 // 필요 시 약은 복용 전 예정 회차를 표시하지 않고,
                                 // 실제 복용한 회차만 이력으로 보여준다.

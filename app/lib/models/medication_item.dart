@@ -5,6 +5,7 @@ class DoseSlot {
   bool isCompleted; // 복용 완료 여부
   bool isSkipped; // 🌿 이번 회차 건너뜀 여부
   String? takenTime; // 실제 복용한 시각 (예: '오전 8:05')
+  DateTime? takenDate; // 실제 복용한 날짜 (필요 시 복용 기록 분리용)
 
   DoseSlot({
     required this.label,
@@ -12,6 +13,7 @@ class DoseSlot {
     this.isCompleted = false,
     this.isSkipped = false,
     this.takenTime,
+    this.takenDate,
   });
 
   Map<String, dynamic> toJson() => {
@@ -20,6 +22,7 @@ class DoseSlot {
     'isCompleted': isCompleted,
     'isSkipped': isSkipped,
     'takenTime': takenTime,
+    'takenDate': takenDate?.toIso8601String(),
   };
 
   factory DoseSlot.fromJson(Map<String, dynamic> json) => DoseSlot(
@@ -28,6 +31,7 @@ class DoseSlot {
     isCompleted: json['isCompleted'] as bool? ?? false,
     isSkipped: json['isSkipped'] as bool? ?? false,
     takenTime: json['takenTime'] as String?,
+    takenDate: DateTime.tryParse(json['takenDate'] as String? ?? ''),
   );
 }
 
