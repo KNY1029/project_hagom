@@ -25,6 +25,17 @@ class HagomNativeWidgetSync {
     return '#${hex.substring(2)}';
   }
 
+  static int _scheduledMinutes(String? value) {
+    if (value == null || value.isEmpty) return 24 * 60;
+    final match = RegExp(r'(\d{1,2}):(\d{2})').firstMatch(value);
+    if (match == null) return 24 * 60;
+    var hour = int.parse(match.group(1)!);
+    final minute = int.parse(match.group(2)!);
+    if (value.contains('오후') && hour < 12) hour += 12;
+    if (value.contains('오전') && hour == 12) hour = 0;
+    return hour * 60 + minute;
+  }
+
   static Future<void> _saveWidgetThemeColors() async {
     await HomeWidget.saveWidgetData<String>(
       'theme_meds_color',
@@ -147,6 +158,12 @@ class HagomNativeWidgetSync {
           );
         }
       }
+      // 앱에서 카드 순서를 바꿔도 홈 위젯은 항상 복용 예정 시각순으로 표시한다.
+      todaySlots.sort(
+        (a, b) => _scheduledMinutes(
+          a.slot.scheduledTime,
+        ).compareTo(_scheduledMinutes(b.slot.scheduledTime)),
+      );
 
       _MedSlotEntry? primaryMed;
       for (final entry in todaySlots) {

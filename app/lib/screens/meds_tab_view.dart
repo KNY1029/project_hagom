@@ -1622,12 +1622,57 @@ class _MedsTabViewState extends State<MedsTabView> {
         const SizedBox(height: 12),
 
         // 1. 오늘의 복약 카드들
-        ...todayMeds.map((med) => _buildMedCard(med)),
+        if (todayMeds.isNotEmpty)
+          ReorderableListView.builder(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            buildDefaultDragHandles: false,
+            proxyDecorator: (child, index, animation) => child,
+            itemCount: todayMeds.length,
+            onReorder: (oldIndex, newIndex) {
+              if (newIndex > oldIndex) newIndex--;
+              _state.reorderMedications(
+                todayMeds.map((med) => med.id).toList(),
+                oldIndex,
+                newIndex,
+              );
+            },
+            itemBuilder: (context, index) {
+              final med = todayMeds[index];
+              return ReorderableDelayedDragStartListener(
+                key: ValueKey('med_${med.id}'),
+                index: index,
+                child: _buildMedCard(med),
+              );
+            },
+          ),
 
         // 2. 오늘은 아니지만 관리 중인 약 (구차한 제목 없이 얇고 조용한 1줄 아이템만 바로 노출!)
         if (otherMeds.isNotEmpty) ...[
           const SizedBox(height: 12),
-          ...otherMeds.map((med) => _buildCompactOtherMedCard(med)),
+          ReorderableListView.builder(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            buildDefaultDragHandles: false,
+            proxyDecorator: (child, index, animation) => child,
+            itemCount: otherMeds.length,
+            onReorder: (oldIndex, newIndex) {
+              if (newIndex > oldIndex) newIndex--;
+              _state.reorderMedications(
+                otherMeds.map((med) => med.id).toList(),
+                oldIndex,
+                newIndex,
+              );
+            },
+            itemBuilder: (context, index) {
+              final med = otherMeds[index];
+              return ReorderableDelayedDragStartListener(
+                key: ValueKey('other_med_${med.id}'),
+                index: index,
+                child: _buildCompactOtherMedCard(med),
+              );
+            },
+          ),
         ],
 
         const SizedBox(height: 14),
