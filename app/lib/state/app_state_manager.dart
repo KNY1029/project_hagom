@@ -1832,6 +1832,30 @@ class AppStateManager extends ChangeNotifier {
     _habits.insert(nextIdx, item);
     notifyListeners();
   }
+
+  /// 화면에 표시된 습관 목록 안에서 길게 눌러 드래그한 순서를 반영한다.
+  void reorderHabits(List<String> visibleIds, int oldIndex, int newIndex) {
+    if (oldIndex == newIndex || oldIndex < 0 || newIndex < 0) return;
+    final ids = List<String>.from(visibleIds);
+    if (oldIndex >= ids.length || newIndex >= ids.length) return;
+    final moved = ids.removeAt(oldIndex);
+    ids.insert(newIndex, moved);
+    final selected = visibleIds
+        .map((id) => _habits.where((habit) => habit.id == id).firstOrNull)
+        .whereType<HabitItem>()
+        .toList();
+    final slots = <int>[];
+    for (var i = 0; i < _habits.length; i++) {
+      if (visibleIds.contains(_habits[i].id)) slots.add(i);
+    }
+    if (selected.length != slots.length) return;
+    _habits.removeWhere((habit) => visibleIds.contains(habit.id));
+    for (var i = 0; i < ids.length; i++) {
+      final item = selected.firstWhere((habit) => habit.id == ids[i]);
+      _habits.insert(slots[i].clamp(0, _habits.length), item);
+    }
+    notifyListeners();
+  }
   // --- 🗓️ 할일 CRUD 액션 메서드 ---
 
   void addTask({
@@ -1896,6 +1920,29 @@ class AppStateManager extends ChangeNotifier {
 
     final item = _tasks.removeAt(fromGlobal);
     _tasks.insert(toGlobal, item);
+    notifyListeners();
+  }
+
+  /// 선택한 날짜의 할일 목록 안에서 길게 눌러 드래그한 순서를 반영한다.
+  void reorderTasksForDay(DateTime day, int oldIndex, int newIndex) {
+    final dayTasks = getTasksForDay(day);
+    if (oldIndex == newIndex || oldIndex < 0 || newIndex < 0) return;
+    if (oldIndex >= dayTasks.length || newIndex >= dayTasks.length) return;
+    final ids = dayTasks.map((task) => task.id).toList();
+    final moved = ids.removeAt(oldIndex);
+    ids.insert(newIndex, moved);
+    final slots = <int>[];
+    for (var i = 0; i < _tasks.length; i++) {
+      if (dayTasks.any((task) => task.id == _tasks[i].id)) slots.add(i);
+    }
+    final selected = dayTasks
+        .map((task) => _tasks.firstWhere((item) => item.id == task.id))
+        .toList();
+    _tasks.removeWhere((task) => dayTasks.any((item) => item.id == task.id));
+    for (var i = 0; i < ids.length; i++) {
+      final item = selected.firstWhere((task) => task.id == ids[i]);
+      _tasks.insert(slots[i].clamp(0, _tasks.length), item);
+    }
     notifyListeners();
   }
 

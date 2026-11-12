@@ -1492,9 +1492,21 @@ class _CalendarTabViewState extends State<CalendarTabView> {
                   ),
                 )
               else
-                Column(
-                  children: selectedDayTasks.map((t) {
-                    return Container(
+                ReorderableListView.builder(
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  buildDefaultDragHandles: false,
+                  itemCount: selectedDayTasks.length,
+                  onReorder: (oldIndex, newIndex) {
+                    if (newIndex > oldIndex) newIndex--;
+                    _state.reorderTasksForDay(_selectedDate, oldIndex, newIndex);
+                  },
+                  itemBuilder: (context, index) {
+                    final t = selectedDayTasks[index];
+                    return ReorderableDelayedDragStartListener(
+                      key: ValueKey('task_${t.id}'),
+                      index: index,
+                      child: Container(
                       margin: const EdgeInsets.only(bottom: 6),
                       decoration: BoxDecoration(
                         color: const Color(0xFFF9FAFB),
@@ -1616,53 +1628,6 @@ class _CalendarTabViewState extends State<CalendarTabView> {
                                       ),
                                     ),
                                   ),
-                                  const SizedBox(width: 8),
-                                  TextButton(
-                                    style: TextButton.styleFrom(
-                                      padding: const EdgeInsets.symmetric(
-                                        horizontal: 6,
-                                        vertical: 4,
-                                      ),
-                                      minimumSize: Size.zero,
-                                      tapTargetSize:
-                                          MaterialTapTargetSize.shrinkWrap,
-                                    ),
-                                    onPressed: () => _state.moveTask(
-                                      t.id,
-                                      -1,
-                                      _selectedDate,
-                                    ),
-                                    child: Text(
-                                      '위로',
-                                      style: TextStyle(
-                                        color: AppColors.textSecondary,
-                                        fontSize: 12,
-                                        fontWeight: FontWeight.w600,
-                                      ),
-                                    ),
-                                  ),
-                                  const SizedBox(width: 4),
-                                  TextButton(
-                                    style: TextButton.styleFrom(
-                                      padding: const EdgeInsets.symmetric(
-                                        horizontal: 6,
-                                        vertical: 4,
-                                      ),
-                                      minimumSize: Size.zero,
-                                      tapTargetSize:
-                                          MaterialTapTargetSize.shrinkWrap,
-                                    ),
-                                    onPressed: () =>
-                                        _state.moveTask(t.id, 1, _selectedDate),
-                                    child: Text(
-                                      '아래로',
-                                      style: TextStyle(
-                                        color: AppColors.textSecondary,
-                                        fontSize: 12,
-                                        fontWeight: FontWeight.w600,
-                                      ),
-                                    ),
-                                  ),
                                   const Spacer(),
                                   TextButton(
                                     style: TextButton.styleFrom(
@@ -1697,8 +1662,9 @@ class _CalendarTabViewState extends State<CalendarTabView> {
                           ],
                         ],
                       ),
+                      ),
                     );
-                  }).toList(),
+                  },
                 ),
               const SizedBox(height: 12),
               const Divider(height: 1),
