@@ -527,6 +527,7 @@ class _CalendarTabViewState extends State<CalendarTabView> {
                           context,
                           title: '일정 수정 완료',
                           message: '\'${titleCtrl.text.trim()}\' 내용이 수정되었어요.',
+                          isCompletionFeedback: false,
                         );
                       } else {
                         _state.addTask(
@@ -543,6 +544,7 @@ class _CalendarTabViewState extends State<CalendarTabView> {
                           context,
                           title: isPast ? '한일 등록 완료' : '새 일정 등록 완료',
                           message: '\'${titleCtrl.text.trim()}\' 일정이 기록되었어요.',
+                          isCompletionFeedback: false,
                         );
                       }
                     },
@@ -651,6 +653,7 @@ class _CalendarTabViewState extends State<CalendarTabView> {
                 context,
                 title: '되돌리기 완료',
                 message: '${med.name} ${slot.label} 상태를 미완료로 되돌렸어요.',
+                isCompletionFeedback: false,
               );
             },
             child: const Text('되돌리기 확정', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
@@ -684,6 +687,7 @@ class _CalendarTabViewState extends State<CalendarTabView> {
                 context,
                 title: '되돌리기 완료',
                 message: '\'${habit.title}\' 실천 상태를 대기로 되돌렸어요.',
+                isCompletionFeedback: false,
               );
             },
             child: const Text('되돌리기 확정', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
@@ -709,6 +713,7 @@ class _CalendarTabViewState extends State<CalendarTabView> {
                 context,
                 title: '대기 상태로 변경',
                 message: '\'${habit.title}\'을(를) 대기로 변경했어요.',
+                isCompletionFeedback: false,
               );
             },
             child: Text('대기 (미실천)', style: TextStyle(color: AppColors.textSecondary)),
@@ -1143,6 +1148,7 @@ class _CalendarTabViewState extends State<CalendarTabView> {
                                           context,
                                           title: '일정 완료 취소',
                                           message: '\'${t.title}\' 완료를 취소했어요.',
+                                          isCompletionFeedback: false,
                                         );
                                       }
                                     },
@@ -1226,6 +1232,7 @@ class _CalendarTabViewState extends State<CalendarTabView> {
                                         context,
                                         title: '삭제 완료',
                                         message: '\'${t.title}\' 일정을 삭제했어요.',
+                                        isCompletionFeedback: false,
                                       );
                                     },
                                     child: const Text('삭제', style: TextStyle(color: AppColors.neutralDark, fontSize: 12, fontWeight: FontWeight.w600)),
