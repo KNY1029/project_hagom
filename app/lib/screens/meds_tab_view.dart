@@ -1017,6 +1017,7 @@ class _MedsTabViewState extends State<MedsTabView> {
                 context,
                 title: '이번 복용을 건너뛰었어요',
                 message: '자책하지 마세요. 다음 복용에 편안하게 집중하면 충분해요 :)',
+                isCompletionFeedback: false,
               );
             },
             child: const Text('건너뛰기 확정', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
@@ -1465,6 +1466,7 @@ class _MedsTabViewState extends State<MedsTabView> {
                           context,
                           title: '오늘 복용을 모두 마쳤어요',
                           message: '${med.name} 약을 이미 잘 챙겨 드셨어요.',
+                          isCompletionFeedback: false,
                           actionLabel: '되돌리기',
                           onAction: () {
                             _state.cancelLastCompletedSlot(med.id);
@@ -1472,6 +1474,7 @@ class _MedsTabViewState extends State<MedsTabView> {
                               context,
                               title: '복약 되돌림',
                               message: '${med.name} 마지막 회차 복약을 되돌렸어요.',
+                              isCompletionFeedback: false,
                             );
                           },
                         );
