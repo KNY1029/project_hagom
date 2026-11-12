@@ -327,6 +327,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           context,
           title: '파일 처리 오류',
           message: '파일 내보내기 중 문제가 발생했어요: $e',
+          isCompletionFeedback: false,
         );
       }
     }
@@ -911,6 +912,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       context,
                       title: '기간 기록 삭제 완료',
                       message: '$sStr ~ $eStr 기록이 정리되었어요.',
+                      isCompletionFeedback: false,
                     );
                   },
                   child: const Text('삭제 확정', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
@@ -969,7 +971,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                               onPressed: () {
                                 _state.permanentlyDeleteMedication(m.id);
                                 setSState(() {});
-                                CelebrationToast.show(context, title: '영구 삭제 완료', message: '\'${m.name}\' 기록이 완전히 삭제되었어요.');
+                                CelebrationToast.show(context, title: '영구 삭제 완료', message: '\'${m.name}\' 기록이 완전히 삭제되었어요.', isCompletionFeedback: false);
                               },
                               child: const Text('영구 삭제', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
                             ),
@@ -991,7 +993,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                               onPressed: () {
                                 _state.permanentlyDeleteHabit(h.id);
                                 setSState(() {});
-                                CelebrationToast.show(context, title: '영구 삭제 완료', message: '\'${h.title}\' 기록이 완전히 삭제되었어요.');
+                                CelebrationToast.show(context, title: '영구 삭제 완료', message: '\'${h.title}\' 기록이 완전히 삭제되었어요.', isCompletionFeedback: false);
                               },
                               child: const Text('영구 삭제', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
                             ),
@@ -1013,7 +1015,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                               onPressed: () {
                                 _state.permanentlyDeleteTask(t.id);
                                 setSState(() {});
-                                CelebrationToast.show(context, title: '영구 삭제 완료', message: '\'${t.title}\' 할일이 완전히 삭제되었어요.');
+                                CelebrationToast.show(context, title: '영구 삭제 완료', message: '\'${t.title}\' 할일이 완전히 삭제되었어요.', isCompletionFeedback: false);
                               },
                               child: const Text('영구 삭제', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
                             ),
@@ -1059,6 +1061,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   context,
                   title: '초기화 완료',
                   message: '모든 데이터가 깨끗하게 초기 상태로 리셋되었어요.',
+                  isCompletionFeedback: false,
                 );
               }
             },
@@ -1126,7 +1129,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     ),
                     SizedBox(height: 3),
                     Text(
-                      '정신약학 맞춤 복약 솔루션 · v0.90.244',
+                      '정신약학 맞춤 복약 솔루션 · v0.90.248',
                       style: TextStyle(
                         fontSize: 12,
                         color: AppColors.textSecondary,
@@ -1335,6 +1338,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                             title: '오늘의 복약 완료!',
                             subtitle: '하곰이가 정성껏 준비한 응원이에요',
                             isDevPreview: true,
+                            isCompletionFeedback: false,
                           );
                         },
                         icon: Icon(Icons.auto_awesome, color: AppColors.primaryPurple),
@@ -1380,6 +1384,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       CelebrationToast.show(
                         context,
                         title: '갱신 시각 변경',
+                        isCompletionFeedback: false,
                         message: '하루 갱신 기준 시각이 ${_state.dailyResetTimeString}으로 설정되었어요.',
                       );
                     }
@@ -1463,6 +1468,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       context,
                       assetPath: AppAssets.medsAllDoneWebp,
                       title: '오늘 복약 모두 완료!',
+                      isCompletionFeedback: false,
                       subtitle: '정말 대단해요! 오늘 복약을 전부 챙기셨어요.',
                     );
                   },
@@ -1479,6 +1485,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       context,
                       assetPath: AppAssets.habitsAllDoneWebp,
                       title: '오늘 습관 모두 실천 완료!',
+                      isCompletionFeedback: false,
                       subtitle: '스스로와의 약속을 멋지게 지켜내셨어요.',
                     );
                   },
@@ -1504,6 +1511,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     CelebrationToast.show(
                       context,
                       title: '모드 선택 초기화 완료',
+                      isCompletionFeedback: false,
                       message: '다음 앱 실행 시 시작 모드 선택창이 다시 표시돼요.',
                     );
                   },
