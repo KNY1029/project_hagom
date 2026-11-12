@@ -110,6 +110,13 @@ class _HabitsTabViewState extends State<HabitsTabView> {
     List<String> scheduledTimes = isEditing
         ? List.from(habit.scheduledTimes)
         : [];
+    DateTime startDate = DateTime(
+      (isEditing ? habit.startDate : DateTime.now()).year,
+      (isEditing ? habit.startDate : DateTime.now()).month,
+      (isEditing ? habit.startDate : DateTime.now()).day,
+    );
+    String formatDate(DateTime date) =>
+        '${date.year}.${date.month.toString().padLeft(2, '0')}.${date.day.toString().padLeft(2, '0')}';
 
     showModalBottomSheet(
       context: context,
@@ -231,7 +238,54 @@ class _HabitsTabViewState extends State<HabitsTabView> {
                     ),
                     const SizedBox(height: 14),
 
-                    // 3. 실천 주기 (매일, 요일 선택, 주 N회, 오늘만)
+                    // 3. 습관 시작일
+                    Text(
+                      '습관 시작일',
+                      style: TextStyle(
+                        fontSize: 12.5,
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.textSecondary,
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                    InkWell(
+                      borderRadius: BorderRadius.circular(8),
+                      onTap: () async {
+                        final picked = await showDatePicker(
+                          context: context,
+                          initialDate: startDate,
+                          firstDate: DateTime(2020),
+                          lastDate: DateTime(2100),
+                          helpText: '습관 시작일 선택',
+                        );
+                        if (picked != null) {
+                          setModalState(() {
+                            startDate = DateTime(picked.year, picked.month, picked.day);
+                          });
+                        }
+                      },
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFF9FAFB),
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(color: AppColors.divider),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(Icons.calendar_today_outlined, size: 15, color: AppColors.primaryPurple),
+                            const SizedBox(width: 7),
+                            Text(formatDate(startDate), style: TextStyle(fontSize: 12, color: AppColors.textPrimary, fontWeight: FontWeight.w600)),
+                            const SizedBox(width: 5),
+                            Text('변경', style: TextStyle(fontSize: 11, color: AppColors.primaryPurple)),
+                          ],
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+
+                    // 4. 실천 주기 (매일, 요일 선택, 주 N회, 오늘만)
                     Text(
                       '실천 주기',
                       style: TextStyle(
@@ -585,6 +639,7 @@ class _HabitsTabViewState extends State<HabitsTabView> {
                                     targetPerDay: targetCount > 0
                                         ? targetCount
                                         : 1,
+                                    startDate: startDate,
                                   );
                                 } else {
                                   _state.addHabit(
@@ -600,6 +655,7 @@ class _HabitsTabViewState extends State<HabitsTabView> {
                                     targetPerDay: targetCount > 0
                                         ? targetCount
                                         : 1,
+                                    startDate: startDate,
                                   );
                                 }
                                 Navigator.of(ctx).pop();

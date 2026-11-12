@@ -713,7 +713,7 @@ class AppStateManager extends ChangeNotifier {
           (m) => m.recurrenceSummary != '필요 시' && m.recurrenceSummary != '오늘만',
         )
         .toList();
-    if (dueMeds.isEmpty) return 0.0;
+    if (dueMeds.isEmpty) return null;
     int total = 0;
     int completed = 0;
 
@@ -841,7 +841,7 @@ class AppStateManager extends ChangeNotifier {
 
     if (target.isAfter(today)) return null;
     final dueHabits = habits.where((h) => h.isDueOn(day)).toList();
-    if (dueHabits.isEmpty) return 1.0;
+    if (dueHabits.isEmpty) return null;
     double sum = 0.0;
     for (final h in dueHabits) {
       sum += getHabitScoreForDay(day, h.id);
@@ -1060,6 +1060,11 @@ class AppStateManager extends ChangeNotifier {
               repeatDays: ['일'],
               durationSummary: '계속 복용',
               isPrescription: false,
+              startDate: DateTime(
+                DateTime.now().year,
+                DateTime.now().month,
+                1,
+              ),
               doseSlots: [
                 DoseSlot(
                   label: '아침',
@@ -1075,6 +1080,12 @@ class AppStateManager extends ChangeNotifier {
           if (m.name == 'Focusin') m.name = '처방약 (예시 A)';
           if (m.name == '비타민 D & 오메가3') m.name = '일반 영양제 (예시 B)';
           if (m.name == '비타민 D 고용량 (주 1회)') m.name = '주 1회 복용약 (예시)';
+          if (isDevSimulationMode &&
+              (m.id == 'med_1' || m.id == 'med_2' || m.id == 'med_3')) {
+            final now = DateTime.now();
+            m.startDate = DateTime(now.year, now.month, 1);
+            m.createdDate = m.startDate;
+          }
         }
       }
       final startRaw = _prefs!.getString('hagom_tracking_start_date');
@@ -1220,6 +1231,7 @@ class AppStateManager extends ChangeNotifier {
         recurrenceSummary: '매일',
         durationSummary: '계속 복용',
         isPrescription: true,
+        startDate: DateTime(DateTime.now().year, DateTime.now().month, 1),
         doseSlots: [
           DoseSlot(
             label: '아침',
@@ -1237,6 +1249,7 @@ class AppStateManager extends ChangeNotifier {
         recurrenceSummary: '매일',
         durationSummary: '계속 복용',
         isPrescription: false,
+        startDate: DateTime(DateTime.now().year, DateTime.now().month, 1),
         doseSlots: [
           DoseSlot(label: '저녁', scheduledTime: '오후 7:00', isCompleted: false),
         ],
@@ -1250,6 +1263,7 @@ class AppStateManager extends ChangeNotifier {
         repeatDays: ['일'],
         durationSummary: '계속 복용',
         isPrescription: false,
+        startDate: DateTime(DateTime.now().year, DateTime.now().month, 1),
         doseSlots: [
           DoseSlot(label: '아침', scheduledTime: '오전 9:00', isCompleted: false),
         ],
@@ -1800,6 +1814,7 @@ class AppStateManager extends ChangeNotifier {
     List<String> repeatDays = const [],
     List<String> scheduledTimes = const [],
     int targetPerDay = 1,
+    DateTime? startDate,
   }) {
     _habits.add(
       HabitItem(
@@ -1810,6 +1825,7 @@ class AppStateManager extends ChangeNotifier {
         repeatDays: repeatDays,
         scheduledTimes: scheduledTimes,
         targetPerDay: targetPerDay,
+        startDate: startDate,
       ),
     );
     notifyListeners();
@@ -1823,6 +1839,7 @@ class AppStateManager extends ChangeNotifier {
     required List<String> repeatDays,
     required List<String> scheduledTimes,
     required int targetPerDay,
+    DateTime? startDate,
   }) {
     final habit = _habits.firstWhere((h) => h.id == id);
     habit.title = title;
@@ -1831,6 +1848,7 @@ class AppStateManager extends ChangeNotifier {
     habit.repeatDays = repeatDays;
     habit.scheduledTimes = scheduledTimes;
     habit.targetPerDay = targetPerDay;
+    if (startDate != null) habit.startDate = startDate;
     notifyListeners();
   }
 
