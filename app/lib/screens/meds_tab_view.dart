@@ -432,6 +432,30 @@ class _MedsTabViewState extends State<MedsTabView> {
                               );
                             }).toList(),
                       ),
+                      if (recurrenceType == '오늘만' ||
+                          recurrenceType == '필요 시') ...[
+                        const SizedBox(height: 8),
+                        Container(
+                          width: double.infinity,
+                          padding: const EdgeInsets.all(10),
+                          decoration: BoxDecoration(
+                            color: AppColors.lightLavender.withValues(
+                              alpha: 0.45,
+                            ),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Text(
+                            recurrenceType == '오늘만'
+                                ? '오늘만: 구충제, 타이레놀처럼 오늘 날짜에만 복용하는 약이에요. 오늘만 복약 목록에 표시되고 내일부터는 사라져요. 정기 복약 성공·실패와 복약 퍼센트에는 포함되지 않아요.'
+                                : '필요 시: 멜라토닌이나 집중을 위해 먹는 저용량 메디키넷처럼 복약지도에는 계속 남아 있지만, 실제로 먹었을 때만 기록하는 약이에요. 정기 복약 성공·실패와 복약 퍼센트에는 포함되지 않아요.',
+                            style: TextStyle(
+                              fontSize: 11.5,
+                              height: 1.45,
+                              color: AppColors.textSecondary,
+                            ),
+                          ),
+                        ),
+                      ],
                       if (recurrenceType == '특정 요일') ...[
                         const SizedBox(height: 8),
                         Row(
@@ -1574,8 +1598,11 @@ class _MedsTabViewState extends State<MedsTabView> {
   @override
   Widget build(BuildContext context) {
     // 🌟 오늘 복용해야 하는 약 vs 오늘은 아닌 약(주 1회, 격일 등) 분리!
-    final todayMeds = _state.medications.where((m) => m.isDueToday).toList();
-    final otherMeds = _state.medications.where((m) => !m.isDueToday).toList();
+    final visibleMeds = _state.medications
+        .where((m) => m.recurrenceSummary != '오늘만' || m.isDueToday)
+        .toList();
+    final todayMeds = visibleMeds.where((m) => m.isDueToday).toList();
+    final otherMeds = visibleMeds.where((m) => !m.isDueToday).toList();
 
     return ListView(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),

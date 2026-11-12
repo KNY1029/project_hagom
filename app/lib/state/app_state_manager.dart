@@ -85,11 +85,15 @@ class AppStateManager extends ChangeNotifier {
   // 🌟 오늘 복약 통계 (현재 복용 중인 활성 약물들만 집계!)
   int get totalDoseSlots => medications
       .where((m) => m.isDueToday)
-      .where((m) => m.recurrenceSummary != '필요 시')
+      .where(
+        (m) => m.recurrenceSummary != '필요 시' && m.recurrenceSummary != '오늘만',
+      )
       .fold(0, (sum, m) => sum + m.totalSlotsCount);
   int get completedDoseSlots => medications
       .where((m) => m.isDueToday)
-      .where((m) => m.recurrenceSummary != '필요 시')
+      .where(
+        (m) => m.recurrenceSummary != '필요 시' && m.recurrenceSummary != '오늘만',
+      )
       .fold(0, (sum, m) => sum + m.completedSlotsCount);
 
   // --- 🌱 습관 데이터 ---
@@ -702,7 +706,12 @@ class AppStateManager extends ChangeNotifier {
     if (isDevSimulationMode && !_isSimulationPreviewMonth(day)) return null;
 
     // 등록된 약이 하나도 없거나 오늘 복용할 약이 없으면 0.0 처리!
-    final dueMeds = medications.where((m) => m.isDueOn(day)).toList();
+    final dueMeds = medications
+        .where((m) => m.isDueOn(day))
+        .where(
+          (m) => m.recurrenceSummary != '필요 시' && m.recurrenceSummary != '오늘만',
+        )
+        .toList();
     if (dueMeds.isEmpty) return 0.0;
     int total = 0;
     int completed = 0;
@@ -730,7 +739,11 @@ class AppStateManager extends ChangeNotifier {
     if (isDevSimulationMode && !_isSimulationPreviewMonth(day)) return false;
 
     final duePrescriptions = _medications.where(
-      (m) => m.isPrescription && m.isDueOn(day),
+      (m) =>
+          m.isPrescription &&
+          m.isDueOn(day) &&
+          m.recurrenceSummary != '필요 시' &&
+          m.recurrenceSummary != '오늘만',
     );
     for (final med in duePrescriptions) {
       for (int i = 0; i < med.doseSlots.length; i++) {
@@ -1666,10 +1679,14 @@ class AppStateManager extends ChangeNotifier {
     String? memo,
   }) {
     final med = _medications.firstWhere((m) => m.id == id);
+    final wasTodayOnly = med.recurrenceSummary == '오늘만';
     med.name = name;
     med.dosage = dosage;
     med.doseSlots = doseSlots;
     med.recurrenceSummary = recurrenceSummary;
+    if (recurrenceSummary == '오늘만' && !wasTodayOnly) {
+      med.createdDate = DateTime.now();
+    }
     med.durationSummary = durationSummary;
     med.isPrescription = isPrescription;
     if (repeatDays != null) med.repeatDays = repeatDays;
