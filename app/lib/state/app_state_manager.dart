@@ -1673,6 +1673,8 @@ class AppStateManager extends ChangeNotifier {
     bool isPrescription = false,
     List<String>? repeatDays,
     String? memo,
+    DateTime? startDate,
+    DateTime? endDate,
   }) {
     _medications.add(
       MedicationItem(
@@ -1685,6 +1687,8 @@ class AppStateManager extends ChangeNotifier {
         isPrescription: isPrescription,
         repeatDays: repeatDays ?? [],
         memo: memo,
+        startDate: startDate,
+        endDate: endDate,
       ),
     );
     notifyListeners();
@@ -1701,16 +1705,17 @@ class AppStateManager extends ChangeNotifier {
     required bool isPrescription,
     List<String>? repeatDays,
     String? memo,
+    DateTime? startDate,
+    DateTime? endDate,
   }) {
     final med = _medications.firstWhere((m) => m.id == id);
-    final wasTodayOnly = med.recurrenceSummary == '오늘만';
     med.name = name;
     med.dosage = dosage;
     med.doseSlots = doseSlots;
     med.recurrenceSummary = recurrenceSummary;
-    if (recurrenceSummary == '오늘만' && !wasTodayOnly) {
-      med.createdDate = DateTime.now();
-    }
+    med.startDate = startDate ?? med.startDate;
+    med.createdDate = med.startDate;
+    med.endDate = endDate;
     med.durationSummary = durationSummary;
     med.isPrescription = isPrescription;
     if (repeatDays != null) med.repeatDays = repeatDays;

@@ -119,6 +119,13 @@ class _MedsTabViewState extends State<MedsTabView> {
         : [];
 
     bool isOngoing = isEditing ? (med.durationSummary == '계속 복용') : true;
+    DateTime startDate = DateTime(
+      (isEditing ? med.startDate : DateTime.now()).year,
+      (isEditing ? med.startDate : DateTime.now()).month,
+      (isEditing ? med.startDate : DateTime.now()).day,
+    );
+    String formatDate(DateTime date) =>
+        '${date.year}.${date.month.toString().padLeft(2, '0')}.${date.day.toString().padLeft(2, '0')}';
     final durationDaysCtrl = TextEditingController(
       text: isEditing && med.durationSummary.contains('일간')
           ? med.durationSummary.replaceAll(RegExp(r'[^0-9]'), '')
@@ -991,7 +998,76 @@ class _MedsTabViewState extends State<MedsTabView> {
                         const SizedBox(height: 10),
                       ],
 
-                      // 3. 복용 기간
+                      // 3. 복약 시작일 및 기간
+                      Text(
+                        '복약 시작일',
+                        style: TextStyle(
+                          fontSize: 12.5,
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.textSecondary,
+                        ),
+                      ),
+                      const SizedBox(height: 6),
+                      InkWell(
+                        borderRadius: BorderRadius.circular(8),
+                        onTap: () async {
+                          final picked = await showDatePicker(
+                            context: context,
+                            initialDate: startDate,
+                            firstDate: DateTime(2020),
+                            lastDate: DateTime(2100),
+                            helpText: '복약 시작일 선택',
+                          );
+                          if (picked != null) {
+                            setModalState(() {
+                              startDate = DateTime(
+                                picked.year,
+                                picked.month,
+                                picked.day,
+                              );
+                            });
+                          }
+                        },
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 9,
+                          ),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFF9FAFB),
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(color: AppColors.divider),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(
+                                Icons.calendar_today_outlined,
+                                size: 15,
+                                color: AppColors.primaryPurple,
+                              ),
+                              const SizedBox(width: 7),
+                              Text(
+                                formatDate(startDate),
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: AppColors.textPrimary,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                              const SizedBox(width: 5),
+                              Text(
+                                '변경',
+                                style: TextStyle(
+                                  fontSize: 11,
+                                  color: AppColors.primaryPurple,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 10),
                       if (recurrenceType != '오늘만') ...[
                         Text(
                           '복용 기간',
@@ -1191,14 +1267,20 @@ class _MedsTabViewState extends State<MedsTabView> {
                                   }
 
                                   String durationSummary = '계속 복용';
+                                  DateTime? endDate;
                                   if (recurrenceType == '오늘만') {
                                     durationSummary = '오늘만';
+                                    endDate = startDate;
                                   } else if (!isOngoing) {
                                     final days =
                                         durationDaysCtrl.text.trim().isEmpty
                                         ? '7'
                                         : durationDaysCtrl.text.trim();
                                     durationSummary = '$days일간';
+                                    final dayCount = int.tryParse(days) ?? 7;
+                                    endDate = startDate.add(
+                                      Duration(days: (dayCount < 1 ? 1 : dayCount) - 1),
+                                    );
                                   }
 
                                   if (recurrenceType == '시간 간격') {
@@ -1244,6 +1326,8 @@ class _MedsTabViewState extends State<MedsTabView> {
                                       memo: memoCtrl.text.trim().isNotEmpty
                                           ? memoCtrl.text.trim()
                                           : null,
+                                      startDate: startDate,
+                                      endDate: endDate,
                                     );
                                   } else {
                                     _state.addMedication(
@@ -1261,6 +1345,8 @@ class _MedsTabViewState extends State<MedsTabView> {
                                       memo: memoCtrl.text.trim().isNotEmpty
                                           ? memoCtrl.text.trim()
                                           : null,
+                                      startDate: startDate,
+                                      endDate: endDate,
                                     );
                                   }
                                   Navigator.of(ctx).pop();
