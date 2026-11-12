@@ -117,12 +117,6 @@ class _MedsTabViewState extends State<MedsTabView> {
               )
               .toList()
         : [];
-    bool isSingleUntimedDose =
-        isEditing &&
-        med.recurrenceSummary != '필요 시' &&
-        med.doseSlots.length == 1 &&
-        med.doseSlots.first.label == '복용' &&
-        med.doseSlots.first.scheduledTime == null;
 
     bool isOngoing = isEditing ? (med.durationSummary == '계속 복용') : true;
     DateTime startDate = DateTime(
@@ -726,53 +720,14 @@ class _MedsTabViewState extends State<MedsTabView> {
                           ),
                         ),
                         const SizedBox(height: 6),
-                        Align(
-                          alignment: Alignment.centerLeft,
-                          child: TextButton.icon(
-                            style: TextButton.styleFrom(
-                              padding: EdgeInsets.zero,
-                              minimumSize: Size.zero,
-                            ),
-                            icon: Icon(
-                              Icons.add,
-                              size: 14,
-                              color: AppColors.primaryPurple,
-                            ),
-                            label: Text(
-                              '시각 추가',
-                              style: TextStyle(
-                                fontSize: 12,
-                                color: AppColors.primaryPurple,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            onPressed: () async {
-                              final time = await AppTimePicker.show(
-                                context,
-                                initialTime: null,
-                                title: '새로운 복용 시각 추가',
-                              );
-                              if (time == null) return;
-                              final period = time.period == DayPeriod.am
-                                  ? '오전'
-                                  : '오후';
-                              final hour = time.hourOfPeriod == 0
-                                  ? 12
-                                  : time.hourOfPeriod;
-                              final minute = time.minute.toString().padLeft(2, '0');
-                              setModalState(() {
-                                isSingleUntimedDose = true;
-                                currentSlots = [
-                                  DoseSlot(
-                                    label: '복용',
-                                    scheduledTime: '$period $hour:$minute',
-                                  ),
-                                ];
-                              });
-                            },
+                        Text(
+                          '시간대를 처음 누르면 알림 시각을 설정하고, 다음부터는 저장된 시간으로 바로 추가돼요.',
+                          style: TextStyle(
+                            fontSize: 11,
+                            color: AppColors.textSecondary,
                           ),
                         ),
-                        const SizedBox(height: 4),
+                        const SizedBox(height: 6),
                         Wrap(
                           spacing: 6,
                           runSpacing: 6,
@@ -799,7 +754,6 @@ class _MedsTabViewState extends State<MedsTabView> {
                                 onSelected: (sel) async {
                                   setModalState(() {
                                     if (sel) {
-                                      isSingleUntimedDose = false;
                                       currentSlots.removeWhere(
                                         (slot) => slot.label == '복용',
                                       );
@@ -873,7 +827,6 @@ class _MedsTabViewState extends State<MedsTabView> {
                                         await ensureRoutineTime(customLabel);
                                     if (selectedTime == null) return;
                                     setModalState(() {
-                                      isSingleUntimedDose = false;
                                       currentSlots.removeWhere(
                                         (slot) => slot.label == '복용',
                                       );
@@ -975,6 +928,62 @@ class _MedsTabViewState extends State<MedsTabView> {
                                     );
                                   });
                                 }
+                              },
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 8),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              '복용 시각',
+                              style: TextStyle(
+                                fontSize: 12.5,
+                                fontWeight: FontWeight.bold,
+                                color: AppColors.textSecondary,
+                              ),
+                            ),
+                            TextButton.icon(
+                              style: TextButton.styleFrom(
+                                padding: EdgeInsets.zero,
+                                minimumSize: Size.zero,
+                              ),
+                              icon: Icon(
+                                Icons.add,
+                                size: 14,
+                                color: AppColors.primaryPurple,
+                              ),
+                              label: Text(
+                                '시각 추가',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: AppColors.primaryPurple,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              onPressed: () async {
+                                final time = await AppTimePicker.show(
+                                  context,
+                                  initialTime: null,
+                                  title: '새로운 복용 시각 추가',
+                                );
+                                if (time == null) return;
+                                final period = time.period == DayPeriod.am
+                                    ? '오전'
+                                    : '오후';
+                                final hour = time.hourOfPeriod == 0
+                                    ? 12
+                                    : time.hourOfPeriod;
+                                final minute = time.minute.toString().padLeft(2, '0');
+                                setModalState(() {
+                                  currentSlots = [
+                                    DoseSlot(
+                                      label: '복용',
+                                      scheduledTime: '$period $hour:$minute',
+                                    ),
+                                  ];
+                                });
                               },
                             ),
                           ],
