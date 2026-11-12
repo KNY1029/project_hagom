@@ -110,11 +110,12 @@ object WidgetBindings {
         val customLabel = if (customBtnLabelKey.isNotEmpty()) text(prefs, customBtnLabelKey) else ""
         val customState = if (customBtnStateKey.isNotEmpty()) text(prefs, customBtnStateKey) else ""
         val isDone = prefs.getString(doneKey, "false") == "true" || customState == "done"
+        val isColorVision = prefs.getString("theme_color_vision", "false") == "true"
 
         if (isDone) {
             views.setTextViewText(btnId, "완료")
-            views.setInt(btnId, "setBackgroundResource", R.drawable.hagom_widget_green_btn_bg)
-            views.setTextColor(btnId, Color.parseColor("#1B6B46"))
+            views.setInt(btnId, "setBackgroundResource", if (isColorVision) R.drawable.hagom_widget_blue_btn_bg else R.drawable.hagom_widget_green_btn_bg)
+            views.setTextColor(btnId, Color.parseColor(if (isColorVision) "#1D4ED8" else "#1B6B46"))
         } else if (customLabel.isNotEmpty()) {
             views.setTextViewText(btnId, customLabel)
             if (customState == "partial") {

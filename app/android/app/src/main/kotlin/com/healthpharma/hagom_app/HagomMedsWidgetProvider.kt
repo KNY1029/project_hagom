@@ -93,8 +93,11 @@ class HagomMedsWidgetProvider : HomeWidgetProvider() {
 
                     // 🌟 복용 완료 시 보라색이 아닌 초록색 완료 버튼(배경 #EAF8F1, 텍스트 #1B6B46)으로 즉시 반영!
                     val isBtnDone = (btnTitle == "완료" || allDone)
-                    val bgRes = if (isBtnDone) R.drawable.hagom_widget_green_btn_bg else R.drawable.hagom_widget_btn_bg
-                    val txtColor = if (isBtnDone) Color.parseColor("#1B6B46") else Color.WHITE
+                    val isColorVision = widgetData.getString("theme_color_vision", "false") == "true"
+                    val bgRes = if (isBtnDone) {
+                        if (isColorVision) R.drawable.hagom_widget_blue_btn_bg else R.drawable.hagom_widget_green_btn_bg
+                    } else R.drawable.hagom_widget_btn_bg
+                    val txtColor = if (isBtnDone) Color.parseColor(if (isColorVision) "#1D4ED8" else "#1B6B46") else Color.WHITE
 
                     setInt(R.id.widget_meds_btn, "setBackgroundResource", bgRes)
                     setTextColor(R.id.widget_meds_btn_title, txtColor)

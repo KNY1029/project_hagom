@@ -92,8 +92,9 @@ class HagomHabitsWidgetProvider : HomeWidgetProvider() {
                     setViewVisibility(R.id.widget_habits_btn_compact, if (isNarrow) View.VISIBLE else View.GONE)
 
                     val state = WidgetBindings.text(widgetData, "habits_state")
+                    val isColorVision = widgetData.getString("theme_color_vision", "false") == "true"
                     val (bgRes, txtColor) = when (state) {
-                        "done" -> R.drawable.hagom_widget_green_btn_bg to Color.parseColor("#1B6B46")
+                        "done" -> (if (isColorVision) R.drawable.hagom_widget_blue_btn_bg else R.drawable.hagom_widget_green_btn_bg) to Color.parseColor(if (isColorVision) "#1D4ED8" else "#1B6B46")
                         "partial" -> R.drawable.hagom_widget_brown_btn_bg to Color.parseColor("#8B5E3C")
                         else -> R.drawable.hagom_widget_gray_btn_bg to Color.parseColor("#6B7280")
                     }

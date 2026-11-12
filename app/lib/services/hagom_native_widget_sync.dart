@@ -662,8 +662,17 @@ class HagomNativeWidgetSync {
         if (isTodayCell) {
           final mRate = state.getMedRateForDay(cellDate);
           final hRate = state.getHabitRateForDay(cellDate);
-          if (!isBeforeTrack && mRate != null && mRate >= 1.0) {
-            status = hasT ? 'today_med_done_pin' : 'today_med_done';
+          final isMedDone = !isBeforeTrack && mRate != null && mRate >= 1.0;
+          final isHabitDone = !isBeforeTrack && hRate != null && hRate >= 1.0;
+          final isTasksDone = hasT && tasks.every((task) => task.isCompleted);
+          if (isMedDone && isHabitDone) {
+            status = hasT ? 'hdone_mdone_pin' : 'hdone_mdone';
+          } else if (isMedDone) {
+            status = hasT
+                ? (isTasksDone ? 'today_med_done_done_pin' : 'today_med_done_pin')
+                : 'today_med_done';
+          } else if (isHabitDone) {
+            status = hasT ? 'today_done_pin' : 'today_done';
           } else {
             status = hasT ? 'today_pin' : 'today';
           }
@@ -954,8 +963,17 @@ class HagomNativeWidgetSync {
         if (isTodayCell) {
           final mRate = state.getMedRateForDay(cellDate);
           final hRate = state.getHabitRateForDay(cellDate);
-          if (!isBeforeTrack && mRate != null && mRate >= 1.0) {
-            status = hasT ? 'today_med_done_pin' : 'today_med_done';
+          final isMedDone = !isBeforeTrack && mRate != null && mRate >= 1.0;
+          final isHabitDone = !isBeforeTrack && hRate != null && hRate >= 1.0;
+          final isTasksDone = hasT && tasks.every((task) => task.isCompleted);
+          if (isMedDone && isHabitDone) {
+            status = hasT ? 'hdone_mdone_pin' : 'hdone_mdone';
+          } else if (isMedDone) {
+            status = hasT
+                ? (isTasksDone ? 'today_med_done_done_pin' : 'today_med_done_pin')
+                : 'today_med_done';
+          } else if (isHabitDone) {
+            status = hasT ? 'today_done_pin' : 'today_done';
           } else {
             status = hasT ? 'today_pin' : 'today';
           }

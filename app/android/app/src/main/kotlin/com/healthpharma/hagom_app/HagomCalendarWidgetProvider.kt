@@ -82,8 +82,11 @@ class HagomCalendarWidgetProvider : HomeWidgetProvider() {
                 setViewVisibility(R.id.widget_calendar_btn_compact, if (isNarrow) View.VISIBLE else View.GONE)
 
                 val allDone = widgetData.getString("calendar_all_done", "false") == "true"
-                val bgRes = if (allDone) R.drawable.hagom_widget_green_btn_bg else R.drawable.hagom_widget_task_btn_bg
-                val txtColor = if (allDone) Color.parseColor("#1B6B46") else Color.WHITE
+                val isColorVision = widgetData.getString("theme_color_vision", "false") == "true"
+                val bgRes = if (allDone) {
+                    if (isColorVision) R.drawable.hagom_widget_blue_btn_bg else R.drawable.hagom_widget_green_btn_bg
+                } else R.drawable.hagom_widget_task_btn_bg
+                val txtColor = if (allDone) Color.parseColor(if (isColorVision) "#1D4ED8" else "#1B6B46") else Color.WHITE
                 setInt(R.id.widget_calendar_btn, "setBackgroundResource", bgRes)
                 setTextColor(R.id.widget_calendar_btn_title, txtColor)
                 setInt(R.id.widget_calendar_btn_compact, "setBackgroundResource", bgRes)
