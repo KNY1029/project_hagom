@@ -148,9 +148,11 @@ class AppStateManager extends ChangeNotifier {
   }
 
   // 🌟 오늘 실천해야 하는 습관 통계 (활성 습관만 집계!)
-  int get todayHabitsCount => habits.where((h) => h.isDueToday).length;
+  int get todayHabitsCount => habits
+      .where((h) => h.isDueToday && h.countsTowardDailyCompletion)
+      .length;
   double get habitTotalScore => habits
-      .where((h) => h.isDueToday)
+      .where((h) => h.isDueToday && h.countsTowardDailyCompletion)
       .fold(0.0, (sum, item) => sum + item.score);
   double get habitCompletionRate =>
       todayHabitsCount == 0 ? 0.0 : (habitTotalScore / todayHabitsCount);
@@ -989,7 +991,9 @@ class AppStateManager extends ChangeNotifier {
     final target = DateTime(day.year, day.month, day.day);
 
     if (target.isAfter(today)) return null;
-    final dueHabits = habits.where((h) => h.isDueOn(day)).toList();
+    final dueHabits = habits
+        .where((h) => h.isDueOn(day) && h.countsTowardDailyCompletion)
+        .toList();
     if (dueHabits.isEmpty) return null;
     double sum = 0.0;
     for (final h in dueHabits) {

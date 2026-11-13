@@ -745,7 +745,9 @@ class _HabitsTabViewState extends State<HabitsTabView> {
   @override
   Widget build(BuildContext context) {
     // 🌟 오늘 실천해야 하는 습관 vs 이미 이번 주에 완료되어 오늘은 쉴 수 있는 습관 분리!
-    final todayHabits = _state.habits.where((h) => h.isDueToday).toList();
+    final todayHabits = _state.habits
+        .where((h) => h.isDueToday && h.countsTowardDailyCompletion)
+        .toList();
     final otherHabits = _state.habits.where((h) => !h.isDueToday).toList();
 
     return ListView(
@@ -905,7 +907,7 @@ class _HabitsTabViewState extends State<HabitsTabView> {
   Widget _buildSlimProgressHeader() {
     // 🌟 오늘 실천 대상 습관들만 기준으로 정확한 점수 및 달성률 계산!
     final todayHabits = _state.habits
-        .where((h) => h.isDueToday && !_isWeeklyHabit(h))
+        .where((h) => h.isDueToday && h.countsTowardDailyCompletion)
         .toList();
     final total = todayHabits.length;
     final score = todayHabits.fold(0.0, (sum, item) => sum + item.score);
@@ -1149,8 +1151,8 @@ class _HabitsTabViewState extends State<HabitsTabView> {
                   // 🔒 [우측 상태 칩: 76x32dp 복약 탭과 칼정렬]
                   GestureDetector(
                     onTap: () {
-                      final todayHabits = _state.habits
-                          .where((h) => h.isDueToday)
+      final todayHabits = _state.habits
+          .where((h) => h.isDueToday && h.countsTowardDailyCompletion)
                           .toList();
                       final wasAllHabitsDoneBefore =
                           todayHabits.isNotEmpty &&
@@ -1296,8 +1298,5 @@ class _HabitsTabViewState extends State<HabitsTabView> {
     );
   }
 
-  bool _isWeeklyHabit(HabitItem habit) =>
-      habit.recurrenceSummary.contains('주') &&
-      (habit.recurrenceSummary.contains('회') ||
-          habit.recurrenceSummary.contains('횟수'));
+  bool _isWeeklyHabit(HabitItem habit) => habit.isWeeklyFrequencyHabit;
 }

@@ -129,6 +129,12 @@ class HabitItem {
     }
   }
 
+  bool get isWeeklyFrequencyHabit =>
+      recurrenceSummary.contains('주') &&
+      (recurrenceSummary.contains('회') || recurrenceSummary.contains('횟수'));
+
+  bool get countsTowardDailyCompletion => !isWeeklyFrequencyHabit;
+
   // 상태 라벨 텍스트
   String get statusLabel {
     if (targetPerDay > 1) {
@@ -144,14 +150,6 @@ class HabitItem {
 
   // 탭 시 진행 (대기 ➔ 조금 실천 ➔ 완료 도달 시 잠금!)
   bool advanceProgress() {
-    if (recurrenceSummary.contains('주') &&
-        (recurrenceSummary.contains('회') || recurrenceSummary.contains('횟수'))) {
-      if (currentCount == 0) {
-        currentCount = 2;
-        return true;
-      }
-      return false;
-    }
     if (targetPerDay > 1) {
       if (currentCount < targetPerDay) {
         currentCount++;
