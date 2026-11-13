@@ -904,7 +904,9 @@ class _HabitsTabViewState extends State<HabitsTabView> {
 
   Widget _buildSlimProgressHeader() {
     // 🌟 오늘 실천 대상 습관들만 기준으로 정확한 점수 및 달성률 계산!
-    final todayHabits = _state.habits.where((h) => h.isDueToday).toList();
+    final todayHabits = _state.habits
+        .where((h) => h.isDueToday && !_isWeeklyHabit(h))
+        .toList();
     final total = todayHabits.length;
     final score = todayHabits.fold(0.0, (sum, item) => sum + item.score);
     final rate = total == 0 ? 0.0 : (score / total);
@@ -986,6 +988,10 @@ class _HabitsTabViewState extends State<HabitsTabView> {
   }
 
   Widget _buildHabitCard(HabitItem habit) {
+    final isWeekly = _isWeeklyHabit(habit);
+    final weeklyDays = isWeekly
+        ? _state.weeklyHabitCompletionDays(habit)
+        : const <String>[];
     Color getStatusColor() {
       final s = habit.score;
       if (s >= 1.0) return AppColors.completedText;
@@ -1105,6 +1111,25 @@ class _HabitsTabViewState extends State<HabitsTabView> {
                                 ),
                               ),
                             ),
+                            if (isWeekly)
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 6,
+                                  vertical: 2,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFFF3F4F6),
+                                  borderRadius: BorderRadius.circular(4),
+                                ),
+                                child: Text(
+                                  '${weeklyDays.length}회 완료${weeklyDays.isEmpty ? '' : ' · ${weeklyDays.join(', ')}'}',
+                                  style: TextStyle(
+                                    fontSize: 10.5,
+                                    color: AppColors.textSecondary,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ),
                           ],
                         ),
                         const SizedBox(height: 3),
@@ -1270,4 +1295,9 @@ class _HabitsTabViewState extends State<HabitsTabView> {
       ),
     );
   }
+
+  bool _isWeeklyHabit(HabitItem habit) =>
+      habit.recurrenceSummary.contains('주') &&
+      (habit.recurrenceSummary.contains('회') ||
+          habit.recurrenceSummary.contains('횟수'));
 }

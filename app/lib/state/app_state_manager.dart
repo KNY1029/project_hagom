@@ -127,6 +127,26 @@ class AppStateManager extends ChangeNotifier {
   // 🌟 전체 습관 목록 (과거 달력 및 엑셀 다운로드용)
   List<HabitItem> get allHabits => _habits;
 
+  /// 주간 횟수 습관의 이번 주 완료 요일 목록(월~일 순서)
+  List<String> weeklyHabitCompletionDays(HabitItem habit, [DateTime? now]) {
+    final today = now ?? DateTime.now();
+    habit.ensureWeeklyPeriod(today);
+    final periodStart = habit.weeklyPeriodStart ?? today;
+    final labels = ['월', '화', '수', '목', '금', '토', '일'];
+    final days = <String>[];
+    for (var i = 0; i <= today.difference(periodStart).inDays; i++) {
+      final day = periodStart.add(Duration(days: i));
+      final record = _pastHabitRecords[_dateKey(day)]?[habit.id];
+      final isToday = day.year == today.year &&
+          day.month == today.month &&
+          day.day == today.day;
+      if ((record != null && record >= 1.0) || (isToday && habit.score >= 1.0)) {
+        days.add(labels[day.weekday - 1]);
+      }
+    }
+    return days.toSet().toList();
+  }
+
   // 🌟 오늘 실천해야 하는 습관 통계 (활성 습관만 집계!)
   int get todayHabitsCount => habits.where((h) => h.isDueToday).length;
   double get habitTotalScore => habits
