@@ -43,7 +43,18 @@ class _TaskMemoDialogState extends State<_TaskMemoDialog> {
 
   @override
   Widget build(BuildContext context) => AlertDialog(
-    title: const Text('할일 메모'),
+    titlePadding: const EdgeInsets.fromLTRB(24, 12, 8, 0),
+    title: Row(
+      children: [
+        const Expanded(child: Text('할일 메모')),
+        IconButton(
+          tooltip: '닫기',
+          visualDensity: VisualDensity.compact,
+          onPressed: () => Navigator.of(context).pop(),
+          icon: const Icon(Icons.close),
+        ),
+      ],
+    ),
     content: SizedBox(
       width: 360,
       child: TextField(
@@ -59,10 +70,6 @@ class _TaskMemoDialogState extends State<_TaskMemoDialog> {
       ),
     ),
     actions: [
-      TextButton(
-        onPressed: () => Navigator.of(context).pop(),
-        child: const Text('취소'),
-      ),
       TextButton(
         onPressed: () => Navigator.of(context).pop(_controller.text),
         child: const Text('저장'),
