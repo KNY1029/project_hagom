@@ -1543,7 +1543,7 @@ class _CalendarTabViewState extends State<CalendarTabView> {
                       ),
                       if (selectedDayTasks.isNotEmpty)
                         Text(
-                          '${selectedDayTasks.where((t) => t.isCompleted).length}/${selectedDayTasks.length} 완료',
+                          '${selectedDayTasks.where((t) => !isSelectedDateFuture && t.isCompleted).length}/${selectedDayTasks.length} 완료',
                           style: TextStyle(
                             fontSize: 11.5,
                             color: AppColors.primaryPurple,
@@ -1584,6 +1584,8 @@ class _CalendarTabViewState extends State<CalendarTabView> {
                   },
                   itemBuilder: (context, index) {
                     final t = selectedDayTasks[index];
+                    final taskIsCompleted =
+                        !isSelectedDateFuture && t.isCompleted;
                     return ReorderableDelayedDragStartListener(
                       key: ValueKey('task_${t.id}'),
                       index: index,
@@ -1615,12 +1617,14 @@ class _CalendarTabViewState extends State<CalendarTabView> {
                               child: Row(
                                 children: [
                                   Checkbox(
-                                    value: t.isCompleted,
+                                    value: taskIsCompleted,
                                     activeColor: AppColors.primaryPurple,
                                     shape: RoundedRectangleBorder(
                                       borderRadius: BorderRadius.circular(4),
                                     ),
-                                    onChanged: (_) {
+                                    onChanged: isSelectedDateFuture
+                                        ? null
+                                        : (_) {
                                       final wasCompleted = t.isCompleted;
                                       _state.toggleTaskCompleted(t.id);
                                       if (!wasCompleted) {
@@ -1648,10 +1652,10 @@ class _CalendarTabViewState extends State<CalendarTabView> {
                                           style: TextStyle(
                                             fontSize: 13,
                                             fontWeight: FontWeight.w600,
-                                            decoration: t.isCompleted
+                                            decoration: taskIsCompleted
                                                 ? TextDecoration.lineThrough
                                                 : null,
-                                            color: t.isCompleted
+                                            color: taskIsCompleted
                                                 ? AppColors.textMuted
                                                 : AppColors.textPrimary,
                                           ),

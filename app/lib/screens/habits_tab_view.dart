@@ -838,6 +838,24 @@ class _HabitsTabViewState extends State<HabitsTabView> {
 
   // 🌟 오늘은 아니거나 이미 완료된 습관을 위한 극도로 슬림하고 단정한 1줄 미니멀 표시
   Widget _buildCompactOtherHabitCard(HabitItem habit) {
+    final weeklyMatch = RegExp(r'주\s*(\d+)회').firstMatch(habit.recurrenceSummary);
+    final weeklyTarget = int.tryParse(weeklyMatch?.group(1) ?? '0') ?? 0;
+    final isWeeklyComplete = weeklyTarget > 0 &&
+        habit.weeklyCompletedCount >= weeklyTarget;
+    String scheduleText;
+    if (isWeeklyComplete) {
+      scheduleText = '이번 주 달성 완료';
+    } else if (weeklyTarget > 0) {
+      scheduleText = '이번 주 ${habit.weeklyCompletedCount}/$weeklyTarget회 예정';
+    } else if (habit.repeatDays.isNotEmpty) {
+      final day = habit.repeatDays.first;
+      scheduleText = '매주 ${day}요일 예정';
+    } else {
+      scheduleText = '다음 실천 예정';
+    }
+    final statusColor = isWeeklyComplete
+        ? AppColors.successGreen
+        : AppColors.textSecondary;
     return InkWell(
       borderRadius: BorderRadius.circular(8),
       onTap: () => _showHabitEditModal(habit: habit),
@@ -855,7 +873,7 @@ class _HabitsTabViewState extends State<HabitsTabView> {
               width: 5,
               height: 5,
               decoration: BoxDecoration(
-                color: AppColors.successGreen, // 이미 완료되었음을 나타내는 단정한 그린 닷
+                color: statusColor,
                 shape: BoxShape.circle,
               ),
             ),
@@ -871,10 +889,10 @@ class _HabitsTabViewState extends State<HabitsTabView> {
               ),
             ),
             Text(
-              '이번 주 달성 완료',
+              scheduleText,
               style: TextStyle(
                 fontSize: 11,
-                color: AppColors.successGreen,
+                color: statusColor,
                 fontWeight: FontWeight.bold,
               ),
             ),
