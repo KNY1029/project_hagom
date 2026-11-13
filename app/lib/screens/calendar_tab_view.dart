@@ -872,9 +872,6 @@ class _CalendarTabViewState extends State<CalendarTabView> {
     );
     if (result == null || !mounted) return;
     _state.updateTaskMemo(task.id, result);
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('메모를 저장했어요.')),
-    );
   }
 
   // 🌟 과거 복약 완료 기록 시 복용 시간 묻는 다이얼로그 (모름/기억 안 남 포함!)
