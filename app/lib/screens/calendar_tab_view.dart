@@ -84,6 +84,19 @@ class _CalendarTabViewState extends State<CalendarTabView> {
     });
   }
 
+  TimeOfDay? _parseTaskTime(String value) {
+    final match = RegExp(r'^(오전|오후)\s*(\d{1,2}):(\d{2})$').firstMatch(value);
+    if (match == null) return null;
+    var hour = int.tryParse(match.group(2) ?? '');
+    final minute = int.tryParse(match.group(3) ?? '');
+    if (hour == null || minute == null || hour < 1 || hour > 12 || minute > 59) {
+      return null;
+    }
+    if (match.group(1) == '오후' && hour != 12) hour += 12;
+    if (match.group(1) == '오전' && hour == 12) hour = 0;
+    return TimeOfDay(hour: hour, minute: minute);
+  }
+
   void _showCalendarLegend() {
     Widget row({required Widget marker, required String label}) => Padding(
       padding: const EdgeInsets.symmetric(vertical: 6),
@@ -154,17 +167,27 @@ class _CalendarTabViewState extends State<CalendarTabView> {
   // 할일/한일 추가 및 수정 모달
   void _showTaskModal({TaskItem? task}) {
     final titleCtrl = TextEditingController(text: task?.title ?? '');
-    String selectedTime = task?.time ?? '오후 6:00';
+    String? selectedTime = task?.time;
     // 다중 선택 알림 목록
     final List<String> selectedReminders = List<String>.from(
-      task?.reminders ?? ['30분 전'],
+      task?.reminders ?? ['정시', '하루 전'],
     );
+    if (selectedTime == null) {
+      selectedReminders
+        ..remove('정시')
+        ..remove('30분 전')
+        ..remove('1시간 전')
+        ..removeWhere((item) => item.contains('시간') || item.contains('분'));
+      if (!selectedReminders.contains('하루 전')) selectedReminders.add('하루 전');
+    }
     bool isRepeated = task?.isRepeated ?? false;
     String repeatCycle = task?.repeatCycle ?? '매주 특정 요일';
     final List<String> selectedRepeatDays = List<String>.from(
       task?.repeatDays ?? [],
     );
-    final availableReminders = ['정시', '30분 전', '1시간 전', '하루 전'];
+    final availableReminders = selectedTime == null
+        ? ['당일', '하루 전']
+        : ['정시', '30분 전', '1시간 전', '하루 전'];
     final weekDayLabels = ['월', '화', '수', '목', '금', '토', '일'];
 
     final now = DateTime.now();
@@ -256,47 +279,54 @@ class _CalendarTabViewState extends State<CalendarTabView> {
                         color: AppColors.textPrimary,
                       ),
                     ),
+                    if (selectedTime != null)
+                      TextButton(
+                        onPressed: () => setMState(() {
+                          selectedTime = null;
+                          selectedReminders
+                            ..remove('정시')
+                            ..remove('30분 전')
+                            ..remove('1시간 전')
+                            ..removeWhere((item) => item.contains('시간') || item.contains('분'));
+                          if (!selectedReminders.contains('하루 전')) {
+                            selectedReminders.add('하루 전');
+                          }
+                          availableReminders
+                            ..clear()
+                            ..addAll(['당일', '하루 전']);
+                        }),
+                        child: const Text('시각 설정 안 함'),
+                      ),
                     const Spacer(),
                     OutlinedButton(
                       style: OutlinedButton.styleFrom(
                         side: BorderSide(color: AppColors.divider),
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 6,
-                        ),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
-                        ),
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                       ),
                       onPressed: () async {
                         final t = await AppTimePicker.show(
                           context,
-                          initialTime: TimeOfDay.now(),
+                          initialTime: selectedTime == null ? null : _parseTaskTime(selectedTime!),
                           title: '예정 시각 설정',
                         );
-                        if (t != null) {
-                          setMState(() {
-                            final p = t.period == DayPeriod.am ? '오전' : '오후';
-                            final h = t.hourOfPeriod == 0 ? 12 : t.hourOfPeriod;
-                            final m = t.minute.toString().padLeft(2, '0');
-                            selectedTime = '$p $h:$m';
-                          });
-                        }
+                        if (t == null) return;
+                        setMState(() {
+                          final p = t.period == DayPeriod.am ? '오전' : '오후';
+                          final h = t.hourOfPeriod == 0 ? 12 : t.hourOfPeriod;
+                          selectedTime = '$p $h:${t.minute.toString().padLeft(2, '0')}';
+                          availableReminders..clear()..addAll(['정시', '30분 전', '1시간 전', '하루 전']);
+                          selectedReminders.remove('당일');
+                          if (selectedReminders.isEmpty) selectedReminders.add('정시');
+                        });
                       },
-                      child: Text(
-                        selectedTime,
-                        style: TextStyle(
-                          color: AppColors.primaryPurple,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 13,
-                        ),
-                      ),
+                      child: Text(selectedTime ?? '시각 미설정'),
                     ),
                   ],
                 ),
                 const SizedBox(height: 14),
 
-                // 🔔 다중 알림 선택 섹션 (복수 선택 가능 & 직접 N일/시간/분 추가 지원!)
+                // 🔔 알림 설정
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
@@ -308,12 +338,13 @@ class _CalendarTabViewState extends State<CalendarTabView> {
                         color: AppColors.textPrimary,
                       ),
                     ),
-                    TextButton(
-                      style: TextButton.styleFrom(
-                        padding: EdgeInsets.zero,
-                        minimumSize: Size.zero,
-                      ),
-                      onPressed: () {
+                    if (selectedTime != null)
+                      TextButton(
+                        style: TextButton.styleFrom(
+                          padding: EdgeInsets.zero,
+                          minimumSize: Size.zero,
+                        ),
+                        onPressed: () {
                         // 🌟 복합 시간(N시간 N분 전) 및 N일 전 직접 추가 다이얼로그
                         String mode = '시간/분'; // '시간/분' 또는 '일'
                         int? hours;
@@ -485,6 +516,7 @@ class _CalendarTabViewState extends State<CalendarTabView> {
                                     final h = hours ?? 0;
                                     final m = minutes ?? 0;
                                     if (mode == '시간/분') {
+                                      if (selectedTime == null) return;
                                       if (h > 0 && m > 0) {
                                         customRem = '$h시간 $m분 전';
                                       } else if (h > 0) {
@@ -492,7 +524,7 @@ class _CalendarTabViewState extends State<CalendarTabView> {
                                       } else if (m > 0) {
                                         customRem = '$m분 전';
                                       } else {
-                                        customRem = '정시';
+                                        return;
                                       }
                                     } else {
                                       customRem = '$days일 전';
@@ -523,16 +555,16 @@ class _CalendarTabViewState extends State<CalendarTabView> {
                             ),
                           ),
                         );
-                      },
-                      child: Text(
-                        '직접 추가',
-                        style: TextStyle(
+                        },
+                        child: Text(
+                          '직접 추가',
+                          style: TextStyle(
                           fontSize: 12,
                           color: AppColors.primaryPurple,
                           fontWeight: FontWeight.bold,
+                          ),
                         ),
                       ),
-                    ),
                   ],
                 ),
                 const SizedBox(height: 6),
@@ -567,6 +599,12 @@ class _CalendarTabViewState extends State<CalendarTabView> {
                       onSelected: (val) {
                         setMState(() {
                           if (val) {
+                            if (selectedTime == null &&
+                                (rem == '정시' ||
+                                    rem.contains('시간') ||
+                                    rem.contains('분'))) {
+                              return;
+                            }
                             selectedReminders.add(rem);
                           } else {
                             selectedReminders.remove(rem);
@@ -819,7 +857,7 @@ class _CalendarTabViewState extends State<CalendarTabView> {
               Navigator.of(dCtx).pop();
               final t = await AppTimePicker.show(
                 context,
-                initialTime: TimeOfDay.now(),
+                initialTime: null,
                 title: '${med.name} 복용 시각',
               );
               _state.togglePastSlotCompleted(_selectedDate, med.id, slotIdx);

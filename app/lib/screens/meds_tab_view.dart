@@ -26,6 +26,17 @@ class MedsTabView extends StatefulWidget {
 class _MedsTabViewState extends State<MedsTabView> {
   final AppStateManager _state = AppStateManager();
 
+  TimeOfDay? _parseKoreanTime(String value) {
+    final match = RegExp(r'^(오전|오후)\s*(\d{1,2}):(\d{2})$').firstMatch(value);
+    if (match == null) return null;
+    var hour = int.tryParse(match.group(2) ?? '');
+    final minute = int.tryParse(match.group(3) ?? '');
+    if (hour == null || minute == null || hour < 1 || hour > 12 || minute == null || minute > 59) return null;
+    if (match.group(1) == '오후' && hour != 12) hour += 12;
+    if (match.group(1) == '오전' && hour == 12) hour = 0;
+    return TimeOfDay(hour: hour, minute: minute);
+  }
+
   @override
   void initState() {
     super.initState();
@@ -1031,7 +1042,9 @@ class _MedsTabViewState extends State<MedsTabView> {
                                           var updateDefault = false;
                                           final time = await AppTimePicker.show(
                                             context,
-                                            initialTime: TimeOfDay.now(),
+                                            initialTime: slot.scheduledTime == null
+                                                ? null
+                                                : _parseKoreanTime(slot.scheduledTime!),
                                             title: '${slot.label} 알림 예정 시각 변경',
                                             showDefaultCheckbox: true,
                                             initialDefault: _state
@@ -1642,7 +1655,9 @@ class _MedsTabViewState extends State<MedsTabView> {
                   Navigator.of(ctx).pop();
                   final time = await AppTimePicker.show(
                     context,
-                    initialTime: TimeOfDay.now(),
+                    initialTime: slot.takenTime == null
+                        ? null
+                        : _parseKoreanTime(slot.takenTime!),
                     title: '${slot.label} 실제 복용 시각 변경',
                   );
                   if (time != null) {

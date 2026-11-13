@@ -16,10 +16,9 @@ class AppTimePicker {
     bool initialDefault = false,
     ValueChanged<bool>? onDefaultChanged,
   }) async {
-    // initialTime이 주어지면 해당 period를 쓰고, 없으면 현재 시각 기준 오전/오후
-    final now = TimeOfDay.now();
-    final baseTime = initialTime ?? now;
-    String period = baseTime.period == DayPeriod.am ? '오전' : '오후';
+    String period = initialTime == null
+        ? '오전'
+        : (initialTime.period == DayPeriod.am ? '오전' : '오후');
     bool updateDefault = initialDefault;
 
     // 🌟 사용자가 기존 시간을 수정하는 경우가 아니면 빈칸("")으로 시작!
