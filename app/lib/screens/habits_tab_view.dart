@@ -663,9 +663,14 @@ class _HabitsTabViewState extends State<HabitsTabView> {
                                       ? '매일'
                                       : '매주 ${selectedDays.join(",")}';
                                 } else if (recurrenceType == '주간 횟수') {
-                                  final n = weeklyTimesCtrl.text.trim().isEmpty
-                                      ? '3'
-                                      : weeklyTimesCtrl.text.trim();
+                                  final entered = int.tryParse(weeklyTimesCtrl.text.trim());
+                                  if (entered == null || entered < 1) {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(content: Text('주간 실천 횟수를 1회 이상 입력해주세요.')),
+                                    );
+                                    return;
+                                  }
+                                  final n = entered.toString();
                                   recSummary = '주 $n회';
                                 }
 
@@ -745,9 +750,7 @@ class _HabitsTabViewState extends State<HabitsTabView> {
   @override
   Widget build(BuildContext context) {
     // 🌟 오늘 실천해야 하는 습관 vs 이미 이번 주에 완료되어 오늘은 쉴 수 있는 습관 분리!
-    final todayHabits = _state.habits
-        .where((h) => h.isDueToday && h.countsTowardDailyCompletion)
-        .toList();
+    final todayHabits = _state.habits.where((h) => h.isDueToday).toList();
     final otherHabits = _state.habits.where((h) => !h.isDueToday).toList();
 
     return ListView(
