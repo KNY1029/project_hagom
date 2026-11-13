@@ -1,0 +1,161 @@
+/// 개별 복용 회차 (예: 아침, 점심, 저녁 각각의 복용 상태 및 시간)
+class DoseSlot {
+  String label;                // 회차 라벨 (예: '아침', '점심', '저녁', '1회차')
+  String? scheduledTime;       // 예정 시각 (동적 갱신 가능)
+  bool isCompleted;            // 복용 완료 여부
+  bool isSkipped;              // 🌿 이번 회차 건너뜀 여부
+  String? takenTime;           // 실제 복용한 시각 (예: '오전 8:05')
+  DateTime? takenDate;         // 실제 복용 날짜 (추가)
+
+  DoseSlot({
+    required this.label,
+    this.scheduledTime,
+    this.isCompleted = false,
+    this.isSkipped = false,
+    this.takenTime,
+    this.takenDate,
+  });
+
+  Map<String, dynamic> toJson() => {
+    'label': label,
+    'scheduledTime': scheduledTime,
+    'isCompleted': isCompleted,
+    'isSkipped': isSkipped,
+    'takenTime': takenTime,
+    'takenDate': takenDate?.toIso8601String(),
+  };
+
+  factory DoseSlot.fromJson(Map<String, dynamic> json) => DoseSlot(
+    label: json['label'] as String,
+    scheduledTime: json['scheduledTime'] as String?,
+    isCompleted: json['isCompleted'] as bool? ?? false,
+    isSkipped: json['isSkipped'] as bool? ?? false,
+    takenTime: json['takenTime'] as String?,
+    takenDate: json['takenDate'] != null
+        ? DateTime.tryParse(json['takenDate'] as String)
+        : null,
+  );
+}
+
+enum MedStatus {
+  pending,
+  completed,
+  skipped,
+}
+
+class MedicationItem {
+  String id;
+  String name;
+  String dosage;
+  String recurrenceSummary;
+  String durationSummary;
+  bool isPrescription;
+  String? memo;
+  List<String> repeatDays;
+
+  List<DoseSlot> doseSlots;
+  String? skipReason;
+  bool isExpanded;
+  bool isArchived;
+
+  // 추가: 남은 알약 수 추적
+  bool usePillCount;
+  int? initialPillCount;
+  int? remainingPillCount;
+
+  MedicationItem({
+    required this.id,
+    required this.name,
+    required this.dosage,
+    this.recurrenceSummary = '매일',
+    this.durationSummary = '계속 복용',
+    this.isPrescription = false,
+    List<String>? repeatDays,
+    required this.doseSlots,
+    this.skipReason,
+    this.isExpanded = false,
+    this.isArchived = false,
+    this.memo,
+    this.usePillCount = false,
+    this.initialPillCount,
+    this.remainingPillCount,
+  }) : repeatDays = repeatDays ?? [];
+
+  bool isDueOn(DateTime date) {
+    if (recurrenceSummary == '매일' ||
+        recurrenceSummary == '오늘만' ||
+        recurrenceSummary.contains('시간') ||
+        recurrenceSummary.contains('하루') ||
+        recurrenceSummary.contains('회')) {
+      return true;
+    }
+    if (recurrenceSummary == '필요 시') {
+      return true;
+    }
+    if (repeatDays.isNotEmpty) {
+      final weekDayLabels = ['월', '화', '수', '목', '금', '토', '일'];
+      final dayName = weekDayLabels[date.weekday - 1];
+      return repeatDays.contains(dayName);
+    }
+    final weekDayLabels = ['월', '화', '수', '목', '금', '토', '일'];
+    final dayName = weekDayLabels[date.weekday - 1];
+    if (recurrenceSummary.contains(dayName)) {
+      return true;
+    }
+    return false;
+  }
+
+  bool get isDueToday => isDueOn(DateTime.now());
+
+  Map<String, dynamic> toJson() => {
+    'id': id,
+    'name': name,
+    'dosage': dosage,
+    'recurrenceSummary': recurrenceSummary,
+    'durationSummary': durationSummary,
+    'isPrescription': isPrescription,
+    'repeatDays': repeatDays,
+    'doseSlots': doseSlots.map((s) => s.toJson()).toList(),
+    'skipReason': skipReason,
+    'memo': memo,
+    'isArchived': isArchived,
+    'usePillCount': usePillCount,
+    'initialPillCount': initialPillCount,
+    'remainingPillCount': remainingPillCount,
+  };
+
+  factory MedicationItem.fromJson(Map<String, dynamic> json) => MedicationItem(
+    id: json['id'] as String,
+    name: json['name'] as String,
+    dosage: json['dosage'] as String,
+    recurrenceSummary: json['recurrenceSummary'] as String? ?? '매일',
+    durationSummary: json['durationSummary'] as String? ?? '계속 복용',
+    isPrescription: json['isPrescription'] as bool? ?? false,
+    repeatDays: (json['repeatDays'] as List<dynamic>?)?.map((e) => e.toString()).toList() ?? [],
+    doseSlots: (json['doseSlots'] as List<dynamic>?)
+            ?.map((e) => DoseSlot.fromJson(e as Map<String, dynamic>))
+            .toList() ??
+        [],
+    skipReason: json['skipReason'] as String?,
+    memo: json['memo'] as String?,
+    isArchived: json['isArchived'] as bool? ?? false,
+    usePillCount: json['usePillCount'] as bool? ?? false,
+    initialPillCount: json['initialPillCount'] as int?,
+    remainingPillCount: json['remainingPillCount'] as int?,
+  );
+
+  bool get isAllCompleted =>
+      doseSlots.isNotEmpty && doseSlots.every((s) => s.isCompleted || s.isSkipped);
+
+  int get totalSlotsCount => doseSlots.length;
+
+  int get completedSlotsCount => doseSlots.where((s) => s.isCompleted).length;
+
+  DoseSlot? get nextPendingSlot {
+    try {
+      return doseSlots.firstWhere((s) => !s.isCompleted && !s.isSkipped);
+    } catch (_) {
+      return null;
+    }
+  }
+}
