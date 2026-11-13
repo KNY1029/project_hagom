@@ -1754,7 +1754,10 @@ class _CalendarTabViewState extends State<CalendarTabView> {
               // 2. 💊 [복약 상태 요약 및 과거 기록 수정 아코디언]
               InkWell(
                 borderRadius: BorderRadius.circular(8),
-                onTap: (isSelectedDatePast || isSelectedDateToday)
+                onTap:
+                    (isSelectedDatePast ||
+                        isSelectedDateToday ||
+                        isSelectedDateFuture)
                     ? () {
                         setState(() {
                           _isMedDetailsExpanded = !_isMedDetailsExpanded;
@@ -1827,7 +1830,9 @@ class _CalendarTabViewState extends State<CalendarTabView> {
                           ),
                         ],
                       ),
-                      if (isSelectedDatePast || isSelectedDateToday)
+                      if (isSelectedDatePast ||
+                          isSelectedDateToday ||
+                          isSelectedDateFuture)
                         Text(
                           _isMedDetailsExpanded
                               ? '접기'
@@ -1971,7 +1976,9 @@ class _CalendarTabViewState extends State<CalendarTabView> {
                                                   ? '${slot.label}$timePart'
                                                   : (isSelectedDateBeforeTracking
                                                         ? '${slot.label} 기록 전'
-                                                        : '${slot.label} 미복용');
+                                                        : (isSelectedDateFuture
+                                                              ? '${slot.label} 기록 대기'
+                                                              : '${slot.label} 미복용'));
 
                                               return Text(
                                                 statusText,
@@ -2006,7 +2013,10 @@ class _CalendarTabViewState extends State<CalendarTabView> {
               // 3. 🌱 [습관 현황 요약 및 펼침 아코디언]
               InkWell(
                 borderRadius: BorderRadius.circular(8),
-                onTap: (isSelectedDatePast || isSelectedDateToday)
+                onTap:
+                    (isSelectedDatePast ||
+                        isSelectedDateToday ||
+                        isSelectedDateFuture)
                     ? () {
                         setState(() {
                           _isHabitDetailsExpanded = !_isHabitDetailsExpanded;
@@ -2075,7 +2085,9 @@ class _CalendarTabViewState extends State<CalendarTabView> {
                           ),
                         ],
                       ),
-                      if (isSelectedDatePast || isSelectedDateToday)
+                      if (isSelectedDatePast ||
+                          isSelectedDateToday ||
+                          isSelectedDateFuture)
                         Text(
                           _isHabitDetailsExpanded
                               ? '접기'
@@ -2108,10 +2120,10 @@ class _CalendarTabViewState extends State<CalendarTabView> {
                             !isSelectedDateBeforeTracking &&
                             hScore > 0.0 &&
                             hScore < 1.0;
-                        String label =
-                            isSelectedDateBeforeTracking && hScore == 0.0
+                        String label = isSelectedDateBeforeTracking &&
+                                hScore == 0.0
                             ? '기록 전'
-                            : '대기';
+                            : (isSelectedDateFuture ? '기록 대기' : '대기');
                         Color bg = Colors.white;
                         Color border = AppColors.divider;
                         Color textCol = AppColors.textSecondary;
