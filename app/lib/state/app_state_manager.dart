@@ -530,6 +530,110 @@ class AppStateManager extends ChangeNotifier {
   // value: { 'habitId': score } (0.0=미실천, 0.5=조금실천, 1.0=완료)
   final Map<String, Map<String, double>> _pastHabitRecords = {};
   final Map<String, Map<String, String>> _pastSlotTimes = {};
+  String? _lastDailyStateDateKey;
+
+  void _loadPastRecordsFromDisk() {
+    if (_prefs == null) return;
+
+    _pastSlotRecords.clear();
+    _pastHabitRecords.clear();
+    _pastSlotTimes.clear();
+    _retroactiveSlots
+      ..clear()
+      ..addAll(_prefs!.getStringList('hagom_retroactive_slots') ?? []);
+
+    try {
+      final raw = _prefs!.getString('hagom_past_slot_records');
+      if (raw != null) {
+        final decoded = jsonDecode(raw) as Map<String, dynamic>;
+        decoded.forEach((date, records) {
+          _pastSlotRecords[date] = (records as Map<String, dynamic>).map(
+            (key, value) => MapEntry(key, value == true),
+          );
+        });
+      }
+    } catch (_) {}
+
+    try {
+      final raw = _prefs!.getString('hagom_past_habit_records');
+      if (raw != null) {
+        final decoded = jsonDecode(raw) as Map<String, dynamic>;
+        decoded.forEach((date, records) {
+          _pastHabitRecords[date] = (records as Map<String, dynamic>).map(
+            (key, value) => MapEntry(key, (value as num).toDouble()),
+          );
+        });
+      }
+    } catch (_) {}
+
+    try {
+      final raw = _prefs!.getString('hagom_past_slot_times');
+      if (raw != null) {
+        final decoded = jsonDecode(raw) as Map<String, dynamic>;
+        decoded.forEach((date, records) {
+          _pastSlotTimes[date] = (records as Map<String, dynamic>).map(
+            (key, value) => MapEntry(key, value.toString()),
+          );
+        });
+      }
+    } catch (_) {}
+  }
+
+  Future<void> _rolloverDailyStateIfNeeded() async {
+    if (_prefs == null) return;
+
+    final todayKey = _dateKey(DateTime.now());
+    final storedKey = _prefs!.getString('hagom_daily_state_date');
+    final lastStateKey = storedKey ?? _lastGreetingDayKey;
+
+    if (lastStateKey == null) {
+      // 기존 버전 데이터에는 기준 날짜가 없으므로 오늘 상태를 보존하고
+      // 다음 날짜 변경부터 새 일일 상태 기준을 적용한다.
+      _lastDailyStateDateKey = todayKey;
+      return;
+    }
+
+    if (lastStateKey != todayKey) {
+      final stateDate = DateTime.tryParse(lastStateKey) ??
+          DateTime.now().subtract(const Duration(days: 1));
+      _archiveAndResetDailyState(stateDate);
+    }
+    _lastDailyStateDateKey = todayKey;
+  }
+
+  void _archiveAndResetDailyState(DateTime stateDate) {
+    final dateKey = _dateKey(stateDate);
+
+    for (final med in _medications) {
+      // 필요 시 약은 슬롯 자체가 복용 이력이다. 과거 회차를 초기화하지 않는다.
+      if (med.recurrenceSummary == '필요 시') continue;
+
+      for (var slotIndex = 0; slotIndex < med.doseSlots.length; slotIndex++) {
+        final slot = med.doseSlots[slotIndex];
+        if (slot.isCompleted) {
+          final slotKey = '${med.id}_$slotIndex';
+          _pastSlotRecords.putIfAbsent(dateKey, () => {})[slotKey] = true;
+          if (slot.takenTime != null && slot.takenTime!.isNotEmpty) {
+            _pastSlotTimes.putIfAbsent(dateKey, () => {})[slotKey] =
+                slot.takenTime!;
+          }
+        }
+        slot.isCompleted = false;
+        slot.isSkipped = false;
+        slot.takenTime = null;
+        slot.takenDate = null;
+      }
+      med.skipReason = null;
+    }
+
+    for (final habit in _habits) {
+      if (habit.currentCount > 0) {
+        _pastHabitRecords.putIfAbsent(dateKey, () => {})[habit.id] =
+            habit.score;
+      }
+      habit.resetProgress();
+    }
+  }
 
   // 특정 날짜의 슬롯이 '소급 수정(달력에서 나중에 수정한 것)'인지 여부 (key: 'YYYY-MM-DD_medId_slotIdx')
   final Set<String> _retroactiveSlots = {};
@@ -1032,6 +1136,24 @@ class AppStateManager extends ChangeNotifier {
         configuredRoutineTimeLabels.toList(),
       );
       await _prefs!.setString('hagom_routine_times', jsonEncode(routineTimes));
+      await _prefs!.setString(
+        'hagom_past_slot_records',
+        jsonEncode(_pastSlotRecords),
+      );
+      await _prefs!.setString(
+        'hagom_past_habit_records',
+        jsonEncode(_pastHabitRecords),
+      );
+      await _prefs!.setString('hagom_past_slot_times', jsonEncode(_pastSlotTimes));
+      await _prefs!.setStringList(
+        'hagom_retroactive_slots',
+        _retroactiveSlots.toList(),
+      );
+      _lastDailyStateDateKey ??= _dateKey(DateTime.now());
+      await _prefs!.setString(
+        'hagom_daily_state_date',
+        _lastDailyStateDateKey!,
+      );
       await _prefs!.setString('hagom_theme_key', currentThemeKey);
       await _prefs!.setString(
         'hagom_custom_themes',
@@ -1268,6 +1390,8 @@ class AppStateManager extends ChangeNotifier {
           });
         } catch (_) {}
       }
+      _loadPastRecordsFromDisk();
+      await _rolloverDailyStateIfNeeded();
       notifyListeners();
     } catch (_) {}
   }
