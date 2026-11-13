@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import '../constants/app_colors.dart';
 import '../models/habit_item.dart';
@@ -409,6 +410,10 @@ class _HabitsTabViewState extends State<HabitsTabView> {
                               child: TextField(
                                 controller: weeklyTimesCtrl,
                                 keyboardType: TextInputType.number,
+                                inputFormatters: [
+                                  FilteringTextInputFormatter.digitsOnly,
+                                  LengthLimitingTextInputFormatter(1),
+                                ],
                                 textAlign: TextAlign.center,
                                 decoration: const InputDecoration(
                                   isDense: true,
@@ -664,9 +669,9 @@ class _HabitsTabViewState extends State<HabitsTabView> {
                                       : '매주 ${selectedDays.join(",")}';
                                 } else if (recurrenceType == '주간 횟수') {
                                   final entered = int.tryParse(weeklyTimesCtrl.text.trim());
-                                  if (entered == null || entered < 1) {
+                                  if (entered == null || entered < 1 || entered > 6) {
                                     ScaffoldMessenger.of(context).showSnackBar(
-                                      const SnackBar(content: Text('주간 실천 횟수를 1회 이상 입력해주세요.')),
+                                      const SnackBar(content: Text('주간 실천 횟수는 1~6회로 입력해주세요.')),
                                     );
                                     return;
                                   }
