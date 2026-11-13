@@ -789,46 +789,54 @@ class _CalendarTabViewState extends State<CalendarTabView> {
   Future<void> _showTaskMemoEditor(TaskItem task) async {
     final memoController = TextEditingController(text: task.memo);
     final editable = !_selectedDate.isAfter(DateTime.now());
-    final result = await showDialog<String>(
-      context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: const Text('할일 메모'),
-        content: TextField(
-          controller: memoController,
-          readOnly: !editable,
-          minLines: 3,
-          maxLines: 8,
-          decoration: const InputDecoration(
-            hintText: '메모를 입력하세요',
-            border: OutlineInputBorder(),
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(dialogContext).pop(),
-            child: Text(editable ? '취소' : '닫기'),
-          ),
-          if (editable)
-            TextButton(
-              onPressed: () => Navigator.of(dialogContext).pop(memoController.text),
-              child: const Text('저장'),
+    try {
+      final result = await showDialog<String>(
+        context: context,
+        useRootNavigator: false,
+        builder: (dialogContext) => AlertDialog(
+          title: const Text('할일 메모'),
+          content: SizedBox(
+            width: 360,
+            child: TextField(
+              controller: memoController,
+              readOnly: !editable,
+              minLines: 3,
+              maxLines: 8,
+              keyboardType: TextInputType.multiline,
+              decoration: const InputDecoration(
+                hintText: '메모를 입력하세요',
+                border: OutlineInputBorder(),
+              ),
             ),
-        ],
-      ),
-    );
-    if (result != null && mounted) {
-      _state.updateTask(
-        id: task.id,
-        title: task.title,
-        time: task.time,
-        memo: result,
-        reminders: task.reminders,
-        isRepeated: task.isRepeated,
-        repeatCycle: task.repeatCycle,
-        repeatDays: task.repeatDays,
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop(),
+              child: Text(editable ? '취소' : '닫기'),
+            ),
+            if (editable)
+              TextButton(
+                onPressed: () => Navigator.of(dialogContext).pop(memoController.text),
+                child: const Text('저장'),
+              ),
+          ],
+        ),
       );
+      if (result != null && mounted) {
+        _state.updateTask(
+          id: task.id,
+          title: task.title,
+          time: task.time,
+          memo: result,
+          reminders: task.reminders,
+          isRepeated: task.isRepeated,
+          repeatCycle: task.repeatCycle,
+          repeatDays: task.repeatDays,
+        );
+      }
+    } finally {
+      memoController.dispose();
     }
-    memoController.dispose();
   }
 
   // 🌟 과거 복약 완료 기록 시 복용 시간 묻는 다이얼로그 (모름/기억 안 남 포함!)
@@ -1761,8 +1769,8 @@ class _CalendarTabViewState extends State<CalendarTabView> {
                                       ],
                                     ),
                                   ),
-                                  GestureDetector(
-                                    behavior: HitTestBehavior.opaque,
+                                  InkWell(
+                                    borderRadius: BorderRadius.circular(6),
                                     onTap: () => _showTaskMemoEditor(t),
                                     child: Padding(
                                       padding: const EdgeInsets.only(
