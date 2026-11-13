@@ -102,6 +102,10 @@ class _HabitsTabViewState extends State<HabitsTabView> {
           ? habit.recurrenceSummary.replaceAll(RegExp(r'[^0-9]'), '')
           : '',
     );
+    final pageMessenger = ScaffoldMessenger.of(context);
+    void hideWeeklyCountError() {
+      pageMessenger.hideCurrentSnackBar();
+    }
     int weeklyResetWeekday = isEditing ? habit.weeklyResetWeekday : 1;
 
     final targetPerDayCtrl = TextEditingController(
@@ -415,6 +419,12 @@ class _HabitsTabViewState extends State<HabitsTabView> {
                                   LengthLimitingTextInputFormatter(1),
                                 ],
                                 textAlign: TextAlign.center,
+                                onChanged: (value) {
+                                  final entered = int.tryParse(value);
+                                  if (entered != null && entered >= 1 && entered <= 6) {
+                                    hideWeeklyCountError();
+                                  }
+                                },
                                 decoration: const InputDecoration(
                                   isDense: true,
                                   hintText: '',
@@ -670,8 +680,13 @@ class _HabitsTabViewState extends State<HabitsTabView> {
                                 } else if (recurrenceType == '주간 횟수') {
                                   final entered = int.tryParse(weeklyTimesCtrl.text.trim());
                                   if (entered == null || entered < 1 || entered > 6) {
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      const SnackBar(content: Text('주간 실천 횟수는 1~6회로 입력해주세요.')),
+                                    pageMessenger
+                                      ..hideCurrentSnackBar()
+                                      ..showSnackBar(
+                                      const SnackBar(
+                                        content: Text('주간 실천 횟수는 1~6회로 입력해주세요.'),
+                                        duration: Duration(seconds: 2),
+                                      ),
                                     );
                                     return;
                                   }
@@ -721,6 +736,7 @@ class _HabitsTabViewState extends State<HabitsTabView> {
                                     startDate: startDate,
                                   );
                                 }
+                                hideWeeklyCountError();
                                 Navigator.of(ctx).pop();
                               },
                               style: ElevatedButton.styleFrom(
