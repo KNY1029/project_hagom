@@ -78,6 +78,12 @@ class MedicationItem {
        startDate = startDate ?? createdDate ?? DateTime.now();
 
   /// 🌟 오늘(Today) 복용해야 하는 약인지 판별하는 스마트 게터
+  int? get intervalDays {
+    final match = RegExp(r'^(\d+)일\s*간격$').firstMatch(recurrenceSummary);
+    final value = int.tryParse(match?.group(1) ?? '');
+    return value != null && value > 0 ? value : null;
+  }
+
   bool isDueOn(DateTime date) {
     final target = DateTime(date.year, date.month, date.day);
     final start = DateTime(startDate.year, startDate.month, startDate.day);
@@ -100,6 +106,10 @@ class MedicationItem {
     }
     if (recurrenceSummary == '필요 시') {
       return true; // 필요 시는 항상 복용 가능하게 둠
+    }
+    final interval = intervalDays;
+    if (interval != null) {
+      return target.difference(start).inDays % interval == 0;
     }
     if (repeatDays.isNotEmpty) {
       final weekDayLabels = ['월', '화', '수', '목', '금', '토', '일'];

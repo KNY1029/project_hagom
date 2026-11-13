@@ -33,7 +33,15 @@ class HagomAlarmManager {
 
         final time = _parseKoreanTime(timeStr);
         if (time != null) {
-          schedules.add({
+          final interval = med.intervalDays;
+          final alarmDate = DateTime(
+            DateTime.now().year,
+            DateTime.now().month,
+            DateTime.now().day,
+            time['hour']!,
+            time['minute']!,
+          );
+          final schedule = <String, dynamic>{
             'id': nextId++,
             'hour': time['hour'],
             'minute': time['minute'],
@@ -45,14 +53,20 @@ class HagomAlarmManager {
             'actionUri':
                 'hagomwidget://checkmed?id=${Uri.encodeComponent(med.id)}&slot=$i',
             'actionLabel': '복용 완료',
-            'repeatDays': _getRepeatDaysList(
-              med.recurrenceSummary,
-              med.repeatDays,
-            ),
-          });
+            if (interval != null)
+              'triggerAtMillis': alarmDate.millisecondsSinceEpoch,
+            if (interval == null)
+              'repeatDays': _getRepeatDaysList(
+                med.recurrenceSummary,
+                med.repeatDays,
+              ),
+          };
+          if (interval == null || alarmDate.isAfter(DateTime.now())) {
+            schedules.add(schedule);
+          }
 
           // 적극적 모드: 30분 뒤 재알림 추가 등록!
-          if (state.notificationFrequency == '적극적') {
+          if (state.notificationFrequency == '적극적' && interval == null) {
             final repeatMinute = (time['minute']! + 30) % 60;
             final repeatHour = time['hour']! + ((time['minute']! + 30) ~/ 60);
             schedules.add({
