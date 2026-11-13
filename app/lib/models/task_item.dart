@@ -2,6 +2,7 @@
 class TaskItem {
   String id;
   String title;              // 할일 제목 (예: 약학 실습 보고서 작성, 병원 진료)
+  String memo;
   DateTime date;             // 대상 날짜 (년-월-일)
   String? time;              // 예정 시간 (예: 오후 6:00)
   bool isCompleted;          // 완료 여부
@@ -16,6 +17,7 @@ class TaskItem {
     required this.id,
     required this.title,
     required this.date,
+    this.memo = '',
     this.time,
     this.isCompleted = false,
     List<String>? reminders,
@@ -46,6 +48,7 @@ class TaskItem {
   Map<String, dynamic> toJson() => {
     'id': id,
     'title': title,
+    'memo': memo,
     'date': date.toIso8601String(),
     'time': time,
     'isCompleted': isCompleted,
@@ -73,6 +76,7 @@ class TaskItem {
     return TaskItem(
       id: json['id'] as String,
       title: json['title'] as String,
+      memo: json['memo'] as String? ?? '',
       date: DateTime.parse(json['date'] as String),
       time: json['time'] as String?,
       isCompleted: json['isCompleted'] as bool? ?? false,

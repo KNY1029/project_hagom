@@ -2214,6 +2214,7 @@ class AppStateManager extends ChangeNotifier {
     required String id,
     required String title,
     String? time,
+    String? memo,
     List<String>? reminders,
     bool isRepeated = false,
     String repeatCycle = '매주',
@@ -2221,6 +2222,7 @@ class AppStateManager extends ChangeNotifier {
   }) {
     final task = _tasks.firstWhere((t) => t.id == id);
     task.title = title;
+    if (memo != null) task.memo = memo;
     task.time = time;
     if (reminders != null) task.reminders = reminders;
     task.isRepeated = isRepeated;
