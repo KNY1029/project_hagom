@@ -437,25 +437,54 @@ class _HabitsTabViewState extends State<HabitsTabView> {
                         ),
                       ),
                       const SizedBox(height: 8),
-                      DropdownButtonFormField<int>(
-                        value: weeklyResetWeekday,
-                        decoration: const InputDecoration(
-                          labelText: '주간 초기화 기준일',
-                          border: OutlineInputBorder(),
-                          isDense: true,
+                      Text(
+                        '주간 초기화 기준일',
+                        style: TextStyle(
+                          fontSize: 12.5,
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.textSecondary,
                         ),
-                        items: const [
-                          DropdownMenuItem(value: 1, child: Text('월요일')),
-                          DropdownMenuItem(value: 2, child: Text('화요일')),
-                          DropdownMenuItem(value: 3, child: Text('수요일')),
-                          DropdownMenuItem(value: 4, child: Text('목요일')),
-                          DropdownMenuItem(value: 5, child: Text('금요일')),
-                          DropdownMenuItem(value: 6, child: Text('토요일')),
-                          DropdownMenuItem(value: 7, child: Text('일요일')),
-                        ],
-                        onChanged: (value) {
-                          if (value != null) setModalState(() => weeklyResetWeekday = value);
-                        },
+                      ),
+                      const SizedBox(height: 6),
+                      Row(
+                        children: List.generate(7, (index) {
+                          final weekday = index + 1;
+                          final day = ['월', '화', '수', '목', '금', '토', '일'][index];
+                          final isSelected = weeklyResetWeekday == weekday;
+                          return Expanded(
+                            child: GestureDetector(
+                              onTap: () => setModalState(
+                                () => weeklyResetWeekday = weekday,
+                              ),
+                              child: Container(
+                                margin: const EdgeInsets.symmetric(horizontal: 2),
+                                padding: const EdgeInsets.symmetric(vertical: 8),
+                                alignment: Alignment.center,
+                                decoration: BoxDecoration(
+                                  color: isSelected
+                                      ? AppColors.primaryPurple
+                                      : const Color(0xFFF3F4F6),
+                                  borderRadius: BorderRadius.circular(8),
+                                  border: Border.all(
+                                    color: isSelected
+                                        ? AppColors.primaryPurple
+                                        : AppColors.divider,
+                                  ),
+                                ),
+                                child: Text(
+                                  day,
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.bold,
+                                    color: isSelected
+                                        ? Colors.white
+                                        : AppColors.textPrimary,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          );
+                        }),
                       ),
                     ],
 
