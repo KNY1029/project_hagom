@@ -1,0 +1,75 @@
+diff --git a/app/lib/screens/calendar_tab_view.dart b/app/lib/screens/calendar_tab_view.dart
+--- a/app/lib/screens/calendar_tab_view.dart
++++ b/app/lib/screens/calendar_tab_view.dart
+@@
+   // 할일/한일 추가 및 수정 모달
+   void _showTaskModal({TaskItem? task}) {
+     final titleCtrl = TextEditingController(text: task?.title ?? '');
++    final memoCtrl = TextEditingController(text: task?.memo ?? '');
+     String? selectedTime = task?.time;
+@@
+                 TextField(
+                   controller: titleCtrl,
+                   autofocus: task == null,
+                   decoration: InputDecoration(
++                    labelText: '계획 이름',
+                     hintText: '',
+                     filled: true,
+                     fillColor: const Color(0xFFF9FAFB),
+@@
+                     ),
+                   ),
+                 ),
+-                const SizedBox(height: 14),
++                const SizedBox(height: 10),
++                TextField(
++                  controller: memoCtrl,
++                  minLines: 2,
++                  maxLines: 4,
++                  keyboardType: TextInputType.multiline,
++                  decoration: InputDecoration(
++                    labelText: '추가 설명 (선택)',
++                    hintText: '장소, 준비물 등 필요한 정보를 적어 주세요',
++                    alignLabelWithHint: true,
++                    filled: true,
++                    fillColor: const Color(0xFFF9FAFB),
++                    border: OutlineInputBorder(
++                      borderRadius: BorderRadius.circular(10),
++                      borderSide: BorderSide(color: AppColors.divider),
++                    ),
++                    focusedBorder: OutlineInputBorder(
++                      borderRadius: BorderRadius.circular(10),
++                      borderSide: BorderSide(color: AppColors.primaryPurple),
++                    ),
++                    contentPadding: const EdgeInsets.symmetric(
++                      horizontal: 14,
++                      vertical: 12,
++                    ),
++                  ),
++                ),
++                const SizedBox(height: 14),
+@@
+                         _state.updateTask(
+                           id: task.id,
+                           title: titleCtrl.text.trim(),
++                          memo: memoCtrl.text.trim(),
+                           time: selectedTime,
+@@
+                         _state.addTask(
+                           title: titleCtrl.text.trim(),
++                          memo: memoCtrl.text.trim(),
+                           date: _selectedDate,
+diff --git a/app/lib/state/app_state_manager.dart b/app/lib/state/app_state_manager.dart
+--- a/app/lib/state/app_state_manager.dart
++++ b/app/lib/state/app_state_manager.dart
+@@
+   void addTask({
+     required String title,
+     required DateTime date,
++    String? memo,
+     String? time,
+@@
+         id: 'task_${DateTime.now().millisecondsSinceEpoch}',
+         title: title,
++        memo: memo ?? '',
+         date: date,
