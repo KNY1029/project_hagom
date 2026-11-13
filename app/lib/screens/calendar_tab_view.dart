@@ -279,8 +279,7 @@ class _CalendarTabViewState extends State<CalendarTabView> {
                         color: AppColors.textPrimary,
                       ),
                     ),
-                    if (selectedTime != null)
-                      TextButton(
+                    TextButton(
                         onPressed: () => setMState(() {
                           selectedTime = null;
                           selectedReminders
@@ -338,15 +337,14 @@ class _CalendarTabViewState extends State<CalendarTabView> {
                         color: AppColors.textPrimary,
                       ),
                     ),
-                    if (selectedTime != null)
-                      TextButton(
+                    TextButton(
                         style: TextButton.styleFrom(
                           padding: EdgeInsets.zero,
                           minimumSize: Size.zero,
                         ),
                         onPressed: () {
                         // 🌟 복합 시간(N시간 N분 전) 및 N일 전 직접 추가 다이얼로그
-                        String mode = '시간/분'; // '시간/분' 또는 '일'
+                        String mode = selectedTime == null ? '일' : '시간/분';
                         int? hours;
                         int? minutes;
                         int days = 1;
@@ -368,7 +366,8 @@ class _CalendarTabViewState extends State<CalendarTabView> {
                                   // 모드 선택 탭
                                   Row(
                                     children: [
-                                      ChoiceChip(
+                                      if (selectedTime != null)
+                                        ChoiceChip(
                                         label: const Text('시간 / 분 전'),
                                         selected: mode == '시간/분',
                                         showCheckmark: false,
@@ -479,7 +478,7 @@ class _CalendarTabViewState extends State<CalendarTabView> {
                                               ),
                                             ),
                                             onChanged: (v) =>
-                                                days = int.tryParse(v) ?? 1,
+                                                days = int.tryParse(v) ?? 0,
                                           ),
                                         ),
                                         const SizedBox(width: 6),
@@ -527,6 +526,7 @@ class _CalendarTabViewState extends State<CalendarTabView> {
                                         return;
                                       }
                                     } else {
+                                      if (days < 1) return;
                                       customRem = '$days일 전';
                                     }
 

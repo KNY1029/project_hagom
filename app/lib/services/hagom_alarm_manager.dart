@@ -116,14 +116,16 @@ class HagomAlarmManager {
     if (state.tasksNotificationEnabled) {
       final now = DateTime.now();
       for (final task in state.tasks) {
-        if (task.isCompleted ||
-            task.time == null ||
-            task.time!.isEmpty ||
-            task.reminders.isEmpty)
-          continue;
-        final time = _parseKoreanTime(task.time!);
-        if (time == null) continue;
+        if (task.isCompleted || task.reminders.isEmpty) continue;
+        final time = task.time == null || task.time!.isEmpty
+            ? null
+            : _parseKoreanTime(task.time!);
+        if (task.time != null && time == null) continue;
         for (final reminder in task.reminders) {
+          final daysMatch = RegExp(r'^(\d+)일 전$').firstMatch(reminder);
+          if (time == null && reminder != '당일' && daysMatch == null) continue;
+          if (time == null && reminder.contains('일 전') && daysMatch == null) continue;
+          if (time != null && reminder == '당일') continue;
           final offset = reminder.contains('정시')
               ? 0
               : (reminder.contains('30분')
@@ -136,16 +138,18 @@ class HagomAlarmManager {
             task.date.month,
             task.date.day,
           );
-          final dueMinutes = time['hour']! * 60 + time['minute']!;
+          final dueMinutes = time == null
+              ? 0
+              : time['hour']! * 60 + time['minute']!;
           final totalAlarmMinutes = dueMinutes - offset;
           final dayShift = totalAlarmMinutes < 0
               ? (-totalAlarmMinutes + 1439) ~/ 1440
               : 0;
           final alarmHour = ((totalAlarmMinutes % 1440 + 1440) % 1440) ~/ 60;
           final alarmMinute = (totalAlarmMinutes % 1440 + 1440) % 60;
-          final isDaily = task.isRepeated && task.repeatCycle == '매일';
+          final isDaily = time != null && task.isRepeated && task.repeatCycle == '매일';
           final isWeekly =
-              task.isRepeated && task.repeatCycle == '매주 특정 요일';
+              time != null && task.isRepeated && task.repeatCycle == '매주 특정 요일';
 
           if (isDaily || isWeekly) {
             var repeatDays = isWeekly
@@ -170,13 +174,18 @@ class HagomAlarmManager {
               if (repeatDays.isNotEmpty) 'repeatDays': repeatDays,
             });
           } else {
-            final alarmDate = dueDay.add(
-              Duration(minutes: dueMinutes - offset),
-            );
-            if (!alarmDate.isAfter(now)) continue;
+          final alarmDate = time == null
+              ? dueDay.subtract(
+                  Duration(days: daysMatch != null ? int.parse(daysMatch.group(1)!) : 0),
+                )
+              : dueDay.add(Duration(minutes: dueMinutes - offset));
+          final scheduledAlarmDate = time == null
+              ? DateTime(alarmDate.year, alarmDate.month, alarmDate.day, 9)
+              : alarmDate;
+            if (!scheduledAlarmDate.isAfter(now)) continue;
             schedules.add({
               'id': nextId++,
-              'triggerAtMillis': alarmDate.millisecondsSinceEpoch,
+              'triggerAtMillis': scheduledAlarmDate.millisecondsSinceEpoch,
               'title': '하곰이 할 일 알림',
               'message': HagomDialogue.getRequiredReminder(task.title),
               'isEssential': true,
