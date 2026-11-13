@@ -91,7 +91,7 @@ class _HabitsTabViewState extends State<HabitsTabView> {
               ? '요일 선택'
               : (habit.recurrenceSummary.contains('주')
                     ? '주간 횟수'
-                    : (habit.recurrenceSummary == '오늘만' ? '오늘만' : '매일')))
+                    : '매일'))
         : '매일';
 
     List<String> selectedDays = isEditing ? List.from(habit.repeatDays) : [];
@@ -101,6 +101,7 @@ class _HabitsTabViewState extends State<HabitsTabView> {
           ? habit.recurrenceSummary.replaceAll(RegExp(r'[^0-9]'), '')
           : '',
     );
+    int weeklyResetWeekday = isEditing ? habit.weeklyResetWeekday : 1;
 
     final targetPerDayCtrl = TextEditingController(
       text: isEditing ? habit.targetPerDay.toString() : '1',
@@ -213,8 +214,9 @@ class _HabitsTabViewState extends State<HabitsTabView> {
                             ),
                           ),
                         ),
-                        const SizedBox(width: 8),
-                        Expanded(
+                        if (recurrenceType != '주간 횟수') ...[
+                          const SizedBox(width: 8),
+                          Expanded(
                           flex: 2,
                           child: TextField(
                             controller: targetPerDayCtrl,
@@ -233,7 +235,8 @@ class _HabitsTabViewState extends State<HabitsTabView> {
                               ),
                             ),
                           ),
-                        ),
+                          ),
+                        ],
                       ],
                     ),
                     const SizedBox(height: 14),
@@ -297,7 +300,7 @@ class _HabitsTabViewState extends State<HabitsTabView> {
                     const SizedBox(height: 6),
                     Wrap(
                       spacing: 6,
-                      children: ['매일', '요일 선택', '주간 횟수', '오늘만'].map((type) {
+                      children: ['매일', '요일 선택', '주간 횟수'].map((type) {
                         final isSel = recurrenceType == type;
                         return ChoiceChip(
                           showCheckmark: false,
@@ -432,6 +435,27 @@ class _HabitsTabViewState extends State<HabitsTabView> {
                             ),
                           ],
                         ),
+                      ),
+                      const SizedBox(height: 8),
+                      DropdownButtonFormField<int>(
+                        value: weeklyResetWeekday,
+                        decoration: const InputDecoration(
+                          labelText: '주간 초기화 기준일',
+                          border: OutlineInputBorder(),
+                          isDense: true,
+                        ),
+                        items: const [
+                          DropdownMenuItem(value: 1, child: Text('월요일')),
+                          DropdownMenuItem(value: 2, child: Text('화요일')),
+                          DropdownMenuItem(value: 3, child: Text('수요일')),
+                          DropdownMenuItem(value: 4, child: Text('목요일')),
+                          DropdownMenuItem(value: 5, child: Text('금요일')),
+                          DropdownMenuItem(value: 6, child: Text('토요일')),
+                          DropdownMenuItem(value: 7, child: Text('일요일')),
+                        ],
+                        onChanged: (value) {
+                          if (value != null) setModalState(() => weeklyResetWeekday = value);
+                        },
                       ),
                     ],
 
@@ -614,8 +638,6 @@ class _HabitsTabViewState extends State<HabitsTabView> {
                                       ? '3'
                                       : weeklyTimesCtrl.text.trim();
                                   recSummary = '주 $n회';
-                                } else if (recurrenceType == '오늘만') {
-                                  recSummary = '오늘만';
                                 }
 
                                 final targetCount =
@@ -639,6 +661,7 @@ class _HabitsTabViewState extends State<HabitsTabView> {
                                     targetPerDay: targetCount > 0
                                         ? targetCount
                                         : 1,
+                                    weeklyResetWeekday: weeklyResetWeekday,
                                     startDate: startDate,
                                   );
                                 } else {
@@ -655,6 +678,7 @@ class _HabitsTabViewState extends State<HabitsTabView> {
                                     targetPerDay: targetCount > 0
                                         ? targetCount
                                         : 1,
+                                    weeklyResetWeekday: weeklyResetWeekday,
                                     startDate: startDate,
                                   );
                                 }

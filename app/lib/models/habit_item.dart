@@ -9,6 +9,8 @@ class HabitItem {
   int targetPerDay;          // 하루 목표 횟수 (기본 1회, 물 마시기 등은 4회)
   int currentCount;          // 오늘 실천한 횟수
   int weeklyCompletedCount;  // 🌟 이번 주에 이미 완료한 누적 횟수 (예: 주 1회 목표 중 1회 완료)
+  int weeklyResetWeekday;    // 주간 횟수 초기화 요일 (1=월요일)
+  DateTime? weeklyPeriodStart;
   DateTime startDate;        // 습관 시작일
   bool isExpanded;           // 카드 아코디언 옵션 펼침 여부
 
@@ -22,6 +24,8 @@ class HabitItem {
     this.targetPerDay = 1,
     this.currentCount = 0,
     this.weeklyCompletedCount = 0,
+    this.weeklyResetWeekday = 1,
+    this.weeklyPeriodStart,
     this.isExpanded = false,
     this.isArchived = false,
     DateTime? startDate,
@@ -31,6 +35,21 @@ class HabitItem {
          (startDate ?? DateTime.now()).day,
        );
   bool isArchived;
+
+  void ensureWeeklyPeriod(DateTime date) {
+    if (!recurrenceSummary.contains('주') ||
+        !(recurrenceSummary.contains('회') || recurrenceSummary.contains('횟수'))) {
+      return;
+    }
+    final day = DateTime(date.year, date.month, date.day);
+    final daysSinceReset = (day.weekday - weeklyResetWeekday + 7) % 7;
+    final periodStart = day.subtract(Duration(days: daysSinceReset));
+    if (weeklyPeriodStart == null ||
+        DateTime(weeklyPeriodStart!.year, weeklyPeriodStart!.month, weeklyPeriodStart!.day) != periodStart) {
+      weeklyCompletedCount = 0;
+      weeklyPeriodStart = periodStart;
+    }
+  }
   /// 🌟 오늘(Today) 실천해야 하는 습관인지 판별하는 스마트 로직
   bool isDueOn(DateTime date) {
     final target = DateTime(date.year, date.month, date.day);
@@ -64,7 +83,10 @@ class HabitItem {
   }
 
   // 오늘 실천해야 하는지 바로 확인
-  bool get isDueToday => isDueOn(DateTime.now());
+  bool get isDueToday {
+    ensureWeeklyPeriod(DateTime.now());
+    return isDueOn(DateTime.now());
+  }
 
   Map<String, dynamic> toJson() => {
     'id': id,
@@ -76,6 +98,8 @@ class HabitItem {
     'targetPerDay': targetPerDay,
     'currentCount': currentCount,
     'weeklyCompletedCount': weeklyCompletedCount,
+    'weeklyResetWeekday': weeklyResetWeekday,
+    'weeklyPeriodStart': weeklyPeriodStart?.toIso8601String(),
     'isArchived': isArchived,
     'startDate': startDate.toIso8601String(),
   };
@@ -89,6 +113,8 @@ class HabitItem {
     targetPerDay: json['targetPerDay'] as int? ?? 1,
     currentCount: json['currentCount'] as int? ?? 0,
     weeklyCompletedCount: json['weeklyCompletedCount'] as int? ?? 0,
+    weeklyResetWeekday: json['weeklyResetWeekday'] as int? ?? 1,
+    weeklyPeriodStart: DateTime.tryParse(json['weeklyPeriodStart'] as String? ?? ''),
     isArchived: json['isArchived'] as bool? ?? false,
     startDate: DateTime.tryParse(json['startDate'] as String? ?? ''),
   );

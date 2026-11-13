@@ -627,6 +627,7 @@ class AppStateManager extends ChangeNotifier {
     }
 
     for (final habit in _habits) {
+      habit.ensureWeeklyPeriod(DateTime.now());
       if (habit.currentCount > 0) {
         _pastHabitRecords.putIfAbsent(dateKey, () => {})[habit.id] =
             habit.score;
@@ -1959,8 +1960,13 @@ class AppStateManager extends ChangeNotifier {
 
   bool advanceHabitProgress(String id) {
     final habit = _habits.firstWhere((h) => h.id == id);
+    habit.ensureWeeklyPeriod(DateTime.now());
+    final wasComplete = habit.score >= 1.0;
     final advanced = habit.advanceProgress();
     if (advanced) {
+      if (habit.recurrenceSummary.contains('주') && !wasComplete && habit.score >= 1.0) {
+        habit.weeklyCompletedCount++;
+      }
       gentleAttempts++;
       notifyListeners();
     }
@@ -1988,6 +1994,7 @@ class AppStateManager extends ChangeNotifier {
     List<String> repeatDays = const [],
     List<String> scheduledTimes = const [],
     int targetPerDay = 1,
+    int weeklyResetWeekday = 1,
     DateTime? startDate,
   }) {
     _habits.add(
@@ -1999,6 +2006,7 @@ class AppStateManager extends ChangeNotifier {
         repeatDays: repeatDays,
         scheduledTimes: scheduledTimes,
         targetPerDay: targetPerDay,
+        weeklyResetWeekday: weeklyResetWeekday,
         startDate: startDate,
       ),
     );
@@ -2013,6 +2021,7 @@ class AppStateManager extends ChangeNotifier {
     required List<String> repeatDays,
     required List<String> scheduledTimes,
     required int targetPerDay,
+    int weeklyResetWeekday = 1,
     DateTime? startDate,
   }) {
     final habit = _habits.firstWhere((h) => h.id == id);
@@ -2022,6 +2031,7 @@ class AppStateManager extends ChangeNotifier {
     habit.repeatDays = repeatDays;
     habit.scheduledTimes = scheduledTimes;
     habit.targetPerDay = targetPerDay;
+    habit.weeklyResetWeekday = weeklyResetWeekday;
     if (startDate != null) habit.startDate = startDate;
     notifyListeners();
   }
