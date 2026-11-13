@@ -1725,21 +1725,6 @@ class _CalendarTabViewState extends State<CalendarTabView> {
                                       }
                                     },
                                   ),
-                                  GestureDetector(
-                                    behavior: HitTestBehavior.opaque,
-                                    onTap: () => _showTaskMemoEditor(t),
-                                    child: Padding(
-                                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 10),
-                                      child: Text(
-                                        '메모',
-                                        style: TextStyle(
-                                          color: AppColors.primaryPurple,
-                                          fontSize: 12,
-                                          fontWeight: FontWeight.w600,
-                                        ),
-                                      ),
-                                    ),
-                                  ),
                                   Expanded(
                                     child: Column(
                                       crossAxisAlignment:
@@ -1774,6 +1759,26 @@ class _CalendarTabViewState extends State<CalendarTabView> {
                                             ),
                                           ),
                                       ],
+                                    ),
+                                  ),
+                                  GestureDetector(
+                                    behavior: HitTestBehavior.opaque,
+                                    onTap: () => _showTaskMemoEditor(t),
+                                    child: Padding(
+                                      padding: const EdgeInsets.only(
+                                        left: 10,
+                                        right: 4,
+                                        top: 10,
+                                        bottom: 10,
+                                      ),
+                                      child: Text(
+                                        '메모',
+                                        style: TextStyle(
+                                          color: AppColors.primaryPurple,
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                      ),
                                     ),
                                   ),
                                 ],
