@@ -22,6 +22,55 @@ import '../widgets/app_time_picker.dart';
 /// 3. 할일 관리:
 ///    - 체크박스 완료 토글
 ///    - [+ 할일 추가] 모달 지원
+class _TaskMemoDialog extends StatefulWidget {
+  const _TaskMemoDialog({required this.initialMemo});
+
+  final String initialMemo;
+
+  @override
+  State<_TaskMemoDialog> createState() => _TaskMemoDialogState();
+}
+
+class _TaskMemoDialogState extends State<_TaskMemoDialog> {
+  late final TextEditingController _controller =
+      TextEditingController(text: widget.initialMemo);
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) => AlertDialog(
+    title: const Text('할일 메모'),
+    content: SizedBox(
+      width: 360,
+      child: TextField(
+        controller: _controller,
+        autofocus: true,
+        minLines: 3,
+        maxLines: 8,
+        keyboardType: TextInputType.multiline,
+        decoration: const InputDecoration(
+          hintText: '메모를 입력하세요',
+          border: OutlineInputBorder(),
+        ),
+      ),
+    ),
+    actions: [
+      TextButton(
+        onPressed: () => Navigator.of(context).pop(),
+        child: const Text('취소'),
+      ),
+      TextButton(
+        onPressed: () => Navigator.of(context).pop(_controller.text),
+        child: const Text('저장'),
+      ),
+    ],
+  );
+}
+
 class CalendarTabView extends StatefulWidget {
   const CalendarTabView({super.key});
 
@@ -787,52 +836,38 @@ class _CalendarTabViewState extends State<CalendarTabView> {
   }
 
   Future<void> _showTaskMemoEditor(TaskItem task) async {
-    final memoController = TextEditingController(text: task.memo);
     final editable = !_selectedDate.isAfter(DateTime.now());
-    try {
-      final result = await showDialog<String>(
+    if (!editable) {
+      await showDialog<void>(
         context: context,
         useRootNavigator: false,
         builder: (dialogContext) => AlertDialog(
           title: const Text('할일 메모'),
           content: SizedBox(
             width: 360,
-            child: TextField(
-              controller: memoController,
-              readOnly: !editable,
-              minLines: 3,
-              maxLines: 8,
-              keyboardType: TextInputType.multiline,
-              decoration: const InputDecoration(
-                hintText: '메모를 입력하세요',
-                border: OutlineInputBorder(),
-              ),
-            ),
+            child: SingleChildScrollView(child: SelectableText(task.memo.isEmpty ? '메모가 없어요.' : task.memo)),
           ),
           actions: [
             TextButton(
               onPressed: () => Navigator.of(dialogContext).pop(),
-              child: Text(editable ? '취소' : '닫기'),
+              child: const Text('닫기'),
             ),
-            if (editable)
-              TextButton(
-                onPressed: () => Navigator.of(dialogContext).pop(true),
-                child: const Text('저장'),
-              ),
           ],
         ),
       );
-      if (result == true && mounted) {
-        _state.updateTaskMemo(task.id, memoController.text);
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('메모를 저장했어요.')),
-          );
-        }
-      }
-    } finally {
-      memoController.dispose();
+      return;
     }
+
+    final result = await showDialog<String>(
+      context: context,
+      useRootNavigator: false,
+      builder: (dialogContext) => _TaskMemoDialog(initialMemo: task.memo),
+    );
+    if (result == null || !mounted) return;
+    _state.updateTaskMemo(task.id, result);
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('메모를 저장했어요.')),
+    );
   }
 
   // 🌟 과거 복약 완료 기록 시 복용 시간 묻는 다이얼로그 (모름/기억 안 남 포함!)
