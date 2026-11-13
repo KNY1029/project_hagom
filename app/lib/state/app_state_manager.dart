@@ -2162,6 +2162,13 @@ class AppStateManager extends ChangeNotifier {
     notifyListeners();
   }
 
+  void updateTaskMemo(String id, String memo) {
+    final index = _tasks.indexWhere((task) => task.id == id);
+    if (index < 0) return;
+    _tasks[index].memo = memo;
+    notifyListeners();
+  }
+
   void toggleTaskExpanded(String id) {
     final task = _tasks.firstWhere((t) => t.id == id);
     task.isExpanded = !task.isExpanded;

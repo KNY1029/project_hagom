@@ -816,23 +816,19 @@ class _CalendarTabViewState extends State<CalendarTabView> {
             ),
             if (editable)
               TextButton(
-                onPressed: () => Navigator.of(dialogContext).pop(memoController.text),
+                onPressed: () => Navigator.of(dialogContext).pop(true),
                 child: const Text('저장'),
               ),
           ],
         ),
       );
-      if (result != null && mounted) {
-        _state.updateTask(
-          id: task.id,
-          title: task.title,
-          time: task.time,
-          memo: result,
-          reminders: task.reminders,
-          isRepeated: task.isRepeated,
-          repeatCycle: task.repeatCycle,
-          repeatDays: task.repeatDays,
-        );
+      if (result == true && mounted) {
+        _state.updateTaskMemo(task.id, memoController.text);
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('메모를 저장했어요.')),
+          );
+        }
       }
     } finally {
       memoController.dispose();
