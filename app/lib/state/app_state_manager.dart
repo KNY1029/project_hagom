@@ -1995,6 +1995,14 @@ class AppStateManager extends ChangeNotifier {
 
   void resetHabitProgress(String id) {
     final habit = _habits.firstWhere((h) => h.id == id);
+    final wasWeeklyCompletion =
+        habit.recurrenceSummary.contains('주') &&
+        (habit.recurrenceSummary.contains('회') ||
+            habit.recurrenceSummary.contains('횟수')) &&
+        habit.score >= 1.0;
+    if (wasWeeklyCompletion && habit.weeklyCompletedCount > 0) {
+      habit.weeklyCompletedCount--;
+    }
     habit.resetProgress();
     suspendWidgetSync = false;
     notifyListeners();
