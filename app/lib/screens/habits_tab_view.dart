@@ -846,7 +846,7 @@ class _HabitsTabViewState extends State<HabitsTabView> {
     if (isWeeklyComplete) {
       scheduleText = '이번 주 달성 완료';
     } else if (weeklyTarget > 0) {
-      scheduleText = '이번 주 ${habit.weeklyCompletedCount}/$weeklyTarget회 예정';
+      scheduleText = '주 $weeklyTarget회 실천 예정';
     } else if (habit.repeatDays.isNotEmpty) {
       final day = habit.repeatDays.first;
       scheduleText = '매주 ${day}요일 예정';
