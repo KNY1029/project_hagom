@@ -135,22 +135,20 @@ class _HabitsTabViewState extends State<HabitsTabView> {
               ),
               const SizedBox(height: 16),
               Row(
+                mainAxisAlignment: MainAxisAlignment.end,
                 children: [
-                  Expanded(
-                    child: TextButton(
-                      onPressed: () => Navigator.of(sheetContext).pop('cancel'),
-                      child: Text(
-                        '이 기록 취소',
-                        style: TextStyle(color: AppColors.warmBrown),
-                      ),
+                  const Spacer(),
+                  TextButton(
+                    onPressed: () => Navigator.of(sheetContext).pop('cancel'),
+                    child: Text(
+                      '이 기록 취소',
+                      style: TextStyle(color: AppColors.warmBrown),
                     ),
                   ),
                   const SizedBox(width: 8),
-                  Expanded(
-                    child: ElevatedButton(
-                      onPressed: () => Navigator.of(sheetContext).pop('edit'),
-                      child: const Text('시각 수정'),
-                    ),
+                  ElevatedButton(
+                    onPressed: () => Navigator.of(sheetContext).pop('edit'),
+                    child: const Text('시각 수정'),
                   ),
                 ],
               ),
