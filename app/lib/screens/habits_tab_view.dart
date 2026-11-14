@@ -50,6 +50,12 @@ class _HabitsTabViewState extends State<HabitsTabView> {
     final completionLabel = completionIndex + 1 >= completionThreshold
         ? '완료'
         : '조금 실천';
+    final completionTextColor = completionLabel == '완료'
+        ? AppColors.completedText
+        : AppColors.partialText;
+    final completionBackgroundColor = completionLabel == '완료'
+        ? AppColors.completedBg
+        : AppColors.partialBg;
     final action = await showModalBottomSheet<String>(
       context: context,
       isScrollControlled: true,
@@ -103,7 +109,7 @@ class _HabitsTabViewState extends State<HabitsTabView> {
                       vertical: 5,
                     ),
                     decoration: BoxDecoration(
-                      color: AppColors.primaryPurple.withValues(alpha: 0.1),
+                      color: completionBackgroundColor,
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Text(
@@ -111,7 +117,7 @@ class _HabitsTabViewState extends State<HabitsTabView> {
                       style: TextStyle(
                         fontSize: 12,
                         fontWeight: FontWeight.bold,
-                        color: AppColors.primaryPurple,
+                        color: completionTextColor,
                       ),
                     ),
                   ),
@@ -130,13 +136,6 @@ class _HabitsTabViewState extends State<HabitsTabView> {
               const SizedBox(height: 16),
               Row(
                 children: [
-                  Expanded(
-                    child: OutlinedButton(
-                      onPressed: () => Navigator.of(sheetContext).pop('close'),
-                      child: const Text('닫기'),
-                    ),
-                  ),
-                  const SizedBox(width: 8),
                   Expanded(
                     child: TextButton(
                       onPressed: () => Navigator.of(sheetContext).pop('cancel'),
