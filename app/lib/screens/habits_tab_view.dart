@@ -1182,14 +1182,14 @@ class _HabitsTabViewState extends State<HabitsTabView> {
     Color getStatusColor() {
       final s = habit.score;
       if (s >= 1.0) return AppColors.completedText;
-      if (s > 0.0) return AppColors.partialText;
+      if (s > 0.0) return AppColors.achromatopsiaModeEnabled ? AppColors.textSecondary : AppColors.partialText;
       return AppColors.textSecondary;
     }
 
     Color getStatusBg() {
       final s = habit.score;
       if (s >= 1.0) return AppColors.completedBg;
-      if (s > 0.0) return AppColors.partialBg;
+      if (s > 0.0) return AppColors.achromatopsiaModeEnabled ? AppColors.inputSurface : AppColors.partialBg;
       return AppColors.inputSurface;
     }
 
@@ -1397,13 +1397,15 @@ class _HabitsTabViewState extends State<HabitsTabView> {
                           border: Border.all(
                             color: habit.score >= 1.0
                                 ? AppColors.completedBorder
-                                : (habit.score > 0.0
+                                : (habit.score > 0.0 && !AppColors.achromatopsiaModeEnabled
                                       ? AppColors.partialBorder
                                       : AppColors.divider),
                           ),
                         ),
                         child: Text(
-                          habit.statusLabel,
+                          AppColors.achromatopsiaModeEnabled
+                              ? (habit.score >= 1.0 ? '완료' : '미완료')
+                              : habit.statusLabel,
                           textAlign: TextAlign.center,
                           style: TextStyle(
                             fontSize: 11.5,

@@ -2597,7 +2597,9 @@ class _MedsTabViewState extends State<MedsTabView> {
                             fontWeight: FontWeight.bold,
                             color: isAllDone
                                 ? AppColors.completedText
-                                : Colors.white,
+                                : (AppColors.achromatopsiaModeEnabled
+                                      ? AppColors.cardSurface
+                                      : Colors.white),
                           ),
                         ),
                       ),

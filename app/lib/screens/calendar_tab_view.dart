@@ -2414,7 +2414,7 @@ class _CalendarTabViewState extends State<CalendarTabView> {
                             decoration: BoxDecoration(
                               color: selectedHabitComplete
                                   ? AppColors.completedBg
-                                  : (selectedHabitPartial
+                                  : (selectedHabitPartial && !AppColors.achromatopsiaModeEnabled
                                         ? AppColors.partialOrange.withValues(
                                             alpha: 0.12,
                                           )
@@ -2436,14 +2436,16 @@ class _CalendarTabViewState extends State<CalendarTabView> {
                                         : (selectedHabitRate >= 1.0
                                               ? '전체 달성'
                                               : (selectedHabitRate > 0.0
-                                                    ? '${(selectedHabitRate * _state.allHabits.where((h) => h.isDueOn(_selectedDate)).length).toStringAsFixed(1)}/${_state.allHabits.where((h) => h.isDueOn(_selectedDate)).length}개 실천'
+                                                    ? (AppColors.achromatopsiaModeEnabled
+                                                          ? '일부 미완료'
+                                                          : '${(selectedHabitRate * _state.allHabits.where((h) => h.isDueOn(_selectedDate)).length).toStringAsFixed(1)}/${_state.allHabits.where((h) => h.isDueOn(_selectedDate)).length}개 실천')
                                                     : '미실천'))),
                               style: TextStyle(
                                 fontSize: 11.5,
                                 fontWeight: FontWeight.bold,
                                 color: selectedHabitComplete
                                     ? AppColors.completedText
-                                    : (selectedHabitPartial
+                                    : (selectedHabitPartial && !AppColors.achromatopsiaModeEnabled
                                           ? AppColors.partialOrange
                                           : AppColors.textSecondary),
                               ),
