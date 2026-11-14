@@ -300,8 +300,9 @@ class _TutorialOverlayState extends State<TutorialOverlay> {
                   onPressed: _nextStep,
                   child: Text(
                     (_isExploringFeatureScreen || _hasVisitedFeatureScreen)
-                        ? step['returnBtnText'] as String
-                        : step['btnText'] as String,
+                        ? (step['returnBtnText'] as String? ??
+                            '위젯 체험을 마쳤어요 · 가이드 완료')
+                        : (step['btnText'] as String? ?? '다음'),
                     style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13),
                   ),
                 ),

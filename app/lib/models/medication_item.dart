@@ -26,7 +26,7 @@ class DoseSlot {
   };
 
   factory DoseSlot.fromJson(Map<String, dynamic> json) => DoseSlot(
-    label: json['label'] as String,
+    label: json['label']?.toString() ?? '',
     scheduledTime: json['scheduledTime'] as String?,
     isCompleted: json['isCompleted'] as bool? ?? false,
     isSkipped: json['isSkipped'] as bool? ?? false,
@@ -154,9 +154,9 @@ class MedicationItem {
     'remainingPillCount': remainingPillCount,
   };
   factory MedicationItem.fromJson(Map<String, dynamic> json) => MedicationItem(
-    id: json['id'] as String,
-    name: json['name'] as String,
-    dosage: json['dosage'] as String,
+    id: json['id']?.toString() ?? '',
+    name: json['name']?.toString() ?? '',
+    dosage: json['dosage']?.toString() ?? '',
     recurrenceSummary: json['recurrenceSummary'] as String? ?? '매일',
     durationSummary: json['durationSummary'] as String? ?? '계속 복용',
     isPrescription: json['isPrescription'] as bool? ?? false,

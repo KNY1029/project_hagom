@@ -104,9 +104,9 @@ class HabitItem {
     'startDate': startDate.toIso8601String(),
   };
   factory HabitItem.fromJson(Map<String, dynamic> json) => HabitItem(
-    id: json['id'] as String,
-    title: json['title'] as String,
-    subtitle: json['subtitle'] as String,
+    id: json['id']?.toString() ?? '',
+    title: json['title']?.toString() ?? '',
+    subtitle: json['subtitle']?.toString() ?? '',
     recurrenceSummary: json['recurrenceSummary'] as String? ?? '매일',
     repeatDays: (json['repeatDays'] as List<dynamic>?)?.map((e) => e.toString()).toList() ?? [],
     scheduledTimes: (json['scheduledTimes'] as List<dynamic>?)?.map((e) => e.toString()).toList() ?? [],

@@ -74,10 +74,10 @@ class TaskItem {
     }
 
     return TaskItem(
-      id: json['id'] as String,
-      title: json['title'] as String,
+      id: json['id']?.toString() ?? '',
+      title: json['title']?.toString() ?? '',
       memo: json['memo'] as String? ?? '',
-      date: DateTime.parse(json['date'] as String),
+      date: DateTime.tryParse(json['date']?.toString() ?? '') ?? DateTime.now(),
       time: json['time'] as String?,
       isCompleted: json['isCompleted'] as bool? ?? false,
       reminders: rems,
