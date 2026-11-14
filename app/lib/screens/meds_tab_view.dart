@@ -1617,13 +1617,17 @@ class _MedsTabViewState extends State<MedsTabView> {
                   Container(
                     padding: const EdgeInsets.all(6),
                     decoration: BoxDecoration(
-                      color: AppColors.successBg,
+                      color: slot.isSkipped
+                          ? AppColors.inputSurface
+                          : AppColors.successBg,
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Icon(
-                      Icons.check_circle,
+                      slot.isSkipped ? Icons.remove_circle_outline : Icons.check_circle,
                       size: 18,
-                      color: AppColors.successGreen,
+                      color: slot.isSkipped
+                          ? AppColors.warmBrown
+                          : AppColors.successGreen,
                     ),
                   ),
                   const SizedBox(width: 10),
@@ -1632,7 +1636,9 @@ class _MedsTabViewState extends State<MedsTabView> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          '${med.name} · ${slot.label} 복용 완료됨',
+                          slot.isSkipped
+                              ? '${med.name} · ${slot.label} 건너뜀'
+                              : '${med.name} · ${slot.label} 복용 완료됨',
                           style: TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.bold,
@@ -1641,10 +1647,14 @@ class _MedsTabViewState extends State<MedsTabView> {
                         ),
                         const SizedBox(height: 2),
                         Text(
-                          '기록된 복용 시각: ${slot.takenTime ?? slot.scheduledTime ?? "확인됨"}',
+                          slot.isSkipped
+                              ? '건너뛴 시각: ${slot.skippedTime ?? "확인됨"}'
+                              : '기록된 복용 시각: ${slot.takenTime ?? slot.scheduledTime ?? "확인됨"}',
                           style: TextStyle(
                             fontSize: 12.5,
-                            color: AppColors.successGreen,
+                            color: slot.isSkipped
+                                ? AppColors.warmBrown
+                                : AppColors.successGreen,
                             fontWeight: FontWeight.w600,
                           ),
                         ),
@@ -1657,8 +1667,65 @@ class _MedsTabViewState extends State<MedsTabView> {
               const Divider(height: 1),
               const SizedBox(height: 10),
 
-              // 1. 복용 시간 수정 버튼
-              ListTile(
+              // 1. 완료 회차는 복용 시각을 수정하고, 건너뛴 회차는 이유를 확인한다.
+              if (slot.isSkipped)
+                ListTile(
+                  dense: true,
+                  contentPadding: EdgeInsets.zero,
+                  leading: Icon(
+                    Icons.notes_outlined,
+                    color: AppColors.warmBrown,
+                    size: 22,
+                  ),
+                  title: const Text(
+                    '건너뛴 이유 보기',
+                    style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+                  ),
+                  subtitle: Text(
+                    med.skipReason == null || med.skipReason!.trim().isEmpty
+                        ? '입력한 이유가 없습니다'
+                        : med.skipReason!,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      fontSize: 11.5,
+                      color: AppColors.textSecondary,
+                    ),
+                  ),
+                  trailing: const SizedBox(
+                    width: 24,
+                    child: Align(
+                      alignment: Alignment.centerRight,
+                      child: Icon(
+                        Icons.chevron_right,
+                        size: 18,
+                        color: AppColors.textMuted,
+                      ),
+                    ),
+                  ),
+                  onTap: () {
+                    final reason = med.skipReason?.trim();
+                    showDialog<void>(
+                      context: context,
+                      builder: (reasonContext) => AlertDialog(
+                        title: const Text('건너뛴 이유'),
+                        content: Text(
+                          reason == null || reason.isEmpty
+                              ? '입력한 이유가 없습니다.'
+                              : reason,
+                        ),
+                        actions: [
+                          TextButton(
+                            onPressed: () => Navigator.of(reasonContext).pop(),
+                            child: const Text('닫기'),
+                          ),
+                        ],
+                      ),
+                    );
+                  },
+                )
+              else
+                ListTile(
                 dense: true,
                 contentPadding: EdgeInsets.zero,
                 leading: Icon(
@@ -1710,7 +1777,7 @@ class _MedsTabViewState extends State<MedsTabView> {
                     );
                   }
                 },
-              ),
+                ),
 
               const SizedBox(height: 4),
 
