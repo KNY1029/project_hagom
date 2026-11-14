@@ -2347,6 +2347,8 @@ class _MedsTabViewState extends State<MedsTabView> {
                                           final toast =
                                               HagomDialogue.getRandomMedToast(
                                                 '${med.name} ${slot.label}',
+                                                scheduledTime:
+                                                    slot.scheduledTime,
                                               );
                                           CelebrationToast.show(
                                             context,
@@ -2435,6 +2437,8 @@ class _MedsTabViewState extends State<MedsTabView> {
                         final wasAllMedsDoneBefore =
                             todayMeds.isNotEmpty &&
                             todayMeds.every((m) => m.isAllCompleted);
+                        final scheduledTime =
+                            med.nextPendingSlot?.scheduledTime;
                         _state.completeNextSlot(med.id);
                         final isAllMedsDoneNow =
                             todayMeds.isNotEmpty &&
@@ -2451,6 +2455,7 @@ class _MedsTabViewState extends State<MedsTabView> {
                         } else {
                           final toast = HagomDialogue.getRandomMedToast(
                             med.name,
+                            scheduledTime: scheduledTime,
                           );
                           CelebrationToast.show(
                             context,

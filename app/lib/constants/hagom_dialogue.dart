@@ -179,14 +179,38 @@ class HagomDialogue {
   static int _generalTalkIndex = 0;
   static int _spicyTalkIndex = 0;
 
-  /// 순차적 복약 완료 토스트 반환
-  static Map<String, String> getRandomMedToast(String medName) {
-    final item = medCompletionToasts[_toastSeqIndex % medCompletionToasts.length];
+  /// 복약 완료 토스트 반환.
+  /// 예정 시각과 실제 복용 시각이 30분 이내일 때만 정시 복용 문구를 포함한다.
+  static Map<String, String> getRandomMedToast(
+    String medName, {
+    String? scheduledTime,
+  }) {
+    final isOnTime = _isCloseToScheduledTime(scheduledTime);
+    final available = isOnTime
+        ? medCompletionToasts
+        : medCompletionToasts.skip(1).toList();
+    final item = available[_toastSeqIndex % available.length];
     _toastSeqIndex++;
     return {
       'title': item['title']!,
       'message': '$medName ${item['message']!}',
     };
+  }
+
+  static bool _isCloseToScheduledTime(String? scheduledTime) {
+    if (scheduledTime == null || scheduledTime.trim().isEmpty) return false;
+    final match = RegExp(r'(오전|오후)\s*(\d{1,2}):(\d{2})').firstMatch(
+      scheduledTime,
+    );
+    if (match == null) return false;
+
+    var hour = int.parse(match.group(2)!);
+    final minute = int.parse(match.group(3)!);
+    if (match.group(1) == '오후' && hour < 12) hour += 12;
+    if (match.group(1) == '오전' && hour == 12) hour = 0;
+    final now = DateTime.now();
+    final scheduled = DateTime(now.year, now.month, now.day, hour, minute);
+    return now.difference(scheduled).inMinutes.abs() <= 30;
   }
 
   /// 순차적 헤더 말풍선 반환
