@@ -1642,6 +1642,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final showDeveloperTools =
+        _state.isDevSimulationMode && !_state.isTutorialDemoMode;
+
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
@@ -1700,7 +1703,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       ),
                       SizedBox(height: 3),
                       Text(
-                        '정신약학 맞춤 복약 솔루션 · v0.127.332',
+                        '정신약학 맞춤 복약 솔루션 · v0.128.333',
                         style: TextStyle(
                           fontSize: 12,
                           color: AppColors.textSecondary,
@@ -2072,6 +2075,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   const Divider(height: 1, color: Color(0xFFF3F4F6)),
 
                   // 🌟 [알림 테스트 (개발자 모드용)]
+                  if (showDeveloperTools) ...[
                   Padding(
                     padding: const EdgeInsets.symmetric(
                       horizontal: 16,
@@ -2167,6 +2171,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     ),
                   ),
                   const Divider(height: 1, color: Color(0xFFF3F4F6)),
+                  ],
                   // 6) 🎨 적록색맹 보조 색상 모드
                   SwitchListTile(
                     contentPadding: const EdgeInsets.symmetric(
@@ -2352,6 +2357,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     onTap: _showAppGuideModal,
                   ),
                   const Divider(height: 1, color: Color(0xFFF3F4F6)),
+                  if (showDeveloperTools) ...[
                   ListTile(
                     contentPadding: const EdgeInsets.symmetric(
                       horizontal: 16,
@@ -2390,6 +2396,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     },
                   ),
                   const Divider(height: 1, color: Color(0xFFF3F4F6)),
+                  ],
                   ListTile(
                     contentPadding: const EdgeInsets.symmetric(
                       horizontal: 16,
@@ -2429,6 +2436,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     },
                   ),
                   const Divider(height: 1, color: Color(0xFFF3F4F6)),
+                  if (showDeveloperTools) ...[
                   ListTile(
                     contentPadding: const EdgeInsets.symmetric(
                       horizontal: 16,
@@ -2509,6 +2517,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     },
                   ),
                   const Divider(height: 1, color: Color(0xFFF3F4F6)),
+                  ],
                   ListTile(
                     contentPadding: const EdgeInsets.symmetric(
                       horizontal: 16,
@@ -2541,6 +2550,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     onTap: _exportMedicalCsv,
                   ),
                   const Divider(height: 1, color: Color(0xFFF3F4F6)),
+                  if (showDeveloperTools) ...[
                   ListTile(
                     contentPadding: const EdgeInsets.symmetric(
                       horizontal: 16,
@@ -2580,6 +2590,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     },
                   ),
                   const Divider(height: 1, color: Color(0xFFF3F4F6)),
+                  ],
                   ListTile(
                     contentPadding: const EdgeInsets.symmetric(
                       horizontal: 16,

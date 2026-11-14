@@ -2360,6 +2360,9 @@ class AppStateManager extends ChangeNotifier {
     customTimeSlots.clear(); // 커스텀 시간대도 깨끗하게 초기화!
     gentleAttempts = 0;
     returnedCount = 0;
+    isInitialModeSelected = false;
+    isDevSimulationMode = false;
+    isTutorialDemoMode = false;
     final now = DateTime.now();
     _trackingStartDate = DateTime(now.year, now.month, now.day);
 
