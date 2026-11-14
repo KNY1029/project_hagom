@@ -34,14 +34,15 @@ class HagomMonthCalendarWidgetProvider : HomeWidgetProvider() {
         "today_med_done_done_pin" -> R.drawable.hagom_calendar_mono_bar_dark_pin
         "all_done" -> R.drawable.hagom_calendar_mono_done
         "all_done_pin" -> R.drawable.hagom_calendar_mono_done_pin
-        "mdone", "hdone_mdone" ->
-            R.drawable.hagom_calendar_mono_bar_dark
-        "mdone_pin", "hdone_mdone_pin" ->
-            R.drawable.hagom_calendar_mono_bar_dark_pin
+        "mdone" -> R.drawable.hagom_calendar_mono_bar_dark
+        "mdone_pin" -> R.drawable.hagom_calendar_mono_bar_dark_pin
+        "hdone_mdone" -> R.drawable.hagom_calendar_mono_hdone_mdone
+        "hdone_mdone_pin" -> R.drawable.hagom_calendar_mono_hdone_mdone_pin
         "hdone_mpartial" -> R.drawable.hagom_calendar_mono_hdone_partial
         "hdone_mpartial_pin" -> R.drawable.hagom_calendar_mono_hdone_partial_pin
-        "missed_med", "missed_med_pin", "hdone_mmissed", "hdone_mmissed_pin" ->
-            R.drawable.hagom_calendar_mono_missed
+        "missed_med", "missed_med_pin" -> R.drawable.hagom_calendar_mono_missed
+        "hdone_mmissed" -> R.drawable.hagom_calendar_mono_hdone_mmissed
+        "hdone_mmissed_pin" -> R.drawable.hagom_calendar_mono_hdone_mmissed_pin
         "partial" -> R.drawable.hagom_calendar_mono_bar_light
         "partial_pin" -> R.drawable.hagom_calendar_mono_bar_light_pin
         "pin_only" -> R.drawable.hagom_calendar_mono_pin
@@ -56,14 +57,15 @@ class HagomMonthCalendarWidgetProvider : HomeWidgetProvider() {
         "today_med_done_done_pin" -> R.drawable.hagom_calendar_mono_dark_bar_dark_pin
         "all_done" -> R.drawable.hagom_calendar_mono_dark_done
         "all_done_pin" -> R.drawable.hagom_calendar_mono_dark_done_pin
-        "mdone", "hdone_mdone" ->
-            R.drawable.hagom_calendar_mono_dark_bar_dark
-        "mdone_pin", "hdone_mdone_pin" ->
-            R.drawable.hagom_calendar_mono_dark_bar_dark_pin
+        "mdone" -> R.drawable.hagom_calendar_mono_dark_bar_dark
+        "mdone_pin" -> R.drawable.hagom_calendar_mono_dark_bar_dark_pin
+        "hdone_mdone" -> R.drawable.hagom_calendar_mono_dark_hdone_mdone
+        "hdone_mdone_pin" -> R.drawable.hagom_calendar_mono_dark_hdone_mdone_pin
         "hdone_mpartial" -> R.drawable.hagom_calendar_mono_dark_hdone_partial
         "hdone_mpartial_pin" -> R.drawable.hagom_calendar_mono_dark_hdone_partial_pin
-        "missed_med", "missed_med_pin", "hdone_mmissed", "hdone_mmissed_pin" ->
-            R.drawable.hagom_calendar_mono_dark_missed
+        "missed_med", "missed_med_pin" -> R.drawable.hagom_calendar_mono_dark_missed
+        "hdone_mmissed" -> R.drawable.hagom_calendar_mono_dark_hdone_mmissed
+        "hdone_mmissed_pin" -> R.drawable.hagom_calendar_mono_dark_hdone_mmissed_pin
         "partial" -> R.drawable.hagom_calendar_mono_dark_bar_light
         "partial_pin" -> R.drawable.hagom_calendar_mono_dark_bar_light_pin
         "pin_only" -> R.drawable.hagom_calendar_mono_dark_pin

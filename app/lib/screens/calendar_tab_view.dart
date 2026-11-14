@@ -1541,14 +1541,7 @@ class _CalendarTabViewState extends State<CalendarTabView> {
                           ? 3.2
                           : (isSelected
                                 ? 1.8
-                                : (isToday
-                                      ? 1.2
-                                      : (isAchromatopsia &&
-                                                (hasMissedPrescription ||
-                                                    (medRate != null &&
-                                                        !isMed100))
-                                            ? 1.8
-                                            : 0.0)));
+                                : (isToday ? 1.2 : 0.0));
 
                       Color medBarColor = currentDoneGreen;
                       bool hasMedBar = false;
@@ -1594,14 +1587,7 @@ class _CalendarTabViewState extends State<CalendarTabView> {
                                               : AppColors.primaryPurple.withValues(
                                                   alpha: 0.5,
                                                 ))
-                                        : (isAchromatopsia &&
-                                                  (hasMissedPrescription ||
-                                                      (medRate != null &&
-                                                          !isMed100))
-                                              ? (isDarkCalendar
-                                                    ? const Color(0xFF666666)
-                                                    : const Color(0xFF333333))
-                                              : Colors.transparent)),
+                                        : Colors.transparent),
                               // 오늘을 선택한 경우에만 현재 위치가 확실히 보이도록 더 굵게 표시한다.
                               width: selectedBorderWidth,
                             ),
