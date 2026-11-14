@@ -679,7 +679,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                             ),
                             const SizedBox(height: 2),
                             Text(
-                              '탭을 넘나들며 직접 버튼을 누르고 배우는 온보딩 가이드',
+                              '탭을 넘나들며 직접 버튼을 누르고 배우는 가이드',
                               style: TextStyle(
                                 fontSize: 11,
                                 color: AppColors.textSecondary,
@@ -1599,9 +1599,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
     await showDialog<void>(
       context: context,
       builder: (dialogContext) => AlertDialog(
-        title: const Text('남은 알약 수'),
+        title: const Text('남은 약 확인'),
         content: tracked.isEmpty
-            ? const Text('알약 수를 추적 중인 약이 없어요. 약을 추가하거나 수정할 때 추적 기능을 켤 수 있어요.')
+            ? const Text('남은 약을 추적 중인 약이 없어요. 약을 추가하거나 수정할 때 추적 기능을 켤 수 있어요.')
             : StatefulBuilder(
                 builder: (ctx, setDialogState) => Column(
                   mainAxisSize: MainAxisSize.min,
@@ -1703,7 +1703,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       ),
                       SizedBox(height: 3),
                       Text(
-                        '정신약학 맞춤 복약 솔루션 · v0.128.333',
+                        '정신약학 맞춤 복약 솔루션 · v0.129.334',
                         style: TextStyle(
                           fontSize: 12,
                           color: AppColors.textSecondary,
@@ -1720,56 +1720,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
               decoration: BoxDecoration(
                 color: AppColors.cardSurface,
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(
-                  color: AppColors.divider.withValues(alpha: 0.5),
-                ),
-              ),
-              child: SwitchListTile(
-                contentPadding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 4,
-                ),
-                secondary: Icon(
-                  _state.currentThemeKey == AppColors.themeDark
-                      ? Icons.dark_mode_outlined
-                      : Icons.light_mode_outlined,
-                  color: AppColors.primaryPurple,
-                ),
-                title: Text(
-                  '다크 모드',
-                  style: TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                    color: AppColors.textPrimary,
-                  ),
-                ),
-                subtitle: Text(
-                  '앱 화면을 어두운 색상으로 표시해요',
-                  style: TextStyle(
-                    fontSize: 11.5,
-                    color: AppColors.textSecondary,
-                  ),
-                ),
-                value: _state.currentThemeKey == AppColors.themeDark,
-                onChanged: (enabled) {
-                  _state.setTheme(
-                    enabled ? AppColors.themeDark : AppColors.themeDefault,
-                  );
-                },
-              ),
-            ),
-            const SizedBox(height: 18),
-
-            Container(
-              decoration: BoxDecoration(
-                color: AppColors.cardSurface,
-                borderRadius: BorderRadius.circular(12),
                 border: Border.all(color: AppColors.divider.withValues(alpha: 0.5)),
               ),
               child: ListTile(
                 leading: Icon(Icons.medication_outlined, color: AppColors.primaryPurple),
                 title: Text(
-                  '남은 알약 수 확인',
+                  '남은 약 확인',
                   style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: AppColors.textPrimary),
                 ),
                 subtitle: Text(
@@ -1786,7 +1742,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             Padding(
               padding: EdgeInsets.only(left: 4, bottom: 8),
               child: Text(
-                '알림 및 임상 안전',
+                '알림',
                 style: TextStyle(
                   fontSize: 13,
                   fontWeight: FontWeight.bold,
@@ -2172,36 +2128,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   ),
                   const Divider(height: 1, color: Color(0xFFF3F4F6)),
                   ],
-                  // 6) 🎨 적록색맹 보조 색상 모드
-                  SwitchListTile(
-                    contentPadding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 4,
-                    ),
-                    activeThumbColor: AppColors.primaryPurple,
-                    secondary: Icon(
-                      Icons.visibility_outlined,
-                      color: AppColors.primaryPurple,
-                    ),
-                    title: Text(
-                      '적록색맹 보조 색상 모드',
-                      style: TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600,
-                        color: AppColors.textPrimary,
-                      ),
-                    ),
-                    subtitle: Text(
-                      '완료·성공 색상은 파랑으로, 경고·미완료 색상은 노랑으로 표시해요',
-                      style: TextStyle(
-                        fontSize: 11.5,
-                        color: AppColors.textSecondary,
-                      ),
-                    ),
-                    value: _state.colorVisionModeEnabled,
-                    onChanged: (val) => _state.setColorVisionMode(val),
-                  ),
-                  const Divider(height: 1, color: Color(0xFFF3F4F6)),
                   // 6) ☀️ 하루 갱신 기준 시각 (기본 오전 8:00)
                   ListTile(
                     contentPadding: const EdgeInsets.symmetric(
@@ -2275,7 +2201,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             Padding(
               padding: EdgeInsets.only(left: 4, bottom: 8),
               child: Text(
-                '데이터 및 의료진 상담',
+                '편의사항',
                 style: TextStyle(
                   fontSize: 13,
                   fontWeight: FontWeight.bold,
@@ -2283,6 +2209,87 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 ),
               ),
             ),
+            Container(
+              decoration: BoxDecoration(
+                color: AppColors.cardSurface,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: AppColors.divider.withValues(alpha: 0.5),
+                ),
+              ),
+              child: SwitchListTile(
+                contentPadding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 4,
+                ),
+                secondary: Icon(
+                  _state.currentThemeKey == AppColors.themeDark
+                      ? Icons.dark_mode_outlined
+                      : Icons.light_mode_outlined,
+                  color: AppColors.primaryPurple,
+                ),
+                title: Text(
+                  '다크 모드',
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.textPrimary,
+                  ),
+                ),
+                subtitle: Text(
+                  '앱 화면을 어두운 색상으로 표시해요',
+                  style: TextStyle(
+                    fontSize: 11.5,
+                    color: AppColors.textSecondary,
+                  ),
+                ),
+                value: _state.currentThemeKey == AppColors.themeDark,
+                onChanged: (enabled) {
+                  _state.setTheme(
+                    enabled ? AppColors.themeDark : AppColors.themeDefault,
+                  );
+                },
+              ),
+            ),
+            const SizedBox(height: 18),
+            Container(
+              decoration: BoxDecoration(
+                color: AppColors.cardSurface,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: AppColors.divider.withValues(alpha: 0.5),
+                ),
+              ),
+              child: SwitchListTile(
+                contentPadding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 4,
+                ),
+                activeThumbColor: AppColors.primaryPurple,
+                secondary: Icon(
+                  Icons.visibility_outlined,
+                  color: AppColors.primaryPurple,
+                ),
+                title: Text(
+                  '적록색맹 보조 색상 모드',
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.textPrimary,
+                  ),
+                ),
+                subtitle: Text(
+                  '완료·성공 색상은 파랑으로, 경고·미완료 색상은 노랑으로 표시해요',
+                  style: TextStyle(
+                    fontSize: 11.5,
+                    color: AppColors.textSecondary,
+                  ),
+                ),
+                value: _state.colorVisionModeEnabled,
+                onChanged: (val) => _state.setColorVisionMode(val),
+              ),
+            ),
+            const SizedBox(height: 18),
             Container(
               decoration: BoxDecoration(
                 color: AppColors.cardSurface,
@@ -2569,7 +2576,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       ),
                     ),
                     subtitle: Text(
-                      '앱을 다시 열었을 때 시작 모드(바로 시작/온보딩/개발자) 선택창 다시 띄우기',
+                      '앱을 다시 열었을 때 시작 모드(바로 시작/가이드/개발자) 선택창 다시 띄우기',
                       style: TextStyle(
                         fontSize: 11.5,
                         color: AppColors.textSecondary,

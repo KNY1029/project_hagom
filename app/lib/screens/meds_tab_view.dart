@@ -295,7 +295,7 @@ class _MedsTabViewState extends State<MedsTabView> {
                         contentPadding: EdgeInsets.zero,
                         dense: true,
                         title: const Text(
-                          '남은 알약 수 추적하기',
+                          '남은 약 추적하기',
                           style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
                         ),
                         value: trackPillCount,

@@ -104,13 +104,6 @@ class _SplashScreenState extends State<SplashScreen> {
       barrierDismissible: false,
       builder: (dCtx) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: Row(
-          children: [
-            Icon(Icons.start, color: AppColors.primaryPurple, size: 24),
-            SizedBox(width: 8),
-            Text('시작 모드 선택', style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
-          ],
-        ),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -121,7 +114,7 @@ class _SplashScreenState extends State<SplashScreen> {
             ),
             SizedBox(height: 8),
             Text(
-              '• 바로 시작: 튜토리얼이나 복잡한 설정 없이 내 일과로 바로 진입해요.\n• 온보딩 튜토리얼: 핵심 기능(복약·습관·달력·방)을 직접 누르며 체험해요.',
+              '• 바로 시작: 가이드 없이 내 일과로 바로 진입해요.\n• 가이드: 핵심 기능(복약·습관·달력·방)을 직접 누르며 체험해요.',
               style: TextStyle(fontSize: 12.5, height: 1.5, color: AppColors.textSecondary),
             ),
           ],
@@ -150,13 +143,13 @@ class _SplashScreenState extends State<SplashScreen> {
                 _startTutorialOnMain = false;
                 _checkGreetingAndProceed();
               },
-              child: const Text('바로 시작하기 (기본 클린 상태)', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13.5)),
+              child: const Text('바로 시작하기', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13.5)),
               ),
             ),
           ),
           const SizedBox(height: 8),
 
-          // 2) 🎓 온보딩 튜토리얼 시작
+          // 2) 🎓 가이드 시작
           Listener(
             onPointerDown: (event) => _onDeveloperGesturePointerDown(dCtx, event.pointer),
             onPointerUp: (event) => _onDeveloperGesturePointerUp(event.pointer),
@@ -178,7 +171,7 @@ class _SplashScreenState extends State<SplashScreen> {
                 _startTutorialOnMain = true;
                 _checkGreetingAndProceed();
               },
-              child: const Text('온보딩 튜토리얼 시작 (체험형 가이드)', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13.5)),
+              child: const Text('가이드 시작하기', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13.5)),
               ),
             ),
           ),
