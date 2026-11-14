@@ -644,6 +644,7 @@ class AppStateManager extends ChangeNotifier {
         slot.isSkipped = false;
         slot.takenTime = null;
         slot.takenDate = null;
+        slot.skippedTime = null;
       }
       med.skipReason = null;
     }
@@ -1880,12 +1881,20 @@ class AppStateManager extends ChangeNotifier {
     med.remainingPillCount = count.clamp(0, 999999);
     notifyListeners();
   }
+  String _currentTimeString() {
+    final now = DateTime.now();
+    final period = now.hour >= 12 ? '오후' : '오전';
+    final displayHour = now.hour > 12 ? now.hour - 12 : (now.hour == 0 ? 12 : now.hour);
+    return '$period $displayHour:${now.minute.toString().padLeft(2, '0')}';
+  }
+
   // 🌿 특정 회차만 건너뛰기 처리 (다음 대기 회차 슬롯 건너뜀)
   void skipNextSlot(String id, {String? reason}) {
     final med = _medications.firstWhere((m) => m.id == id);
     final target = med.nextPendingSlot;
     if (target != null) {
       target.isSkipped = true;
+      target.skippedTime = _currentTimeString();
       final trimmedReason = reason?.trim();
       med.skipReason = trimmedReason == null || trimmedReason.isEmpty
           ? null
@@ -1899,6 +1908,7 @@ class AppStateManager extends ChangeNotifier {
     final med = _medications.firstWhere((m) => m.id == id);
     if (slotIndex >= 0 && slotIndex < med.doseSlots.length) {
       med.doseSlots[slotIndex].isSkipped = true;
+      med.doseSlots[slotIndex].skippedTime = _currentTimeString();
       notifyListeners();
     }
   }
@@ -1908,6 +1918,7 @@ class AppStateManager extends ChangeNotifier {
     final med = _medications.firstWhere((m) => m.id == id);
     if (slotIndex >= 0 && slotIndex < med.doseSlots.length) {
       med.doseSlots[slotIndex].isSkipped = false;
+      med.doseSlots[slotIndex].skippedTime = null;
       if (!med.doseSlots.any((slot) => slot.isSkipped)) {
         med.skipReason = null;
       }
@@ -2486,7 +2497,9 @@ class AppStateManager extends ChangeNotifier {
             final isDone = isSlotCompletedForDay(day, med.id, slotIdx);
             final takenTime =
                 getSlotTakenTimeForDay(day, med.id, slotIdx) ??
-                (isDone ? (slot.scheduledTime ?? '완료') : '-');
+                (isDone
+                    ? (slot.scheduledTime ?? '완료')
+                    : (slot.isSkipped ? (slot.skippedTime ?? '-') : '-'));
             final statusStr = isDone
                 ? '복용 완료'
                 : (slot.isSkipped ? '건너뜀' : '미복용/대기');
@@ -2550,7 +2563,9 @@ class AppStateManager extends ChangeNotifier {
             final isDone = isSlotCompletedForDay(day, med.id, slotIdx);
             final takenTime =
                 getSlotTakenTimeForDay(day, med.id, slotIdx) ??
-                (isDone ? (slot.scheduledTime ?? '완료') : '-');
+                (isDone
+                    ? (slot.scheduledTime ?? '완료')
+                    : (slot.isSkipped ? (slot.skippedTime ?? '-') : '-'));
             final statusStr = isDone
                 ? '복용 완료'
                 : (slot.isSkipped ? '건너뜀' : '미복용/대기');
@@ -2714,7 +2729,9 @@ class AppStateManager extends ChangeNotifier {
             final isDone = isSlotCompletedForDay(day, med.id, slotIdx);
             final takenTime =
                 getSlotTakenTimeForDay(day, med.id, slotIdx) ??
-                (isDone ? (slot.scheduledTime ?? '완료') : '-');
+                (isDone
+                    ? (slot.scheduledTime ?? '완료')
+                    : (slot.isSkipped ? (slot.skippedTime ?? '-') : '-'));
             final statusStr = isDone
                 ? '복용 완료'
                 : (slot.isSkipped ? '건너뜀' : '미복용/대기');
@@ -2753,7 +2770,9 @@ class AppStateManager extends ChangeNotifier {
             final isDone = isSlotCompletedForDay(day, med.id, slotIdx);
             final takenTime =
                 getSlotTakenTimeForDay(day, med.id, slotIdx) ??
-                (isDone ? (slot.scheduledTime ?? '완료') : '-');
+                (isDone
+                    ? (slot.scheduledTime ?? '완료')
+                    : (slot.isSkipped ? (slot.skippedTime ?? '-') : '-'));
             final statusStr = isDone
                 ? '복용 완료'
                 : (slot.isSkipped ? '건너뜀' : '미복용/대기');

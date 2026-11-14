@@ -2385,7 +2385,7 @@ class _MedsTabViewState extends State<MedsTabView> {
                                       ),
                                       child: Text(
                                         slot.isSkipped
-                                            ? '${slot.label} 건너뜀'
+                                            ? '${slot.label} 건너뜀 ${slot.skippedTime?.split(' ').last ?? ''}'
                                             : (slot.isCompleted
                                                   ? '${slot.label} ${slot.takenTime?.split(' ').last ?? slot.scheduledTime?.split(' ').last ?? ''}'
                                                         .trim()
