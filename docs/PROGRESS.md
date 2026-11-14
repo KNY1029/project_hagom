@@ -62,3 +62,19 @@
 
 ## 저장소 상태
 - 모든 문서 및 소스코드가 최신 상태로 깃허브 원격 저장소(`origin/main`)에 동기화됨.
+
+## 5단계: 전색맹 다크모드 완전 색 반전, 위젯 행 버튼 흑백 테마 및 달력 점선 전폭 확장 (2026-11-15, v0.143.362)
+- **3x1 위젯 하위 행 버튼 및 텍스트 흑백/다크모드 완벽 반영**:
+  - `WidgetBindings.bindRow`에서 완료, 부분 실천, 대기, 복용 등 모든 상태에 대해 전색맹 라이트/다크 전용 배경(`hagom_widget_mono_done_dark_btn_bg`, `hagom_widget_mono_partial_dark_btn_bg`, `hagom_widget_mono_outline_btn_bg`) 적용.
+  - 행별 제목 텍스트(`meds_row_n_text`, `habits_row_n_text`, `cal_row_n_text`) 색상을 다크모드/전색맹 모드에 맞게 동적 바인딩.
+  - 복약/습관 100% 완료 축하 뷰의 배지 및 타이틀 색상도 전색맹/다크모드 전용 흑백으로 완전 교체.
+- **달력 위젯 미복용 처방약 점선 표시 전폭 확장**:
+  - `hagom_calendar_mono_missed.xml`의 점선 배치를 120dp(30개 도트)까지 촘촘하게 확장하여 기기 해상도나 셀 너비에 구애받지 않고 날짜 셀 하단부 전체에 걸쳐 균일하게 그어지도록 개선.
+  - 다크모드 전용 점선 드로어블(`hagom_calendar_mono_dark_missed.xml`)을 추가하여 어두운 셀 배경 위에서도 흰색 점선으로 선명하게 표시.
+  - 인앱 달력(`calendar_tab_view.dart`)의 점선 바 여백도 좌우 4px, 9개 도트로 확장하여 전체 너비 커버.
+- **전색맹 모드 + 다크모드 완전 색 반전(Inversion) 구현**:
+  - 전색맹 다크모드 상태에서 완료 배경(`completedBg`, `successBg`)을 어두운 회색이 아닌 밝은 반전 그레이(`0xFFE5E5E5`)와 흑색 텍스트(`0xFF111111`)로 완전 반전시켜 배경과 명확한 고대비 제공.
+  - 한 달 달력 위젯(`HagomMonthCalendarWidgetProvider`)에 다크모드 전색맹 셀 드로어블 세트(`hagom_calendar_mono_dark_*`)를 신설하여 어두운 위젯 배경 위에서 흰색 텍스트와 어두운 셀이 조화를 이루도록 전면 개편.
+  - `main.dart`의 `ThemeData`에서 전색맹 모드 시 Material 3의 자동 보라색 틴트가 생성되지 않도록 명시적 무채색 `ColorScheme` 정의.
+  - 설정 화면에서 모드 및 테마 전환 시 즉시 네이티브 위젯이 업데이트되도록 `updateNativeWidget` 호출 연동.
+  - 타 모드(기본 테마, 적록색맹 보조 모드, 일반 다크모드)의 색상과 동작은 철저히 원본 유지.

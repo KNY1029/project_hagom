@@ -1029,12 +1029,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       leading: Container(
                         padding: const EdgeInsets.all(8),
                         decoration: BoxDecoration(
-                          color: Colors.orange.withValues(alpha: 0.1),
+                          color: AppColors.partialOrange.withValues(alpha: 0.1),
                           borderRadius: BorderRadius.circular(8),
                         ),
-                        child: const Icon(
+                        child: Icon(
                           Icons.checklist,
-                          color: Colors.orange,
+                          color: AppColors.partialOrange,
                           size: 20,
                         ),
                       ),
@@ -1372,7 +1372,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                 style: TextStyle(
                                   fontSize: 11,
                                   color: m.isArchived
-                                      ? Colors.orange
+                                      ? AppColors.partialOrange
                                       : AppColors.successGreen,
                                 ),
                               ),
@@ -1436,7 +1436,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                 style: TextStyle(
                                   fontSize: 11,
                                   color: h.isArchived
-                                      ? Colors.orange
+                                      ? AppColors.partialOrange
                                       : AppColors.successGreen,
                                 ),
                               ),
@@ -1475,10 +1475,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
                             padding: const EdgeInsets.symmetric(vertical: 8),
                             child: Text(
                               '🗓️ 할일 목록 (${allTasks.length}개)',
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontWeight: FontWeight.bold,
                                 fontSize: 13,
-                                color: Color(0xFFB58A32),
+                                color: AppColors.warmBrown,
                               ),
                             ),
                           ),
@@ -1703,7 +1703,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       ),
                       SizedBox(height: 3),
                       Text(
-                        '정신약학 맞춤 복약 솔루션 · v0.143.361',
+                        '정신약학 맞춤 복약 솔루션 · v0.143.362',
                         style: TextStyle(
                           fontSize: 12,
                           color: AppColors.textSecondary,
@@ -1845,7 +1845,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       ],
                     ),
                   ),
-                  const Divider(height: 1, color: Color(0xFFF3F4F6)),
+                  Divider(height: 1, color: AppColors.divider),
 
                   // 2) 기능별 알림은 상세 설정 안에서 접었다 펼쳐 본다.
                   ExpansionTile(
@@ -1942,7 +1942,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       }
                     },
                   ),
-                  const Divider(height: 1, color: Color(0xFFF3F4F6)),
+                  Divider(height: 1, color: AppColors.divider),
 
                   // 3) 🌱 작은 습관 알림
                   SwitchListTile(
@@ -1969,7 +1969,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     value: _state.habitNotificationEnabled,
                     onChanged: (val) => _state.setHabitNotification(val),
                   ),
-                  const Divider(height: 1, color: Color(0xFFF3F4F6)),
+                  Divider(height: 1, color: AppColors.divider),
 
                   // 4) 🗓️ 할일 및 일정 알림
                   SwitchListTile(
@@ -1996,7 +1996,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     value: _state.tasksNotificationEnabled,
                     onChanged: (val) => _state.setTasksNotification(val),
                   ),
-                  const Divider(height: 1, color: Color(0xFFF3F4F6)),
+                  Divider(height: 1, color: AppColors.divider),
 
                   // 5) 🐻 하곰이 응원 및 넛지 알림
                   SwitchListTile(
@@ -2023,10 +2023,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     value: _state.mascotNotificationEnabled,
                     onChanged: (val) => _state.setMascotNotification(val),
                   ),
-                  const Divider(height: 1, color: Color(0xFFF3F4F6)),
+                  Divider(height: 1, color: AppColors.divider),
                     ],
                   ),
-                  const Divider(height: 1, color: Color(0xFFF3F4F6)),
+                  Divider(height: 1, color: AppColors.divider),
 
                   // 🌟 [완료 기록 안내 팝업(토스트) 켜기/끄기 스위치]
                   SwitchListTile(
@@ -2054,7 +2054,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     onChanged: (val) =>
                         _state.setCompletionFeedbackEnabled(val),
                   ),
-                  const Divider(height: 1, color: Color(0xFFF3F4F6)),
+                  Divider(height: 1, color: AppColors.divider),
 
                   // 🌟 [알림 테스트 (개발자 모드용)]
                   if (showDeveloperTools) ...[
@@ -2152,7 +2152,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       ],
                     ),
                   ),
-                  const Divider(height: 1, color: Color(0xFFF3F4F6)),
+                  Divider(height: 1, color: AppColors.divider),
                   ],
                   // 6) ☀️ 하루 갱신 기준 시각 (기본 오전 8:00)
                   ListTile(
@@ -2278,7 +2278,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       );
                     },
                   ),
-                  const Divider(height: 1, color: Color(0xFFF3F4F6)),
+                  Divider(height: 1, color: AppColors.divider),
                   SwitchListTile(
                     contentPadding: const EdgeInsets.symmetric(
                       horizontal: 16,
@@ -2307,7 +2307,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     value: _state.colorVisionModeEnabled,
                     onChanged: (val) => _state.setColorVisionMode(val),
                   ),
-                  const Divider(height: 1, color: Color(0xFFF3F4F6)),
+                  Divider(height: 1, color: AppColors.divider),
                   SwitchListTile(
                     contentPadding: const EdgeInsets.symmetric(
                       horizontal: 16,
@@ -2336,7 +2336,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     value: _state.achromatopsiaModeEnabled,
                     onChanged: (val) => _state.setAchromatopsiaMode(val),
                   ),
-                  const Divider(height: 1, color: Color(0xFFF3F4F6)),
+                  Divider(height: 1, color: AppColors.divider),
                   ListTile(
                     contentPadding: const EdgeInsets.symmetric(
                       horizontal: 16,
@@ -2368,7 +2368,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     ),
                     onTap: _showPrivacyPolicyModal,
                   ),
-                  const Divider(height: 1, color: Color(0xFFF3F4F6)),
+                  Divider(height: 1, color: AppColors.divider),
                   ListTile(
                     contentPadding: const EdgeInsets.symmetric(
                       horizontal: 16,
@@ -2400,7 +2400,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     ),
                     onTap: _showAppGuideModal,
                   ),
-                  const Divider(height: 1, color: Color(0xFFF3F4F6)),
+                  Divider(height: 1, color: AppColors.divider),
                   if (showDeveloperTools) ...[
                   ListTile(
                     contentPadding: const EdgeInsets.symmetric(
@@ -2439,7 +2439,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       );
                     },
                   ),
-                  const Divider(height: 1, color: Color(0xFFF3F4F6)),
+                  Divider(height: 1, color: AppColors.divider),
                   ],
                   ListTile(
                     contentPadding: const EdgeInsets.symmetric(
@@ -2479,7 +2479,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       );
                     },
                   ),
-                  const Divider(height: 1, color: Color(0xFFF3F4F6)),
+                  Divider(height: 1, color: AppColors.divider),
                   if (showDeveloperTools) ...[
                   ListTile(
                     contentPadding: const EdgeInsets.symmetric(
@@ -2520,7 +2520,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       );
                     },
                   ),
-                  const Divider(height: 1, color: Color(0xFFF3F4F6)),
+                  Divider(height: 1, color: AppColors.divider),
                   ListTile(
                     contentPadding: const EdgeInsets.symmetric(
                       horizontal: 16,
@@ -2560,7 +2560,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       );
                     },
                   ),
-                  const Divider(height: 1, color: Color(0xFFF3F4F6)),
+                  Divider(height: 1, color: AppColors.divider),
                   ],
                   ListTile(
                     contentPadding: const EdgeInsets.symmetric(
@@ -2593,7 +2593,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     ),
                     onTap: _exportMedicalCsv,
                   ),
-                  const Divider(height: 1, color: Color(0xFFF3F4F6)),
+                  Divider(height: 1, color: AppColors.divider),
                   if (showDeveloperTools) ...[
                   ListTile(
                     contentPadding: const EdgeInsets.symmetric(
@@ -2633,7 +2633,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       );
                     },
                   ),
-                  const Divider(height: 1, color: Color(0xFFF3F4F6)),
+                  Divider(height: 1, color: AppColors.divider),
                   ],
                   ListTile(
                     contentPadding: const EdgeInsets.symmetric(

@@ -128,28 +128,48 @@ object WidgetBindings {
         views.setViewVisibility(rowId, View.VISIBLE)
         views.setTextViewText(textId, display)
 
+        val isDark = prefs.getString("theme_dark", "false") == "true"
+        val isColorVision = prefs.getString("theme_color_vision", "false") == "true"
+        val isAchromatopsia = prefs.getString("theme_achromatopsia", "false") == "true"
+        val rowTextColor = Color.parseColor(if (isAchromatopsia) {
+            if (isDark) "#F5F5F5" else "#222222"
+        } else if (isDark) "#F3F0F7" else "#1F2937")
+        views.setTextColor(textId, rowTextColor)
+
         val customLabel = if (customBtnLabelKey.isNotEmpty()) text(prefs, customBtnLabelKey) else ""
         val customState = if (customBtnStateKey.isNotEmpty()) text(prefs, customBtnStateKey) else ""
         val isDone = prefs.getString(doneKey, "false") == "true" || customState == "done"
-        val isColorVision = prefs.getString("theme_color_vision", "false") == "true"
-        val isAchromatopsia = prefs.getString("theme_achromatopsia", "false") == "true"
 
         if (isDone) {
             views.setTextViewText(btnId, "완료")
-            views.setInt(btnId, "setBackgroundResource", if (isAchromatopsia) R.drawable.hagom_widget_mono_done_btn_bg else if (isColorVision) R.drawable.hagom_widget_blue_btn_bg else R.drawable.hagom_widget_green_btn_bg)
-            views.setTextColor(btnId, Color.parseColor(if (isAchromatopsia) "#FFFFFF" else if (isColorVision) "#1D4ED8" else "#1B6B46"))
+            val doneBg = if (isAchromatopsia) {
+                if (isDark) R.drawable.hagom_widget_mono_done_dark_btn_bg else R.drawable.hagom_widget_mono_done_btn_bg
+            } else if (isColorVision) R.drawable.hagom_widget_blue_btn_bg else R.drawable.hagom_widget_green_btn_bg
+            val doneTextColor = Color.parseColor(if (isAchromatopsia) {
+                if (isDark) "#111111" else "#FFFFFF"
+            } else if (isColorVision) "#1D4ED8" else "#1B6B46")
+            views.setInt(btnId, "setBackgroundResource", doneBg)
+            views.setTextColor(btnId, doneTextColor)
         } else if (customLabel.isNotEmpty()) {
-            val isDark = prefs.getString("theme_dark", "false") == "true"
             views.setTextViewText(btnId, customLabel)
             if (customState == "partial") {
-                views.setInt(btnId, "setBackgroundResource", if (isAchromatopsia) R.drawable.hagom_widget_mono_partial_btn_bg else R.drawable.hagom_widget_brown_btn_bg)
-                views.setTextColor(btnId, Color.parseColor(if (isAchromatopsia) (if (isDark) "#E0E0E0" else "#555555") else "#8B5E3C"))
+                val partialBg = if (isAchromatopsia) {
+                    if (isDark) R.drawable.hagom_widget_mono_partial_dark_btn_bg else R.drawable.hagom_widget_mono_partial_btn_bg
+                } else R.drawable.hagom_widget_brown_btn_bg
+                val partialTextColor = Color.parseColor(if (isAchromatopsia) {
+                    if (isDark) "#E0E0E0" else "#555555"
+                } else "#8B5E3C")
+                views.setInt(btnId, "setBackgroundResource", partialBg)
+                views.setTextColor(btnId, partialTextColor)
             } else {
-                views.setInt(btnId, "setBackgroundResource", if (isAchromatopsia) R.drawable.hagom_widget_mono_outline_btn_bg else R.drawable.hagom_widget_gray_btn_bg)
-                views.setTextColor(btnId, Color.parseColor(if (isAchromatopsia) (if (isDark) "#E0E0E0" else "#555555") else "#6B7280"))
+                val standbyBg = if (isAchromatopsia) R.drawable.hagom_widget_mono_outline_btn_bg else R.drawable.hagom_widget_gray_btn_bg
+                val standbyTextColor = Color.parseColor(if (isAchromatopsia) {
+                    if (isDark) "#FFFFFF" else "#555555"
+                } else "#6B7280")
+                views.setInt(btnId, "setBackgroundResource", standbyBg)
+                views.setTextColor(btnId, standbyTextColor)
             }
         } else {
-            val isDark = prefs.getString("theme_dark", "false") == "true"
             views.setTextViewText(btnId, pendingLabel)
             views.setInt(
                 btnId,

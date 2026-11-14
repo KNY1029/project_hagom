@@ -1661,16 +1661,20 @@ class _CalendarTabViewState extends State<CalendarTabView> {
                               if (hasMedBar)
                                 Positioned(
                                   bottom: 4 * calendarScale,
-                                  // 🌟 8월 레이아웃 통일: 좌우 8px 여백, 두께 3.5px, 둥근 모서리
-                                  left: 8 * calendarScale,
-                                  right: 8 * calendarScale,
+                                  // 🌟 8월 레이아웃 통일: 좌우 여백(점선은 하단에 넓게 확장), 두께 3.5px, 둥근 모서리
+                                  left: isAchromatopsia && hasMissedPrescription
+                                      ? 4 * calendarScale
+                                      : 8 * calendarScale,
+                                  right: isAchromatopsia && hasMissedPrescription
+                                      ? 4 * calendarScale
+                                      : 8 * calendarScale,
                                   child: isAchromatopsia &&
                                           hasMissedPrescription
                                       ? Row(
                                           mainAxisAlignment:
                                               MainAxisAlignment.spaceBetween,
                                           children: List.generate(
-                                            7,
+                                            9,
                                             (_) => Container(
                                               width: barThickness,
                                               height: barThickness,

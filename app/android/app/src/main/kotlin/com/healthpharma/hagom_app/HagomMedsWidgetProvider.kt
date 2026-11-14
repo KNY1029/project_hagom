@@ -68,6 +68,26 @@ class HagomMedsWidgetProvider : HomeWidgetProvider() {
                     setViewVisibility(R.id.meds_normal_view, View.GONE)
                     val progress = WidgetBindings.text(widgetData, "meds_progress")
                     setTextViewText(R.id.meds_celebration_badge, "오늘 복약 완료 ($progress)")
+                    val isColorVision = widgetData.getString("theme_color_vision", "false") == "true"
+                    setInt(
+                        R.id.meds_celebration_badge,
+                        "setBackgroundResource",
+                        if (isAchromatopsia) {
+                            if (isDark) R.drawable.hagom_widget_mono_done_dark_btn_bg else R.drawable.hagom_widget_mono_done_btn_bg
+                        } else if (isColorVision) R.drawable.hagom_widget_blue_btn_bg else R.drawable.hagom_widget_done_bg
+                    )
+                    setTextColor(
+                        R.id.meds_celebration_badge,
+                        Color.parseColor(if (isAchromatopsia) {
+                            if (isDark) "#111111" else "#FFFFFF"
+                        } else if (isColorVision) "#1D4ED8" else "#044E36")
+                    )
+                    setTextColor(
+                        R.id.meds_celebration_title,
+                        Color.parseColor(if (isAchromatopsia) {
+                            if (isDark) "#F5F5F5" else "#222222"
+                        } else if (isDark) "#F3F0F7" else "#1F2937")
+                    )
                 } else {
                     setViewVisibility(R.id.meds_celebration_view, View.GONE)
                     setViewVisibility(R.id.meds_normal_view, View.VISIBLE)
@@ -98,9 +118,17 @@ class HagomMedsWidgetProvider : HomeWidgetProvider() {
                     val isBtnDone = (btnTitle == "완료" || allDone)
                     val isColorVision = widgetData.getString("theme_color_vision", "false") == "true"
                     val bgRes = if (isBtnDone) {
-                        if (isAchromatopsia) R.drawable.hagom_widget_mono_done_btn_bg else if (isColorVision) R.drawable.hagom_widget_blue_btn_bg else R.drawable.hagom_widget_green_btn_bg
+                        if (isAchromatopsia) {
+                            if (isDark) R.drawable.hagom_widget_mono_done_dark_btn_bg else R.drawable.hagom_widget_mono_done_btn_bg
+                        } else if (isColorVision) R.drawable.hagom_widget_blue_btn_bg else R.drawable.hagom_widget_green_btn_bg
                     } else if (isAchromatopsia) R.drawable.hagom_widget_mono_outline_btn_bg else R.drawable.hagom_widget_btn_bg
-                    val txtColor = if (isBtnDone) Color.parseColor(if (isAchromatopsia) "#FFFFFF" else if (isColorVision) "#1D4ED8" else "#1B6B46") else if (isAchromatopsia) Color.parseColor("#555555") else Color.WHITE
+                    val txtColor = if (isBtnDone) {
+                        Color.parseColor(if (isAchromatopsia) {
+                            if (isDark) "#111111" else "#FFFFFF"
+                        } else if (isColorVision) "#1D4ED8" else "#1B6B46")
+                    } else if (isAchromatopsia) {
+                        Color.parseColor(if (isDark) "#FFFFFF" else "#555555")
+                    } else Color.WHITE
 
                     setInt(R.id.widget_meds_btn, "setBackgroundResource", bgRes)
                     setTextColor(R.id.widget_meds_btn_title, txtColor)

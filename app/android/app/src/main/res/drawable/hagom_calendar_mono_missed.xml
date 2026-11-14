@@ -17,4 +17,18 @@
     <item android:gravity="bottom|start" android:bottom="2dp" android:left="55dp"><shape android:shape="oval"><size android:width="3dp" android:height="3dp" /><solid android:color="#111111" /></shape></item>
     <item android:gravity="bottom|start" android:bottom="2dp" android:left="59dp"><shape android:shape="oval"><size android:width="3dp" android:height="3dp" /><solid android:color="#111111" /></shape></item>
     <item android:gravity="bottom|start" android:bottom="2dp" android:left="63dp"><shape android:shape="oval"><size android:width="3dp" android:height="3dp" /><solid android:color="#111111" /></shape></item>
+    <item android:gravity="bottom|start" android:bottom="2dp" android:left="67dp"><shape android:shape="oval"><size android:width="3dp" android:height="3dp" /><solid android:color="#111111" /></shape></item>
+    <item android:gravity="bottom|start" android:bottom="2dp" android:left="71dp"><shape android:shape="oval"><size android:width="3dp" android:height="3dp" /><solid android:color="#111111" /></shape></item>
+    <item android:gravity="bottom|start" android:bottom="2dp" android:left="75dp"><shape android:shape="oval"><size android:width="3dp" android:height="3dp" /><solid android:color="#111111" /></shape></item>
+    <item android:gravity="bottom|start" android:bottom="2dp" android:left="79dp"><shape android:shape="oval"><size android:width="3dp" android:height="3dp" /><solid android:color="#111111" /></shape></item>
+    <item android:gravity="bottom|start" android:bottom="2dp" android:left="83dp"><shape android:shape="oval"><size android:width="3dp" android:height="3dp" /><solid android:color="#111111" /></shape></item>
+    <item android:gravity="bottom|start" android:bottom="2dp" android:left="87dp"><shape android:shape="oval"><size android:width="3dp" android:height="3dp" /><solid android:color="#111111" /></shape></item>
+    <item android:gravity="bottom|start" android:bottom="2dp" android:left="91dp"><shape android:shape="oval"><size android:width="3dp" android:height="3dp" /><solid android:color="#111111" /></shape></item>
+    <item android:gravity="bottom|start" android:bottom="2dp" android:left="95dp"><shape android:shape="oval"><size android:width="3dp" android:height="3dp" /><solid android:color="#111111" /></shape></item>
+    <item android:gravity="bottom|start" android:bottom="2dp" android:left="99dp"><shape android:shape="oval"><size android:width="3dp" android:height="3dp" /><solid android:color="#111111" /></shape></item>
+    <item android:gravity="bottom|start" android:bottom="2dp" android:left="103dp"><shape android:shape="oval"><size android:width="3dp" android:height="3dp" /><solid android:color="#111111" /></shape></item>
+    <item android:gravity="bottom|start" android:bottom="2dp" android:left="107dp"><shape android:shape="oval"><size android:width="3dp" android:height="3dp" /><solid android:color="#111111" /></shape></item>
+    <item android:gravity="bottom|start" android:bottom="2dp" android:left="111dp"><shape android:shape="oval"><size android:width="3dp" android:height="3dp" /><solid android:color="#111111" /></shape></item>
+    <item android:gravity="bottom|start" android:bottom="2dp" android:left="115dp"><shape android:shape="oval"><size android:width="3dp" android:height="3dp" /><solid android:color="#111111" /></shape></item>
+    <item android:gravity="bottom|start" android:bottom="2dp" android:left="119dp"><shape android:shape="oval"><size android:width="3dp" android:height="3dp" /><solid android:color="#111111" /></shape></item>
 </layer-list>

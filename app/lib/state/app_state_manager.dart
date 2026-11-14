@@ -410,12 +410,14 @@ class AppStateManager extends ChangeNotifier {
     AppColors.applyTheme(theme);
     themeRevision++;
     notifyListeners();
+    HagomNativeWidgetSync.updateNativeWidget(this);
   }
 
   void setColorVisionMode(bool enabled) {
     colorVisionModeEnabled = enabled;
     AppColors.setColorVisionMode(enabled);
     notifyListeners();
+    HagomNativeWidgetSync.updateNativeWidget(this);
   }
 
   void setAchromatopsiaMode(bool enabled) {
@@ -424,6 +426,7 @@ class AppStateManager extends ChangeNotifier {
     AppColors.applyTheme(currentTheme);
     AppColors.setColorVisionMode(colorVisionModeEnabled);
     notifyListeners();
+    HagomNativeWidgetSync.updateNativeWidget(this);
   }
 
   /// 사용자 지정 테마를 목록에 추가하고 생성된 키를 반환 (적용은 applyTheme 으로 별도 수행)

@@ -48,6 +48,28 @@ class HagomMonthCalendarWidgetProvider : HomeWidgetProvider() {
         else -> R.drawable.hagom_calendar_mono_base
     }
 
+    private fun monoDarkCellBackground(status: String): Int = when (status) {
+        "today", "today_done" ->
+            R.drawable.hagom_calendar_mono_dark_today
+        "today_pin", "today_done_pin", "today_med_done_pin" ->
+            R.drawable.hagom_calendar_mono_dark_today_pin
+        "today_med_done_done_pin" -> R.drawable.hagom_calendar_mono_dark_bar_dark_pin
+        "all_done" -> R.drawable.hagom_calendar_mono_dark_done
+        "all_done_pin" -> R.drawable.hagom_calendar_mono_dark_done_pin
+        "mdone", "hdone_mdone" ->
+            R.drawable.hagom_calendar_mono_dark_bar_dark
+        "mdone_pin", "hdone_mdone_pin" ->
+            R.drawable.hagom_calendar_mono_dark_bar_dark_pin
+        "hdone_mpartial" -> R.drawable.hagom_calendar_mono_dark_hdone_partial
+        "hdone_mpartial_pin" -> R.drawable.hagom_calendar_mono_dark_hdone_partial_pin
+        "missed_med", "missed_med_pin", "hdone_mmissed", "hdone_mmissed_pin" ->
+            R.drawable.hagom_calendar_mono_dark_missed
+        "partial" -> R.drawable.hagom_calendar_mono_dark_bar_light
+        "partial_pin" -> R.drawable.hagom_calendar_mono_dark_bar_light_pin
+        "pin_only" -> R.drawable.hagom_calendar_mono_dark_pin
+        else -> R.drawable.hagom_calendar_mono_dark_base
+    }
+
     override fun onAppWidgetOptionsChanged(
         context: Context,
         appWidgetManager: AppWidgetManager,
@@ -122,7 +144,7 @@ class HagomMonthCalendarWidgetProvider : HomeWidgetProvider() {
                 for (n in 1..6) {
                     val taskId = context.resources.getIdentifier("month_task_$n", "id", context.packageName)
                     if (taskId != 0) {
-                        setTextColor(taskId, Color.parseColor(if (dark) "#E8E1F0" else "#374151"))
+                        setTextColor(taskId, Color.parseColor(if (isAchromatopsia) (if (dark) "#F5F5F5" else "#222222") else if (dark) "#E8E1F0" else "#374151"))
                     }
                 }
                 // 🌟 [할일 목록 바인딩: 4개일 때 좌2 + 우2 완벽 분할]:
@@ -217,7 +239,7 @@ class HagomMonthCalendarWidgetProvider : HomeWidgetProvider() {
                         val isDark = widgetData.getString("theme_dark", "false") == "true"
                         setTextColor(
                             resId,
-                            if (isAchromatopsia) Color.parseColor(if (isDark) "#F5F5F5" else "#333333")
+                            if (isAchromatopsia) Color.parseColor(if (isDark) "#F5F5F5" else "#222222")
                             else if (isSunday) Color.parseColor(if (isDark) "#FF8585" else "#EF4444")
                             else Color.parseColor(if (isDark) "#F3F0F7" else "#1F2937")
                         )
@@ -281,7 +303,7 @@ class HagomMonthCalendarWidgetProvider : HomeWidgetProvider() {
                             resId,
                             "setBackgroundResource",
                             when {
-                                isAchromatopsia -> monoCellBackground(status)
+                                isAchromatopsia -> if (isDark) monoDarkCellBackground(status) else monoCellBackground(status)
                                 isDark && !isColorVision -> darkCellBackground(status)
                                 else -> bgRes
                             }

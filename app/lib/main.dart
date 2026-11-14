@@ -247,15 +247,33 @@ class _HagomAppState extends State<HagomApp> with WidgetsBindingObserver {
                 ? Brightness.dark
                 : Brightness.light,
             scaffoldBackgroundColor: AppColors.activeBackground,
-            colorScheme: ColorScheme.fromSeed(
-              seedColor: AppColors.activePrimary,
-              brightness: state.currentThemeKey == AppColors.themeDark
-                  ? Brightness.dark
-                  : Brightness.light,
-              primary: AppColors.activePrimary,
-              secondary: AppColors.activeWarmAccent,
-              surface: AppColors.cardSurface,
-            ),
+            colorScheme: AppColors.achromatopsiaModeEnabled
+                ? ColorScheme(
+                    brightness: state.currentThemeKey == AppColors.themeDark
+                        ? Brightness.dark
+                        : Brightness.light,
+                    primary: AppColors.activePrimary,
+                    onPrimary: state.currentThemeKey == AppColors.themeDark
+                        ? const Color(0xFF111111)
+                        : Colors.white,
+                    secondary: AppColors.activeWarmAccent,
+                    onSecondary: state.currentThemeKey == AppColors.themeDark
+                        ? const Color(0xFF111111)
+                        : Colors.white,
+                    error: AppColors.missedRed,
+                    onError: Colors.white,
+                    surface: AppColors.cardSurface,
+                    onSurface: AppColors.activeTextPrimary,
+                  )
+                : ColorScheme.fromSeed(
+                    seedColor: AppColors.activePrimary,
+                    brightness: state.currentThemeKey == AppColors.themeDark
+                        ? Brightness.dark
+                        : Brightness.light,
+                    primary: AppColors.activePrimary,
+                    secondary: AppColors.activeWarmAccent,
+                    surface: AppColors.cardSurface,
+                  ),
             dialogTheme: DialogThemeData(
               backgroundColor: AppColors.cardSurface,
               surfaceTintColor: Colors.transparent,
