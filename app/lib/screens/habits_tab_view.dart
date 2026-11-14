@@ -26,6 +26,78 @@ class HabitsTabView extends StatefulWidget {
 class _HabitsTabViewState extends State<HabitsTabView> {
   final AppStateManager _state = AppStateManager();
 
+  TimeOfDay? _parseKoreanTime(String value) {
+    final match = RegExp(r'(오전|오후)\s*(\d{1,2}):(\d{2})').firstMatch(value);
+    if (match == null) return null;
+    var hour = int.tryParse(match.group(2)!) ?? 0;
+    final minute = int.tryParse(match.group(3)!) ?? 0;
+    if (match.group(1) == '오후' && hour < 12) hour += 12;
+    if (match.group(1) == '오전' && hour == 12) hour = 0;
+    return TimeOfDay(hour: hour, minute: minute);
+  }
+
+  Future<void> _showHabitCompletionActions(
+    HabitItem habit,
+    int completionIndex,
+  ) async {
+    if (completionIndex < 0 ||
+        completionIndex >= habit.completionTimes.length) {
+      return;
+    }
+    final shouldCancel = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('실천 기록 수정'),
+        content: Text(habit.completionTimes[completionIndex]),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(false),
+            child: const Text('취소'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(true),
+            child: Text(
+              '이 기록 취소',
+              style: TextStyle(color: AppColors.warmBrown),
+            ),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.of(dialogContext).pop(null),
+            child: const Text('시각 수정'),
+          ),
+        ],
+      ),
+    );
+
+    if (!mounted) return;
+    if (shouldCancel == true) {
+      _state.cancelHabitCompletion(habit.id, completionIndex);
+      CelebrationToast.show(
+        context,
+        title: '기록을 취소했어요',
+        message: '선택한 실천 기록 하나만 취소했어요.',
+      );
+      return;
+    }
+    if (shouldCancel == null) {
+      final initial = _parseKoreanTime(habit.completionTimes[completionIndex]);
+      final picked = await AppTimePicker.show(
+        context,
+        initialTime: initial,
+        title: '실천 시각 수정',
+      );
+      if (picked == null) return;
+      final period = picked.period == DayPeriod.am ? '오전' : '오후';
+      final hour = picked.hourOfPeriod == 0 ? 12 : picked.hourOfPeriod;
+      final minute = picked.minute.toString().padLeft(2, '0');
+      _state.updateHabitCompletionTime(
+        habit.id,
+        completionIndex,
+        '$period $hour:$minute',
+      );
+    }
+  }
+
   @override
   void initState() {
     super.initState();
@@ -1271,6 +1343,49 @@ class _HabitsTabViewState extends State<HabitsTabView> {
           // 카드 탭 시 펼쳐지는 아코디언 옵션 메뉴
           if (habit.isExpanded) ...[
             const Divider(height: 1),
+            if (habit.completionTimes.isNotEmpty)
+              Padding(
+                padding: const EdgeInsets.fromLTRB(14, 8, 14, 2),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      '실천 기록',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: AppColors.textSecondary,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Wrap(
+                        spacing: 6,
+                        runSpacing: 4,
+                        children: [
+                          for (var i = 0; i < habit.completionTimes.length; i++)
+                            ActionChip(
+                              label: Text(habit.completionTimes[i]),
+                              onPressed: () =>
+                                  _showHabitCompletionActions(habit, i),
+                              labelStyle: TextStyle(
+                                fontSize: 11,
+                                color: AppColors.primaryPurple,
+                              ),
+                              backgroundColor: AppColors.primaryPurple
+                                  .withValues(alpha: 0.08),
+                              side: BorderSide(
+                                color: AppColors.primaryPurple.withValues(
+                                  alpha: 0.25,
+                                ),
+                              ),
+                            ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
               child: Row(

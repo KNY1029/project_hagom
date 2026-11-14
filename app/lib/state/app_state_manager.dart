@@ -2164,6 +2164,41 @@ class AppStateManager extends ChangeNotifier {
     HagomNativeWidgetSync.updateNativeWidget(this);
   }
 
+  /// 저장된 습관 실천 기록 중 하나만 취소한다.
+  void cancelHabitCompletion(String id, int completionIndex) {
+    final habit = _habits.firstWhere((h) => h.id == id);
+    habit.ensureWeeklyPeriod(DateTime.now());
+    if (habit.currentCount <= 0) return;
+
+    final wasComplete = habit.score >= 1.0;
+    if (completionIndex >= 0 && completionIndex < habit.completionTimes.length) {
+      habit.completionTimes.removeAt(completionIndex);
+    }
+    habit.currentCount--;
+    if (wasComplete &&
+        habit.isWeeklyFrequencyHabit &&
+        habit.weeklyCompletedCount > 0) {
+      habit.weeklyCompletedCount--;
+    }
+    suspendWidgetSync = false;
+    notifyListeners();
+    HagomNativeWidgetSync.updateNativeWidget(this);
+  }
+
+  void updateHabitCompletionTime(
+    String id,
+    int completionIndex,
+    String newTime,
+  ) {
+    final habit = _habits.firstWhere((h) => h.id == id);
+    if (completionIndex < 0 || completionIndex >= habit.completionTimes.length) {
+      return;
+    }
+    habit.completionTimes[completionIndex] = newTime;
+    notifyListeners();
+    HagomNativeWidgetSync.updateNativeWidget(this);
+  }
+
   void toggleHabitExpanded(String id) {
     final habit = _habits.firstWhere((h) => h.id == id);
     habit.isExpanded = !habit.isExpanded;
