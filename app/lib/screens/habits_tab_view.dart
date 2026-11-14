@@ -362,7 +362,7 @@ class _HabitsTabViewState extends State<HabitsTabView> {
                                 decoration: BoxDecoration(
                                   color: isDaySel
                                       ? AppColors.primaryPurple
-                                      : const Color(0xFFF3F4F6),
+                                      : AppColors.inputSurface,
                                   borderRadius: BorderRadius.circular(8),
                                   border: Border.all(
                                     color: isDaySel
@@ -478,7 +478,7 @@ class _HabitsTabViewState extends State<HabitsTabView> {
                                 decoration: BoxDecoration(
                                   color: isSelected
                                       ? AppColors.primaryPurple
-                                      : const Color(0xFFF3F4F6),
+                                      : AppColors.inputSurface,
                                   borderRadius: BorderRadius.circular(8),
                                   border: Border.all(
                                     color: isSelected
@@ -891,7 +891,7 @@ class _HabitsTabViewState extends State<HabitsTabView> {
         decoration: BoxDecoration(
           color: AppColors.inputSurface,
           borderRadius: BorderRadius.circular(8),
-          border: Border.all(color: const Color(0xFFEEEEEE)),
+          border: Border.all(color: AppColors.divider),
         ),
         child: Row(
           children: [
@@ -1029,7 +1029,7 @@ class _HabitsTabViewState extends State<HabitsTabView> {
       final s = habit.score;
       if (s >= 1.0) return AppColors.completedBg;
       if (s > 0.0) return AppColors.partialBg;
-      return const Color(0xFFF3F4F6);
+      return AppColors.inputSurface;
     }
 
     return Container(
@@ -1124,7 +1124,7 @@ class _HabitsTabViewState extends State<HabitsTabView> {
                                   vertical: 2,
                                 ),
                                 decoration: BoxDecoration(
-                                  color: const Color(0xFFF3F4F6),
+                                  color: AppColors.inputSurface,
                                   borderRadius: BorderRadius.circular(4),
                                 ),
                                 child: Text(
@@ -1144,7 +1144,7 @@ class _HabitsTabViewState extends State<HabitsTabView> {
                                   vertical: 2,
                                 ),
                                 decoration: BoxDecoration(
-                                  color: const Color(0xFFF3F4F6),
+                                  color: AppColors.inputSurface,
                                   borderRadius: BorderRadius.circular(4),
                                 ),
                                 child: Text(

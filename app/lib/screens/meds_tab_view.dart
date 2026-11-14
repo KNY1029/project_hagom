@@ -2008,7 +2008,7 @@ class _MedsTabViewState extends State<MedsTabView> {
         decoration: BoxDecoration(
           color: AppColors.inputSurface,
           borderRadius: BorderRadius.circular(8),
-          border: Border.all(color: const Color(0xFFEEEEEE)),
+          border: Border.all(color: AppColors.divider),
         ),
         child: Row(
           children: [
@@ -2159,8 +2159,8 @@ class _MedsTabViewState extends State<MedsTabView> {
             Container(
               width: double.infinity,
               padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
-              decoration: const BoxDecoration(
-                color: Color(0xFFF3F4F6),
+              decoration: BoxDecoration(
+                color: AppColors.inputSurface,
                 borderRadius: BorderRadius.vertical(top: Radius.circular(12)),
               ),
               child: Row(
@@ -2197,7 +2197,7 @@ class _MedsTabViewState extends State<MedsTabView> {
                           ? AppColors.successBg
                           : (med.isPrescription
                                 ? AppColors.lightLavender
-                                : const Color(0xFFF3F4F6)),
+                                : AppColors.inputSurface),
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Icon(
@@ -2253,7 +2253,7 @@ class _MedsTabViewState extends State<MedsTabView> {
                                   vertical: 1,
                                 ),
                                 decoration: BoxDecoration(
-                                  color: const Color(0xFFF3F4F6),
+                                  color: AppColors.inputSurface,
                                   borderRadius: BorderRadius.circular(3),
                                 ),
                                 child: Text(
@@ -2368,7 +2368,7 @@ class _MedsTabViewState extends State<MedsTabView> {
                                             ? AppColors.completedBg
                                             : (slot.isSkipped
                                                   ? AppColors.inputSurface
-                                                  : const Color(0xFFF3F4F6)),
+                                                  : AppColors.inputSurface),
                                         borderRadius: BorderRadius.circular(6),
                                         border: Border.all(
                                           color: slot.isCompleted
