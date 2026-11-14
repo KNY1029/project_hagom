@@ -244,8 +244,8 @@ class _CalendarTabViewState extends State<CalendarTabView> {
               row(marker: outlinedDot(filled: true), label: '할일 완료 · 채운 원'),
               const Divider(),
               row(marker: monoCell(fill: Colors.transparent, strong: false), label: '습관 대기 · 테두리만'),
-              row(marker: monoCell(fill: const Color(0xFFB5B5B5), strong: false), label: '습관 조금 실천 · 연하게'),
-              row(marker: monoCell(fill: const Color(0xFF555555), strong: true), label: '습관 완료 · 진하게'),
+              row(marker: monoCell(fill: const Color(0xFFE5E5E5), strong: false), label: '습관 조금 실천 · 아주 연하게'),
+              row(marker: monoCell(fill: const Color(0xFFB5B5B5), strong: true), label: '습관 완료 · 연하게'),
             ] else ...[
               row(marker: bar(AppColors.missedRed), label: '처방약 미복용'),
               row(marker: bar(AppColors.successGreen), label: '복약 완료'),
@@ -1485,10 +1485,12 @@ class _CalendarTabViewState extends State<CalendarTabView> {
                       // 🌟 [전체 달 공통 레이아웃 & 5월 컬러 팔레트 전면 통일]:
                       // - 레이아웃: 8월 비교안 (가로로 긴 독립형 카드, 모서리 8px, 하단 바 좌우 여백 8px)
                       // - 색상: 5월 컬러 팔레트 (완료: 에메랄드 #059669, 미완료: 소프트 쿨그레이 #9CA3AF, 핀: 쿨그레이 #D1D5DB, 처방약 누락: 빨강 #EF4444)
-                      final bool isDarkCalendar =
-                          AppColors.background == AppColors.darkTheme.background;
                       final bool isAchromatopsia =
                           AppColors.achromatopsiaModeEnabled;
+                      final bool isDarkCalendar =
+                          AppColors.background == AppColors.darkTheme.background ||
+                          (isAchromatopsia &&
+                              AppColors.background == const Color(0xFF181818));
                       final Color currentDoneGreen = AppColors.successGreen;
                       final Color pendingBarColor = isAchromatopsia
                           ? (isDarkCalendar
@@ -1525,7 +1527,9 @@ class _CalendarTabViewState extends State<CalendarTabView> {
                                       ? 1.2
                                       : (isAchromatopsia &&
                                                 (hasMissedPrescription ||
-                                                    isHabit100)
+                                                    isHabit100 ||
+                                                    (medRate != null &&
+                                                        !isMed100))
                                             ? 1.8
                                             : 0.0)));
 
@@ -1542,7 +1546,7 @@ class _CalendarTabViewState extends State<CalendarTabView> {
                             hasMedBar = true;
                           } else {
                             medBarColor = pendingBarColor;
-                            hasMedBar = true;
+                            hasMedBar = !isAchromatopsia;
                           }
                         }
                       }
@@ -1571,7 +1575,9 @@ class _CalendarTabViewState extends State<CalendarTabView> {
                                                 ))
                                         : (isAchromatopsia &&
                                                   (hasMissedPrescription ||
-                                                      isHabit100)
+                                                      isHabit100 ||
+                                                      (medRate != null &&
+                                                          !isMed100))
                                               ? const Color(0xFF333333)
                                               : Colors.transparent)),
                               // 오늘을 선택한 경우에만 현재 위치가 확실히 보이도록 더 굵게 표시한다.
@@ -1641,21 +1647,19 @@ class _CalendarTabViewState extends State<CalendarTabView> {
                                   child: isAchromatopsia &&
                                           hasMissedPrescription
                                       ? Row(
-                                          children: [
-                                            Expanded(
-                                              child: Container(
-                                                height: barThickness,
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.spaceBetween,
+                                          children: List.generate(
+                                            7,
+                                            (_) => Container(
+                                              width: barThickness,
+                                              height: barThickness,
+                                              decoration: BoxDecoration(
                                                 color: medBarColor,
+                                                shape: BoxShape.circle,
                                               ),
                                             ),
-                                            const SizedBox(width: 2),
-                                            Expanded(
-                                              child: Container(
-                                                height: barThickness,
-                                                color: medBarColor,
-                                              ),
-                                            ),
-                                          ],
+                                          ),
                                         )
                                       : Container(
                                           height: barThickness,

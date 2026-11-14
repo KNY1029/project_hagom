@@ -96,7 +96,7 @@ class HagomHabitsWidgetProvider : HomeWidgetProvider() {
                     val isAchromatopsia = widgetData.getString("theme_achromatopsia", "false") == "true"
                     val (bgRes, txtColor) = when (state) {
                         "done" -> (if (isAchromatopsia) R.drawable.hagom_widget_mono_done_btn_bg else if (isColorVision) R.drawable.hagom_widget_blue_btn_bg else R.drawable.hagom_widget_green_btn_bg) to Color.parseColor(if (isAchromatopsia) "#FFFFFF" else if (isColorVision) "#1D4ED8" else "#1B6B46")
-                        "partial" -> (if (isAchromatopsia) R.drawable.hagom_widget_mono_partial_btn_bg else R.drawable.hagom_widget_brown_btn_bg) to Color.parseColor(if (isAchromatopsia) "#222222" else "#8B5E3C")
+                        "partial" -> (if (isAchromatopsia) R.drawable.hagom_widget_mono_partial_btn_bg else R.drawable.hagom_widget_brown_btn_bg) to Color.parseColor(if (isAchromatopsia) "#555555" else "#8B5E3C")
                         else -> (if (isAchromatopsia) R.drawable.hagom_widget_mono_outline_btn_bg else R.drawable.hagom_widget_gray_btn_bg) to Color.parseColor(if (isAchromatopsia) "#555555" else "#6B7280")
                     }
                     setInt(R.id.widget_habits_btn, "setBackgroundResource", bgRes)

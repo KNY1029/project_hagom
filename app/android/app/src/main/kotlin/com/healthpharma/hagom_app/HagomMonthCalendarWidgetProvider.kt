@@ -40,8 +40,8 @@ class HagomMonthCalendarWidgetProvider : HomeWidgetProvider() {
             R.drawable.hagom_calendar_mono_bar_dark_pin
         "missed_med", "missed_med_pin", "hdone_mmissed", "hdone_mmissed_pin" ->
             R.drawable.hagom_calendar_mono_missed
-        "partial" -> R.drawable.hagom_calendar_mono_bar_light
-        "partial_pin" -> R.drawable.hagom_calendar_mono_bar_light_pin
+        "partial" -> R.drawable.hagom_calendar_mono_outline
+        "partial_pin" -> R.drawable.hagom_calendar_mono_outline_pin
         "pin_only" -> R.drawable.hagom_calendar_mono_pin
         else -> R.drawable.hagom_calendar_mono_base
     }
