@@ -77,14 +77,19 @@ class HagomMonthCalendarWidgetProvider : HomeWidgetProvider() {
                 setTextViewText(R.id.widget_month_tasks_label, taskLabel)
                 setTextViewText(R.id.widget_month_tasks, WidgetBindings.text(widgetData, "month_tasks"))
                 val medsColorHex = widgetData.getString("theme_meds_color", "#7B61A8") ?: "#7B61A8"
-                val habitsColorHex = widgetData.getString("theme_habits_color", "#7B61A8") ?: "#8B5E3C"
-                val tasksColorHex = widgetData.getString("theme_tasks_color", "#7B61A8") ?: "#B58A32"
-                setTextColor(R.id.widget_month_meds, Color.parseColor(medsColorHex))
-                setTextColor(R.id.widget_month_habits, Color.parseColor(habitsColorHex))
+                val habitsColorHex = widgetData.getString("theme_habits_color", "#8B5E3C") ?: "#8B5E3C"
+                val tasksColorHex = widgetData.getString("theme_tasks_color", "#B58A32") ?: "#B58A32"
+                val dark = widgetData.getString("theme_dark", "false") == "true"
+                val widgetTagBg = if (dark) R.drawable.hagom_widget_tag_bg_dark else R.drawable.hagom_widget_tag_bg
+                setInt(R.id.widget_month_tasks_header, "setBackgroundResource", widgetTagBg)
+                setInt(R.id.widget_month_habits_box, "setBackgroundResource", widgetTagBg)
+                setInt(R.id.widget_month_meds_box, "setBackgroundResource", widgetTagBg)
+                setTextColor(R.id.widget_month_meds, Color.parseColor(if (dark) "#D6C5FF" else medsColorHex))
+                setTextColor(R.id.widget_month_habits, Color.parseColor(if (dark) "#E2B992" else habitsColorHex))
                 setTextColor(R.id.widget_month_prev_btn, Color.parseColor(medsColorHex))
                 setTextColor(R.id.widget_month_next_btn, Color.parseColor(medsColorHex))
-                setTextColor(R.id.widget_month_tasks, Color.parseColor(tasksColorHex))
-                setTextColor(R.id.widget_month_tasks_label, Color.parseColor(tasksColorHex))
+                setTextColor(R.id.widget_month_tasks, Color.parseColor(if (dark) "#D6C5FF" else tasksColorHex))
+                setTextColor(R.id.widget_month_tasks_label, Color.parseColor(if (dark) "#D6C5FF" else tasksColorHex))
                 // 🌟 [할일 목록 바인딩: 4개일 때 좌2 + 우2 완벽 분할]:
                 // 1) 1~3개: 좌측 1열(1~3개)에만 표시
                 // 2) 4개: 좌측 2개(1,2) + 우측 2개(3,4) 균등 분할!
@@ -291,8 +296,8 @@ class HagomMonthCalendarWidgetProvider : HomeWidgetProvider() {
                 val calIntent = WidgetBindings.openAppIntent(context, calTargetUri, 1005)
                 setOnClickPendingIntent(R.id.widget_month_tasks_header, calIntent)
 
-                val medsIntent = if (hasSelectedOtherDay) calIntent else WidgetBindings.openAppIntent(context, "hagomwidget://openmeds", 1001)
-                val habitsIntent = if (hasSelectedOtherDay) calIntent else WidgetBindings.openAppIntent(context, "hagomwidget://openhabits", 1002)
+                val medsIntent = WidgetBindings.openAppIntent(context, "hagomwidget://openmeds", 1001)
+                val habitsIntent = WidgetBindings.openAppIntent(context, "hagomwidget://openhabits", 1002)
 
                 setOnClickPendingIntent(R.id.widget_month_meds_box, medsIntent)
                 setOnClickPendingIntent(R.id.widget_month_habits_box, habitsIntent)
