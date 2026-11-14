@@ -1467,7 +1467,15 @@ class _CalendarTabViewState extends State<CalendarTabView> {
                           habitRate >= 1.0;
                       final selectedBorderWidth = isSelected && isToday
                           ? 3.2
-                          : (isSelected ? 1.8 : (isToday ? 1.2 : 0.0));
+                          : (isSelected
+                                ? 1.8
+                                : (isToday
+                                      ? 1.2
+                                      : (isAchromatopsia &&
+                                                (hasMissedPrescription ||
+                                                    isHabit100)
+                                            ? 1.8
+                                            : 0.0)));
 
                       Color medBarColor = currentDoneGreen;
                       bool hasMedBar = false;
@@ -1500,12 +1508,20 @@ class _CalendarTabViewState extends State<CalendarTabView> {
                             borderRadius: cellRadius,
                             border: Border.all(
                               color: isSelected
-                                  ? AppColors.primaryPurple
+                                  ? (isAchromatopsia
+                                        ? const Color(0xFF111111)
+                                        : AppColors.primaryPurple)
                                   : (isToday
-                                        ? AppColors.primaryPurple.withValues(
-                                            alpha: 0.5,
-                                          )
-                                        : Colors.transparent),
+                                        ? (isAchromatopsia
+                                              ? const Color(0xFF777777)
+                                              : AppColors.primaryPurple.withValues(
+                                                  alpha: 0.5,
+                                                ))
+                                        : (isAchromatopsia &&
+                                                  (hasMissedPrescription ||
+                                                      isHabit100)
+                                              ? const Color(0xFF333333)
+                                              : Colors.transparent)),
                               // 오늘을 선택한 경우에만 현재 위치가 확실히 보이도록 더 굵게 표시한다.
                               width: selectedBorderWidth,
                             ),
@@ -1526,7 +1542,12 @@ class _CalendarTabViewState extends State<CalendarTabView> {
                                       color: isTasksAllDone
                                           ? currentDoneGreen // 🌟 생생한 완료 초록 반영!
                                           : pendingPinColor, // 🌟 월별 미완료 색상 (연보라 or 쿨그레이)
-                                      shape: BoxShape.circle,
+                                      shape: isAchromatopsia
+                                          ? BoxShape.rectangle
+                                          : BoxShape.circle,
+                                      borderRadius: isAchromatopsia
+                                          ? BorderRadius.circular(1)
+                                          : null,
                                     ),
                                   ),
                                 ),
@@ -1560,15 +1581,34 @@ class _CalendarTabViewState extends State<CalendarTabView> {
                                   // 🌟 8월 레이아웃 통일: 좌우 8px 여백, 두께 3.5px, 둥근 모서리
                                   left: 8 * calendarScale,
                                   right: 8 * calendarScale,
-                                  child: Container(
-                                    height: barThickness,
-                                    decoration: BoxDecoration(
-                                      color: medBarColor,
-                                      borderRadius: BorderRadius.circular(
-                                        barThickness / 2,
-                                      ),
-                                    ),
-                                  ),
+                                  child: isAchromatopsia &&
+                                          hasMissedPrescription
+                                      ? Row(
+                                          children: [
+                                            Expanded(
+                                              child: Container(
+                                                height: barThickness,
+                                                color: medBarColor,
+                                              ),
+                                            ),
+                                            const SizedBox(width: 2),
+                                            Expanded(
+                                              child: Container(
+                                                height: barThickness,
+                                                color: medBarColor,
+                                              ),
+                                            ),
+                                          ],
+                                        )
+                                      : Container(
+                                          height: barThickness,
+                                          decoration: BoxDecoration(
+                                            color: medBarColor,
+                                            borderRadius: BorderRadius.circular(
+                                              barThickness / 2,
+                                            ),
+                                          ),
+                                        ),
                                 ),
                             ],
                           ),
