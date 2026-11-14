@@ -224,6 +224,14 @@ class _CalendarTabViewState extends State<CalendarTabView> {
         border: Border.all(color: AppColors.divider),
       ),
     );
+    Widget plainCell(Color color) => Container(
+      width: 15,
+      height: 15,
+      decoration: BoxDecoration(
+        color: color,
+        borderRadius: BorderRadius.circular(3),
+      ),
+    );
     Widget monoCell({required Color fill, required bool strong}) => Container(
       width: 15,
       height: 15,
@@ -252,8 +260,8 @@ class _CalendarTabViewState extends State<CalendarTabView> {
               row(marker: outlinedDot(filled: false), label: '할일 미완료 · 빈 원'),
               row(marker: outlinedDot(filled: true), label: '할일 완료 · 채운 원'),
               const Divider(),
-              row(marker: cell(AppColors.successBg), label: '습관 완료'),
-              row(marker: cell(AppColors.cardSurface), label: '습관 미완료'),
+              row(marker: plainCell(AppColors.successBg), label: '습관 완료'),
+              row(marker: plainCell(AppColors.cardSurface), label: '습관 미완료'),
             ] else ...[
               row(marker: bar(AppColors.missedRed), label: '처방약 미복용'),
               row(marker: bar(AppColors.successGreen), label: '복약 완료'),
@@ -1537,7 +1545,6 @@ class _CalendarTabViewState extends State<CalendarTabView> {
                                       ? 1.2
                                       : (isAchromatopsia &&
                                                 (hasMissedPrescription ||
-                                                    isHabit100 ||
                                                     (medRate != null &&
                                                         !isMed100))
                                             ? 1.8
@@ -1589,7 +1596,6 @@ class _CalendarTabViewState extends State<CalendarTabView> {
                                                 ))
                                         : (isAchromatopsia &&
                                                   (hasMissedPrescription ||
-                                                      isHabit100 ||
                                                       (medRate != null &&
                                                           !isMed100))
                                               ? (isDarkCalendar
