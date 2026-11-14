@@ -60,7 +60,7 @@ class HagomNativeWidgetSync {
   }
 
   static Future<void> updateNativeWidget(AppStateManager state) async {
-    if (kIsWeb) return;
+    if (kIsWeb || defaultTargetPlatform == TargetPlatform.iOS) return;
 
     try {
       await _saveWidgetThemeColors();
@@ -183,7 +183,10 @@ class HagomNativeWidgetSync {
       final quotes = currentStage['quotes'] as List<String>;
       // 첫 문장부터 순서대로 보여주고, 터치할 때마다 같은 이미지의 다음 문장으로 이동해요.
       final quoteIndex = 0;
-      await HomeWidget.saveWidgetData<String>('mascot_quote', quotes[quoteIndex]);
+      await HomeWidget.saveWidgetData<String>(
+        'mascot_quote',
+        quotes[quoteIndex],
+      );
       await HomeWidget.saveWidgetData<int>('mascot_quote_index', quoteIndex);
       await HomeWidget.saveWidgetData<String>(
         'mascot_sub',
@@ -195,7 +198,9 @@ class HagomNativeWidgetSync {
       );
       await HomeWidget.saveWidgetData<String>(
         'mascot_show_badge',
-        state.isDevSimulationMode && !state.isTutorialDemoMode ? 'true' : 'false',
+        state.isDevSimulationMode && !state.isTutorialDemoMode
+            ? 'true'
+            : 'false',
       );
       // 1) 마스코트 데이터 준비 완료
       // -------------------------------------------------------------
@@ -214,9 +219,9 @@ class HagomNativeWidgetSync {
       }
       // 앱에서 카드 순서를 바꿔도 홈 위젯은 항상 복용 예정 시각순으로 표시한다.
       todaySlots.sort(
-        (a, b) => _scheduledMinutes(
-          a.slot.scheduledTime,
-        ).compareTo(_scheduledMinutes(b.slot.scheduledTime)),
+        (a, b) =>
+            _scheduledMinutes(a.slot.scheduledTime)
+                .compareTo(_scheduledMinutes(b.slot.scheduledTime)),
       );
 
       _MedSlotEntry? primaryMed;
@@ -740,7 +745,9 @@ class HagomNativeWidgetSync {
             status = hasT ? 'hdone_mdone_pin' : 'hdone_mdone';
           } else if (isMedDone) {
             status = hasT
-                ? (isTasksDone ? 'today_med_done_done_pin' : 'today_med_done_pin')
+                ? (isTasksDone
+                      ? 'today_med_done_done_pin'
+                      : 'today_med_done_pin')
                 : 'today_med_done';
           } else if (isHabitDone) {
             status = hasT ? 'today_done_pin' : 'today_done';
@@ -1041,7 +1048,9 @@ class HagomNativeWidgetSync {
             status = hasT ? 'hdone_mdone_pin' : 'hdone_mdone';
           } else if (isMedDone) {
             status = hasT
-                ? (isTasksDone ? 'today_med_done_done_pin' : 'today_med_done_pin')
+                ? (isTasksDone
+                      ? 'today_med_done_done_pin'
+                      : 'today_med_done_pin')
                 : 'today_med_done';
           } else if (isHabitDone) {
             status = hasT ? 'today_done_pin' : 'today_done';

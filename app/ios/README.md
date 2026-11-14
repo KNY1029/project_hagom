@@ -1,25 +1,17 @@
 # iOS WidgetKit 설정
 
-현재 저장소에는 WidgetKit 렌더러 초안(`HagomWidgetExtension_Template.swift`)과 앱-위젯 공유용 App Group 설정이 포함되어 있다.
+Xcode 프로젝트에는 `HagomFreeWidgetExtension` 위젯 확장 타깃이 포함되어 있다. 이 위젯은 하곰이 이미지와 고정 응원 문구를 표시하는 독립형 위젯이며, 앱 데이터 공유나 App Groups 기능을 사용하지 않는다. 따라서 무료 Apple 계정(Personal Team)으로 개발용 앱과 함께 서명해 설치할 수 있다.
 
-Mac에서 Xcode로 최종 연결할 때:
+Mac에서 `Runner.xcworkspace`를 열면 `Runner`와 `HagomFreeWidgetExtension` scheme을 선택할 수 있다. 앱을 실행하면 확장도 함께 설치되며, iPhone 홈 화면을 길게 누르고 `위젯 추가`에서 `하곰이 응원 위젯`을 선택하면 된다. 위젯은 작은 크기와 중간 크기를 지원한다.
 
-1. `Runner.xcworkspace`를 연다.
-2. `File > New > Target... > Widget Extension`으로 Widget Extension 타깃을 추가한다.
-3. 생성된 Swift 파일을 `HagomWidgetExtension_Template.swift`의 구현으로 교체한다.
-4. Runner와 Widget Extension 양쪽의 `Signing & Capabilities`에 App Groups를 추가하고 다음 그룹을 선택한다.
-   `group.com.healthpharma.hagom_app`
-5. Widget Extension의 `kind`와 Flutter의 iOS 위젯 이름을 동일하게 맞춘다.
-6. Apple Developer 계정에서 App Group을 등록하고 실제 iPhone에서 서명 빌드한다.
-
-앱 코드에서는 `HomeWidget.setAppGroupId('group.com.healthpharma.hagom_app')`를 호출하도록 연결되어 있다. Windows에서는 이 파일과 프로젝트 설정을 준비할 수 있지만, Xcode 타깃 생성·서명·iPhone 설치는 Mac 또는 macOS CI가 필요하다.
+현재 무료 계정용 위젯은 앱의 복약·습관·설정 데이터와 연동하지 않는다. App Groups 기반 공유 및 동적 문구는 유료 Apple Developer Program 기능과 서명 조건을 확인한 뒤 별도로 연결해야 한다.
 
 ## Mac에서 앱 설치까지
 
 프로젝트를 처음 받는 경우:
 
 ```bash
-git clone -b dev/kny https://github.com/KNY1029/project_hagom.git
+git clone -b main https://github.com/KNY1029/project_hagom.git
 cd project_hagom/app
 flutter pub get
 cd ios
@@ -27,7 +19,7 @@ pod install
 open Runner.xcworkspace
 ```
 
-Xcode에서 `Runner`와 Widget Extension의 `Signing & Capabilities`에 같은 App Group을 추가한 뒤, 아이폰을 연결하고 Team을 선택한다. 개발용으로 앱만 설치하려면:
+Xcode에서 `Runner` scheme을 선택하고 `Signing & Capabilities`에서 Personal Team을 지정한 뒤 아이폰을 연결한다. 위젯 확장은 Runner에 포함되어 함께 설치된다. 개발용으로 앱을 설치하려면:
 
 ```bash
 cd ~/project_hagom/app
@@ -53,4 +45,4 @@ Windows에서는 다음 순서로 설치한다.
 
 ## 현재 지원 범위
 
-Flutter 앱 화면과 App Group 연결 기반은 준비되어 있다. `HagomWidgetExtension_Template.swift`는 현재 하곰이 마스코트용 WidgetKit 예시이며, 복약·습관·달력 위젯을 iOS에서도 모두 제공하려면 Widget Extension 안에 각 위젯을 추가 구현해야 한다. Android의 위젯 크기 설정(`2x1`, `4x4`)은 iOS에 그대로 적용되지 않는다.
+무료 계정용 하곰이 응원 위젯 타깃과 Runner 통합이 준비되어 있다. 복약·습관·달력 위젯이나 앱 데이터 기반 문구는 현재 포함하지 않는다. Android 위젯 크기 설정(`2x1`, `4x4`)은 iOS에 그대로 적용되지 않는다.

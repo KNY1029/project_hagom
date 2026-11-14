@@ -1677,10 +1677,16 @@ class _MedsTabViewState extends State<MedsTabView> {
                     color: AppColors.textSecondary,
                   ),
                 ),
-                trailing: const Icon(
-                  Icons.chevron_right,
-                  size: 18,
-                  color: AppColors.textMuted,
+                trailing: const SizedBox(
+                  width: 24,
+                  child: Align(
+                    alignment: Alignment.centerRight,
+                    child: Icon(
+                      Icons.chevron_right,
+                      size: 18,
+                      color: AppColors.textMuted,
+                    ),
+                  ),
                 ),
                 onTap: () async {
                   Navigator.of(ctx).pop();
@@ -1726,16 +1732,22 @@ class _MedsTabViewState extends State<MedsTabView> {
                     ),
                   ),
                   subtitle: Text(
-                    '점심/저녁 등 다른 회차는 그대로 유지됩니다',
+                    '다른 회차는 그대로 유지됩니다',
                     style: TextStyle(
                       fontSize: 11.5,
                       color: AppColors.textSecondary,
                     ),
                   ),
-                  trailing: const Icon(
-                    Icons.chevron_right,
-                    size: 18,
-                    color: AppColors.textMuted,
+                  trailing: const SizedBox(
+                    width: 24,
+                    child: Align(
+                      alignment: Alignment.centerRight,
+                      child: Icon(
+                        Icons.chevron_right,
+                        size: 18,
+                        color: AppColors.textMuted,
+                      ),
+                    ),
                   ),
                   onTap: () {
                     Navigator.of(ctx).pop();

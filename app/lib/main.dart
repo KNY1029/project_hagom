@@ -162,15 +162,13 @@ Future<void> backgroundCallback(Uri? uri) async {
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  if (!kIsWeb) {
-    // iOS WidgetKit Extension과 Flutter 앱이 같은 UserDefaults를 사용하도록
-    // App Group을 먼저 지정한다. Android에서는 home_widget이 이 호출을 무시한다.
-    await HomeWidget.setAppGroupId('group.com.healthpharma.hagom_app');
+  if (!kIsWeb && defaultTargetPlatform == TargetPlatform.android) {
+    // 무료 Apple 계정 빌드에서는 App Group을 사용하지 않고 Android 위젯만 동기화해요.
     // 🌟 백그라운드 위젯 터치 핸들러가 SharedPreferences에 완전히 각인될 때까지 await 보장!
     await HomeWidget.registerInteractivityCallback(backgroundCallback);
   }
   runApp(const HagomApp());
-  if (!kIsWeb) {
+  if (!kIsWeb && defaultTargetPlatform == TargetPlatform.android) {
     final state = AppStateManager();
     state.ensureInitialized().then((_) async {
       final widgetDay = await HomeWidget.getWidgetData<String>(
