@@ -2141,6 +2141,29 @@ class AppStateManager extends ChangeNotifier {
     HagomNativeWidgetSync.updateNativeWidget(this);
   }
 
+  /// 습관 실천을 마지막 기록부터 한 단계만 되돌린다.
+  /// 완료 상태 전체를 초기화하지 않고 진행도와 마지막 시각 하나만 제거한다.
+  void undoHabitProgress(String id) {
+    final habit = _habits.firstWhere((h) => h.id == id);
+    habit.ensureWeeklyPeriod(DateTime.now());
+    final wasComplete = habit.score >= 1.0;
+
+    if (habit.currentCount <= 0) return;
+    habit.currentCount--;
+    if (habit.completionTimes.isNotEmpty) {
+      habit.completionTimes.removeLast();
+    }
+
+    if (wasComplete &&
+        habit.isWeeklyFrequencyHabit &&
+        habit.weeklyCompletedCount > 0) {
+      habit.weeklyCompletedCount--;
+    }
+    suspendWidgetSync = false;
+    notifyListeners();
+    HagomNativeWidgetSync.updateNativeWidget(this);
+  }
+
   void toggleHabitExpanded(String id) {
     final habit = _habits.firstWhere((h) => h.id == id);
     habit.isExpanded = !habit.isExpanded;

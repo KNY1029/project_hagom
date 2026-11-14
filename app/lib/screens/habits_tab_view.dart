@@ -1225,11 +1225,11 @@ class _HabitsTabViewState extends State<HabitsTabView> {
                           message: '\'${habit.title}\' 목표를 달성한 상태예요.',
                           actionLabel: '되돌리기',
                           onAction: () {
-                            _state.resetHabitProgress(habit.id);
+                            _state.undoHabitProgress(habit.id);
                             CelebrationToast.show(
                               context,
                               title: '되돌리기 완료',
-                              message: '\'${habit.title}\' 상태를 대기로 되돌렸어요.',
+                              message: '\'${habit.title}\' 실천을 한 단계 되돌렸어요.',
                             );
                           },
                         );
@@ -1307,11 +1307,11 @@ class _HabitsTabViewState extends State<HabitsTabView> {
                         tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                       ),
                       onPressed: () {
-                        _state.resetHabitProgress(habit.id);
+                        _state.undoHabitProgress(habit.id);
                         CelebrationToast.show(
                           context,
                           title: '되돌리기 완료',
-                          message: '\'${habit.title}\' 실천 상태를 대기로 되돌렸어요.',
+                          message: '\'${habit.title}\' 실천을 한 단계 되돌렸어요.',
                         );
                       },
                       child: Text(
