@@ -1681,17 +1681,17 @@ class _MedsTabViewState extends State<MedsTabView> {
                     '건너뛴 이유 보기',
                     style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
                   ),
-                  subtitle: Text(
-                    med.skipReason == null || med.skipReason!.trim().isEmpty
-                        ? '입력한 이유가 없습니다'
-                        : med.skipReason!,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
-                      fontSize: 11.5,
-                      color: AppColors.textSecondary,
-                    ),
-                  ),
+                  subtitle: med.skipReason?.trim().isNotEmpty == true
+                      ? Text(
+                          med.skipReason!.trim(),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            fontSize: 11.5,
+                            color: AppColors.textSecondary,
+                          ),
+                        )
+                      : null,
                   trailing: const SizedBox(
                     width: 24,
                     child: Align(
@@ -1704,20 +1704,35 @@ class _MedsTabViewState extends State<MedsTabView> {
                     ),
                   ),
                   onTap: () {
-                    final reason = med.skipReason?.trim();
+                    final reasonController = TextEditingController(
+                      text: med.skipReason ?? '',
+                    );
                     showDialog<void>(
                       context: context,
                       builder: (reasonContext) => AlertDialog(
-                        title: const Text('건너뛴 이유'),
-                        content: Text(
-                          reason == null || reason.isEmpty
-                              ? '입력한 이유가 없습니다.'
-                              : reason,
+                        title: const Text('건너뛴 이유 수정'),
+                        content: TextField(
+                          controller: reasonController,
+                          autofocus: true,
+                          maxLines: 3,
+                          decoration: const InputDecoration(
+                            hintText: '이유를 입력하세요 (선택사항)',
+                          ),
                         ),
                         actions: [
                           TextButton(
                             onPressed: () => Navigator.of(reasonContext).pop(),
-                            child: const Text('닫기'),
+                            child: const Text('취소'),
+                          ),
+                          ElevatedButton(
+                            onPressed: () {
+                              _state.updateSkipReason(
+                                med.id,
+                                reasonController.text,
+                              );
+                              Navigator.of(reasonContext).pop();
+                            },
+                            child: const Text('저장'),
                           ),
                         ],
                       ),

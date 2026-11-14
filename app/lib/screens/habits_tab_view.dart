@@ -1189,13 +1189,7 @@ class _HabitsTabViewState extends State<HabitsTabView> {
                                   ),
                                 ),
                               ),
-                            ...(habit.scheduledTimes.isNotEmpty
-                                    ? (habit.score >= 1.0 &&
-                                              habit.completionTimes.isNotEmpty
-                                          ? habit.completionTimes
-                                          : habit.scheduledTimes)
-                                    : habit.completionTimes)
-                                .map(
+                            ...habit.scheduledTimes.map(
                               (t) => Container(
                                 padding: const EdgeInsets.symmetric(
                                   horizontal: 6,
@@ -1206,11 +1200,7 @@ class _HabitsTabViewState extends State<HabitsTabView> {
                                   borderRadius: BorderRadius.circular(4),
                                 ),
                                 child: Text(
-                                  habit.scheduledTimes.isNotEmpty &&
-                                          habit.score >= 1.0 &&
-                                          habit.completionTimes.contains(t)
-                                      ? '완료 $t'
-                                      : t,
+                                  t,
                                   style: TextStyle(
                                     fontSize: 10.5,
                                     color: AppColors.textSecondary,
@@ -1369,9 +1359,19 @@ class _HabitsTabViewState extends State<HabitsTabView> {
                               onPressed: () =>
                                   _showHabitCompletionActions(habit, i),
                               labelStyle: TextStyle(
-                                fontSize: 11,
+                                fontSize: 10.5,
                                 color: AppColors.primaryPurple,
                               ),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 6,
+                                vertical: 2,
+                              ),
+                              visualDensity: const VisualDensity(
+                                horizontal: -3,
+                                vertical: -3,
+                              ),
+                              materialTapTargetSize:
+                                  MaterialTapTargetSize.shrinkWrap,
                               backgroundColor: AppColors.primaryPurple
                                   .withValues(alpha: 0.08),
                               side: BorderSide(

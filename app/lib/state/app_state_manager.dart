@@ -1976,6 +1976,13 @@ class AppStateManager extends ChangeNotifier {
     }
   }
 
+  void updateSkipReason(String id, String? reason) {
+    final med = _medications.firstWhere((m) => m.id == id);
+    final trimmed = reason?.trim();
+    med.skipReason = trimmed == null || trimmed.isEmpty ? null : trimmed;
+    notifyListeners();
+  }
+
   // 복약 카드 아코디언 토글
   void toggleMedExpanded(String id) {
     final med = _medications.firstWhere((m) => m.id == id);
