@@ -2,8 +2,19 @@
 <layer-list xmlns:android="http://schemas.android.com/apk/res/android">
     <item><shape android:shape="rectangle"><solid android:color="#E0E0E0" /><stroke android:width="2dp" android:color="#111111" /><corners android:radius="5dp" /></shape></item>
     <item android:gravity="bottom|start" android:bottom="2dp" android:left="3dp"><shape android:shape="oval"><size android:width="3dp" android:height="3dp" /><solid android:color="#111111" /></shape></item>
-    <item android:gravity="bottom|start" android:bottom="2dp" android:left="8dp"><shape android:shape="oval"><size android:width="3dp" android:height="3dp" /><solid android:color="#111111" /></shape></item>
-    <item android:gravity="bottom|start" android:bottom="2dp" android:left="13dp"><shape android:shape="oval"><size android:width="3dp" android:height="3dp" /><solid android:color="#111111" /></shape></item>
-    <item android:gravity="bottom|start" android:bottom="2dp" android:left="18dp"><shape android:shape="oval"><size android:width="3dp" android:height="3dp" /><solid android:color="#111111" /></shape></item>
+    <item android:gravity="bottom|start" android:bottom="2dp" android:left="7dp"><shape android:shape="oval"><size android:width="3dp" android:height="3dp" /><solid android:color="#111111" /></shape></item>
+    <item android:gravity="bottom|start" android:bottom="2dp" android:left="11dp"><shape android:shape="oval"><size android:width="3dp" android:height="3dp" /><solid android:color="#111111" /></shape></item>
+    <item android:gravity="bottom|start" android:bottom="2dp" android:left="15dp"><shape android:shape="oval"><size android:width="3dp" android:height="3dp" /><solid android:color="#111111" /></shape></item>
+    <item android:gravity="bottom|start" android:bottom="2dp" android:left="19dp"><shape android:shape="oval"><size android:width="3dp" android:height="3dp" /><solid android:color="#111111" /></shape></item>
     <item android:gravity="bottom|start" android:bottom="2dp" android:left="23dp"><shape android:shape="oval"><size android:width="3dp" android:height="3dp" /><solid android:color="#111111" /></shape></item>
+    <item android:gravity="bottom|start" android:bottom="2dp" android:left="27dp"><shape android:shape="oval"><size android:width="3dp" android:height="3dp" /><solid android:color="#111111" /></shape></item>
+    <item android:gravity="bottom|start" android:bottom="2dp" android:left="31dp"><shape android:shape="oval"><size android:width="3dp" android:height="3dp" /><solid android:color="#111111" /></shape></item>
+    <item android:gravity="bottom|start" android:bottom="2dp" android:left="35dp"><shape android:shape="oval"><size android:width="3dp" android:height="3dp" /><solid android:color="#111111" /></shape></item>
+    <item android:gravity="bottom|start" android:bottom="2dp" android:left="39dp"><shape android:shape="oval"><size android:width="3dp" android:height="3dp" /><solid android:color="#111111" /></shape></item>
+    <item android:gravity="bottom|start" android:bottom="2dp" android:left="43dp"><shape android:shape="oval"><size android:width="3dp" android:height="3dp" /><solid android:color="#111111" /></shape></item>
+    <item android:gravity="bottom|start" android:bottom="2dp" android:left="47dp"><shape android:shape="oval"><size android:width="3dp" android:height="3dp" /><solid android:color="#111111" /></shape></item>
+    <item android:gravity="bottom|start" android:bottom="2dp" android:left="51dp"><shape android:shape="oval"><size android:width="3dp" android:height="3dp" /><solid android:color="#111111" /></shape></item>
+    <item android:gravity="bottom|start" android:bottom="2dp" android:left="55dp"><shape android:shape="oval"><size android:width="3dp" android:height="3dp" /><solid android:color="#111111" /></shape></item>
+    <item android:gravity="bottom|start" android:bottom="2dp" android:left="59dp"><shape android:shape="oval"><size android:width="3dp" android:height="3dp" /><solid android:color="#111111" /></shape></item>
+    <item android:gravity="bottom|start" android:bottom="2dp" android:left="63dp"><shape android:shape="oval"><size android:width="3dp" android:height="3dp" /><solid android:color="#111111" /></shape></item>
 </layer-list>

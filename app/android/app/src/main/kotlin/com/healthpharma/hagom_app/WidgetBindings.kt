@@ -139,18 +139,27 @@ object WidgetBindings {
             views.setInt(btnId, "setBackgroundResource", if (isAchromatopsia) R.drawable.hagom_widget_mono_done_btn_bg else if (isColorVision) R.drawable.hagom_widget_blue_btn_bg else R.drawable.hagom_widget_green_btn_bg)
             views.setTextColor(btnId, Color.parseColor(if (isAchromatopsia) "#FFFFFF" else if (isColorVision) "#1D4ED8" else "#1B6B46"))
         } else if (customLabel.isNotEmpty()) {
+            val isDark = prefs.getString("theme_dark", "false") == "true"
             views.setTextViewText(btnId, customLabel)
             if (customState == "partial") {
                 views.setInt(btnId, "setBackgroundResource", if (isAchromatopsia) R.drawable.hagom_widget_mono_partial_btn_bg else R.drawable.hagom_widget_brown_btn_bg)
-                views.setTextColor(btnId, Color.parseColor(if (isAchromatopsia) "#555555" else "#8B5E3C"))
+                views.setTextColor(btnId, Color.parseColor(if (isAchromatopsia) (if (isDark) "#E0E0E0" else "#555555") else "#8B5E3C"))
             } else {
                 views.setInt(btnId, "setBackgroundResource", if (isAchromatopsia) R.drawable.hagom_widget_mono_outline_btn_bg else R.drawable.hagom_widget_gray_btn_bg)
-                views.setTextColor(btnId, Color.parseColor(if (isAchromatopsia) "#555555" else "#6B7280"))
+                views.setTextColor(btnId, Color.parseColor(if (isAchromatopsia) (if (isDark) "#E0E0E0" else "#555555") else "#6B7280"))
             }
         } else {
+            val isDark = prefs.getString("theme_dark", "false") == "true"
             views.setTextViewText(btnId, pendingLabel)
-            views.setInt(btnId, "setBackgroundResource", pendingBg)
-            views.setTextColor(btnId, Color.WHITE)
+            views.setInt(
+                btnId,
+                "setBackgroundResource",
+                if (isAchromatopsia) R.drawable.hagom_widget_mono_outline_btn_bg else pendingBg
+            )
+            views.setTextColor(
+                btnId,
+                if (isAchromatopsia) Color.parseColor(if (isDark) "#FFFFFF" else "#555555") else Color.WHITE
+            )
         }
         val action = text(prefs, actionKey)
         if ((!isDone || allowCompletedToggle) && action.isNotEmpty()) {

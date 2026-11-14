@@ -41,6 +41,8 @@ class HagomMedsWidgetProvider : HomeWidgetProvider() {
             val is1x1 = (minW in 1..125) // 1x1 모드 판정
             val allDone = widgetData.getString("meds_all_done", "false") == "true"
             val isAchromatopsia = widgetData.getString("theme_achromatopsia", "false") == "true"
+            val isDark = widgetData.getString("theme_dark", "false") == "true"
+            val medsColorHex = if (isAchromatopsia) (if (isDark) "#FFFFFF" else "#555555") else if (isDark) "#D6C5FF" else "#7B61A8"
             val openMedsIntent = WidgetBindings.openAppIntent(context, "hagomwidget://openmeds", 1001)
 
             val views = if (is1x1) {
@@ -48,6 +50,7 @@ class HagomMedsWidgetProvider : HomeWidgetProvider() {
                 RemoteViews(context.packageName, R.layout.hagom_meds_widget_1x1).apply {
                     val progress = WidgetBindings.text(widgetData, "meds_progress")
                     setTextViewText(R.id.widget_meds_tag, "복약")
+                    setTextColor(R.id.widget_meds_tag, Color.parseColor(medsColorHex))
                     setTextViewText(R.id.widget_meds_progress, progress)
                     setTextViewText(R.id.widget_meds_status, if (allDone) "완료" else "복용 중")
                     setOnClickPendingIntent(R.id.widget_meds_container, openMedsIntent)
@@ -74,7 +77,6 @@ class HagomMedsWidgetProvider : HomeWidgetProvider() {
                     setTextViewText(R.id.widget_meds_progress, WidgetBindings.text(widgetData, "meds_progress"))
                     setTextViewText(R.id.widget_meds_title, WidgetBindings.text(widgetData, "meds_title"))
 
-                    val medsColorHex = if (isAchromatopsia) "#555555" else if (widgetData.getString("theme_dark", "false") == "true") "#D6C5FF" else "#7B61A8"
                     setTextColor(R.id.widget_meds_tag, Color.parseColor(medsColorHex))
                     val sub = if (isNarrow) {
                         WidgetBindings.text(widgetData, "meds_subtitle_short").ifEmpty {

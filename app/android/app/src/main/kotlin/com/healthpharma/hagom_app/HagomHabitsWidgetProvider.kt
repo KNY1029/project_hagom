@@ -41,6 +41,8 @@ class HagomHabitsWidgetProvider : HomeWidgetProvider() {
             val is1x1 = (minW in 1..125)
             val allDone = widgetData.getString("habits_all_done", "false") == "true"
             val isAchromatopsia = widgetData.getString("theme_achromatopsia", "false") == "true"
+            val isDark = widgetData.getString("theme_dark", "false") == "true"
+            val habitsColorHex = if (isAchromatopsia) (if (isDark) "#FFFFFF" else "#555555") else if (isDark) "#D6C5FF" else "#7B61A8"
             val openHabitsIntent = WidgetBindings.openAppIntent(context, "hagomwidget://openhabits", 1002)
 
             val views = if (is1x1) {
@@ -48,6 +50,7 @@ class HagomHabitsWidgetProvider : HomeWidgetProvider() {
                 RemoteViews(context.packageName, R.layout.hagom_habits_widget_1x1).apply {
                     val progress = WidgetBindings.text(widgetData, "habits_progress")
                     setTextViewText(R.id.widget_habits_tag, "습관")
+                    setTextColor(R.id.widget_habits_tag, Color.parseColor(habitsColorHex))
                     setTextViewText(R.id.widget_habits_progress, progress)
                     setTextViewText(R.id.widget_habits_status, if (allDone) "완료" else "실천 중")
                     setOnClickPendingIntent(R.id.widget_habits_container, openHabitsIntent)
@@ -74,7 +77,6 @@ class HagomHabitsWidgetProvider : HomeWidgetProvider() {
                     setTextViewText(R.id.widget_habits_progress, WidgetBindings.text(widgetData, "habits_progress"))
                     setTextViewText(R.id.widget_habits_title, WidgetBindings.text(widgetData, "habits_title"))
 
-                    val habitsColorHex = if (isAchromatopsia) "#555555" else if (widgetData.getString("theme_dark", "false") == "true") "#D6C5FF" else "#7B61A8"
                     setTextColor(R.id.widget_habits_tag, Color.parseColor(habitsColorHex))
                     val sub = if (isNarrow) {
                         WidgetBindings.text(widgetData, "habits_subtitle_short").ifEmpty {

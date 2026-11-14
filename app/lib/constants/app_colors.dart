@@ -118,18 +118,20 @@ class AppColors {
 
   static void _applyStatusColors() {
     final isDark = background == darkTheme.background ||
-        (achromatopsiaModeEnabled && background == const Color(0xFF181818));
+        (achromatopsiaModeEnabled &&
+            (background == const Color(0xFF181818) ||
+                background == const Color(0xFF121212)));
     if (achromatopsiaModeEnabled) {
-      completedBg = isDark ? const Color(0xFFB5B5B5) : const Color(0xFFB5B5B5);
+      completedBg = isDark ? const Color(0xFF383838) : const Color(0xFFB5B5B5);
       completedText = isDark ? const Color(0xFFFFFFFF) : const Color(0xFF111111);
-      completedBorder = isDark ? const Color(0xFFE5E5E5) : const Color(0xFF222222);
+      completedBorder = isDark ? const Color(0xFF777777) : const Color(0xFF222222);
       successGreen = isDark ? const Color(0xFFFFFFFF) : const Color(0xFF111111);
-      successBg = isDark ? const Color(0xFFB5B5B5) : const Color(0xFFB5B5B5);
-      missedRed = isDark ? const Color(0xFFFFC857) : const Color(0xFF333333);
-      partialBg = isDark ? const Color(0xFF3A3A3A) : const Color(0xFFE5E5E5);
-      partialText = isDark ? const Color(0xFFE0E0E0) : const Color(0xFF555555);
-      partialBorder = isDark ? const Color(0xFF888888) : const Color(0xFF999999);
-      partialOrange = isDark ? const Color(0xFFE0E0E0) : const Color(0xFF555555);
+      successBg = isDark ? const Color(0xFF383838) : const Color(0xFFB5B5B5);
+      missedRed = isDark ? const Color(0xFFFFFFFF) : const Color(0xFF333333);
+      partialBg = isDark ? const Color(0xFF252525) : const Color(0xFFE5E5E5);
+      partialText = isDark ? const Color(0xFFCCCCCC) : const Color(0xFF555555);
+      partialBorder = isDark ? const Color(0xFF555555) : const Color(0xFF999999);
+      partialOrange = isDark ? const Color(0xFFCCCCCC) : const Color(0xFF555555);
     } else if (colorVisionModeEnabled) {
       completedBg = isDark ? const Color(0xFF263B55) : const Color(0xFFE8F1FF);
       completedText = isDark ? const Color(0xFFA8C9FF) : const Color(0xFF1D4ED8);
@@ -283,11 +285,11 @@ class AppColors {
       final isDark = theme.key == themeDark;
       primaryPurple = isDark ? const Color(0xFFE0E0E0) : const Color(0xFF333333);
       warmBrown = isDark ? const Color(0xFFBDBDBD) : const Color(0xFF555555);
-      lightLavender = isDark ? const Color(0xFF3A3A3A) : const Color(0xFFE5E5E5);
-      background = isDark ? const Color(0xFF181818) : const Color(0xFFF5F5F5);
+      lightLavender = isDark ? const Color(0xFF2A2A2A) : const Color(0xFFE5E5E5);
+      background = isDark ? const Color(0xFF121212) : const Color(0xFFF5F5F5);
       textPrimary = isDark ? const Color(0xFFF5F5F5) : const Color(0xFF222222);
-      textSecondary = isDark ? const Color(0xFFBDBDBD) : const Color(0xFF666666);
-      divider = isDark ? const Color(0xFF555555) : const Color(0xFFBDBDBD);
+      textSecondary = isDark ? const Color(0xFF9E9E9E) : const Color(0xFF666666);
+      divider = isDark ? const Color(0xFF333333) : const Color(0xFFBDBDBD);
       activeBackground = background;
       activePrimary = primaryPurple;
       activeWarmAccent = warmBrown;
@@ -295,12 +297,12 @@ class AppColors {
     }
     cardSurface = theme.key == themeDark
         ? (achromatopsiaModeEnabled
-              ? const Color(0xFF252525)
+              ? const Color(0xFF1E1E1E)
               : const Color(0xFF24212B))
         : (achromatopsiaModeEnabled ? const Color(0xFFFFFFFF) : Colors.white);
     inputSurface = theme.key == themeDark
         ? (achromatopsiaModeEnabled
-              ? const Color(0xFF303030)
+              ? const Color(0xFF2A2A2A)
               : const Color(0xFF2C2734))
         : (achromatopsiaModeEnabled
               ? const Color(0xFFEAEAEA)

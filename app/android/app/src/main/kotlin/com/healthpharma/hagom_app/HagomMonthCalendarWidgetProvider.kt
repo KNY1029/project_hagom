@@ -34,14 +34,16 @@ class HagomMonthCalendarWidgetProvider : HomeWidgetProvider() {
         "today_med_done_done_pin" -> R.drawable.hagom_calendar_mono_bar_dark_pin
         "all_done" -> R.drawable.hagom_calendar_mono_done
         "all_done_pin" -> R.drawable.hagom_calendar_mono_done_pin
-        "mdone", "hdone_mdone", "hdone_mpartial" ->
+        "mdone", "hdone_mdone" ->
             R.drawable.hagom_calendar_mono_bar_dark
-        "mdone_pin", "hdone_mdone_pin", "hdone_mpartial_pin" ->
+        "mdone_pin", "hdone_mdone_pin" ->
             R.drawable.hagom_calendar_mono_bar_dark_pin
+        "hdone_mpartial" -> R.drawable.hagom_calendar_mono_hdone_partial
+        "hdone_mpartial_pin" -> R.drawable.hagom_calendar_mono_hdone_partial_pin
         "missed_med", "missed_med_pin", "hdone_mmissed", "hdone_mmissed_pin" ->
             R.drawable.hagom_calendar_mono_missed
-        "partial" -> R.drawable.hagom_calendar_mono_outline
-        "partial_pin" -> R.drawable.hagom_calendar_mono_outline_pin
+        "partial" -> R.drawable.hagom_calendar_mono_bar_light
+        "partial_pin" -> R.drawable.hagom_calendar_mono_bar_light_pin
         "pin_only" -> R.drawable.hagom_calendar_mono_pin
         else -> R.drawable.hagom_calendar_mono_base
     }
@@ -215,7 +217,7 @@ class HagomMonthCalendarWidgetProvider : HomeWidgetProvider() {
                         val isDark = widgetData.getString("theme_dark", "false") == "true"
                         setTextColor(
                             resId,
-                            if (isAchromatopsia) Color.parseColor("#333333")
+                            if (isAchromatopsia) Color.parseColor(if (isDark) "#F5F5F5" else "#333333")
                             else if (isSunday) Color.parseColor(if (isDark) "#FF8585" else "#EF4444")
                             else Color.parseColor(if (isDark) "#F3F0F7" else "#1F2937")
                         )

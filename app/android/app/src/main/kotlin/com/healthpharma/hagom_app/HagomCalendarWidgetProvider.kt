@@ -41,6 +41,8 @@ class HagomCalendarWidgetProvider : HomeWidgetProvider() {
             val is1x1 = (minW in 1..125)
             val openCalIntent = WidgetBindings.openAppIntent(context, "hagomwidget://opencalendar", 1003)
             val isAchromatopsia = widgetData.getString("theme_achromatopsia", "false") == "true"
+            val isDark = widgetData.getString("theme_dark", "false") == "true"
+            val tasksColorHex = if (isAchromatopsia) (if (isDark) "#FFFFFF" else "#555555") else if (isDark) "#D6C5FF" else "#7B61A8"
 
             val views = if (is1x1) {
                 // 🌟 1x1 모드: 오늘 할일 몇 개 중 몇 개 완료했는지 표시 & 탭 시 달력(할일) 탭 열기
@@ -48,6 +50,7 @@ class HagomCalendarWidgetProvider : HomeWidgetProvider() {
                     val progress = WidgetBindings.text(widgetData, "calendar_progress")
                     val state = WidgetBindings.text(widgetData, "calendar_state")
                     setTextViewText(R.id.widget_calendar_tag, "할일")
+                    setTextColor(R.id.widget_calendar_tag, Color.parseColor(tasksColorHex))
                     setTextViewText(R.id.widget_calendar_progress, progress)
                     setTextViewText(R.id.widget_calendar_status, if (state == "done") "완료" else "진행 중")
                     setOnClickPendingIntent(R.id.widget_calendar_container, openCalIntent)
@@ -64,7 +67,6 @@ class HagomCalendarWidgetProvider : HomeWidgetProvider() {
                 setTextViewText(R.id.widget_calendar_progress, WidgetBindings.text(widgetData, "calendar_progress"))
                 setTextViewText(R.id.widget_calendar_title, WidgetBindings.text(widgetData, "calendar_title"))
 
-                val tasksColorHex = if (isAchromatopsia) "#555555" else if (widgetData.getString("theme_dark", "false") == "true") "#D6C5FF" else "#7B61A8"
                 setTextColor(R.id.widget_calendar_tag, Color.parseColor(tasksColorHex))
                 val sub = if (isNarrow) {
                     WidgetBindings.text(widgetData, "calendar_subtitle_short").ifEmpty {

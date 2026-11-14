@@ -88,13 +88,24 @@ class HagomMascotWidgetProvider : HomeWidgetProvider() {
                 listOf(R.id.widget_mascot_quote, R.id.widget_mascot_sub)
             )
             if (!is1x1) {
-                views.setInt(
-                    R.id.widget_mascot_badge,
-                    "setBackgroundResource",
-                    if (widgetData.getString("theme_dark", "false") == "true")
-                        R.drawable.hagom_widget_tag_bg_dark
-                    else R.drawable.hagom_widget_tag_bg
-                )
+                val isDark = widgetData.getString("theme_dark", "false") == "true"
+                val isAchromatopsia = widgetData.getString("theme_achromatopsia", "false") == "true"
+                val badgeBg = if (isAchromatopsia) {
+                    R.drawable.hagom_widget_tag_bg_mono
+                } else if (isDark) {
+                    R.drawable.hagom_widget_tag_bg_dark
+                } else {
+                    R.drawable.hagom_widget_tag_bg
+                }
+                views.setInt(R.id.widget_mascot_badge, "setBackgroundResource", badgeBg)
+                val badgeTextColor = if (isAchromatopsia) {
+                    if (isDark) "#FFFFFF" else "#222222"
+                } else if (isDark) {
+                    "#D6C5FF"
+                } else {
+                    "#7B61A8"
+                }
+                views.setTextColor(R.id.widget_mascot_badge, android.graphics.Color.parseColor(badgeTextColor))
             }
             appWidgetManager.updateAppWidget(appWidgetId, views)
         }

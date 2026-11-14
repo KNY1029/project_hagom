@@ -188,6 +188,15 @@ class _CalendarTabViewState extends State<CalendarTabView> {
         border: Border.all(color: const Color(0xFF333333), width: 1.5),
       ),
     );
+    Widget outlineBar() => Container(
+      width: 28,
+      height: 6,
+      decoration: BoxDecoration(
+        color: Colors.transparent,
+        borderRadius: BorderRadius.circular(2),
+        border: Border.all(color: const Color(0xFF333333), width: 1.4),
+      ),
+    );
     Widget dottedBar() => SizedBox(
       width: 28,
       height: 5,
@@ -237,8 +246,8 @@ class _CalendarTabViewState extends State<CalendarTabView> {
           children: [
             if (AppColors.achromatopsiaModeEnabled) ...[
               row(marker: dottedBar(), label: '처방약 미복용 · 점선'),
-              row(marker: bar(const Color(0xFF222222)), label: '복약 완료 · 진한 바'),
-              row(marker: bar(const Color(0xFF888888)), label: '복약 미완료 · 연한 바'),
+              row(marker: bar(const Color(0xFF222222)), label: '복약 완료 · 채운 바'),
+              row(marker: outlineBar(), label: '일부 복용 · 테두리 바'),
               const Divider(),
               row(marker: outlinedDot(filled: false), label: '할일 미완료 · 빈 원'),
               row(marker: outlinedDot(filled: true), label: '할일 완료 · 채운 원'),
@@ -1490,12 +1499,13 @@ class _CalendarTabViewState extends State<CalendarTabView> {
                       final bool isDarkCalendar =
                           AppColors.background == AppColors.darkTheme.background ||
                           (isAchromatopsia &&
-                              AppColors.background == const Color(0xFF181818));
+                              (AppColors.background == const Color(0xFF181818) ||
+                                  AppColors.background == const Color(0xFF121212)));
                       final Color currentDoneGreen = AppColors.successGreen;
                       final Color pendingBarColor = isAchromatopsia
                           ? (isDarkCalendar
-                                ? const Color(0xFFBDBDBD)
-                                : const Color(0xFF777777))
+                                ? const Color(0xFFCCCCCC)
+                                : const Color(0xFF333333))
                           : isDarkCalendar
                           ? const Color(0xFF7B7285)
                           : const Color(0xFF9CA3AF);
@@ -1565,11 +1575,15 @@ class _CalendarTabViewState extends State<CalendarTabView> {
                             border: Border.all(
                               color: isSelected
                                   ? (isAchromatopsia
-                                        ? const Color(0xFF111111)
+                                        ? (isDarkCalendar
+                                              ? const Color(0xFFFFFFFF)
+                                              : const Color(0xFF111111))
                                         : AppColors.primaryPurple)
                                   : (isToday
                                         ? (isAchromatopsia
-                                              ? const Color(0xFF777777)
+                                              ? (isDarkCalendar
+                                                    ? const Color(0xFFAAAAAA)
+                                                    : const Color(0xFF777777))
                                               : AppColors.primaryPurple.withValues(
                                                   alpha: 0.5,
                                                 ))
@@ -1578,7 +1592,9 @@ class _CalendarTabViewState extends State<CalendarTabView> {
                                                       isHabit100 ||
                                                       (medRate != null &&
                                                           !isMed100))
-                                              ? const Color(0xFF333333)
+                                              ? (isDarkCalendar
+                                                    ? const Color(0xFF666666)
+                                                    : const Color(0xFF333333))
                                               : Colors.transparent)),
                               // 오늘을 선택한 경우에만 현재 위치가 확실히 보이도록 더 굵게 표시한다.
                               width: selectedBorderWidth,
@@ -1624,10 +1640,14 @@ class _CalendarTabViewState extends State<CalendarTabView> {
                                     fontWeight: (isToday || isSelected)
                                         ? FontWeight.bold
                                         : FontWeight.w500,
-                                    // 전체 완료한 날이라도 일요일이면 빨간색 유지! 평일은 기본 텍스트 색 유지!
-                                    color: cellDate.weekday == DateTime.sunday
-                                        ? AppColors.missedRed
-                                        : AppColors.textPrimary,
+                                    // 전체 완료한 날이라도 일요일이면 빨간색 유지! 평일은 기본 텍스트 색 유지! (전색맹은 흑백 보존)
+                                    color: isAchromatopsia
+                                        ? (isDarkCalendar
+                                              ? Colors.white
+                                              : const Color(0xFF111111))
+                                        : (cellDate.weekday == DateTime.sunday
+                                              ? AppColors.missedRed
+                                              : AppColors.textPrimary),
                                   ),
                                 ),
                               ),
@@ -1662,7 +1682,12 @@ class _CalendarTabViewState extends State<CalendarTabView> {
                                           ),
                                         )
                                       : Container(
-                                          height: barThickness,
+                                          height: isAchromatopsia && !isMed100
+                                              ? (5.0 * calendarScale).clamp(
+                                                  5.0,
+                                                  7.0,
+                                                )
+                                              : barThickness,
                                           decoration: BoxDecoration(
                                             color: isAchromatopsia &&
                                                     !isMed100
@@ -1671,12 +1696,17 @@ class _CalendarTabViewState extends State<CalendarTabView> {
                                             border: isAchromatopsia &&
                                                     !isMed100
                                                 ? Border.all(
-                                                    color: medBarColor,
-                                                    width: 1.2,
+                                                    color: isDarkCalendar
+                                                        ? const Color(0xFFEEEEEE)
+                                                        : const Color(0xFF222222),
+                                                    width: 1.4,
                                                   )
                                                 : null,
                                             borderRadius: BorderRadius.circular(
-                                              barThickness / 2,
+                                              (isAchromatopsia && !isMed100
+                                                      ? (5.0 * calendarScale).clamp(5.0, 7.0)
+                                                      : barThickness) /
+                                                  2,
                                             ),
                                           ),
                                         ),
