@@ -1703,7 +1703,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       ),
                       SizedBox(height: 3),
                       Text(
-                        '정신약학 맞춤 복약 솔루션 · v0.143.349',
+                        '정신약학 맞춤 복약 솔루션 · v0.143.351',
                         style: TextStyle(
                           fontSize: 12,
                           color: AppColors.textSecondary,
@@ -1847,6 +1847,29 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   ),
                   const Divider(height: 1, color: Color(0xFFF3F4F6)),
 
+                  // 2) 기능별 알림은 상세 설정 안에서 접었다 펼쳐 본다.
+                  ExpansionTile(
+                    initiallyExpanded: false,
+                    tilePadding: const EdgeInsets.symmetric(horizontal: 16),
+                    childrenPadding: EdgeInsets.zero,
+                    title: Text(
+                      '푸시 알림 상세 설정',
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.textPrimary,
+                      ),
+                    ),
+                    subtitle: Text(
+                      '복약·습관·일정·하곰이 응원 알림을 관리해요',
+                      style: TextStyle(
+                        fontSize: 11.5,
+                        color: AppColors.textSecondary,
+                      ),
+                    ),
+                    iconColor: AppColors.primaryPurple,
+                    collapsedIconColor: AppColors.textMuted,
+                    children: [
                   // 2) 💊 복약 알림 (처방약 상시 켜짐 스마트 토글!)
                   SwitchListTile(
                     contentPadding: const EdgeInsets.symmetric(
@@ -1983,7 +2006,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     ),
                     activeThumbColor: AppColors.primaryPurple,
                     title: Text(
-                      '하곰이 따뜻한 응원 알림',
+                      '하곰이의 따뜻한 응원 알림',
                       style: TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.w600,
@@ -1999,6 +2022,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     ),
                     value: _state.mascotNotificationEnabled,
                     onChanged: (val) => _state.setMascotNotification(val),
+                  ),
+                  const Divider(height: 1, color: Color(0xFFF3F4F6)),
+                    ],
                   ),
                   const Divider(height: 1, color: Color(0xFFF3F4F6)),
 
