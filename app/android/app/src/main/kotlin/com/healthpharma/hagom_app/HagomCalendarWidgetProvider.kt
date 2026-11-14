@@ -134,7 +134,7 @@ class HagomCalendarWidgetProvider : HomeWidgetProvider() {
             }
             WidgetBindings.applyTheme(
                 views, widgetData, R.id.widget_calendar_container,
-                listOf(R.id.widget_calendar_tag, R.id.widget_calendar_progress, R.id.widget_calendar_title,
+                listOf(R.id.widget_calendar_progress, R.id.widget_calendar_title,
                     R.id.widget_calendar_subtitle, R.id.widget_calendar_status)
             )
             if (!is1x1) {

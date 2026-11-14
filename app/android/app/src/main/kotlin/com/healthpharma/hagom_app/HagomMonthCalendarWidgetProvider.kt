@@ -313,8 +313,7 @@ class HagomMonthCalendarWidgetProvider : HomeWidgetProvider() {
             }
             WidgetBindings.applyTheme(
                 views, widgetData, R.id.widget_month_container,
-                listOf(R.id.widget_month_title, R.id.widget_month_meds, R.id.widget_month_habits,
-                    R.id.widget_month_tasks_label, R.id.widget_month_tasks)
+                listOf(R.id.widget_month_title)
             )
             appWidgetManager.updateAppWidget(appWidgetId, views)
         }
