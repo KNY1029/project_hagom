@@ -172,6 +172,7 @@ class _MedsTabViewState extends State<MedsTabView> {
       context: context,
       useRootNavigator: false, // 하단 탭 바가 항상 최상단에 안정적으로 유지되도록 설정!
       isScrollControlled: true,
+      requestFocus: false,
       backgroundColor: Colors.transparent,
       builder: (ctx) {
         return StatefulBuilder(
@@ -244,7 +245,6 @@ class _MedsTabViewState extends State<MedsTabView> {
                     if (currentStep == 1) ...[
                       TextField(
                         controller: nameCtrl,
-                        autofocus: !isEditing,
                         decoration: InputDecoration(
                           isDense: true,
                           labelText: '약 이름',
@@ -1708,6 +1708,7 @@ class _MedsTabViewState extends State<MedsTabView> {
                     );
                     showDialog<void>(
                       context: context,
+                      requestFocus: false,
                       builder: (reasonContext) => AlertDialog(
                         scrollable: true,
                         title: const Text('건너뛴 이유 수정'),

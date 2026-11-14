@@ -43,7 +43,10 @@ class _TaskMemoDialogState extends State<_TaskMemoDialog> {
 
   @override
   Widget build(BuildContext context) => AlertDialog(
+    insetPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
     titlePadding: const EdgeInsets.fromLTRB(24, 12, 8, 0),
+    contentPadding: const EdgeInsets.fromLTRB(16, 8, 16, 4),
+    actionsPadding: const EdgeInsets.fromLTRB(12, 0, 12, 8),
     title: Row(
       children: [
         const Expanded(child: Text('할일 메모')),
@@ -257,6 +260,7 @@ class _CalendarTabViewState extends State<CalendarTabView> {
       context: context,
       useRootNavigator: false,
       isScrollControlled: true,
+      requestFocus: false,
       backgroundColor: Colors.transparent,
       builder: (mCtx) => StatefulBuilder(
         builder: (ctx, setMState) => Container(
@@ -303,7 +307,6 @@ class _CalendarTabViewState extends State<CalendarTabView> {
                 const SizedBox(height: 12),
                 TextField(
                   controller: titleCtrl,
-                  autofocus: task == null,
                   decoration: InputDecoration(
                     hintText: '',
                     filled: true,
@@ -875,6 +878,7 @@ class _CalendarTabViewState extends State<CalendarTabView> {
       await showDialog<void>(
         context: context,
         useRootNavigator: false,
+        requestFocus: false,
         builder: (dialogContext) => AlertDialog(
           title: const Text('할일 메모'),
           content: SizedBox(
@@ -895,6 +899,7 @@ class _CalendarTabViewState extends State<CalendarTabView> {
     final result = await showDialog<String>(
       context: context,
       useRootNavigator: false,
+      requestFocus: false,
       builder: (dialogContext) => _TaskMemoDialog(initialMemo: task.memo),
     );
     if (result == null || !mounted) return;
@@ -1850,7 +1855,9 @@ class _CalendarTabViewState extends State<CalendarTabView> {
                                       child: Text(
                                         '메모',
                                         style: TextStyle(
-                                          color: AppColors.primaryPurple,
+                                          color: t.memo.trim().isEmpty
+                                              ? AppColors.textMuted
+                                              : AppColors.primaryPurple,
                                           fontSize: 12,
                                           fontWeight: FontWeight.w600,
                                         ),

@@ -44,10 +44,22 @@ class _HabitsTabViewState extends State<HabitsTabView> {
         completionIndex >= habit.completionTimes.length) {
       return;
     }
+    final completionThreshold = habit.targetPerDay <= 1
+        ? 2
+        : habit.targetPerDay;
+    final completionLabel = completionIndex + 1 >= completionThreshold
+        ? '완료'
+        : '조금 실천';
     final shouldCancel = await showDialog<bool>(
       context: context,
+      requestFocus: false,
       builder: (dialogContext) => AlertDialog(
-        title: const Text('실천 기록 수정'),
+        insetPadding: const EdgeInsets.symmetric(horizontal: 18, vertical: 24),
+        titlePadding: const EdgeInsets.fromLTRB(20, 14, 20, 0),
+        contentPadding: const EdgeInsets.fromLTRB(20, 8, 20, 2),
+        actionsPadding: const EdgeInsets.fromLTRB(10, 0, 10, 8),
+        actionsOverflowButtonSpacing: 4,
+        title: Text('$completionLabel 기록 수정'),
         content: Text(habit.completionTimes[completionIndex]),
         actions: [
           TextButton(
@@ -200,6 +212,7 @@ class _HabitsTabViewState extends State<HabitsTabView> {
       context: context,
       useRootNavigator: false,
       isScrollControlled: true,
+      requestFocus: false,
       backgroundColor: Colors.transparent,
       builder: (ctx) {
         return StatefulBuilder(
@@ -254,7 +267,6 @@ class _HabitsTabViewState extends State<HabitsTabView> {
                     // 1. 습관 이름
                     TextField(
                       controller: titleCtrl,
-                      autofocus: !isEditing,
                       decoration: InputDecoration(
                         isDense: true,
                         labelText: '습관 이름',

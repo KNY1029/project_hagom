@@ -31,6 +31,7 @@ class AppTimePicker {
 
     return showDialog<TimeOfDay>(
       context: context,
+      requestFocus: false,
       builder: (ctx) => StatefulBuilder(
         builder: (ctx, setState) => AlertDialog(
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
