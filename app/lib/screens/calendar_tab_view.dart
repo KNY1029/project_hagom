@@ -1430,9 +1430,15 @@ class _CalendarTabViewState extends State<CalendarTabView> {
                       // 🌟 [전체 달 공통 레이아웃 & 5월 컬러 팔레트 전면 통일]:
                       // - 레이아웃: 8월 비교안 (가로로 긴 독립형 카드, 모서리 8px, 하단 바 좌우 여백 8px)
                       // - 색상: 5월 컬러 팔레트 (완료: 에메랄드 #059669, 미완료: 소프트 쿨그레이 #9CA3AF, 핀: 쿨그레이 #D1D5DB, 처방약 누락: 빨강 #EF4444)
+                      final bool isDarkCalendar =
+                          AppColors.background == AppColors.darkTheme.background;
                       final Color currentDoneGreen = AppColors.successGreen;
-                      final Color pendingBarColor = AppColors.neutralDark;
-                      final Color pendingPinColor = AppColors.divider;
+                      final Color pendingBarColor = isDarkCalendar
+                          ? const Color(0xFF7B7285)
+                          : const Color(0xFF9CA3AF);
+                      final Color pendingPinColor = isDarkCalendar
+                          ? const Color(0xFF9B8DB1)
+                          : const Color(0xFFD1D5DB);
                       final double barThickness = (3.5 * calendarScale).clamp(
                         3.5,
                         5.5,
