@@ -26,6 +26,21 @@ class HagomMonthCalendarWidgetProvider : HomeWidgetProvider() {
         else -> R.drawable.hagom_calendar_dark_base
     }
 
+    private fun monoCellBackground(status: String): Int = when (status) {
+        "today", "today_pin", "today_done", "today_done_pin",
+        "today_med_done", "today_med_done_pin", "today_med_done_done_pin" ->
+            R.drawable.hagom_calendar_mono_today
+        "all_done", "all_done_pin" -> R.drawable.hagom_calendar_mono_done
+        "mdone", "mdone_pin", "hdone_mdone", "hdone_mdone_pin",
+        "hdone_mpartial", "hdone_mpartial_pin" ->
+            R.drawable.hagom_calendar_mono_bar_dark
+        "missed_med", "missed_med_pin", "hdone_mmissed", "hdone_mmissed_pin" ->
+            R.drawable.hagom_calendar_mono_alert
+        "partial", "partial_pin" -> R.drawable.hagom_calendar_mono_bar_light
+        "pin_only" -> R.drawable.hagom_calendar_mono_pin
+        else -> R.drawable.hagom_calendar_mono_base
+    }
+
     override fun onAppWidgetOptionsChanged(
         context: Context,
         appWidgetManager: AppWidgetManager,
@@ -55,6 +70,7 @@ class HagomMonthCalendarWidgetProvider : HomeWidgetProvider() {
             val inspectingIso = widgetData.getString("month_inspecting_iso", "") ?: ""
             val todayIso = widgetData.getString("month_today_iso", "") ?: ""
             val isColorVision = widgetData.getString("theme_color_vision", "false") == "true"
+            val isAchromatopsia = widgetData.getString("theme_achromatopsia", "false") == "true"
             val hasSelectedOtherDay = inspectingIso.isNotEmpty()
             val views = RemoteViews(context.packageName, R.layout.hagom_month_calendar_widget).apply {
                 // 🌟 [세로 높이 반응형 3단계 헤더]:
@@ -77,9 +93,13 @@ class HagomMonthCalendarWidgetProvider : HomeWidgetProvider() {
                 setTextViewText(R.id.widget_month_tasks_label, taskLabel)
                 setTextViewText(R.id.widget_month_tasks, WidgetBindings.text(widgetData, "month_tasks"))
                 val dark = widgetData.getString("theme_dark", "false") == "true"
-                val medsColorHex = if (dark) "#D6C5FF" else "#7B61A8"
-                val habitsColorHex = if (dark) "#D6C5FF" else "#7B61A8"
-                val tasksColorHex = if (dark) "#D6C5FF" else "#7B61A8"
+                val medsColorHex = when {
+                    isAchromatopsia -> if (dark) "#FFFFFF" else "#111111"
+                    dark -> "#D6C5FF"
+                    else -> "#7B61A8"
+                }
+                val habitsColorHex = medsColorHex
+                val tasksColorHex = medsColorHex
                 val widgetTagBg = if (dark) R.drawable.hagom_widget_tag_bg_dark else R.drawable.hagom_widget_tag_bg
                 setInt(R.id.widget_month_tasks_header, "setBackgroundResource", widgetTagBg)
                 setInt(R.id.month_tasks_card_box, "setBackgroundResource", widgetTagBg)
@@ -189,7 +209,8 @@ class HagomMonthCalendarWidgetProvider : HomeWidgetProvider() {
                         val isDark = widgetData.getString("theme_dark", "false") == "true"
                         setTextColor(
                             resId,
-                            if (isSunday) Color.parseColor(if (isDark) "#FF8585" else "#EF4444")
+                            if (isAchromatopsia) Color.parseColor("#333333")
+                            else if (isSunday) Color.parseColor(if (isDark) "#FF8585" else "#EF4444")
                             else Color.parseColor(if (isDark) "#F3F0F7" else "#1F2937")
                         )
 
@@ -251,7 +272,11 @@ class HagomMonthCalendarWidgetProvider : HomeWidgetProvider() {
                         setInt(
                             resId,
                             "setBackgroundResource",
-                            if (isDark) darkCellBackground(status) else bgRes
+                            when {
+                                isAchromatopsia -> monoCellBackground(status)
+                                isDark && !isColorVision -> darkCellBackground(status)
+                                else -> bgRes
+                            }
                         )
 
                         // 🌟 [원터치 = 위젯 내 조회 / 투터치 = 앱 달력 해당 날짜로 즉시 진입]:

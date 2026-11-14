@@ -54,6 +54,10 @@ class HagomNativeWidgetSync {
       AppColors.colorVisionModeEnabled ? 'true' : 'false',
     );
     await HomeWidget.saveWidgetData<String>(
+      'theme_achromatopsia',
+      AppColors.achromatopsiaModeEnabled ? 'true' : 'false',
+    );
+    await HomeWidget.saveWidgetData<String>(
       'theme_dark',
       AppColors.background.computeLuminance() < 0.2 ? 'true' : 'false',
     );

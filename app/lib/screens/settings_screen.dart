@@ -1703,7 +1703,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       ),
                       SizedBox(height: 3),
                       Text(
-                        '정신약학 맞춤 복약 솔루션 · v0.143.354',
+                        '정신약학 맞춤 복약 솔루션 · v0.143.355',
                         style: TextStyle(
                           fontSize: 12,
                           color: AppColors.textSecondary,
@@ -2306,6 +2306,35 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     ),
                     value: _state.colorVisionModeEnabled,
                     onChanged: (val) => _state.setColorVisionMode(val),
+                  ),
+                  const Divider(height: 1, color: Color(0xFFF3F4F6)),
+                  SwitchListTile(
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 4,
+                    ),
+                    activeThumbColor: AppColors.primaryPurple,
+                    secondary: Icon(
+                      Icons.contrast_outlined,
+                      color: AppColors.primaryPurple,
+                    ),
+                    title: Text(
+                      '전색맹 보조 모드',
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.textPrimary,
+                      ),
+                    ),
+                    subtitle: Text(
+                      '색 대신 명도와 테두리 대비로 상태를 구분해요',
+                      style: TextStyle(
+                        fontSize: 11.5,
+                        color: AppColors.textSecondary,
+                      ),
+                    ),
+                    value: _state.achromatopsiaModeEnabled,
+                    onChanged: (val) => _state.setAchromatopsiaMode(val),
                   ),
                   const Divider(height: 1, color: Color(0xFFF3F4F6)),
                   ListTile(

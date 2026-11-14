@@ -351,6 +351,7 @@ class AppStateManager extends ChangeNotifier {
   bool isDevSimulationMode = false; // 기본값: 실사용 모드 (예시 데이터 없음)
   bool isTutorialDemoMode = false; // 저장하지 않는 온보딩 체험 데이터 상태
   bool colorVisionModeEnabled = false; // 적록색맹 보조 색상 모드
+  bool achromatopsiaModeEnabled = false; // 전색맹 보조 모드
   // 🎨 테마 관리 (기본 제공 프리셋 + 사용자가 추가한 커스텀 테마)
   String currentThemeKey = AppColors.themeDefault;
   final List<ThemePreset> customThemes = [];
@@ -414,6 +415,13 @@ class AppStateManager extends ChangeNotifier {
   void setColorVisionMode(bool enabled) {
     colorVisionModeEnabled = enabled;
     AppColors.setColorVisionMode(enabled);
+    notifyListeners();
+  }
+
+  void setAchromatopsiaMode(bool enabled) {
+    achromatopsiaModeEnabled = enabled;
+    AppColors.achromatopsiaModeEnabled = enabled;
+    AppColors.setColorVisionMode(colorVisionModeEnabled);
     notifyListeners();
   }
 
@@ -1196,6 +1204,7 @@ class AppStateManager extends ChangeNotifier {
       );
       await _prefs!.setBool('hagom_dev_simulation_mode', isDevSimulationMode);
       await _prefs!.setBool('hagom_color_vision_mode', colorVisionModeEnabled);
+      await _prefs!.setBool('hagom_achromatopsia_mode', achromatopsiaModeEnabled);
       if (_trackingStartDate != null) {
         await _prefs!.setString(
           'hagom_tracking_start_date',
@@ -1255,6 +1264,9 @@ class AppStateManager extends ChangeNotifier {
       isDevSimulationMode = savedDevMode ?? false;
       colorVisionModeEnabled =
           _prefs!.getBool('hagom_color_vision_mode') ?? false;
+      achromatopsiaModeEnabled =
+          _prefs!.getBool('hagom_achromatopsia_mode') ?? false;
+      AppColors.achromatopsiaModeEnabled = achromatopsiaModeEnabled;
       AppColors.setColorVisionMode(colorVisionModeEnabled);
       final medsRaw = _prefs!.getString('hagom_medications');
       final customThemesRaw = _prefs!.getString('hagom_custom_themes');

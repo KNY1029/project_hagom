@@ -67,6 +67,7 @@ class ThemePreset {
 class AppColors {
   // 적록색맹 보조 모드: 완료/성공은 파랑, 경고/미완료는 노랑 계열로 구분합니다.
   static bool colorVisionModeEnabled = false;
+  static bool achromatopsiaModeEnabled = false;
 
   // -------------------------------------------------------------
   // 1. 테마에 따라 바뀌는 팔레트 (applyTheme 으로 교체)
@@ -106,7 +107,7 @@ class AppColors {
   static Color partialBorder = const Color(0xFFE5DDD0);
   static Color successGreen = const Color(0xFF065F46);
   static Color successBg = const Color(0xFFE6F8F0);
-  static const Color partialOrange = Color(0xFF8B5E3C);
+  static Color partialOrange = const Color(0xFF8B5E3C);
   static const Color neutralDark = Color(0xFF4B5563);
   static Color missedRed = const Color(0xFFEF4444);
 
@@ -117,13 +118,28 @@ class AppColors {
 
   static void _applyStatusColors() {
     final isDark = background == darkTheme.background;
-    if (colorVisionModeEnabled) {
+    if (achromatopsiaModeEnabled) {
+      completedBg = isDark ? const Color(0xFF4A4A4A) : const Color(0xFFD6D6D6);
+      completedText = isDark ? const Color(0xFFFFFFFF) : const Color(0xFF111111);
+      completedBorder = isDark ? const Color(0xFFE5E5E5) : const Color(0xFF222222);
+      successGreen = isDark ? const Color(0xFFFFFFFF) : const Color(0xFF111111);
+      successBg = isDark ? const Color(0xFF4A4A4A) : const Color(0xFFD6D6D6);
+      missedRed = isDark ? const Color(0xFFFFC857) : const Color(0xFF333333);
+      partialBg = isDark ? const Color(0xFF303030) : const Color(0xFFB5B5B5);
+      partialText = isDark ? const Color(0xFFFFFFFF) : const Color(0xFF202020);
+      partialBorder = isDark ? const Color(0xFFBDBDBD) : const Color(0xFF555555);
+      partialOrange = isDark ? const Color(0xFFFFFFFF) : const Color(0xFF202020);
+    } else if (colorVisionModeEnabled) {
       completedBg = isDark ? const Color(0xFF263B55) : const Color(0xFFE8F1FF);
       completedText = isDark ? const Color(0xFFA8C9FF) : const Color(0xFF1D4ED8);
       completedBorder = isDark ? const Color(0xFF648BC4) : const Color(0xFF9CC2FF);
       successGreen = isDark ? const Color(0xFFA8C9FF) : const Color(0xFF1D4ED8);
       successBg = isDark ? const Color(0xFF263B55) : const Color(0xFFE8F1FF);
       missedRed = isDark ? const Color(0xFFFFD36A) : const Color(0xFFD79B00);
+      partialBg = isDark ? const Color(0xFF3A3028) : const Color(0xFFF7F3EE);
+      partialText = isDark ? const Color(0xFFE2B992) : const Color(0xFF8B5E3C);
+      partialBorder = isDark ? const Color(0xFF665445) : const Color(0xFFE5DDD0);
+      partialOrange = const Color(0xFF8B5E3C);
     } else {
       completedBg = isDark ? const Color(0xFF244437) : const Color(0xFFEAF8F1);
       completedText = isDark ? const Color(0xFF9BE2BE) : const Color(0xFF1B6B46);
@@ -131,10 +147,11 @@ class AppColors {
       successBg = isDark ? const Color(0xFF244437) : const Color(0xFFE6F8F0);
       successGreen = isDark ? const Color(0xFF8DDBB2) : const Color(0xFF065F46);
       missedRed = isDark ? const Color(0xFFFF8A8A) : const Color(0xFFEF4444);
+      partialBg = isDark ? const Color(0xFF3A3028) : const Color(0xFFF7F3EE);
+      partialText = isDark ? const Color(0xFFE2B992) : const Color(0xFF8B5E3C);
+      partialBorder = isDark ? const Color(0xFF665445) : const Color(0xFFE5DDD0);
+      partialOrange = const Color(0xFF8B5E3C);
     }
-    partialBg = isDark ? const Color(0xFF3A3028) : const Color(0xFFF7F3EE);
-    partialText = isDark ? const Color(0xFFE2B992) : const Color(0xFF8B5E3C);
-    partialBorder = isDark ? const Color(0xFF665445) : const Color(0xFFE5DDD0);
   }
 
   // -------------------------------------------------------------
