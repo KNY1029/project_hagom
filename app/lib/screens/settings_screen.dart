@@ -1703,7 +1703,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       ),
                       SizedBox(height: 3),
                       Text(
-                        '정신약학 맞춤 복약 솔루션 · v0.129.334',
+                        '정신약학 맞춤 복약 솔루션 · v0.130.335',
                         style: TextStyle(
                           fontSize: 12,
                           color: AppColors.textSecondary,
@@ -2217,89 +2217,71 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   color: AppColors.divider.withValues(alpha: 0.5),
                 ),
               ),
-              child: SwitchListTile(
-                contentPadding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 4,
-                ),
-                secondary: Icon(
-                  _state.currentThemeKey == AppColors.themeDark
-                      ? Icons.dark_mode_outlined
-                      : Icons.light_mode_outlined,
-                  color: AppColors.primaryPurple,
-                ),
-                title: Text(
-                  '다크 모드',
-                  style: TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                    color: AppColors.textPrimary,
-                  ),
-                ),
-                subtitle: Text(
-                  '앱 화면을 어두운 색상으로 표시해요',
-                  style: TextStyle(
-                    fontSize: 11.5,
-                    color: AppColors.textSecondary,
-                  ),
-                ),
-                value: _state.currentThemeKey == AppColors.themeDark,
-                onChanged: (enabled) {
-                  _state.setTheme(
-                    enabled ? AppColors.themeDark : AppColors.themeDefault,
-                  );
-                },
-              ),
-            ),
-            const SizedBox(height: 18),
-            Container(
-              decoration: BoxDecoration(
-                color: AppColors.cardSurface,
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(
-                  color: AppColors.divider.withValues(alpha: 0.5),
-                ),
-              ),
-              child: SwitchListTile(
-                contentPadding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 4,
-                ),
-                activeThumbColor: AppColors.primaryPurple,
-                secondary: Icon(
-                  Icons.visibility_outlined,
-                  color: AppColors.primaryPurple,
-                ),
-                title: Text(
-                  '적록색맹 보조 색상 모드',
-                  style: TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                    color: AppColors.textPrimary,
-                  ),
-                ),
-                subtitle: Text(
-                  '완료·성공 색상은 파랑으로, 경고·미완료 색상은 노랑으로 표시해요',
-                  style: TextStyle(
-                    fontSize: 11.5,
-                    color: AppColors.textSecondary,
-                  ),
-                ),
-                value: _state.colorVisionModeEnabled,
-                onChanged: (val) => _state.setColorVisionMode(val),
-              ),
-            ),
-            const SizedBox(height: 18),
-            Container(
-              decoration: BoxDecoration(
-                color: AppColors.cardSurface,
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(
-                  color: AppColors.divider.withValues(alpha: 0.5),
-                ),
-              ),
               child: Column(
                 children: [
+                  SwitchListTile(
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 4,
+                    ),
+                    secondary: Icon(
+                      _state.currentThemeKey == AppColors.themeDark
+                          ? Icons.dark_mode_outlined
+                          : Icons.light_mode_outlined,
+                      color: AppColors.primaryPurple,
+                    ),
+                    title: Text(
+                      '다크 모드',
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.textPrimary,
+                      ),
+                    ),
+                    subtitle: Text(
+                      '앱 화면을 어두운 색상으로 표시해요',
+                      style: TextStyle(
+                        fontSize: 11.5,
+                        color: AppColors.textSecondary,
+                      ),
+                    ),
+                    value: _state.currentThemeKey == AppColors.themeDark,
+                    onChanged: (enabled) {
+                      _state.setTheme(
+                        enabled ? AppColors.themeDark : AppColors.themeDefault,
+                      );
+                    },
+                  ),
+                  const Divider(height: 1, color: Color(0xFFF3F4F6)),
+                  SwitchListTile(
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 4,
+                    ),
+                    activeThumbColor: AppColors.primaryPurple,
+                    secondary: Icon(
+                      Icons.visibility_outlined,
+                      color: AppColors.primaryPurple,
+                    ),
+                    title: Text(
+                      '적록색맹 보조 색상 모드',
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.textPrimary,
+                      ),
+                    ),
+                    subtitle: Text(
+                      '완료·성공 색상은 파랑으로, 경고·미완료 색상은 노랑으로 표시해요',
+                      style: TextStyle(
+                        fontSize: 11.5,
+                        color: AppColors.textSecondary,
+                      ),
+                    ),
+                    value: _state.colorVisionModeEnabled,
+                    onChanged: (val) => _state.setColorVisionMode(val),
+                  ),
+                  const Divider(height: 1, color: Color(0xFFF3F4F6)),
                   ListTile(
                     contentPadding: const EdgeInsets.symmetric(
                       horizontal: 16,
