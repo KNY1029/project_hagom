@@ -246,15 +246,14 @@ class _CalendarTabViewState extends State<CalendarTabView> {
           children: [
             if (AppColors.achromatopsiaModeEnabled) ...[
               row(marker: dottedBar(), label: '처방약 미복용 · 점선'),
-              row(marker: bar(const Color(0xFF222222)), label: '복약 완료 · 채운 바'),
+              row(marker: bar(AppColors.successGreen), label: '복약 완료 · 채운 바'),
               row(marker: outlineBar(), label: '일부 복용 · 테두리 바'),
               const Divider(),
               row(marker: outlinedDot(filled: false), label: '할일 미완료 · 빈 원'),
               row(marker: outlinedDot(filled: true), label: '할일 완료 · 채운 원'),
               const Divider(),
-              row(marker: monoCell(fill: Colors.transparent, strong: false), label: '습관 대기 · 테두리만'),
-              row(marker: monoCell(fill: const Color(0xFFE5E5E5), strong: false), label: '습관 조금 실천 · 아주 연하게'),
-              row(marker: monoCell(fill: const Color(0xFFB5B5B5), strong: true), label: '습관 완료 · 연하게'),
+              row(marker: cell(AppColors.successBg), label: '습관 완료'),
+              row(marker: cell(AppColors.cardSurface), label: '습관 미완료'),
             ] else ...[
               row(marker: bar(AppColors.missedRed), label: '처방약 미복용'),
               row(marker: bar(AppColors.successGreen), label: '복약 완료'),
@@ -1185,30 +1184,31 @@ class _CalendarTabViewState extends State<CalendarTabView> {
               );
             },
             child: Text(
-              '대기 (미실천)',
+              '미완료',
               style: TextStyle(color: AppColors.textSecondary),
             ),
           ),
-          // 2) 조금 실천
-          TextButton(
-            onPressed: () {
-              Navigator.of(dCtx).pop();
-              _state.resetPastHabitProgress(_selectedDate, habit.id);
-              _state.advancePastHabitProgress(_selectedDate, habit.id);
-              CelebrationToast.show(
-                context,
-                title: '작은 발걸음 기록',
-                message: '조금이라도 실천한 것이 정말 큰 의미가 있어요.',
-              );
-            },
-            child: Text(
-              '조금 실천',
-              style: TextStyle(
-                color: AppColors.partialText,
-                fontWeight: FontWeight.bold,
+          // 2) 조금 실천 (전색맹 모드에서는 표시 안 함)
+          if (!AppColors.achromatopsiaModeEnabled)
+            TextButton(
+              onPressed: () {
+                Navigator.of(dCtx).pop();
+                _state.resetPastHabitProgress(_selectedDate, habit.id);
+                _state.advancePastHabitProgress(_selectedDate, habit.id);
+                CelebrationToast.show(
+                  context,
+                  title: '작은 발걸음 기록',
+                  message: '조금이라도 실천한 것이 정말 큰 의미가 있어요.',
+                );
+              },
+              child: Text(
+                '조금 실천',
+                style: TextStyle(
+                  color: AppColors.partialText,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
             ),
-          ),
           // 3) 완료
           ElevatedButton(
             style: ElevatedButton.styleFrom(
@@ -2500,10 +2500,17 @@ class _CalendarTabViewState extends State<CalendarTabView> {
                           border = AppColors.completedBorder;
                           textCol = AppColors.completedText;
                         } else if (isPart) {
-                          label = '조금 실천';
-                          bg = AppColors.partialBg;
-                          border = AppColors.partialBorder;
-                          textCol = AppColors.partialText;
+                          if (AppColors.achromatopsiaModeEnabled) {
+                            label = '미완료';
+                            bg = AppColors.cardSurface;
+                            border = AppColors.divider;
+                            textCol = AppColors.textSecondary;
+                          } else {
+                            label = '조금 실천';
+                            bg = AppColors.partialBg;
+                            border = AppColors.partialBorder;
+                            textCol = AppColors.partialText;
+                          }
                         }
                         return Container(
                           margin: const EdgeInsets.only(bottom: 4),

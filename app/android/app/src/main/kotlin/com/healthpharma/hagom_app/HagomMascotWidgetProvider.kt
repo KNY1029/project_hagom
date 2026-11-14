@@ -90,12 +90,11 @@ class HagomMascotWidgetProvider : HomeWidgetProvider() {
             if (!is1x1) {
                 val isDark = widgetData.getString("theme_dark", "false") == "true"
                 val isAchromatopsia = widgetData.getString("theme_achromatopsia", "false") == "true"
-                val badgeBg = if (isAchromatopsia) {
-                    R.drawable.hagom_widget_tag_bg_mono
-                } else if (isDark) {
-                    R.drawable.hagom_widget_tag_bg_dark
-                } else {
-                    R.drawable.hagom_widget_tag_bg
+                val badgeBg = when {
+                    isAchromatopsia && isDark -> R.drawable.hagom_widget_tag_bg_mono_dark
+                    isAchromatopsia -> R.drawable.hagom_widget_tag_bg_mono
+                    isDark -> R.drawable.hagom_widget_tag_bg_dark
+                    else -> R.drawable.hagom_widget_tag_bg
                 }
                 views.setInt(R.id.widget_mascot_badge, "setBackgroundResource", badgeBg)
                 val badgeTextColor = if (isAchromatopsia) {

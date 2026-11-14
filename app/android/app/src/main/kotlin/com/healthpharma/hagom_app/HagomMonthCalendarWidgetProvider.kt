@@ -129,8 +129,12 @@ class HagomMonthCalendarWidgetProvider : HomeWidgetProvider() {
                 }
                 val habitsColorHex = medsColorHex
                 val tasksColorHex = medsColorHex
-                val widgetTagBg = if (isAchromatopsia) R.drawable.hagom_widget_tag_bg_mono
-                else if (dark) R.drawable.hagom_widget_tag_bg_dark else R.drawable.hagom_widget_tag_bg
+                val widgetTagBg = when {
+                    isAchromatopsia && dark -> R.drawable.hagom_widget_tag_bg_mono_dark
+                    isAchromatopsia -> R.drawable.hagom_widget_tag_bg_mono
+                    dark -> R.drawable.hagom_widget_tag_bg_dark
+                    else -> R.drawable.hagom_widget_tag_bg
+                }
                 setInt(R.id.widget_month_tasks_header, "setBackgroundResource", widgetTagBg)
                 setInt(R.id.month_tasks_card_box, "setBackgroundResource", widgetTagBg)
                 setInt(R.id.widget_month_habits_box, "setBackgroundResource", widgetTagBg)

@@ -152,10 +152,14 @@ class HagomCalendarWidgetProvider : HomeWidgetProvider() {
                 views.setInt(
                     R.id.widget_calendar_tag,
                     "setBackgroundResource",
-                    if (isAchromatopsia) R.drawable.hagom_widget_tag_bg_mono
-                    else if (widgetData.getString("theme_dark", "false") == "true")
-                        R.drawable.hagom_widget_tag_bg_dark
-                    else R.drawable.hagom_widget_tag_bg
+                    when {
+                        isAchromatopsia && (widgetData.getString("theme_dark", "false") == "true") ->
+                            R.drawable.hagom_widget_tag_bg_mono_dark
+                        isAchromatopsia -> R.drawable.hagom_widget_tag_bg_mono
+                        widgetData.getString("theme_dark", "false") == "true" ->
+                            R.drawable.hagom_widget_tag_bg_dark
+                        else -> R.drawable.hagom_widget_tag_bg
+                    }
                 )
             }
             appWidgetManager.updateAppWidget(appWidgetId, views)
