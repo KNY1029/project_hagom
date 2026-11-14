@@ -137,8 +137,14 @@ class HagomCalendarWidgetProvider : HomeWidgetProvider() {
                 listOf(R.id.widget_calendar_tag, R.id.widget_calendar_progress, R.id.widget_calendar_title,
                     R.id.widget_calendar_subtitle, R.id.widget_calendar_status)
             )
-            if (widgetData.getString("theme_dark", "false") == "true" && !is1x1) {
-                views.setInt(R.id.widget_calendar_tag, "setBackgroundResource", R.drawable.hagom_widget_tag_bg_dark)
+            if (!is1x1) {
+                views.setInt(
+                    R.id.widget_calendar_tag,
+                    "setBackgroundResource",
+                    if (widgetData.getString("theme_dark", "false") == "true")
+                        R.drawable.hagom_widget_tag_bg_dark
+                    else R.drawable.hagom_widget_tag_bg
+                )
             }
             appWidgetManager.updateAppWidget(appWidgetId, views)
         }
