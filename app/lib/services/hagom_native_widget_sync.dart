@@ -193,6 +193,10 @@ class HagomNativeWidgetSync {
         'mascot_image',
         currentStage['image']!,
       );
+      await HomeWidget.saveWidgetData<String>(
+        'mascot_show_badge',
+        state.isDevSimulationMode && !state.isTutorialDemoMode ? 'true' : 'false',
+      );
       // 1) 마스코트 데이터 준비 완료
       // -------------------------------------------------------------
       // 2) 복약 관리 위젯

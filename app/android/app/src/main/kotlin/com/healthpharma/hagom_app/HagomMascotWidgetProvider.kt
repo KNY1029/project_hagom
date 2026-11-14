@@ -69,6 +69,12 @@ class HagomMascotWidgetProvider : HomeWidgetProvider() {
                     setTextViewText(R.id.widget_mascot_badge, badge)
                     setTextViewText(R.id.widget_mascot_quote, quote)
                     setTextViewText(R.id.widget_mascot_sub, sub)
+                    setViewVisibility(
+                        R.id.widget_mascot_badge,
+                        if (widgetData.getString("mascot_show_badge", "false") == "true")
+                            android.view.View.VISIBLE
+                        else android.view.View.GONE
+                    )
                     setImageViewResource(R.id.widget_mascot_img, imageRes)
 
                     setOnClickPendingIntent(
