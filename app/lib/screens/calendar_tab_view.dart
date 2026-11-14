@@ -179,6 +179,33 @@ class _CalendarTabViewState extends State<CalendarTabView> {
       height: 12,
       decoration: BoxDecoration(color: color, shape: BoxShape.circle),
     );
+    Widget outlinedDot({required bool filled}) => Container(
+      width: 12,
+      height: 12,
+      decoration: BoxDecoration(
+        color: filled ? const Color(0xFF555555) : Colors.transparent,
+        shape: BoxShape.circle,
+        border: Border.all(color: const Color(0xFF333333), width: 1.5),
+      ),
+    );
+    Widget dottedBar() => SizedBox(
+      width: 28,
+      height: 5,
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: List.generate(
+          5,
+          (_) => Container(
+            width: 4,
+            height: 4,
+            decoration: const BoxDecoration(
+              color: Color(0xFF222222),
+              shape: BoxShape.circle,
+            ),
+          ),
+        ),
+      ),
+    );
     Widget cell(Color color) => Container(
       width: 15,
       height: 15,
@@ -186,6 +213,18 @@ class _CalendarTabViewState extends State<CalendarTabView> {
         color: color,
         borderRadius: BorderRadius.circular(3),
         border: Border.all(color: AppColors.divider),
+      ),
+    );
+    Widget monoCell({required Color fill, required bool strong}) => Container(
+      width: 15,
+      height: 15,
+      decoration: BoxDecoration(
+        color: fill,
+        borderRadius: BorderRadius.circular(3),
+        border: Border.all(
+          color: const Color(0xFF333333),
+          width: strong ? 1.5 : 1,
+        ),
       ),
     );
 
@@ -196,15 +235,28 @@ class _CalendarTabViewState extends State<CalendarTabView> {
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            row(marker: bar(AppColors.missedRed), label: '처방약 미복용'),
-            row(marker: bar(AppColors.successGreen), label: '복약 완료'),
-            row(marker: bar(const Color(0xFF9CA3AF)), label: '복약 미완료'),
-            const Divider(),
-            row(marker: dot(AppColors.successGreen), label: '할일 완료'),
-            row(marker: dot(const Color(0xFFD1D5DB)), label: '할일 미완료'),
-            const Divider(),
-            row(marker: cell(AppColors.successBg), label: '습관 완료'),
-            row(marker: cell(AppColors.cardSurface), label: '습관 미완료'),
+            if (AppColors.achromatopsiaModeEnabled) ...[
+              row(marker: dottedBar(), label: '처방약 미복용 · 점선'),
+              row(marker: bar(const Color(0xFF222222)), label: '복약 완료 · 진한 바'),
+              row(marker: bar(const Color(0xFF888888)), label: '복약 미완료 · 연한 바'),
+              const Divider(),
+              row(marker: outlinedDot(filled: false), label: '할일 미완료 · 빈 원'),
+              row(marker: outlinedDot(filled: true), label: '할일 완료 · 채운 원'),
+              const Divider(),
+              row(marker: monoCell(fill: Colors.transparent, strong: false), label: '습관 대기 · 테두리만'),
+              row(marker: monoCell(fill: const Color(0xFFB5B5B5), strong: false), label: '습관 조금 실천 · 연하게'),
+              row(marker: monoCell(fill: const Color(0xFF555555), strong: true), label: '습관 완료 · 진하게'),
+            ] else ...[
+              row(marker: bar(AppColors.missedRed), label: '처방약 미복용'),
+              row(marker: bar(AppColors.successGreen), label: '복약 완료'),
+              row(marker: bar(const Color(0xFF9CA3AF)), label: '복약 미완료'),
+              const Divider(),
+              row(marker: dot(AppColors.successGreen), label: '할일 완료'),
+              row(marker: dot(const Color(0xFFD1D5DB)), label: '할일 미완료'),
+              const Divider(),
+              row(marker: cell(AppColors.successBg), label: '습관 완료'),
+              row(marker: cell(AppColors.cardSurface), label: '습관 미완료'),
+            ],
           ],
         ),
         actions: [
@@ -1539,14 +1591,19 @@ class _CalendarTabViewState extends State<CalendarTabView> {
                                     width: 5.5 * calendarScale,
                                     height: 5.5 * calendarScale,
                                     decoration: BoxDecoration(
-                                      color: isTasksAllDone
-                                          ? currentDoneGreen // 🌟 생생한 완료 초록 반영!
-                                          : pendingPinColor, // 🌟 월별 미완료 색상 (연보라 or 쿨그레이)
-                                      shape: isAchromatopsia
-                                          ? BoxShape.rectangle
-                                          : BoxShape.circle,
-                                      borderRadius: isAchromatopsia
-                                          ? BorderRadius.circular(1)
+                                      color: isAchromatopsia
+                                          ? (isTasksAllDone
+                                                ? currentDoneGreen
+                                                : Colors.transparent)
+                                          : (isTasksAllDone
+                                                ? currentDoneGreen
+                                                : pendingPinColor),
+                                      shape: BoxShape.circle,
+                                      border: isAchromatopsia
+                                          ? Border.all(
+                                              color: pendingPinColor,
+                                              width: 1.2,
+                                            )
                                           : null,
                                     ),
                                   ),

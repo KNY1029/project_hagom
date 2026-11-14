@@ -27,16 +27,21 @@ class HagomMonthCalendarWidgetProvider : HomeWidgetProvider() {
     }
 
     private fun monoCellBackground(status: String): Int = when (status) {
-        "today", "today_pin", "today_done", "today_done_pin",
-        "today_med_done", "today_med_done_pin", "today_med_done_done_pin" ->
+        "today", "today_done" ->
             R.drawable.hagom_calendar_mono_today
-        "all_done", "all_done_pin" -> R.drawable.hagom_calendar_mono_done
-        "mdone", "mdone_pin", "hdone_mdone", "hdone_mdone_pin",
-        "hdone_mpartial", "hdone_mpartial_pin" ->
+        "today_pin", "today_done_pin", "today_med_done_pin" ->
+            R.drawable.hagom_calendar_mono_today_pin
+        "today_med_done_done_pin" -> R.drawable.hagom_calendar_mono_bar_dark_pin
+        "all_done" -> R.drawable.hagom_calendar_mono_done
+        "all_done_pin" -> R.drawable.hagom_calendar_mono_done_pin
+        "mdone", "hdone_mdone", "hdone_mpartial" ->
             R.drawable.hagom_calendar_mono_bar_dark
+        "mdone_pin", "hdone_mdone_pin", "hdone_mpartial_pin" ->
+            R.drawable.hagom_calendar_mono_bar_dark_pin
         "missed_med", "missed_med_pin", "hdone_mmissed", "hdone_mmissed_pin" ->
             R.drawable.hagom_calendar_mono_missed
-        "partial", "partial_pin" -> R.drawable.hagom_calendar_mono_bar_light
+        "partial" -> R.drawable.hagom_calendar_mono_bar_light
+        "partial_pin" -> R.drawable.hagom_calendar_mono_bar_light_pin
         "pin_only" -> R.drawable.hagom_calendar_mono_pin
         else -> R.drawable.hagom_calendar_mono_base
     }

@@ -120,11 +120,11 @@ class AppColors {
     final isDark = background == darkTheme.background ||
         (achromatopsiaModeEnabled && background == const Color(0xFF181818));
     if (achromatopsiaModeEnabled) {
-      completedBg = isDark ? const Color(0xFF4A4A4A) : const Color(0xFFD6D6D6);
+      completedBg = isDark ? const Color(0xFF555555) : const Color(0xFF555555);
       completedText = isDark ? const Color(0xFFFFFFFF) : const Color(0xFF111111);
       completedBorder = isDark ? const Color(0xFFE5E5E5) : const Color(0xFF222222);
       successGreen = isDark ? const Color(0xFFFFFFFF) : const Color(0xFF111111);
-      successBg = isDark ? const Color(0xFF4A4A4A) : const Color(0xFFD6D6D6);
+      successBg = isDark ? const Color(0xFF555555) : const Color(0xFF555555);
       missedRed = isDark ? const Color(0xFFFFC857) : const Color(0xFF333333);
       partialBg = isDark ? const Color(0xFF303030) : const Color(0xFFB5B5B5);
       partialText = isDark ? const Color(0xFFFFFFFF) : const Color(0xFF202020);
