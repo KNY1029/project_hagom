@@ -141,7 +141,7 @@ class _HabitsTabViewState extends State<HabitsTabView> {
                 bottom: MediaQuery.of(ctx).viewInsets.bottom + 20,
               ),
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: AppColors.cardSurface,
                 borderRadius: BorderRadius.circular(20),
                 boxShadow: [
                   BoxShadow(
@@ -275,7 +275,7 @@ class _HabitsTabViewState extends State<HabitsTabView> {
                       child: Container(
                         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
                         decoration: BoxDecoration(
-                          color: const Color(0xFFF9FAFB),
+                          color: AppColors.inputSurface,
                           borderRadius: BorderRadius.circular(8),
                           border: Border.all(color: AppColors.divider),
                         ),
@@ -396,7 +396,7 @@ class _HabitsTabViewState extends State<HabitsTabView> {
                           vertical: 8,
                         ),
                         decoration: BoxDecoration(
-                          color: const Color(0xFFF9FAFB),
+                          color: AppColors.inputSurface,
                           borderRadius: BorderRadius.circular(10),
                           border: Border.all(color: AppColors.divider),
                         ),
@@ -845,7 +845,7 @@ class _HabitsTabViewState extends State<HabitsTabView> {
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(10),
               ),
-              backgroundColor: Colors.white,
+              backgroundColor: AppColors.cardSurface,
             ),
             child: Text(
               '작은 습관 추가',
@@ -889,7 +889,7 @@ class _HabitsTabViewState extends State<HabitsTabView> {
         margin: const EdgeInsets.only(bottom: 6),
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         decoration: BoxDecoration(
-          color: const Color(0xFFF9FAFB),
+          color: AppColors.inputSurface,
           borderRadius: BorderRadius.circular(8),
           border: Border.all(color: const Color(0xFFEEEEEE)),
         ),
@@ -948,8 +948,8 @@ class _HabitsTabViewState extends State<HabitsTabView> {
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      decoration: BoxDecoration(
-        color: Colors.white,
+        decoration: BoxDecoration(
+          color: AppColors.cardSurface,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: AppColors.divider.withValues(alpha: 0.6)),
         boxShadow: [
@@ -1035,7 +1035,7 @@ class _HabitsTabViewState extends State<HabitsTabView> {
     return Container(
       margin: const EdgeInsets.only(bottom: 8),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppColors.cardSurface,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
           color: habit.isExpanded

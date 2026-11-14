@@ -37,6 +37,7 @@ class MainNavigationShell extends StatefulWidget {
 class _MainNavigationShellState extends State<MainNavigationShell> {
   int _currentIndex = 0;
   bool _isTutorialActive = false;
+  OverlayEntry? _tutorialOverlayEntry;
 
   @override
   void initState() {
@@ -50,7 +51,30 @@ class _MainNavigationShellState extends State<MainNavigationShell> {
     state.addListener(_onStateChanged);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _checkWidgetDeepLinkRouting();
+      if (_isTutorialActive) _showTutorialOverlay();
     });
+  }
+
+  void _showTutorialOverlay() {
+    if (!mounted || !_isTutorialActive || _tutorialOverlayEntry != null) return;
+    final overlay = Overlay.of(context, rootOverlay: true);
+    final entry = OverlayEntry(
+      builder: (_) => TutorialOverlay(
+        preserveDataOnFinish: widget.preserveDataOnTutorialFinish,
+        onSwitchTab: (tabIdx) {
+          if (mounted) setState(() => _currentIndex = tabIdx);
+        },
+        onFinishTutorial: _finishTutorial,
+      ),
+    );
+    _tutorialOverlayEntry = entry;
+    overlay.insert(entry);
+  }
+
+  void _finishTutorial() {
+    _tutorialOverlayEntry?.remove();
+    _tutorialOverlayEntry = null;
+    if (mounted) setState(() => _isTutorialActive = false);
   }
 
   void _onStateChanged() {
@@ -86,6 +110,8 @@ class _MainNavigationShellState extends State<MainNavigationShell> {
 
   @override
   void dispose() {
+    _tutorialOverlayEntry?.remove();
+    _tutorialOverlayEntry = null;
     AppStateManager().removeListener(_onStateChanged);
     _bubbleTimer?.cancel();
     super.dispose();
@@ -137,7 +163,7 @@ class _MainNavigationShellState extends State<MainNavigationShell> {
       backgroundColor: AppColors.background,
       appBar: AppBar(
         automaticallyImplyLeading: false, // 🚫 메인 셸에서는 뒤로가기 화살표 절대 미표시!
-        backgroundColor: Colors.white,
+        backgroundColor: AppColors.cardSurface,
         elevation: 0,
         title: Text(
           _tabTitles[_currentIndex],
@@ -237,7 +263,7 @@ class _MainNavigationShellState extends State<MainNavigationShell> {
                         vertical: 9,
                       ),
                       decoration: BoxDecoration(
-                        color: Colors.white,
+                        color: AppColors.cardSurface,
                         borderRadius: BorderRadius.circular(14),
                         border: Border.all(
                           color: AppColors.primaryPurple.withValues(
@@ -278,20 +304,6 @@ class _MainNavigationShellState extends State<MainNavigationShell> {
                 ),
               ),
             ),
-          if (_isTutorialActive)
-            TutorialOverlay(
-              preserveDataOnFinish: widget.preserveDataOnTutorialFinish,
-              onSwitchTab: (tabIdx) {
-                setState(() {
-                  _currentIndex = tabIdx;
-                });
-              },
-              onFinishTutorial: () {
-                setState(() {
-                  _isTutorialActive = false;
-                });
-              },
-            ),
         ],
       ),
       bottomNavigationBar: Theme(
@@ -310,7 +322,7 @@ class _MainNavigationShellState extends State<MainNavigationShell> {
           enableFeedback: false,
           selectedItemColor: AppColors.primaryPurple,
           unselectedItemColor: AppColors.textMuted,
-          backgroundColor: Colors.white,
+          backgroundColor: AppColors.cardSurface,
           elevation: 8,
           selectedLabelStyle: const TextStyle(
             fontWeight: FontWeight.bold,

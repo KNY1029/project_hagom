@@ -185,7 +185,7 @@ class _MedsTabViewState extends State<MedsTabView> {
                 bottom: MediaQuery.of(ctx).viewInsets.bottom + 20,
               ),
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: AppColors.cardSurface,
                 borderRadius: BorderRadius.circular(20),
                 boxShadow: [
                   BoxShadow(
@@ -547,7 +547,7 @@ class _MedsTabViewState extends State<MedsTabView> {
                                 decoration: BoxDecoration(
                                   color: isDaySel
                                       ? AppColors.lightLavender
-                                      : const Color(0xFFF9FAFB),
+                                      : AppColors.inputSurface,
                                   borderRadius: BorderRadius.circular(6),
                                   border: Border.all(
                                     color: isDaySel
@@ -1021,7 +1021,7 @@ class _MedsTabViewState extends State<MedsTabView> {
                               vertical: 6,
                             ),
                             decoration: BoxDecoration(
-                              color: const Color(0xFFF9FAFB),
+                              color: AppColors.inputSurface,
                               borderRadius: BorderRadius.circular(8),
                               border: Border.all(color: AppColors.divider),
                             ),
@@ -1278,7 +1278,7 @@ class _MedsTabViewState extends State<MedsTabView> {
                         child: Container(
                           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
                           decoration: BoxDecoration(
-                            color: const Color(0xFFF9FAFB),
+                            color: AppColors.inputSurface,
                             borderRadius: BorderRadius.circular(8),
                             border: Border.all(color: AppColors.divider),
                           ),
@@ -1325,7 +1325,7 @@ class _MedsTabViewState extends State<MedsTabView> {
                           child: Container(
                             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
                             decoration: BoxDecoration(
-                              color: const Color(0xFFF9FAFB),
+                              color: AppColors.inputSurface,
                               borderRadius: BorderRadius.circular(8),
                               border: Border.all(color: AppColors.divider),
                             ),
@@ -1598,7 +1598,7 @@ class _MedsTabViewState extends State<MedsTabView> {
           margin: const EdgeInsets.only(bottom: 36, left: 12, right: 12),
           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 22),
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: AppColors.cardSurface,
             borderRadius: BorderRadius.circular(20),
             boxShadow: [
               BoxShadow(
@@ -1980,7 +1980,7 @@ class _MedsTabViewState extends State<MedsTabView> {
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(10),
               ),
-              backgroundColor: Colors.white,
+              backgroundColor: AppColors.cardSurface,
             ),
             child: Text(
               '새 복약 추가',
@@ -2006,7 +2006,7 @@ class _MedsTabViewState extends State<MedsTabView> {
         margin: const EdgeInsets.only(bottom: 6),
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         decoration: BoxDecoration(
-          color: const Color(0xFFF9FAFB),
+          color: AppColors.inputSurface,
           borderRadius: BorderRadius.circular(8),
           border: Border.all(color: const Color(0xFFEEEEEE)),
         ),
@@ -2049,7 +2049,7 @@ class _MedsTabViewState extends State<MedsTabView> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppColors.cardSurface,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: AppColors.divider.withValues(alpha: 0.6)),
         boxShadow: [
@@ -2136,7 +2136,7 @@ class _MedsTabViewState extends State<MedsTabView> {
     return Container(
       margin: const EdgeInsets.only(bottom: 8),
       decoration: BoxDecoration(
-        color: isSkipped ? const Color(0xFFF9FAFB) : Colors.white,
+        color: isSkipped ? AppColors.inputSurface : AppColors.cardSurface,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
           color: med.isExpanded
@@ -2367,7 +2367,7 @@ class _MedsTabViewState extends State<MedsTabView> {
                                         color: slot.isCompleted
                                             ? AppColors.completedBg
                                             : (slot.isSkipped
-                                                  ? const Color(0xFFF9FAFB)
+                                                  ? AppColors.inputSurface
                                                   : const Color(0xFFF3F4F6)),
                                         borderRadius: BorderRadius.circular(6),
                                         border: Border.all(

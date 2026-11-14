@@ -91,7 +91,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             bottom: MediaQuery.of(context).viewInsets.bottom + 20,
           ),
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: AppColors.cardSurface,
             borderRadius: BorderRadius.circular(20),
             boxShadow: [
               BoxShadow(
@@ -430,7 +430,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      backgroundColor: Colors.white,
+      backgroundColor: AppColors.cardSurface,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
@@ -579,7 +579,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      backgroundColor: Colors.white,
+      backgroundColor: AppColors.cardSurface,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
@@ -827,7 +827,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: const Color(0xFFF9FAFB),
+        color: AppColors.inputSurface,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: const Color(0xFFE5E7EB)),
       ),
@@ -893,7 +893,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: const Color(0xFFF9FAFB),
+        color: AppColors.inputSurface,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: const Color(0xFFE5E7EB)),
       ),
@@ -933,7 +933,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      backgroundColor: Colors.white,
+      backgroundColor: AppColors.cardSurface,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
@@ -1293,7 +1293,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      backgroundColor: Colors.white,
+      backgroundColor: AppColors.cardSurface,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
@@ -1584,7 +1584,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             child: Text(
               '초기화 확정',
               style: TextStyle(
-                color: Colors.white,
+              color: Colors.white,
                 fontWeight: FontWeight.bold,
               ),
             ),
@@ -1669,7 +1669,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: AppColors.cardSurface,
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(
                   color: AppColors.divider.withValues(alpha: 0.5),
@@ -1700,7 +1700,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       ),
                       SizedBox(height: 3),
                       Text(
-                        '정신약학 맞춤 복약 솔루션 · v0.112.317',
+                        '정신약학 맞춤 복약 솔루션 · v0.114.319',
                         style: TextStyle(
                           fontSize: 12,
                           color: AppColors.textSecondary,
@@ -1793,7 +1793,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             ),
             Container(
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: AppColors.cardSurface,
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(
                   color: AppColors.divider.withValues(alpha: 0.5),
@@ -2280,7 +2280,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             ),
             Container(
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: AppColors.cardSurface,
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(
                   color: AppColors.divider.withValues(alpha: 0.5),
@@ -2464,7 +2464,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         assetPath: AppAssets.medsAllDoneWebp,
                         title: '오늘 복약 모두 완료!',
                         subtitle: '정말 대단해요! 오늘 복약을 전부 챙기셨어요.',
-                        replayOnTap: true,
                         showBackButton: true,
                       );
                     },
@@ -2505,7 +2504,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         assetPath: AppAssets.habitsAllDoneWebp,
                         title: '오늘 습관 모두 실천 완료!',
                         subtitle: '스스로와의 약속을 멋지게 지켜내셨어요.',
-                        replayOnTap: true,
                         showBackButton: true,
                       );
                     },

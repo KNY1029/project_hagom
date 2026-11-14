@@ -127,7 +127,7 @@ class _CompanionRoomScreenState extends State<CompanionRoomScreen> {
                 width: double.infinity,
                 padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: AppColors.cardSurface,
                   borderRadius: BorderRadius.circular(16),
                   border: Border.all(color: AppColors.divider),
                   boxShadow: [
@@ -172,7 +172,7 @@ class _CompanionRoomScreenState extends State<CompanionRoomScreen> {
               Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: AppColors.cardSurface,
                   borderRadius: BorderRadius.circular(16),
                   border: Border.all(color: AppColors.divider),
                 ),

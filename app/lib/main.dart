@@ -258,6 +258,17 @@ class _HagomAppState extends State<HagomApp> with WidgetsBindingObserver {
               secondary: AppColors.activeWarmAccent,
               surface: AppColors.cardSurface,
             ),
+            dialogTheme: DialogThemeData(
+              backgroundColor: AppColors.cardSurface,
+              surfaceTintColor: Colors.transparent,
+            ),
+            bottomSheetTheme: BottomSheetThemeData(
+              backgroundColor: AppColors.cardSurface,
+              surfaceTintColor: Colors.transparent,
+            ),
+            inputDecorationTheme: InputDecorationTheme(
+              fillColor: AppColors.inputSurface,
+            ),
             appBarTheme: AppBarTheme(
               backgroundColor: AppColors.cardSurface,
               foregroundColor: AppColors.activeTextPrimary,

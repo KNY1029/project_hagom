@@ -30,6 +30,7 @@ class TutorialOverlay extends StatefulWidget {
 class _TutorialOverlayState extends State<TutorialOverlay> {
   int _currentStep = 0;
   bool _isExploringFeatureScreen = false;
+  bool _hasVisitedFeatureScreen = false;
 
   final List<Map<String, dynamic>> _steps = [
     {
@@ -100,8 +101,11 @@ class _TutorialOverlayState extends State<TutorialOverlay> {
       });
       widget.onSwitchTab(0);
     } else if (_currentStep == 3) {
-      if (!_isExploringFeatureScreen) {
-        setState(() => _isExploringFeatureScreen = true);
+      if (!_hasVisitedFeatureScreen) {
+        setState(() {
+          _isExploringFeatureScreen = true;
+          _hasVisitedFeatureScreen = true;
+        });
         Navigator.of(context).push(
           MaterialPageRoute(builder: (context) => const SettingsScreen()),
         ).then((_) {
@@ -110,6 +114,7 @@ class _TutorialOverlayState extends State<TutorialOverlay> {
       } else {
         setState(() {
           _isExploringFeatureScreen = false;
+          _hasVisitedFeatureScreen = false;
           _currentStep = 4;
         });
         Navigator.of(context).pop();
@@ -122,8 +127,11 @@ class _TutorialOverlayState extends State<TutorialOverlay> {
       });
       widget.onSwitchTab(0);
     } else if (_currentStep == 5) {
-      if (!_isExploringFeatureScreen) {
-        setState(() => _isExploringFeatureScreen = true);
+      if (!_hasVisitedFeatureScreen) {
+        setState(() {
+          _isExploringFeatureScreen = true;
+          _hasVisitedFeatureScreen = true;
+        });
         Navigator.of(context).push(
           MaterialPageRoute(builder: (context) => const CompanionRoomScreen()),
         ).then((_) {
@@ -132,6 +140,7 @@ class _TutorialOverlayState extends State<TutorialOverlay> {
       } else {
         setState(() {
           _isExploringFeatureScreen = false;
+          _hasVisitedFeatureScreen = false;
           _currentStep = 6;
         });
         Navigator.of(context).pop();
@@ -159,6 +168,7 @@ class _TutorialOverlayState extends State<TutorialOverlay> {
     final wasExploring = _isExploringFeatureScreen;
     setState(() {
       _isExploringFeatureScreen = false;
+      _hasVisitedFeatureScreen = false;
       _currentStep--;
     });
     if (wasExploring) Navigator.of(context).pop();
@@ -281,7 +291,7 @@ class _TutorialOverlayState extends State<TutorialOverlay> {
                   ),
                   onPressed: _nextStep,
                   child: Text(
-                    _isExploringFeatureScreen
+                    (_isExploringFeatureScreen || _hasVisitedFeatureScreen)
                         ? step['returnBtnText'] as String
                         : step['btnText'] as String,
                     style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13),

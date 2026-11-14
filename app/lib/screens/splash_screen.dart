@@ -77,6 +77,10 @@ class _SplashScreenState extends State<SplashScreen> {
   Future<void> _initStartFlow() async {
     if (!mounted) return;
     if (widget.forceGreetingPreview) {
+      // 같은 애니메이션 에셋을 다시 열어도 첫 프레임부터 재생되도록
+      // 이미지 캐시에서 제거한 뒤 새 화면을 구성한다.
+      await AssetImage(AppAssets.dailyGreetingGif).evict();
+      if (!mounted) return;
       setState(() => _isFirstLaunchToday = true);
       return;
     }
@@ -296,6 +300,7 @@ class _SplashScreenState extends State<SplashScreen> {
                   height: 300,
                   child: Image.asset(
                     AppAssets.dailyGreetingGif,
+                    key: UniqueKey(),
                     fit: BoxFit.contain,
                   ),
                 ),

@@ -88,6 +88,7 @@ class AppColors {
   // 테마와 무관한 고정 컬러
   static const Color defaultTaskOcher = Color(0xFFB58A32); // 더스티 옐로우 오커 (할일 기본)
   static Color cardSurface = Colors.white;
+  static Color inputSurface = const Color(0xFFF9FAFB);
   static const Color textMuted = Color(0xFF9CA3AF);
 
   // -------------------------------------------------------------
@@ -248,6 +249,9 @@ class AppColors {
     cardSurface = theme.key == themeDark
         ? const Color(0xFF24212B)
         : Colors.white;
+    inputSurface = theme.key == themeDark
+        ? const Color(0xFF2C2734)
+        : const Color(0xFFF9FAFB);
   }
 
   static String toHex(Color c) =>

@@ -263,7 +263,7 @@ class _CalendarTabViewState extends State<CalendarTabView> {
         builder: (ctx, setMState) => Container(
           margin: const EdgeInsets.only(bottom: 8, left: 12, right: 12),
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: AppColors.cardSurface,
             borderRadius: BorderRadius.circular(20),
             boxShadow: [
               BoxShadow(
@@ -308,7 +308,7 @@ class _CalendarTabViewState extends State<CalendarTabView> {
                   decoration: InputDecoration(
                     hintText: '',
                     filled: true,
-                    fillColor: const Color(0xFFF9FAFB),
+                    fillColor: AppColors.inputSurface,
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(10),
                       borderSide: BorderSide(color: AppColors.divider),
@@ -334,7 +334,7 @@ class _CalendarTabViewState extends State<CalendarTabView> {
                     hintText: '장소, 준비물 등 필요한 정보를 적어 주세요',
                     alignLabelWithHint: true,
                     filled: true,
-                    fillColor: const Color(0xFFF9FAFB),
+                    fillColor: AppColors.inputSurface,
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(10),
                       borderSide: BorderSide(color: AppColors.divider),
@@ -670,7 +670,7 @@ class _CalendarTabViewState extends State<CalendarTabView> {
                             : AppColors.textSecondary,
                       ),
                       selectedColor: AppColors.lightLavender,
-                      backgroundColor: const Color(0xFFF9FAFB),
+                      backgroundColor: AppColors.inputSurface,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(8),
                         side: BorderSide(
@@ -737,7 +737,7 @@ class _CalendarTabViewState extends State<CalendarTabView> {
                               : AppColors.textSecondary,
                         ),
                         selectedColor: AppColors.lightLavender,
-                        backgroundColor: const Color(0xFFF9FAFB),
+                        backgroundColor: AppColors.inputSurface,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(8),
                           side: BorderSide(
@@ -777,7 +777,7 @@ class _CalendarTabViewState extends State<CalendarTabView> {
                             decoration: BoxDecoration(
                               color: isDaySel
                                   ? AppColors.lightLavender
-                                  : const Color(0xFFF9FAFB),
+                                  : AppColors.inputSurface,
                               borderRadius: BorderRadius.circular(6),
                               border: Border.all(
                                 color: isDaySel
@@ -1297,7 +1297,7 @@ class _CalendarTabViewState extends State<CalendarTabView> {
         Container(
           padding: const EdgeInsets.all(12),
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: AppColors.cardSurface,
             borderRadius: BorderRadius.circular(12),
             border: Border.all(color: AppColors.divider.withValues(alpha: 0.6)),
             boxShadow: [
@@ -1568,7 +1568,7 @@ class _CalendarTabViewState extends State<CalendarTabView> {
         Container(
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: AppColors.cardSurface,
             borderRadius: BorderRadius.circular(12),
             border: Border.all(color: AppColors.divider.withValues(alpha: 0.6)),
             boxShadow: [
@@ -1747,7 +1747,7 @@ class _CalendarTabViewState extends State<CalendarTabView> {
                       child: Container(
                       margin: const EdgeInsets.only(bottom: 6),
                       decoration: BoxDecoration(
-                        color: const Color(0xFFF9FAFB),
+                        color: AppColors.inputSurface,
                         borderRadius: BorderRadius.circular(10),
                         border: Border.all(
                           color: t.isExpanded
