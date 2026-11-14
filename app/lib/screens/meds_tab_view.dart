@@ -1718,6 +1718,7 @@ class _MedsTabViewState extends State<MedsTabView> {
               if (slot.isCompleted)
                 ListTile(
                   dense: true,
+                  contentPadding: EdgeInsets.zero,
                   leading: Icon(
                     Icons.undo,
                     color: AppColors.warmBrown,
