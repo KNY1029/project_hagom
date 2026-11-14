@@ -39,15 +39,15 @@ class HagomNativeWidgetSync {
   static Future<void> _saveWidgetThemeColors() async {
     await HomeWidget.saveWidgetData<String>(
       'theme_meds_color',
-      _colorHex(AppColors.defaultTabMedsColor),
+      _colorHex(AppColors.primaryPurple),
     );
     await HomeWidget.saveWidgetData<String>(
       'theme_habits_color',
-      _colorHex(AppColors.defaultTabHabitsColor),
+      _colorHex(AppColors.primaryPurple),
     );
     await HomeWidget.saveWidgetData<String>(
       'theme_tasks_color',
-      _colorHex(AppColors.defaultTabCalendarColor),
+      _colorHex(AppColors.primaryPurple),
     );
     await HomeWidget.saveWidgetData<String>(
       'theme_color_vision',

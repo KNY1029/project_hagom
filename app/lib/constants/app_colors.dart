@@ -112,14 +112,29 @@ class AppColors {
 
   static void setColorVisionMode(bool enabled) {
     colorVisionModeEnabled = enabled;
-    completedBg = enabled ? const Color(0xFFE8F1FF) : const Color(0xFFEAF8F1);
-    completedText = enabled ? const Color(0xFF1D4ED8) : const Color(0xFF1B6B46);
-    completedBorder = enabled
-        ? const Color(0xFF9CC2FF)
-        : const Color(0xFFA3DBC0);
-    successGreen = enabled ? const Color(0xFF1D4ED8) : const Color(0xFF065F46);
-    successBg = enabled ? const Color(0xFFE8F1FF) : const Color(0xFFE6F8F0);
-    missedRed = enabled ? const Color(0xFFD79B00) : const Color(0xFFEF4444);
+    _applyStatusColors();
+  }
+
+  static void _applyStatusColors() {
+    final isDark = background == darkTheme.background;
+    if (colorVisionModeEnabled) {
+      completedBg = isDark ? const Color(0xFF263B55) : const Color(0xFFE8F1FF);
+      completedText = isDark ? const Color(0xFFA8C9FF) : const Color(0xFF1D4ED8);
+      completedBorder = isDark ? const Color(0xFF648BC4) : const Color(0xFF9CC2FF);
+      successGreen = isDark ? const Color(0xFFA8C9FF) : const Color(0xFF1D4ED8);
+      successBg = isDark ? const Color(0xFF263B55) : const Color(0xFFE8F1FF);
+      missedRed = isDark ? const Color(0xFFFFD36A) : const Color(0xFFD79B00);
+    } else {
+      completedBg = isDark ? const Color(0xFF244437) : const Color(0xFFEAF8F1);
+      completedText = isDark ? const Color(0xFF9BE2BE) : const Color(0xFF1B6B46);
+      completedBorder = isDark ? const Color(0xFF4C8A6A) : const Color(0xFFA3DBC0);
+      successBg = isDark ? const Color(0xFF244437) : const Color(0xFFE6F8F0);
+      successGreen = isDark ? const Color(0xFF8DDBB2) : const Color(0xFF065F46);
+      missedRed = isDark ? const Color(0xFFFF8A8A) : const Color(0xFFEF4444);
+    }
+    partialBg = isDark ? const Color(0xFF3A3028) : const Color(0xFFF7F3EE);
+    partialText = isDark ? const Color(0xFFE2B992) : const Color(0xFF8B5E3C);
+    partialBorder = isDark ? const Color(0xFF665445) : const Color(0xFFE5DDD0);
   }
 
   // -------------------------------------------------------------
@@ -252,15 +267,7 @@ class AppColors {
     inputSurface = theme.key == themeDark
         ? const Color(0xFF2C2734)
         : const Color(0xFFF9FAFB);
-    completedBg = theme.key == themeDark ? const Color(0xFF244437) : const Color(0xFFEAF8F1);
-    completedText = theme.key == themeDark ? const Color(0xFF9BE2BE) : const Color(0xFF1B6B46);
-    completedBorder = theme.key == themeDark ? const Color(0xFF4C8A6A) : const Color(0xFFA3DBC0);
-    successBg = theme.key == themeDark ? const Color(0xFF244437) : const Color(0xFFE6F8F0);
-    successGreen = theme.key == themeDark ? const Color(0xFF8DDBB2) : const Color(0xFF065F46);
-    missedRed = theme.key == themeDark ? const Color(0xFFFF8A8A) : const Color(0xFFEF4444);
-    partialBg = theme.key == themeDark ? const Color(0xFF3A3028) : const Color(0xFFF7F3EE);
-    partialText = theme.key == themeDark ? const Color(0xFFE2B992) : const Color(0xFF8B5E3C);
-    partialBorder = theme.key == themeDark ? const Color(0xFF665445) : const Color(0xFFE5DDD0);
+    _applyStatusColors();
   }
 
   static String toHex(Color c) =>

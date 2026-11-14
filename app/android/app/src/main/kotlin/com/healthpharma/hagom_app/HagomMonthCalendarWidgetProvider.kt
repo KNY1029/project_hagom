@@ -82,6 +82,7 @@ class HagomMonthCalendarWidgetProvider : HomeWidgetProvider() {
                 val dark = widgetData.getString("theme_dark", "false") == "true"
                 val widgetTagBg = if (dark) R.drawable.hagom_widget_tag_bg_dark else R.drawable.hagom_widget_tag_bg
                 setInt(R.id.widget_month_tasks_header, "setBackgroundResource", widgetTagBg)
+                setInt(R.id.month_tasks_card_box, "setBackgroundResource", widgetTagBg)
                 setInt(R.id.widget_month_habits_box, "setBackgroundResource", widgetTagBg)
                 setInt(R.id.widget_month_meds_box, "setBackgroundResource", widgetTagBg)
                 setTextColor(R.id.widget_month_meds, Color.parseColor(if (dark) "#D6C5FF" else medsColorHex))
@@ -90,6 +91,12 @@ class HagomMonthCalendarWidgetProvider : HomeWidgetProvider() {
                 setTextColor(R.id.widget_month_next_btn, Color.parseColor(medsColorHex))
                 setTextColor(R.id.widget_month_tasks, Color.parseColor(if (dark) "#D6C5FF" else tasksColorHex))
                 setTextColor(R.id.widget_month_tasks_label, Color.parseColor(if (dark) "#D6C5FF" else tasksColorHex))
+                for (n in 1..6) {
+                    val taskId = context.resources.getIdentifier("month_task_$n", "id", context.packageName)
+                    if (taskId != 0) {
+                        setTextColor(taskId, Color.parseColor(if (dark) "#E8E1F0" else "#374151"))
+                    }
+                }
                 // 🌟 [할일 목록 바인딩: 4개일 때 좌2 + 우2 완벽 분할]:
                 // 1) 1~3개: 좌측 1열(1~3개)에만 표시
                 // 2) 4개: 좌측 2개(1,2) + 우측 2개(3,4) 균등 분할!
