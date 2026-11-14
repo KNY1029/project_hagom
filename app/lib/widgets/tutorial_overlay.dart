@@ -94,7 +94,7 @@ class _TutorialOverlayState extends State<TutorialOverlay> {
     },
   ];
 
-  void _nextStep() {
+  Future<void> _nextStep() async {
     if (_currentStep == 2) {
       // Step 3 (달력) ➔ Step 4 (설정): 탭을 복약(0)으로 바꾸고 설정 단계 준비
       setState(() {
@@ -164,11 +164,13 @@ class _TutorialOverlayState extends State<TutorialOverlay> {
           }
         });
       } else {
-        setState(() => _hasVisitedFeatureScreen = false);
-        Navigator.of(context).pop();
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          if (mounted) _finishTutorial();
+        // 쇼룸에서 돌아온 뒤 표시되는 완료 버튼은 다시 쇼룸을 여는
+        // 내비게이션 버튼이 아니라, 가이드를 끝내는 단일 동작이어야 한다.
+        setState(() {
+          _hasVisitedFeatureScreen = false;
+          _isTemporarilyHidden = true;
         });
+        if (mounted) _finishTutorial();
       }
     } else {
       setState(() {
@@ -176,6 +178,10 @@ class _TutorialOverlayState extends State<TutorialOverlay> {
       });
       widget.onSwitchTab(_steps[_currentStep]['tabIndex'] as int);
     }
+  }
+
+  Future<void> _skipTutorial() async {
+    _finishTutorial();
   }
 
   void _goToPreviousStep() {
@@ -191,6 +197,8 @@ class _TutorialOverlayState extends State<TutorialOverlay> {
   }
 
   void _finishTutorial() {
+    // 완료 확인창은 남기되, 그 아래의 가이드 오버레이는 즉시 숨긴다.
+    if (mounted) setState(() => _isTemporarilyHidden = true);
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -271,7 +279,7 @@ class _TutorialOverlayState extends State<TutorialOverlay> {
                   ),
                   const Spacer(),
                   GestureDetector(
-                    onTap: _finishTutorial,
+                    onTap: _skipTutorial,
                     child: const Text(
                       '튜토리얼 건너뛰기',
                       style: TextStyle(fontSize: 11.5, color: AppColors.textMuted, decoration: TextDecoration.underline),
