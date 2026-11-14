@@ -50,39 +50,119 @@ class _HabitsTabViewState extends State<HabitsTabView> {
     final completionLabel = completionIndex + 1 >= completionThreshold
         ? '완료'
         : '조금 실천';
-    final shouldCancel = await showDialog<bool>(
+    final action = await showModalBottomSheet<String>(
       context: context,
+      isScrollControlled: true,
       requestFocus: false,
-      builder: (dialogContext) => AlertDialog(
-        insetPadding: const EdgeInsets.symmetric(horizontal: 18, vertical: 24),
-        titlePadding: const EdgeInsets.fromLTRB(20, 14, 20, 0),
-        contentPadding: const EdgeInsets.fromLTRB(20, 8, 20, 2),
-        actionsPadding: const EdgeInsets.fromLTRB(10, 0, 10, 8),
-        actionsOverflowButtonSpacing: 4,
-        title: Text('$completionLabel 기록 수정'),
-        content: Text(habit.completionTimes[completionIndex]),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(dialogContext).pop(false),
-            child: const Text('취소'),
+      backgroundColor: Colors.transparent,
+      builder: (sheetContext) => SafeArea(
+        child: Container(
+          margin: const EdgeInsets.fromLTRB(12, 0, 12, 12),
+          padding: const EdgeInsets.fromLTRB(20, 10, 20, 14),
+          decoration: BoxDecoration(
+            color: AppColors.cardSurface,
+            borderRadius: BorderRadius.circular(22),
+            border: Border.all(color: AppColors.divider),
           ),
-          TextButton(
-            onPressed: () => Navigator.of(dialogContext).pop(true),
-            child: Text(
-              '이 기록 취소',
-              style: TextStyle(color: AppColors.warmBrown),
-            ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 38,
+                height: 4,
+                margin: const EdgeInsets.only(bottom: 12),
+                decoration: BoxDecoration(
+                  color: AppColors.divider,
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      '실천 기록',
+                      style: TextStyle(
+                        fontSize: 17,
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.textPrimary,
+                      ),
+                    ),
+                  ),
+                  IconButton(
+                    onPressed: () => Navigator.of(sheetContext).pop('close'),
+                    icon: Icon(Icons.close, color: AppColors.textMuted),
+                    visualDensity: VisualDensity.compact,
+                  ),
+                ],
+              ),
+              Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 5,
+                    ),
+                    decoration: BoxDecoration(
+                      color: AppColors.primaryPurple.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Text(
+                      completionLabel,
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.primaryPurple,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Icon(Icons.schedule, size: 16, color: AppColors.textMuted),
+                  const SizedBox(width: 4),
+                  Text(
+                    habit.completionTimes[completionIndex],
+                    style: TextStyle(
+                      fontSize: 13,
+                      color: AppColors.textSecondary,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+              Row(
+                children: [
+                  Expanded(
+                    child: OutlinedButton(
+                      onPressed: () => Navigator.of(sheetContext).pop('close'),
+                      child: const Text('닫기'),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: TextButton(
+                      onPressed: () => Navigator.of(sheetContext).pop('cancel'),
+                      child: Text(
+                        '이 기록 취소',
+                        style: TextStyle(color: AppColors.warmBrown),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: ElevatedButton(
+                      onPressed: () => Navigator.of(sheetContext).pop('edit'),
+                      child: const Text('시각 수정'),
+                    ),
+                  ),
+                ],
+              ),
+            ],
           ),
-          ElevatedButton(
-            onPressed: () => Navigator.of(dialogContext).pop(null),
-            child: const Text('시각 수정'),
-          ),
-        ],
+        ),
       ),
     );
 
     if (!mounted) return;
-    if (shouldCancel == true) {
+    if (action == 'cancel') {
       _state.cancelHabitCompletion(habit.id, completionIndex);
       CelebrationToast.show(
         context,
@@ -91,7 +171,7 @@ class _HabitsTabViewState extends State<HabitsTabView> {
       );
       return;
     }
-    if (shouldCancel == null) {
+    if (action == 'edit') {
       final initial = _parseKoreanTime(habit.completionTimes[completionIndex]);
       final picked = await AppTimePicker.show(
         context,
