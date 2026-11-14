@@ -20,6 +20,8 @@ class HagomCelebrationOverlay {
     required String subtitle,
     Duration duration = const Duration(milliseconds: 4500),
     bool isDevPreview = false,
+    bool replayOnTap = false,
+    bool showBackButton = false,
   }) {
     AssetImage(assetPath).evict();
     final uniquePlayKey = UniqueKey();
@@ -38,6 +40,8 @@ class HagomCelebrationOverlay {
           subtitle: subtitle,
           duration: duration,
           isDevPreview: isDevPreview,
+          replayOnTap: replayOnTap,
+          showBackButton: showBackButton,
         );
       },
       transitionBuilder: (context, anim1, anim2, child) {
@@ -61,6 +65,8 @@ class _CelebrationOverlayContent extends StatefulWidget {
   final String subtitle;
   final Duration duration;
   final bool isDevPreview;
+  final bool replayOnTap;
+  final bool showBackButton;
 
   const _CelebrationOverlayContent({
     required this.assetPath,
@@ -69,6 +75,8 @@ class _CelebrationOverlayContent extends StatefulWidget {
     required this.subtitle,
     required this.duration,
     this.isDevPreview = false,
+    this.replayOnTap = false,
+    this.showBackButton = false,
   });
 
   @override
@@ -103,7 +111,9 @@ class _CelebrationOverlayContentState extends State<_CelebrationOverlayContent> 
     } else {
       // 🌟 실사용 모드: 1-B안 고정 (춤이 끝나고 약 4.5초 뒤 자동 종료)
       _currentMode = 2;
-      _autoCloseTimer = Timer(widget.duration, _closeImmediately);
+      if (!widget.replayOnTap) {
+        _autoCloseTimer = Timer(widget.duration, _closeImmediately);
+      }
     }
   }
 
@@ -126,11 +136,22 @@ class _CelebrationOverlayContentState extends State<_CelebrationOverlayContent> 
   }
 
   void _onTapAction() {
-    if (widget.isDevPreview) {
+    if (widget.replayOnTap) {
+      _replayAnimation();
+    } else if (widget.isDevPreview) {
       _switchMode((_currentMode + 1) % _totalModes);
     } else {
       _closeImmediately();
     }
+  }
+
+  void _replayAnimation() {
+    AssetImage(widget.assetPath).evict();
+    setState(() => _animKey = UniqueKey());
+    _confettiController.stop();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) _confettiController.play();
+    });
   }
 
   void _closeImmediately() {
@@ -276,6 +297,20 @@ class _CelebrationOverlayContentState extends State<_CelebrationOverlayContent> 
                 letterSpacing: -0.5,
               ),
             ),
+            if (widget.showBackButton)
+              Positioned(
+                top: MediaQuery.of(context).padding.top + 14,
+                left: 16,
+                child: ElevatedButton.icon(
+                  onPressed: _closeImmediately,
+                  icon: const Icon(Icons.arrow_back, size: 16),
+                  label: const Text('뒤로'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.white.withValues(alpha: 0.9),
+                    foregroundColor: AppColors.primaryPurple,
+                  ),
+                ),
+              ),
             const SizedBox(height: 4),
             Text(
               widget.subtitle,

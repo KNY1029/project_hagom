@@ -87,7 +87,7 @@ class AppColors {
 
   // 테마와 무관한 고정 컬러
   static const Color defaultTaskOcher = Color(0xFFB58A32); // 더스티 옐로우 오커 (할일 기본)
-  static const Color cardSurface = Colors.white;
+  static Color cardSurface = Colors.white;
   static const Color textMuted = Color(0xFF9CA3AF);
 
   // -------------------------------------------------------------
@@ -125,6 +125,7 @@ class AppColors {
   // 4. 기본 제공 테마 프리셋
   // -------------------------------------------------------------
   static const String themeDefault = 'default';
+  static const String themeDark = 'dark';
 
   static const ThemePreset defaultTheme = ThemePreset(
     key: themeDefault,
@@ -137,6 +138,19 @@ class AppColors {
     textSecondary: Color(0xFF6B7280),
     warmAccent: Color(0xFF8B5E3C),
     divider: Color(0xFFE5E7EB),
+  );
+
+  static const ThemePreset darkTheme = ThemePreset(
+    key: themeDark,
+    name: '다크 모드',
+    description: '어두운 배경과 편안한 밝은 글자',
+    primary: Color(0xFFB9A2E8),
+    background: Color(0xFF17151D),
+    lightTint: Color(0xFF302A3A),
+    textPrimary: Color(0xFFF3F0F7),
+    textSecondary: Color(0xFFB9B2C4),
+    warmAccent: Color(0xFFD0A987),
+    divider: Color(0xFF403A49),
   );
 
   // 테마 키 상수 (settings_screen.dart에서 switch/case용으로 사용)
@@ -178,6 +192,7 @@ class AppColors {
 
   static const List<ThemePreset> builtInThemes = [
     defaultTheme,
+    darkTheme,
     ThemePreset(
       key: 'deep_violet',
       name: '딥 바이올렛',
@@ -230,6 +245,9 @@ class AppColors {
     activePrimary = theme.primary;
     activeWarmAccent = theme.warmAccent;
     activeTextPrimary = theme.textPrimary;
+    cardSurface = theme.key == themeDark
+        ? const Color(0xFF24212B)
+        : Colors.white;
   }
 
   static String toHex(Color c) =>

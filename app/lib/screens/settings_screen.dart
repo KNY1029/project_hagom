@@ -707,6 +707,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                             MaterialPageRoute(
                               builder: (ctx) => const MainNavigationShell(
                                 startWithTutorial: true,
+                                preserveDataOnTutorialFinish: true,
                               ),
                             ),
                             (route) => false,
@@ -1260,6 +1261,33 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
+  Future<bool> _confirmPermanentItemDeletion({
+    required String itemName,
+    required String itemType,
+  }) async {
+    return await showDialog<bool>(
+          context: context,
+          builder: (dialogContext) => AlertDialog(
+            title: const Text('영구 삭제 확인'),
+            content: Text(
+              '\'$itemName\' $itemType 기록을 영구 삭제할까요? 삭제한 기록은 복구할 수 없어요.',
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(dialogContext).pop(false),
+                child: const Text('취소'),
+              ),
+              TextButton(
+                onPressed: () => Navigator.of(dialogContext).pop(true),
+                style: TextButton.styleFrom(foregroundColor: AppColors.missedRed),
+                child: const Text('영구 삭제'),
+              ),
+            ],
+          ),
+        ) ??
+        false;
+  }
+
   // 🎯 2. 특정 항목 영구 삭제 (보관된 약, 습관, 할일 중 선택 삭제)
   void _showSpecificItemDeleteDialog() {
     showModalBottomSheet(
@@ -1352,7 +1380,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                 style: TextButton.styleFrom(
                                   foregroundColor: AppColors.missedRed,
                                 ),
-                                onPressed: () {
+                                onPressed: () async {
+                                  final confirmed = await _confirmPermanentItemDeletion(
+                                    itemName: m.name,
+                                    itemType: '약',
+                                  );
+                                  if (!confirmed || !mounted) return;
                                   _state.permanentlyDeleteMedication(m.id);
                                   setSState(() {});
                                   CelebrationToast.show(
@@ -1411,7 +1444,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                 style: TextButton.styleFrom(
                                   foregroundColor: AppColors.missedRed,
                                 ),
-                                onPressed: () {
+                                onPressed: () async {
+                                  final confirmed = await _confirmPermanentItemDeletion(
+                                    itemName: h.title,
+                                    itemType: '습관',
+                                  );
+                                  if (!confirmed || !mounted) return;
                                   _state.permanentlyDeleteHabit(h.id);
                                   setSState(() {});
                                   CelebrationToast.show(
@@ -1466,7 +1504,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                 style: TextButton.styleFrom(
                                   foregroundColor: AppColors.missedRed,
                                 ),
-                                onPressed: () {
+                                onPressed: () async {
+                                  final confirmed = await _confirmPermanentItemDeletion(
+                                    itemName: t.title,
+                                    itemType: '일정',
+                                  );
+                                  if (!confirmed || !mounted) return;
                                   _state.permanentlyDeleteTask(t.id);
                                   setSState(() {});
                                   CelebrationToast.show(
@@ -1551,6 +1594,52 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
+  Future<void> _showPillCountDialog() async {
+    final tracked = _state.medications.where((m) => m.usePillCount).toList();
+    await showDialog<void>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('남은 알약 수'),
+        content: tracked.isEmpty
+            ? const Text('알약 수를 추적 중인 약이 없어요. 약을 추가하거나 수정할 때 추적 기능을 켤 수 있어요.')
+            : StatefulBuilder(
+                builder: (ctx, setDialogState) => Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: tracked.map((med) {
+                    final count = med.remainingPillCount ?? 0;
+                    return Row(
+                      children: [
+                        Expanded(child: Text(med.name)),
+                        IconButton(
+                          onPressed: () {
+                            _state.setRemainingPillCount(med.id, count - 1);
+                            setDialogState(() {});
+                          },
+                          icon: const Icon(Icons.remove_circle_outline),
+                        ),
+                        Text('$count'),
+                        IconButton(
+                          onPressed: () {
+                            _state.setRemainingPillCount(med.id, count + 1);
+                            setDialogState(() {});
+                          },
+                          icon: const Icon(Icons.add_circle_outline),
+                        ),
+                      ],
+                    );
+                  }).toList(),
+                ),
+              ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(),
+            child: const Text('닫기'),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -1611,7 +1700,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       ),
                       SizedBox(height: 3),
                       Text(
-                        '정신약학 맞춤 복약 솔루션 · v0.111.316',
+                        '정신약학 맞춤 복약 솔루션 · v0.112.317',
                         style: TextStyle(
                           fontSize: 12,
                           color: AppColors.textSecondary,
@@ -1620,6 +1709,72 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     ],
                   ),
                 ],
+              ),
+            ),
+            const SizedBox(height: 18),
+
+            Container(
+              decoration: BoxDecoration(
+                color: AppColors.cardSurface,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: AppColors.divider.withValues(alpha: 0.5),
+                ),
+              ),
+              child: SwitchListTile(
+                contentPadding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 4,
+                ),
+                secondary: Icon(
+                  _state.currentThemeKey == AppColors.themeDark
+                      ? Icons.dark_mode_outlined
+                      : Icons.light_mode_outlined,
+                  color: AppColors.primaryPurple,
+                ),
+                title: Text(
+                  '다크 모드',
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.textPrimary,
+                  ),
+                ),
+                subtitle: Text(
+                  '앱 화면을 어두운 색상으로 표시해요',
+                  style: TextStyle(
+                    fontSize: 11.5,
+                    color: AppColors.textSecondary,
+                  ),
+                ),
+                value: _state.currentThemeKey == AppColors.themeDark,
+                onChanged: (enabled) {
+                  _state.setTheme(
+                    enabled ? AppColors.themeDark : AppColors.themeDefault,
+                  );
+                },
+              ),
+            ),
+            const SizedBox(height: 18),
+
+            Container(
+              decoration: BoxDecoration(
+                color: AppColors.cardSurface,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: AppColors.divider.withValues(alpha: 0.5)),
+              ),
+              child: ListTile(
+                leading: Icon(Icons.medication_outlined, color: AppColors.primaryPurple),
+                title: Text(
+                  '남은 알약 수 확인',
+                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: AppColors.textPrimary),
+                ),
+                subtitle: Text(
+                  '복용 중인 약의 수량을 확인하고 조정해요',
+                  style: TextStyle(fontSize: 11.5, color: AppColors.textSecondary),
+                ),
+                trailing: Icon(Icons.chevron_right, color: AppColors.textMuted),
+                onTap: _showPillCountDialog,
               ),
             ),
             const SizedBox(height: 18),
@@ -2309,6 +2464,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         assetPath: AppAssets.medsAllDoneWebp,
                         title: '오늘 복약 모두 완료!',
                         subtitle: '정말 대단해요! 오늘 복약을 전부 챙기셨어요.',
+                        replayOnTap: true,
+                        showBackButton: true,
                       );
                     },
                   ),
@@ -2348,6 +2505,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         assetPath: AppAssets.habitsAllDoneWebp,
                         title: '오늘 습관 모두 실천 완료!',
                         subtitle: '스스로와의 약속을 멋지게 지켜내셨어요.',
+                        replayOnTap: true,
+                        showBackButton: true,
                       );
                     },
                   ),

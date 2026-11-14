@@ -160,7 +160,7 @@ class _HabitsTabViewState extends State<HabitsTabView> {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Text(
-                          isEditing ? '습관 정보 수정' : '새로운 습관 추가',
+                          isEditing ? '습관 정보 수정' : '작은 습관 추가',
                           style: TextStyle(
                             fontSize: 17,
                             fontWeight: FontWeight.bold,

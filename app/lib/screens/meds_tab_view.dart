@@ -63,6 +63,10 @@ class _MedsTabViewState extends State<MedsTabView> {
     final memoCtrl = TextEditingController(
       text: isEditing ? (med.memo ?? '') : '',
     );
+    bool trackPillCount = isEditing && med.usePillCount;
+    final pillCountCtrl = TextEditingController(
+      text: isEditing ? (med.initialPillCount?.toString() ?? '') : '',
+    );
     String recurrenceType = '매일';
     if (isEditing) {
       final summary = med.recurrenceSummary;
@@ -286,6 +290,29 @@ class _MedsTabViewState extends State<MedsTabView> {
                           ),
                         ),
                       ),
+                      const SizedBox(height: 10),
+                      SwitchListTile.adaptive(
+                        contentPadding: EdgeInsets.zero,
+                        dense: true,
+                        title: const Text(
+                          '남은 알약 수 추적하기',
+                          style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
+                        ),
+                        value: trackPillCount,
+                        onChanged: (value) => setModalState(() => trackPillCount = value),
+                      ),
+                      if (trackPillCount)
+                        TextField(
+                          controller: pillCountCtrl,
+                          keyboardType: TextInputType.number,
+                          decoration: InputDecoration(
+                            isDense: true,
+                            labelText: '처음 받은 알약 수',
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                          ),
+                        ),
                       const SizedBox(height: 16),
                       InkWell(
                         borderRadius: BorderRadius.circular(8),
@@ -1503,6 +1530,8 @@ class _MedsTabViewState extends State<MedsTabView> {
                                           : null,
                                       startDate: startDate,
                                       endDate: endDate,
+                                      usePillCount: trackPillCount,
+                                      initialPillCount: int.tryParse(pillCountCtrl.text.trim()),
                                     );
                                   } else {
                                     _state.addMedication(
@@ -1522,6 +1551,8 @@ class _MedsTabViewState extends State<MedsTabView> {
                                           : null,
                                       startDate: startDate,
                                       endDate: endDate,
+                                      usePillCount: trackPillCount,
+                                      initialPillCount: int.tryParse(pillCountCtrl.text.trim()),
                                     );
                                   }
                                   Navigator.of(ctx).pop();
@@ -2002,7 +2033,7 @@ class _MedsTabViewState extends State<MedsTabView> {
             ),
             Text(
               med.dosage,
-              style: const TextStyle(fontSize: 11, color: AppColors.textMuted),
+                              style: const TextStyle(fontSize: 11, color: AppColors.textMuted),
             ),
           ],
         ),

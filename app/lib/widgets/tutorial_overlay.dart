@@ -14,11 +14,13 @@ import '../screens/widget_simulator_screen.dart';
 class TutorialOverlay extends StatefulWidget {
   final VoidCallback onFinishTutorial;
   final Function(int) onSwitchTab;
+  final bool preserveDataOnFinish;
 
   const TutorialOverlay({
     super.key,
     required this.onFinishTutorial,
     required this.onSwitchTab,
+    this.preserveDataOnFinish = false,
   });
 
   @override
@@ -27,6 +29,7 @@ class TutorialOverlay extends StatefulWidget {
 
 class _TutorialOverlayState extends State<TutorialOverlay> {
   int _currentStep = 0;
+  bool _isExploringFeatureScreen = false;
 
   final List<Map<String, dynamic>> _steps = [
     {
@@ -59,7 +62,8 @@ class _TutorialOverlayState extends State<TutorialOverlay> {
       'title': '4. 설정 ⚙️',
       'body':
           '4-1. 알림 설정⏰️\n우측 상단 톱니바퀴를 누르면, 개인 성향에 따라 맞춤 설정할 수 있습니다.\n알림 반복 빈도부터 각 기능에 대한 알림을 별도로 on/off할 수 있습니다.\n(주의할 점 : 복약 알림을 꺼도 처방된 약 알림은 꺼지지 않습니다.)\n\n4-2. 리포트 다운로드📝\n앱 사용 기록을 엑셀 파일 형태로 다운로드 가능하며, 의료진에게 정보 제공 목적 등으로 활용할 수 있습니다. 어떤 데이터를 추출할지 직접 선택한 뒤, 저장이나 전송이 가능합니다.',
-      'btnText': '직접 설정 화면 열어보기',
+      'btnText': '설정 화면 둘러보기',
+      'returnBtnText': '설정을 둘러봤어요 · 다음 안내',
     },
     {
       'tabIndex': 0,
@@ -75,7 +79,8 @@ class _TutorialOverlayState extends State<TutorialOverlay> {
       'title': '6. 하곰이의 방 🚪',
       'body':
           '하곰이와 하곰이가 해주는 위로와 응원의 말들이 있는 힐링 공간입니다.🌱\n\n누적접속일수를 통해 하곰이와 함께한 시간을 확인할 수 있습니다. 접속하지 않은 날이 있어도 기록은 사라지지 않으니, 계속해서 접속일을 쌓아나가며 하곰이와의 하루를 즐기세요.',
-      'btnText': '직접 하곰이의 방 입장하기',
+      'btnText': '하곰이의 방 둘러보기',
+      'returnBtnText': '방을 둘러봤어요 · 다음 안내',
     },
     {
       'tabIndex': 0,
@@ -95,18 +100,21 @@ class _TutorialOverlayState extends State<TutorialOverlay> {
       });
       widget.onSwitchTab(0);
     } else if (_currentStep == 3) {
-      // Step 4: '직접 설정 화면 열어보기'를 누르면 실제 설정 화면으로 이동!
-      Navigator.of(context).push(
-        MaterialPageRoute(builder: (context) => const SettingsScreen()),
-      ).then((_) {
-        // 설정 화면 둘러보고 뒤로 돌아왔을 때 Step 5 (하곰이 안내)로 부드럽게 전진!
-        if (mounted) {
-          setState(() {
-            _currentStep = 4;
-          });
-          widget.onSwitchTab(0);
-        }
-      });
+      if (!_isExploringFeatureScreen) {
+        setState(() => _isExploringFeatureScreen = true);
+        Navigator.of(context).push(
+          MaterialPageRoute(builder: (context) => const SettingsScreen()),
+        ).then((_) {
+          if (mounted) setState(() => _isExploringFeatureScreen = false);
+        });
+      } else {
+        setState(() {
+          _isExploringFeatureScreen = false;
+          _currentStep = 4;
+        });
+        Navigator.of(context).pop();
+        widget.onSwitchTab(0);
+      }
     } else if (_currentStep == 4) {
       // Step 5 ➔ Step 6 (하곰이의 방 안내)
       setState(() {
@@ -114,18 +122,21 @@ class _TutorialOverlayState extends State<TutorialOverlay> {
       });
       widget.onSwitchTab(0);
     } else if (_currentStep == 5) {
-      // Step 6: '직접 하곰이의 방 입장하기' 누르면 실제 하곰이의 방 화면으로 이동!
-      Navigator.of(context).push(
-        MaterialPageRoute(builder: (context) => const CompanionRoomScreen()),
-      ).then((_) {
-        // 방을 둘러보고 돌아왔을 때 Step 7 (위젯 안내)로 전진!
-        if (mounted) {
-          setState(() {
-            _currentStep = 6;
-          });
-          widget.onSwitchTab(0);
-        }
-      });
+      if (!_isExploringFeatureScreen) {
+        setState(() => _isExploringFeatureScreen = true);
+        Navigator.of(context).push(
+          MaterialPageRoute(builder: (context) => const CompanionRoomScreen()),
+        ).then((_) {
+          if (mounted) setState(() => _isExploringFeatureScreen = false);
+        });
+      } else {
+        setState(() {
+          _isExploringFeatureScreen = false;
+          _currentStep = 6;
+        });
+        Navigator.of(context).pop();
+        widget.onSwitchTab(0);
+      }
     } else if (_currentStep == 6) {
       // Step 7: 위젯 시뮬레이터 화면을 열어주어 위젯 작동 모습을 보여주고 완료 다이얼로그 호출!
       Navigator.of(context).push(
@@ -143,6 +154,17 @@ class _TutorialOverlayState extends State<TutorialOverlay> {
     }
   }
 
+  void _goToPreviousStep() {
+    if (_currentStep <= 0) return;
+    final wasExploring = _isExploringFeatureScreen;
+    setState(() {
+      _isExploringFeatureScreen = false;
+      _currentStep--;
+    });
+    if (wasExploring) Navigator.of(context).pop();
+    widget.onSwitchTab(_steps[_currentStep]['tabIndex'] as int);
+  }
+
   void _finishTutorial() {
     showDialog(
       context: context,
@@ -154,7 +176,9 @@ class _TutorialOverlayState extends State<TutorialOverlay> {
           style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
         ),
         content: Text(
-          '직접 만져보며 모든 기능을 둘러보셨어요!\n\n이제 나만의 복약과 습관을 자유롭게 등록할 수 있도록, 예시 복약과 할일은 비우고 습관들은 [대기] 상태로 깨끗하게 준비해 드릴게요.',
+          widget.preserveDataOnFinish
+              ? '가이드가 끝났어요!\n\n기존에 기록해 둔 복약, 습관, 할일은 그대로 유지됩니다.'
+              : '직접 만져보며 모든 기능을 둘러보셨어요!\n\n이제 나만의 복약과 습관을 자유롭게 등록할 수 있도록, 예시 복약과 할일은 비우고 습관들은 [대기] 상태로 깨끗하게 준비해 드릴게요.',
           style: TextStyle(fontSize: 13, height: 1.5, color: AppColors.textPrimary),
         ),
         actions: [
@@ -165,7 +189,9 @@ class _TutorialOverlayState extends State<TutorialOverlay> {
             ),
             onPressed: () async {
               Navigator.of(ctx).pop();
-              await AppStateManager().finishTutorialCleanSlate();
+              if (!widget.preserveDataOnFinish) {
+                await AppStateManager().finishTutorialCleanSlate();
+              }
               widget.onFinishTutorial();
             },
             child: const Text('내 기록 시작하기', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
@@ -225,6 +251,13 @@ class _TutorialOverlayState extends State<TutorialOverlay> {
                       style: TextStyle(fontSize: 11.5, color: AppColors.textMuted, decoration: TextDecoration.underline),
                     ),
                   ),
+                  if (_currentStep > 0 && !_isExploringFeatureScreen)
+                    IconButton(
+                      visualDensity: VisualDensity.compact,
+                      tooltip: '이전 안내',
+                      onPressed: _goToPreviousStep,
+                      icon: const Icon(Icons.arrow_back, size: 18),
+                    ),
                 ],
               ),
               const SizedBox(height: 10),
@@ -248,7 +281,9 @@ class _TutorialOverlayState extends State<TutorialOverlay> {
                   ),
                   onPressed: _nextStep,
                   child: Text(
-                    step['btnText'] as String,
+                    _isExploringFeatureScreen
+                        ? step['returnBtnText'] as String
+                        : step['btnText'] as String,
                     style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13),
                   ),
                 ),

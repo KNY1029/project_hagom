@@ -259,12 +259,6 @@ class HagomMonthCalendarWidgetProvider : HomeWidgetProvider() {
                     WidgetBindings.actionIntent(context, "hagomwidget://nextmonth", 1012)
                 )
 
-                // 중앙 하곰이 마스코트 & 헤더 탭 -> 하곰이의 방
-                setOnClickPendingIntent(
-                    R.id.widget_month_header_center,
-                    WidgetBindings.openAppIntent(context, "hagomwidget://opencalendar", 1004)
-                )
-
                 // 스마트 라우팅 (오늘 아닌 날짜가 선택되었을 땐 어디 눌러도 달력 탭 해당 날짜로 직행)
                 val calTargetUri = if (hasSelectedOtherDay) {
                     "hagomwidget://opencalendar?date=$inspectingIso"
@@ -279,8 +273,7 @@ class HagomMonthCalendarWidgetProvider : HomeWidgetProvider() {
 
                 setOnClickPendingIntent(R.id.widget_month_meds_box, medsIntent)
                 setOnClickPendingIntent(R.id.widget_month_habits_box, habitsIntent)
-                // 달력 위젯 여백/빈 공간 탭 시에도 달력 탭(또는 선택된 날짜)으로 시원하게 열림
-                setOnClickPendingIntent(R.id.widget_month_container, calIntent)
+                // 제목 영역만 달력 화면으로 연결하고, 하곰이와 빈 공간은 클릭하지 않는다.
                 setOnClickPendingIntent(R.id.widget_month_title, calIntent)
             }
             appWidgetManager.updateAppWidget(appWidgetId, views)

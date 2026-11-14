@@ -56,6 +56,9 @@ class MedicationItem {
   bool isExpanded; // 아코디언 메뉴 펼침 여부
   bool
   isArchived; // 🌟 [보관/소프트삭제]: 현재 탭에서는 숨기되, 과거 달력 기록 및 다운로드 엑셀 데이터에는 영구 보존!
+  bool usePillCount;
+  int? initialPillCount;
+  int? remainingPillCount;
 
   MedicationItem({
     required this.id,
@@ -70,6 +73,9 @@ class MedicationItem {
     this.isExpanded = false,
     this.isArchived = false,
     this.memo,
+    this.usePillCount = false,
+    this.initialPillCount,
+    this.remainingPillCount,
     DateTime? createdDate,
     DateTime? startDate,
     this.endDate,
@@ -143,6 +149,9 @@ class MedicationItem {
     'createdDate': createdDate.toIso8601String(),
     'startDate': startDate.toIso8601String(),
     'endDate': endDate?.toIso8601String(),
+    'usePillCount': usePillCount,
+    'initialPillCount': initialPillCount,
+    'remainingPillCount': remainingPillCount,
   };
   factory MedicationItem.fromJson(Map<String, dynamic> json) => MedicationItem(
     id: json['id'] as String,
@@ -169,6 +178,9 @@ class MedicationItem {
       json['startDate'] as String? ?? json['createdDate'] as String? ?? '',
     ),
     endDate: DateTime.tryParse(json['endDate'] as String? ?? ''),
+    usePillCount: json['usePillCount'] as bool? ?? false,
+    initialPillCount: (json['initialPillCount'] as num?)?.toInt(),
+    remainingPillCount: (json['remainingPillCount'] as num?)?.toInt(),
   );
   // 오늘 먹어야 할 모든 회차가 완료되거나 건너뛰어 정리되었는지 확인
   bool get isAllCompleted =>

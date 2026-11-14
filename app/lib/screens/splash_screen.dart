@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import '../constants/app_colors.dart';
 import '../constants/app_assets.dart';
@@ -28,6 +30,41 @@ class _SplashScreenState extends State<SplashScreen> {
   final AppStateManager _state = AppStateManager();
   bool _isFirstLaunchToday = false;
   bool _startTutorialOnMain = false;
+  final Set<int> _developerGesturePointers = <int>{};
+  Timer? _developerGestureTimer;
+  int _suppressModeActions = 0;
+
+  void _onDeveloperGesturePointerDown(BuildContext dialogContext, int pointer) {
+    _developerGesturePointers.add(pointer);
+    if (_developerGesturePointers.length == 2) {
+      _developerGestureTimer?.cancel();
+      _developerGestureTimer = Timer(const Duration(seconds: 2), () {
+        if (_developerGesturePointers.length >= 2 && mounted) {
+          _suppressModeActions = 2;
+          _requestDeveloperMode(dialogContext);
+        }
+      });
+    }
+  }
+
+  void _onDeveloperGesturePointerUp(int pointer) {
+    _developerGesturePointers.remove(pointer);
+    if (_developerGesturePointers.length < 2) {
+      _developerGestureTimer?.cancel();
+    }
+  }
+
+  bool _consumeSuppressedModeAction() {
+    if (_suppressModeActions == 0) return false;
+    _suppressModeActions--;
+    return true;
+  }
+
+  @override
+  void dispose() {
+    _developerGestureTimer?.cancel();
+    super.dispose();
+  }
 
   @override
   void initState() {
@@ -80,7 +117,7 @@ class _SplashScreenState extends State<SplashScreen> {
             ),
             SizedBox(height: 8),
             Text(
-              '• 바로 시작: 튜토리얼이나 복잡한 설정 없이 내 일과로 바로 진입해요.\n• 온보딩 튜토리얼: 핵심 기능(복약·습관·달력·방)을 직접 누르며 체험해요.\n• 개발자 모드: 전체 가상 복약·과거 달력 기록을 복원하여 앱 전체를 검증해요.',
+              '• 바로 시작: 튜토리얼이나 복잡한 설정 없이 내 일과로 바로 진입해요.\n• 온보딩 튜토리얼: 핵심 기능(복약·습관·달력·방)을 직접 누르며 체험해요.',
               style: TextStyle(fontSize: 12.5, height: 1.5, color: AppColors.textSecondary),
             ),
           ],
@@ -88,9 +125,13 @@ class _SplashScreenState extends State<SplashScreen> {
         actionsPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         actions: [
           // 1) ⚡ 바로 시작하기 (기본 클린 상태)
-          SizedBox(
-            width: double.infinity,
-            child: OutlinedButton(
+          Listener(
+            onPointerDown: (event) => _onDeveloperGesturePointerDown(dCtx, event.pointer),
+            onPointerUp: (event) => _onDeveloperGesturePointerUp(event.pointer),
+            onPointerCancel: (event) => _onDeveloperGesturePointerUp(event.pointer),
+            child: SizedBox(
+              width: double.infinity,
+              child: OutlinedButton(
               style: OutlinedButton.styleFrom(
                 foregroundColor: AppColors.textPrimary,
                 side: BorderSide(color: AppColors.divider),
@@ -98,6 +139,7 @@ class _SplashScreenState extends State<SplashScreen> {
                 padding: const EdgeInsets.symmetric(vertical: 11),
               ),
               onPressed: () async {
+                if (_consumeSuppressedModeAction()) return;
                 Navigator.of(dCtx).pop();
                 await _state.markInitialModeSelected();
                 await _state.finishTutorialCleanSlate(); // 예시 데이터 일체 없는 완전 백지 클린 상태로 시작!
@@ -105,14 +147,19 @@ class _SplashScreenState extends State<SplashScreen> {
                 _checkGreetingAndProceed();
               },
               child: const Text('바로 시작하기 (기본 클린 상태)', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13.5)),
+              ),
             ),
           ),
           const SizedBox(height: 8),
 
           // 2) 🎓 온보딩 튜토리얼 시작
-          SizedBox(
-            width: double.infinity,
-            child: ElevatedButton(
+          Listener(
+            onPointerDown: (event) => _onDeveloperGesturePointerDown(dCtx, event.pointer),
+            onPointerUp: (event) => _onDeveloperGesturePointerUp(event.pointer),
+            onPointerCancel: (event) => _onDeveloperGesturePointerUp(event.pointer),
+            child: SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.primaryPurple,
                 elevation: 0,
@@ -120,6 +167,7 @@ class _SplashScreenState extends State<SplashScreen> {
                 padding: const EdgeInsets.symmetric(vertical: 11),
               ),
               onPressed: () async {
+                if (_consumeSuppressedModeAction()) return;
                 Navigator.of(dCtx).pop();
                 await _state.markInitialModeSelected();
                 await _state.setupTutorialDemoData();
@@ -127,31 +175,62 @@ class _SplashScreenState extends State<SplashScreen> {
                 _checkGreetingAndProceed();
               },
               child: const Text('온보딩 튜토리얼 시작 (체험형 가이드)', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13.5)),
+              ),
             ),
           ),
           const SizedBox(height: 8),
-
-          // 3) 🛠️ 개발자 모드 (전체 예시 데이터 복원)
-          SizedBox(
-            width: double.infinity,
-            child: TextButton(
-              style: TextButton.styleFrom(
-                foregroundColor: AppColors.textSecondary,
-                padding: const EdgeInsets.symmetric(vertical: 8),
-              ),
-              onPressed: () async {
-                Navigator.of(dCtx).pop();
-                await _state.markInitialModeSelected();
-                await _state.restoreDevFullSimulationData();
-                _startTutorialOnMain = false;
-                _checkGreetingAndProceed();
-              },
-              child: const Text('개발자 모드 (전체 예시 데이터 복원)', style: TextStyle(fontSize: 12.5, fontWeight: FontWeight.w600)),
-            ),
-          ),
         ],
       ),
     );
+  }
+
+  Future<void> _requestDeveloperMode(BuildContext modeDialogContext) async {
+    final codeController = TextEditingController();
+    var invalid = false;
+    final unlocked = await showDialog<bool>(
+      context: modeDialogContext,
+      builder: (codeDialogContext) => StatefulBuilder(
+        builder: (context, setDialogState) => AlertDialog(
+          title: const Text('개발자 모드 잠금 해제'),
+          content: TextField(
+            controller: codeController,
+            autofocus: true,
+            obscureText: true,
+            decoration: InputDecoration(
+              labelText: '접근 코드',
+              errorText: invalid ? '코드가 맞지 않아요.' : null,
+            ),
+            onChanged: (_) {
+              if (invalid) setDialogState(() => invalid = false);
+            },
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(codeDialogContext).pop(false),
+              child: const Text('취소'),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                if (codeController.text == '덕성하곰사랑단') {
+                  Navigator.of(codeDialogContext).pop(true);
+                } else {
+                  setDialogState(() => invalid = true);
+                }
+              },
+              child: const Text('잠금 해제'),
+            ),
+          ],
+        ),
+      ),
+    );
+    codeController.dispose();
+    if (unlocked != true || !mounted) return;
+    Navigator.of(modeDialogContext).pop();
+    await _state.markInitialModeSelected();
+    await _state.restoreDevFullSimulationData();
+    if (!mounted) return;
+    _startTutorialOnMain = false;
+    _checkGreetingAndProceed();
   }
 
   /// 🌟 2) 오늘 첫 접속 환영 화면 여부 판별

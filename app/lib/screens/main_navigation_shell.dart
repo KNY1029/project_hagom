@@ -21,10 +21,12 @@ import '../widgets/tutorial_overlay.dart';
 ///   * 길게 누르거나 말풍선을 누르면 '하곰이의 방'으로 이동
 class MainNavigationShell extends StatefulWidget {
   final bool startWithTutorial;
+  final bool preserveDataOnTutorialFinish;
   final int initialTabIndex;
   const MainNavigationShell({
     super.key,
     this.startWithTutorial = false,
+    this.preserveDataOnTutorialFinish = false,
     this.initialTabIndex = 0,
   });
 
@@ -278,6 +280,7 @@ class _MainNavigationShellState extends State<MainNavigationShell> {
             ),
           if (_isTutorialActive)
             TutorialOverlay(
+              preserveDataOnFinish: widget.preserveDataOnTutorialFinish,
               onSwitchTab: (tabIdx) {
                 setState(() {
                   _currentIndex = tabIdx;

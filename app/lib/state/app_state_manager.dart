@@ -1716,6 +1716,7 @@ class AppStateManager extends ChangeNotifier {
       med.doseSlots.add(targetSlot);
     }
     if (targetSlot != null) {
+      final wasCompleted = targetSlot.isCompleted;
       targetSlot.isCompleted = true;
       final now = DateTime.now();
       final hour = now.hour;
@@ -1724,6 +1725,7 @@ class AppStateManager extends ChangeNotifier {
       final displayHour = hour > 12 ? hour - 12 : (hour == 0 ? 12 : hour);
       targetSlot.takenTime = customTakenTime ?? '$period $displayHour:$minute';
       targetSlot.takenDate = DateTime(now.year, now.month, now.day);
+      if (!wasCompleted) _decrementPillCount(med);
 
       // N시간 간격 약물인 경우 다음 회차 시간 동적 재계산
       _recalculateHourlyNextSlot(med, now);
@@ -1747,6 +1749,7 @@ class AppStateManager extends ChangeNotifier {
         final displayHour = hour > 12 ? hour - 12 : (hour == 0 ? 12 : hour);
         slot.takenTime = '$period $displayHour:$minute';
         slot.takenDate = DateTime(now.year, now.month, now.day);
+        _decrementPillCount(med);
 
         _recalculateHourlyNextSlot(med, now);
 
@@ -1793,6 +1796,7 @@ class AppStateManager extends ChangeNotifier {
   void updateSlotTakenTime(String medId, int slotIndex, String newTakenTime) {
     final med = _medications.firstWhere((m) => m.id == medId);
     if (slotIndex >= 0 && slotIndex < med.doseSlots.length) {
+      final wasCompleted = med.doseSlots[slotIndex].isCompleted;
       med.doseSlots[slotIndex].takenTime = newTakenTime;
       med.doseSlots[slotIndex].isCompleted = true;
       final now = DateTime.now();
@@ -1801,6 +1805,7 @@ class AppStateManager extends ChangeNotifier {
         now.month,
         now.day,
       );
+      if (!wasCompleted) _decrementPillCount(med);
       notifyListeners();
     }
   }
@@ -1809,9 +1814,11 @@ class AppStateManager extends ChangeNotifier {
   void cancelSpecificSlot(String medId, int slotIndex) {
     final med = _medications.firstWhere((m) => m.id == medId);
     if (slotIndex >= 0 && slotIndex < med.doseSlots.length) {
+      final wasCompleted = med.doseSlots[slotIndex].isCompleted;
       med.doseSlots[slotIndex].isCompleted = false;
       med.doseSlots[slotIndex].takenTime = null;
       med.doseSlots[slotIndex].takenDate = null;
+      if (wasCompleted) _restorePillCount(med);
       notifyListeners();
     }
   }
@@ -1824,6 +1831,7 @@ class AppStateManager extends ChangeNotifier {
         med.doseSlots[i].isCompleted = false;
         med.doseSlots[i].takenTime = null;
         med.doseSlots[i].takenDate = null;
+        _restorePillCount(med);
         break;
       }
     }
@@ -1834,6 +1842,44 @@ class AppStateManager extends ChangeNotifier {
 
   // cancelLastCompletedSlot 별칭
   void cancelLastCompletedSlot(String id) => revertMedication(id);
+
+  void _decrementPillCount(MedicationItem med) {
+    if (!med.usePillCount || med.remainingPillCount == null) return;
+    med.remainingPillCount = (med.remainingPillCount! - 1).clamp(0, 999999);
+  }
+
+  void _restorePillCount(MedicationItem med) {
+    if (!med.usePillCount || med.remainingPillCount == null) return;
+    med.remainingPillCount = (med.remainingPillCount! + 1).clamp(0, 999999);
+  }
+
+  void setMedicationPillCount({
+    required String medId,
+    required bool enabled,
+    required int initialCount,
+    bool resetRemaining = true,
+  }) {
+    final med = _medications.firstWhere((m) => m.id == medId);
+    med.usePillCount = enabled;
+    if (!enabled) {
+      med.initialPillCount = null;
+      med.remainingPillCount = null;
+    } else {
+      final count = initialCount.clamp(0, 999999);
+      med.initialPillCount = count;
+      if (resetRemaining || med.remainingPillCount == null) {
+        med.remainingPillCount = count;
+      }
+    }
+    notifyListeners();
+  }
+
+  void setRemainingPillCount(String medId, int count) {
+    final med = _medications.firstWhere((m) => m.id == medId);
+    if (!med.usePillCount) return;
+    med.remainingPillCount = count.clamp(0, 999999);
+    notifyListeners();
+  }
   // 🌿 특정 회차만 건너뛰기 처리 (다음 대기 회차 슬롯 건너뜀)
   void skipNextSlot(String id, {String? reason}) {
     final med = _medications.firstWhere((m) => m.id == id);
@@ -1888,6 +1934,8 @@ class AppStateManager extends ChangeNotifier {
     String? memo,
     DateTime? startDate,
     DateTime? endDate,
+    bool usePillCount = false,
+    int? initialPillCount,
   }) {
     _medications.add(
       MedicationItem(
@@ -1900,6 +1948,9 @@ class AppStateManager extends ChangeNotifier {
         isPrescription: isPrescription,
         repeatDays: repeatDays ?? [],
         memo: memo,
+        usePillCount: usePillCount,
+        initialPillCount: usePillCount ? initialPillCount : null,
+        remainingPillCount: usePillCount ? initialPillCount : null,
         startDate: startDate,
         endDate: endDate,
       ),
@@ -1920,6 +1971,8 @@ class AppStateManager extends ChangeNotifier {
     String? memo,
     DateTime? startDate,
     DateTime? endDate,
+    bool? usePillCount,
+    int? initialPillCount,
   }) {
     final med = _medications.firstWhere((m) => m.id == id);
     med.name = name;
@@ -1933,6 +1986,14 @@ class AppStateManager extends ChangeNotifier {
     med.isPrescription = isPrescription;
     if (repeatDays != null) med.repeatDays = repeatDays;
     if (memo != null) med.memo = memo;
+    if (usePillCount != null) {
+      setMedicationPillCount(
+        medId: id,
+        enabled: usePillCount,
+        initialCount: initialPillCount ?? med.initialPillCount ?? 0,
+        resetRemaining: initialPillCount != med.initialPillCount,
+      );
+    }
     notifyListeners();
   }
 
@@ -2125,6 +2186,7 @@ class AppStateManager extends ChangeNotifier {
   void addTask({
     required String title,
     required DateTime date,
+    String? memo,
     String? time,
     List<String>? reminders,
     bool isRepeated = false,
@@ -2136,6 +2198,7 @@ class AppStateManager extends ChangeNotifier {
       TaskItem(
         id: 'task_${DateTime.now().millisecondsSinceEpoch}',
         title: title,
+        memo: memo ?? '',
         date: date,
         time: time,
         reminders: reminders ?? ['30분 전'],

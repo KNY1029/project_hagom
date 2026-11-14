@@ -223,6 +223,7 @@ class _CalendarTabViewState extends State<CalendarTabView> {
   // 할일/한일 추가 및 수정 모달
   void _showTaskModal({TaskItem? task}) {
     final titleCtrl = TextEditingController(text: task?.title ?? '');
+    final memoCtrl = TextEditingController(text: task?.memo ?? '');
     String? selectedTime = task?.time;
     // 다중 선택 알림 목록
     final List<String> selectedReminders = List<String>.from(
@@ -306,6 +307,32 @@ class _CalendarTabViewState extends State<CalendarTabView> {
                   autofocus: task == null,
                   decoration: InputDecoration(
                     hintText: '',
+                    filled: true,
+                    fillColor: const Color(0xFFF9FAFB),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10),
+                      borderSide: BorderSide(color: AppColors.divider),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10),
+                      borderSide: BorderSide(color: AppColors.primaryPurple),
+                    ),
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 14,
+                      vertical: 12,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 10),
+                TextField(
+                  controller: memoCtrl,
+                  minLines: 2,
+                  maxLines: 4,
+                  keyboardType: TextInputType.multiline,
+                  decoration: InputDecoration(
+                    labelText: '추가 설명 (선택)',
+                    hintText: '장소, 준비물 등 필요한 정보를 적어 주세요',
+                    alignLabelWithHint: true,
                     filled: true,
                     fillColor: const Color(0xFFF9FAFB),
                     border: OutlineInputBorder(
@@ -794,6 +821,7 @@ class _CalendarTabViewState extends State<CalendarTabView> {
                         _state.updateTask(
                           id: task.id,
                           title: titleCtrl.text.trim(),
+                          memo: memoCtrl.text.trim(),
                           time: selectedTime,
                           reminders: selectedReminders,
                           isRepeated: isRepeated,
@@ -809,6 +837,7 @@ class _CalendarTabViewState extends State<CalendarTabView> {
                       } else {
                         _state.addTask(
                           title: titleCtrl.text.trim(),
+                          memo: memoCtrl.text.trim(),
                           date: _selectedDate,
                           time: selectedTime,
                           reminders: selectedReminders,
@@ -1870,7 +1899,28 @@ class _CalendarTabViewState extends State<CalendarTabView> {
                                       tapTargetSize:
                                           MaterialTapTargetSize.shrinkWrap,
                                     ),
-                                    onPressed: () {
+                                    onPressed: () async {
+                                      final shouldDelete = await showDialog<bool>(
+                                        context: context,
+                                        useRootNavigator: false,
+                                        builder: (dialogContext) => AlertDialog(
+                                          title: const Text('일정 삭제'),
+                                          content: Text(
+                                            '\'${t.title}\' 일정을 삭제할까요?',
+                                          ),
+                                          actions: [
+                                            TextButton(
+                                              onPressed: () => Navigator.of(dialogContext).pop(false),
+                                              child: const Text('취소'),
+                                            ),
+                                            TextButton(
+                                              onPressed: () => Navigator.of(dialogContext).pop(true),
+                                              child: const Text('삭제'),
+                                            ),
+                                          ],
+                                        ),
+                                      ) ?? false;
+                                      if (!shouldDelete || !mounted) return;
                                       _state.deleteTask(t.id);
                                       CelebrationToast.show(
                                         context,

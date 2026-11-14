@@ -245,15 +245,21 @@ class _HagomAppState extends State<HagomApp> with WidgetsBindingObserver {
           debugShowCheckedModeBanner: false,
           theme: ThemeData(
             useMaterial3: true,
+            brightness: state.currentThemeKey == AppColors.themeDark
+                ? Brightness.dark
+                : Brightness.light,
             scaffoldBackgroundColor: AppColors.activeBackground,
             colorScheme: ColorScheme.fromSeed(
               seedColor: AppColors.activePrimary,
+              brightness: state.currentThemeKey == AppColors.themeDark
+                  ? Brightness.dark
+                  : Brightness.light,
               primary: AppColors.activePrimary,
               secondary: AppColors.activeWarmAccent,
-              surface: Colors.white,
+              surface: AppColors.cardSurface,
             ),
             appBarTheme: AppBarTheme(
-              backgroundColor: Colors.white,
+              backgroundColor: AppColors.cardSurface,
               foregroundColor: AppColors.activeTextPrimary,
               elevation: 0,
             ),
