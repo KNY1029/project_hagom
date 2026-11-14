@@ -179,12 +179,15 @@ class _CompanionRoomScreenState extends State<CompanionRoomScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      '하곰이와 함께한 소중한 발걸음',
-                      style: TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.bold,
-                        color: AppColors.textPrimary,
+                    Center(
+                      child: Text(
+                        '하곰이와 함께한 소중한 발걸음',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.textPrimary,
+                        ),
                       ),
                     ),
                     const SizedBox(height: 12),

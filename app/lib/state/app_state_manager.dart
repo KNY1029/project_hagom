@@ -1343,17 +1343,32 @@ class AppStateManager extends ChangeNotifier {
         _habits.addAll(
           decoded.map((e) => HabitItem.fromJson(e as Map<String, dynamic>)),
         );
-        if (isDevSimulationMode && !_habits.any((h) => h.id == 'habit_5')) {
-          _habits.add(
-            HabitItem(
-              id: 'habit_5',
-              title: '침구 정리 및 환기하기 (예시)',
-              subtitle: '주 1회 · 이미 이번 주 완료됨',
-              recurrenceSummary: '주 1회',
-              targetPerDay: 1,
-              currentCount: 0,
-              weeklyCompletedCount: 1, // 이번 주 완료 상태
-            ),
+        if (isDevSimulationMode) {
+          final exampleStartDate = DateTime(DateTime.now().year, 11, 1);
+          for (final habit in _habits) {
+            if (habit.id.startsWith('habit_')) {
+              habit.startDate = exampleStartDate;
+            }
+          }
+          if (!_habits.any((h) => h.id == 'habit_5')) {
+            _habits.add(
+              HabitItem(
+                id: 'habit_5',
+                title: '침구 정리 및 환기하기 (예시)',
+                subtitle: '주 1회 · 이미 이번 주 완료됨',
+                recurrenceSummary: '주 1회',
+                targetPerDay: 1,
+                currentCount: 0,
+                weeklyCompletedCount: 1, // 이번 주 완료 상태
+                startDate: exampleStartDate,
+              ),
+            );
+          }
+        }
+        if (isDevSimulationMode) {
+          await _prefs!.setString(
+            'hagom_habits',
+            jsonEncode(_habits.map((h) => h.toJson()).toList()),
           );
         }
       }
@@ -1520,6 +1535,7 @@ class AppStateManager extends ChangeNotifier {
       ),
     ]);
 
+    final exampleHabitStartDate = DateTime(DateTime.now().year, 11, 1);
     _habits.addAll([
       HabitItem(
         id: 'habit_1',
@@ -1527,6 +1543,7 @@ class AppStateManager extends ChangeNotifier {
         subtitle: '하루 4잔 시원하게',
         targetPerDay: 4,
         currentCount: 3, // 3/4잔
+        startDate: exampleHabitStartDate,
       ),
       HabitItem(
         id: 'habit_2',
@@ -1534,6 +1551,7 @@ class AppStateManager extends ChangeNotifier {
         subtitle: '유연하게 · 1분이라도 충분해요',
         targetPerDay: 1,
         currentCount: 2, // 완료
+        startDate: exampleHabitStartDate,
       ),
       HabitItem(
         id: 'habit_3',
@@ -1541,6 +1559,7 @@ class AppStateManager extends ChangeNotifier {
         subtitle: '스트레칭 · 5~10분',
         targetPerDay: 1,
         currentCount: 1, // 조금 실천
+        startDate: exampleHabitStartDate,
       ),
       HabitItem(
         id: 'habit_4',
@@ -1548,6 +1567,7 @@ class AppStateManager extends ChangeNotifier {
         subtitle: '취침 전 · 편안한 밤을 위해',
         targetPerDay: 1,
         currentCount: 0, // 대기
+        startDate: exampleHabitStartDate,
       ),
       HabitItem(
         id: 'habit_5',
@@ -1557,6 +1577,7 @@ class AppStateManager extends ChangeNotifier {
         targetPerDay: 1,
         currentCount: 0,
         weeklyCompletedCount: 1,
+        startDate: exampleHabitStartDate,
       ),
     ]);
     // 기본 예시 일정 (PRD 5.3절 명세: 보고서 작성, 병원 진료 등)
