@@ -12,6 +12,20 @@ import es.antonborri.home_widget.HomeWidgetProvider
 
 class HagomMonthCalendarWidgetProvider : HomeWidgetProvider() {
 
+    private fun darkCellBackground(status: String): Int = when (status) {
+        "today", "today_pin", "today_done", "today_done_pin",
+        "today_med_done", "today_med_done_pin", "today_med_done_done_pin" ->
+            R.drawable.hagom_calendar_dark_today
+        "all_done", "all_done_pin" -> R.drawable.hagom_calendar_dark_done
+        "mdone", "mdone_pin", "hdone_mdone", "hdone_mdone_pin",
+        "hdone_mpartial", "hdone_mpartial_pin" -> R.drawable.hagom_calendar_dark_bar_green
+        "missed_med", "missed_med_pin", "hdone_mmissed", "hdone_mmissed_pin" ->
+            R.drawable.hagom_calendar_dark_bar_red
+        "partial", "partial_pin" -> R.drawable.hagom_calendar_dark_bar_gray
+        "pin_only" -> R.drawable.hagom_calendar_dark_pin
+        else -> R.drawable.hagom_calendar_dark_base
+    }
+
     override fun onAppWidgetOptionsChanged(
         context: Context,
         appWidgetManager: AppWidgetManager,
@@ -160,7 +174,12 @@ class HagomMonthCalendarWidgetProvider : HomeWidgetProvider() {
 
                         // 일요일(i % 7 == 0)은 빨간색 글자
                         val isSunday = (i % 7 == 0)
-                        setTextColor(resId, if (isSunday) Color.parseColor("#EF4444") else Color.parseColor("#1F2937"))
+                        val isDark = widgetData.getString("theme_dark", "false") == "true"
+                        setTextColor(
+                            resId,
+                            if (isSunday) Color.parseColor(if (isDark) "#FF8585" else "#EF4444")
+                            else Color.parseColor(if (isDark) "#F3F0F7" else "#1F2937")
+                        )
 
                         val isDaySelected = (selectedDateStr.isNotEmpty() && selectedDateStr == cellDate)
                         val bgRes = if (isDaySelected) {
@@ -217,7 +236,11 @@ class HagomMonthCalendarWidgetProvider : HomeWidgetProvider() {
                                 else -> R.drawable.hagom_widget_white_bg
                             }
                         }
-                        setInt(resId, "setBackgroundResource", bgRes)
+                        setInt(
+                            resId,
+                            "setBackgroundResource",
+                            if (isDark) darkCellBackground(status) else bgRes
+                        )
 
                         // 🌟 [원터치 = 위젯 내 조회 / 투터치 = 앱 달력 해당 날짜로 즉시 진입]:
                         // 1) 다른 날짜: 1차 터치 시 선택(보라 테두리) -> 2차 터치 시 앱의 그날 달력으로 즉시 진입!
