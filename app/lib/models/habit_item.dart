@@ -8,6 +8,7 @@ class HabitItem {
   List<String> scheduledTimes; // 복수 알림 예정 시각 목록 (['오전 8:00', '오후 2:00'] 등)
   int targetPerDay;          // 하루 목표 횟수 (기본 1회, 물 마시기 등은 4회)
   int currentCount;          // 오늘 실천한 횟수
+  List<String> completionTimes; // 오늘 각 실천을 완료한 시각
   int weeklyCompletedCount;  // 🌟 이번 주에 이미 완료한 누적 횟수 (예: 주 1회 목표 중 1회 완료)
   int weeklyResetWeekday;    // 주간 횟수 초기화 요일 (1=월요일)
   DateTime? weeklyPeriodStart;
@@ -23,13 +24,15 @@ class HabitItem {
     this.scheduledTimes = const [],
     this.targetPerDay = 1,
     this.currentCount = 0,
+    List<String>? completionTimes,
     this.weeklyCompletedCount = 0,
     this.weeklyResetWeekday = 1,
     this.weeklyPeriodStart,
     this.isExpanded = false,
     this.isArchived = false,
     DateTime? startDate,
-  }) : startDate = DateTime(
+  }) : completionTimes = completionTimes ?? [],
+       startDate = DateTime(
          (startDate ?? DateTime.now()).year,
          (startDate ?? DateTime.now()).month,
          (startDate ?? DateTime.now()).day,
@@ -97,6 +100,7 @@ class HabitItem {
     'scheduledTimes': scheduledTimes,
     'targetPerDay': targetPerDay,
     'currentCount': currentCount,
+    'completionTimes': completionTimes,
     'weeklyCompletedCount': weeklyCompletedCount,
     'weeklyResetWeekday': weeklyResetWeekday,
     'weeklyPeriodStart': weeklyPeriodStart?.toIso8601String(),
@@ -112,6 +116,9 @@ class HabitItem {
     scheduledTimes: (json['scheduledTimes'] as List<dynamic>?)?.map((e) => e.toString()).toList() ?? [],
     targetPerDay: json['targetPerDay'] as int? ?? 1,
     currentCount: json['currentCount'] as int? ?? 0,
+    completionTimes: (json['completionTimes'] as List<dynamic>?)
+        ?.map((e) => e.toString())
+        .toList() ?? [],
     weeklyCompletedCount: json['weeklyCompletedCount'] as int? ?? 0,
     weeklyResetWeekday: json['weeklyResetWeekday'] as int? ?? 1,
     weeklyPeriodStart: DateTime.tryParse(json['weeklyPeriodStart'] as String? ?? ''),
@@ -168,5 +175,6 @@ class HabitItem {
   // 상태 초기화 (되돌리기 / 리셋)
   void resetProgress() {
     currentCount = 0;
+    completionTimes.clear();
   }
 }

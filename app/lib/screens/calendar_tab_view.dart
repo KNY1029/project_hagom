@@ -2378,6 +2378,22 @@ class _CalendarTabViewState extends State<CalendarTabView> {
                                         color: AppColors.textSecondary,
                                       ),
                                     ),
+                                    if (_state
+                                        .getHabitCompletionTimesForDay(
+                                          _selectedDate,
+                                          habit.id,
+                                        )
+                                        .isNotEmpty)
+                                      Padding(
+                                        padding: const EdgeInsets.only(top: 3),
+                                        child: Text(
+                                          '실천 시각: ${_state.getHabitCompletionTimesForDay(_selectedDate, habit.id).join(' · ')}',
+                                          style: TextStyle(
+                                            fontSize: 10.5,
+                                            color: AppColors.textSecondary,
+                                          ),
+                                        ),
+                                      ),
                                   ],
                                 ),
                               ),

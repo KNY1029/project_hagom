@@ -1117,7 +1117,13 @@ class _HabitsTabViewState extends State<HabitsTabView> {
                                   ),
                                 ),
                               ),
-                            ...habit.scheduledTimes.map(
+                            ...(habit.scheduledTimes.isNotEmpty
+                                    ? (habit.score >= 1.0 &&
+                                              habit.completionTimes.isNotEmpty
+                                          ? habit.completionTimes
+                                          : habit.scheduledTimes)
+                                    : habit.completionTimes)
+                                .map(
                               (t) => Container(
                                 padding: const EdgeInsets.symmetric(
                                   horizontal: 6,
@@ -1128,7 +1134,11 @@ class _HabitsTabViewState extends State<HabitsTabView> {
                                   borderRadius: BorderRadius.circular(4),
                                 ),
                                 child: Text(
-                                  t,
+                                  habit.scheduledTimes.isNotEmpty &&
+                                          habit.score >= 1.0 &&
+                                          habit.completionTimes.contains(t)
+                                      ? '완료 $t'
+                                      : t,
                                   style: TextStyle(
                                     fontSize: 10.5,
                                     color: AppColors.textSecondary,

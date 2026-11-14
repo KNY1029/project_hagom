@@ -551,6 +551,7 @@ class AppStateManager extends ChangeNotifier {
   final Map<String, Map<String, bool>> _pastSlotRecords = {};
   // value: { 'habitId': score } (0.0=미실천, 0.5=조금실천, 1.0=완료)
   final Map<String, Map<String, double>> _pastHabitRecords = {};
+  final Map<String, Map<String, List<String>>> _pastHabitCompletionTimes = {};
   final Map<String, Map<String, String>> _pastSlotTimes = {};
   String? _lastDailyStateDateKey;
 
@@ -559,6 +560,7 @@ class AppStateManager extends ChangeNotifier {
 
     _pastSlotRecords.clear();
     _pastHabitRecords.clear();
+    _pastHabitCompletionTimes.clear();
     _pastSlotTimes.clear();
     _retroactiveSlots
       ..clear()
@@ -596,6 +598,22 @@ class AppStateManager extends ChangeNotifier {
           _pastSlotTimes[date] = (records as Map<String, dynamic>).map(
             (key, value) => MapEntry(key, value.toString()),
           );
+        });
+      }
+    } catch (_) {}
+
+    try {
+      final raw = _prefs!.getString('hagom_past_habit_completion_times');
+      if (raw != null) {
+        final decoded = jsonDecode(raw) as Map<String, dynamic>;
+        decoded.forEach((date, records) {
+          _pastHabitCompletionTimes[date] =
+              (records as Map<String, dynamic>).map(
+                (id, times) => MapEntry(
+                  id,
+                  (times as List<dynamic>).map((time) => time.toString()).toList(),
+                ),
+              );
         });
       }
     } catch (_) {}
@@ -654,6 +672,10 @@ class AppStateManager extends ChangeNotifier {
       if (habit.currentCount > 0) {
         _pastHabitRecords.putIfAbsent(dateKey, () => {})[habit.id] =
             habit.score;
+        _pastHabitCompletionTimes[dateKey] = {
+          ...?_pastHabitCompletionTimes[dateKey],
+          habit.id: List<String>.from(habit.completionTimes),
+        };
       }
       habit.resetProgress();
     }
@@ -985,6 +1007,21 @@ class AppStateManager extends ChangeNotifier {
     return (d % 2 == 0) ? 0.0 : 1.0;
   }
 
+  List<String> getHabitCompletionTimesForDay(DateTime day, String habitId) {
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final target = DateTime(day.year, day.month, day.day);
+    if (target.isAtSameMomentAs(today)) {
+      final index = _habits.indexWhere((habit) => habit.id == habitId);
+      return index < 0
+          ? const []
+          : List.unmodifiable(_habits[index].completionTimes);
+    }
+    return List.unmodifiable(
+      _pastHabitCompletionTimes[_dateKey(day)]?[habitId] ?? const <String>[],
+    );
+  }
+
   // 특정 날짜의 전체 습관 평균 달성률 (0.0 ~ 1.0)
   double? getHabitRateForDay(DateTime day) {
     final now = DateTime.now();
@@ -1027,6 +1064,14 @@ class AppStateManager extends ChangeNotifier {
 
     _pastHabitRecords.putIfAbsent(key, () => {})[habitId] = nextVal;
     if (nextVal > current) {
+      final now = DateTime.now();
+      final hour = now.hour > 12 ? now.hour - 12 : (now.hour == 0 ? 12 : now.hour);
+      final period = now.hour >= 12 ? '오후' : '오전';
+      final times = _pastHabitCompletionTimes.putIfAbsent(key, () => {});
+      times[habitId] = [
+        ...?times[habitId],
+        '$period $hour:${now.minute.toString().padLeft(2, '0')}',
+      ];
       gentleAttempts++;
     }
     notifyListeners();
@@ -1046,6 +1091,7 @@ class AppStateManager extends ChangeNotifier {
 
     final key = _dateKey(day);
     _pastHabitRecords.putIfAbsent(key, () => {})[habitId] = 0.0;
+    _pastHabitCompletionTimes[key]?.remove(habitId);
     notifyListeners();
   }
 
@@ -1169,6 +1215,10 @@ class AppStateManager extends ChangeNotifier {
       await _prefs!.setString(
         'hagom_past_habit_records',
         jsonEncode(_pastHabitRecords),
+      );
+      await _prefs!.setString(
+        'hagom_past_habit_completion_times',
+        jsonEncode(_pastHabitCompletionTimes),
       );
       await _prefs!.setString('hagom_past_slot_times', jsonEncode(_pastSlotTimes));
       await _prefs!.setStringList(
@@ -2060,6 +2110,12 @@ class AppStateManager extends ChangeNotifier {
     final wasComplete = habit.score >= 1.0;
     final advanced = habit.advanceProgress();
     if (advanced) {
+      final now = DateTime.now();
+      final hour = now.hour > 12 ? now.hour - 12 : (now.hour == 0 ? 12 : now.hour);
+      final period = now.hour >= 12 ? '오후' : '오전';
+      habit.completionTimes.add(
+        '$period $hour:${now.minute.toString().padLeft(2, '0')}',
+      );
       if (habit.recurrenceSummary.contains('주') && !wasComplete && habit.score >= 1.0) {
         habit.weeklyCompletedCount++;
       }
@@ -2349,6 +2405,7 @@ class AppStateManager extends ChangeNotifier {
       }
       if (deleteHabits) {
         _pastHabitRecords.remove(key);
+        _pastHabitCompletionTimes.remove(key);
       }
       if (deleteTasks) {
         final targetDate = cur;
@@ -2366,6 +2423,7 @@ class AppStateManager extends ChangeNotifier {
     _tasks.clear();
     _pastSlotRecords.clear();
     _pastHabitRecords.clear();
+    _pastHabitCompletionTimes.clear();
     _pastSlotTimes.clear();
     _retroactiveSlots.clear();
     customTimeSlots.clear(); // 커스텀 시간대도 깨끗하게 초기화!
@@ -2395,6 +2453,7 @@ class AppStateManager extends ChangeNotifier {
     _tasks.clear();
     _pastSlotRecords.clear();
     _pastHabitRecords.clear();
+    _pastHabitCompletionTimes.clear();
     _pastSlotTimes.clear();
     _retroactiveSlots.clear();
     customTimeSlots.clear();
@@ -2415,6 +2474,7 @@ class AppStateManager extends ChangeNotifier {
     _tasks.clear();
     _pastSlotRecords.clear();
     _pastHabitRecords.clear();
+    _pastHabitCompletionTimes.clear();
     _initDefaultData();
     isTutorialDemoMode = false;
     isDevSimulationMode = true; // 개발자 모드 복원: 전체 예시 노출 모드
@@ -2433,6 +2493,7 @@ class AppStateManager extends ChangeNotifier {
     _tasks.clear();
     _pastSlotRecords.clear();
     _pastHabitRecords.clear();
+    _pastHabitCompletionTimes.clear();
 
     _initDefaultData();
     isTutorialDemoMode = true;
