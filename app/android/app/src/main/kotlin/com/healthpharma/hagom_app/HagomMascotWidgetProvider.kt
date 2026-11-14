@@ -81,6 +81,9 @@ class HagomMascotWidgetProvider : HomeWidgetProvider() {
                 views, widgetData, if (is1x1) R.id.widget_mascot_container_1x1 else R.id.widget_mascot_container,
                 listOf(R.id.widget_mascot_badge, R.id.widget_mascot_quote, R.id.widget_mascot_sub)
             )
+            if (widgetData.getString("theme_dark", "false") == "true" && !is1x1) {
+                views.setInt(R.id.widget_mascot_badge, "setBackgroundResource", R.drawable.hagom_widget_tag_bg_dark)
+            }
             appWidgetManager.updateAppWidget(appWidgetId, views)
         }
     }

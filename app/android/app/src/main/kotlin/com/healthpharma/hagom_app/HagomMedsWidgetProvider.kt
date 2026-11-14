@@ -147,6 +147,9 @@ class HagomMedsWidgetProvider : HomeWidgetProvider() {
                 listOf(R.id.widget_meds_tag, R.id.widget_meds_progress, R.id.widget_meds_title,
                     R.id.widget_meds_subtitle, R.id.widget_meds_status)
             )
+            if (widgetData.getString("theme_dark", "false") == "true" && !is1x1) {
+                views.setInt(R.id.widget_meds_tag, "setBackgroundResource", R.drawable.hagom_widget_tag_bg_dark)
+            }
             appWidgetManager.updateAppWidget(appWidgetId, views)
         }
     }

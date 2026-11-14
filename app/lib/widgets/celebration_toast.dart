@@ -35,7 +35,7 @@ class CelebrationToast {
         content: Container(
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: AppColors.cardSurface,
             borderRadius: BorderRadius.circular(14),
             border: Border.all(color: AppColors.primaryPurple.withValues(alpha: 0.35), width: 1.2),
             boxShadow: [

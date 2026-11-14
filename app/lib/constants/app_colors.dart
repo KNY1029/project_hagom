@@ -101,9 +101,9 @@ class AppColors {
   static Color completedBg = const Color(0xFFEAF8F1);
   static Color completedText = const Color(0xFF1B6B46);
   static Color completedBorder = const Color(0xFFA3DBC0);
-  static const Color partialBg = Color(0xFFF7F3EE);
-  static const Color partialText = Color(0xFF8B5E3C);
-  static const Color partialBorder = Color(0xFFE5DDD0);
+  static Color partialBg = const Color(0xFFF7F3EE);
+  static Color partialText = const Color(0xFF8B5E3C);
+  static Color partialBorder = const Color(0xFFE5DDD0);
   static Color successGreen = const Color(0xFF065F46);
   static Color successBg = const Color(0xFFE6F8F0);
   static const Color partialOrange = Color(0xFF8B5E3C);
@@ -252,6 +252,15 @@ class AppColors {
     inputSurface = theme.key == themeDark
         ? const Color(0xFF2C2734)
         : const Color(0xFFF9FAFB);
+    completedBg = theme.key == themeDark ? const Color(0xFF244437) : const Color(0xFFEAF8F1);
+    completedText = theme.key == themeDark ? const Color(0xFF9BE2BE) : const Color(0xFF1B6B46);
+    completedBorder = theme.key == themeDark ? const Color(0xFF4C8A6A) : const Color(0xFFA3DBC0);
+    successBg = theme.key == themeDark ? const Color(0xFF244437) : const Color(0xFFE6F8F0);
+    successGreen = theme.key == themeDark ? const Color(0xFF8DDBB2) : const Color(0xFF065F46);
+    missedRed = theme.key == themeDark ? const Color(0xFFFF8A8A) : const Color(0xFFEF4444);
+    partialBg = theme.key == themeDark ? const Color(0xFF3A3028) : const Color(0xFFF7F3EE);
+    partialText = theme.key == themeDark ? const Color(0xFFE2B992) : const Color(0xFF8B5E3C);
+    partialBorder = theme.key == themeDark ? const Color(0xFF665445) : const Color(0xFFE5DDD0);
   }
 
   static String toHex(Color c) =>

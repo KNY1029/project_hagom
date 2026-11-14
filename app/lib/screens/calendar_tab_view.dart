@@ -202,7 +202,7 @@ class _CalendarTabViewState extends State<CalendarTabView> {
             row(marker: dot(const Color(0xFFD1D5DB)), label: '할일 미완료'),
             const Divider(),
             row(marker: cell(AppColors.successBg), label: '습관 완료'),
-            row(marker: cell(Colors.white), label: '습관 미완료'),
+            row(marker: cell(AppColors.cardSurface), label: '습관 미완료'),
           ],
         ),
         actions: [
@@ -987,7 +987,7 @@ class _CalendarTabViewState extends State<CalendarTabView> {
                 message: '${med.name} $timeStr에 복약한 기록을 남겼어요.',
               );
             },
-            child: const Text(
+            child: Text(
               '직접 시간 입력',
               style: TextStyle(
                 color: Colors.white,
@@ -1037,7 +1037,7 @@ class _CalendarTabViewState extends State<CalendarTabView> {
                 message: '${med.name} ${slot.label} 상태를 미완료로 되돌렸어요.',
               );
             },
-            child: const Text(
+            child: Text(
               '되돌리기 확정',
               style: TextStyle(
                 color: Colors.white,
@@ -1137,7 +1137,7 @@ class _CalendarTabViewState extends State<CalendarTabView> {
                 message: '조금이라도 실천한 것이 정말 큰 의미가 있어요.',
               );
             },
-            child: const Text(
+            child: Text(
               '조금 실천',
               style: TextStyle(
                 color: AppColors.partialText,
@@ -1375,7 +1375,7 @@ class _CalendarTabViewState extends State<CalendarTabView> {
                   ],
                 ),
               ),
-              const Divider(height: 1, color: Color(0xFFF3F4F6)),
+              Divider(height: 1, color: AppColors.divider),
               const SizedBox(height: 6),
 
               // 날짜 셀 그리드
@@ -1431,8 +1431,8 @@ class _CalendarTabViewState extends State<CalendarTabView> {
                       // - 레이아웃: 8월 비교안 (가로로 긴 독립형 카드, 모서리 8px, 하단 바 좌우 여백 8px)
                       // - 색상: 5월 컬러 팔레트 (완료: 에메랄드 #059669, 미완료: 소프트 쿨그레이 #9CA3AF, 핀: 쿨그레이 #D1D5DB, 처방약 누락: 빨강 #EF4444)
                       final Color currentDoneGreen = AppColors.successGreen;
-                      const Color pendingBarColor = Color(0xFF9CA3AF);
-                      const Color pendingPinColor = Color(0xFFD1D5DB);
+                      final Color pendingBarColor = AppColors.neutralDark;
+                      final Color pendingPinColor = AppColors.divider;
                       final double barThickness = (3.5 * calendarScale).clamp(
                         3.5,
                         5.5,
@@ -1477,7 +1477,7 @@ class _CalendarTabViewState extends State<CalendarTabView> {
                           decoration: BoxDecoration(
                             color: isHabit100
                                 ? AppColors.successBg
-                                : Colors.white,
+                                : AppColors.cardSurface,
                             borderRadius: cellRadius,
                             border: Border.all(
                               color: isSelected
@@ -1605,7 +1605,7 @@ class _CalendarTabViewState extends State<CalendarTabView> {
                         decoration: BoxDecoration(
                           color: isSelectedDateToday
                               ? AppColors.lightLavender
-                              : const Color(0xFFF3F4F6),
+                              : AppColors.inputSurface,
                           borderRadius: BorderRadius.circular(6),
                         ),
                         child: Text(
@@ -1993,7 +1993,7 @@ class _CalendarTabViewState extends State<CalendarTabView> {
                                         ? AppColors.partialOrange.withValues(
                                             alpha: 0.12,
                                           )
-                                        : const Color(0xFFF3F4F6)),
+                            : AppColors.inputSurface),
                               borderRadius: BorderRadius.circular(5),
                               border: selectedMedComplete
                                   ? Border.all(color: AppColors.completedBorder)
@@ -2060,9 +2060,9 @@ class _CalendarTabViewState extends State<CalendarTabView> {
                             horizontal: 4,
                             vertical: 8,
                           ),
-                          decoration: const BoxDecoration(
+                          decoration: BoxDecoration(
                             border: Border(
-                              bottom: BorderSide(color: Color(0xFFF3F4F6)),
+                              bottom: BorderSide(color: AppColors.divider),
                             ),
                           ),
                           child: Column(
@@ -2145,7 +2145,7 @@ class _CalendarTabViewState extends State<CalendarTabView> {
                                           decoration: BoxDecoration(
                                             color: isDone
                                                 ? AppColors.successBg
-                                                : Colors.white,
+                                                : AppColors.cardSurface,
                                             borderRadius: BorderRadius.circular(
                                               6,
                                             ),
@@ -2252,7 +2252,7 @@ class _CalendarTabViewState extends State<CalendarTabView> {
                                         ? AppColors.partialOrange.withValues(
                                             alpha: 0.12,
                                           )
-                                        : const Color(0xFFF3F4F6)),
+                                        : AppColors.inputSurface),
                               borderRadius: BorderRadius.circular(5),
                               border: selectedHabitComplete
                                   ? Border.all(color: AppColors.completedBorder)
@@ -2324,7 +2324,7 @@ class _CalendarTabViewState extends State<CalendarTabView> {
                                 hScore == 0.0
                             ? '기록 전'
                             : (isSelectedDateFuture ? '기록 대기' : '대기');
-                        Color bg = Colors.white;
+                        Color bg = AppColors.cardSurface;
                         Color border = AppColors.divider;
                         Color textCol = AppColors.textSecondary;
 
@@ -2345,9 +2345,9 @@ class _CalendarTabViewState extends State<CalendarTabView> {
                             horizontal: 4,
                             vertical: 8,
                           ),
-                          decoration: const BoxDecoration(
+                          decoration: BoxDecoration(
                             border: Border(
-                              bottom: BorderSide(color: Color(0xFFF3F4F6)),
+                              bottom: BorderSide(color: AppColors.divider),
                             ),
                           ),
                           child: Row(

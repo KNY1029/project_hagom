@@ -31,6 +31,7 @@ class _TutorialOverlayState extends State<TutorialOverlay> {
   int _currentStep = 0;
   bool _isExploringFeatureScreen = false;
   bool _hasVisitedFeatureScreen = false;
+  bool _isTemporarilyHidden = false;
 
   final List<Map<String, dynamic>> _steps = [
     {
@@ -150,11 +151,17 @@ class _TutorialOverlayState extends State<TutorialOverlay> {
       // 위젯 쇼룸을 먼저 체험하고, 같은 버튼을 다시 누르면
       // 쇼룸을 닫은 뒤 튜토리얼 완료 화면으로 넘어간다.
       if (!_hasVisitedFeatureScreen) {
-        setState(() => _hasVisitedFeatureScreen = true);
+        setState(() {
+          _hasVisitedFeatureScreen = true;
+          _isTemporarilyHidden = true;
+        });
         Navigator.of(context).push(
           MaterialPageRoute(builder: (context) => const WidgetSimulatorScreen()),
         ).then((_) {
-          if (mounted) setState(() {});
+          if (mounted) {
+            setState(() => _isTemporarilyHidden = false);
+            _finishTutorial();
+          }
         });
       } else {
         setState(() => _hasVisitedFeatureScreen = false);
@@ -221,6 +228,7 @@ class _TutorialOverlayState extends State<TutorialOverlay> {
 
   @override
   Widget build(BuildContext context) {
+    if (_isTemporarilyHidden) return const SizedBox.shrink();
     final step = _steps[_currentStep];
 
     return Positioned(
