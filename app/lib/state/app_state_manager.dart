@@ -421,6 +421,7 @@ class AppStateManager extends ChangeNotifier {
   void setAchromatopsiaMode(bool enabled) {
     achromatopsiaModeEnabled = enabled;
     AppColors.achromatopsiaModeEnabled = enabled;
+    AppColors.applyTheme(currentTheme);
     AppColors.setColorVisionMode(colorVisionModeEnabled);
     notifyListeners();
   }

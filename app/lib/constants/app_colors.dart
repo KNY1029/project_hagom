@@ -117,7 +117,8 @@ class AppColors {
   }
 
   static void _applyStatusColors() {
-    final isDark = background == darkTheme.background;
+    final isDark = background == darkTheme.background ||
+        (achromatopsiaModeEnabled && background == const Color(0xFF181818));
     if (achromatopsiaModeEnabled) {
       completedBg = isDark ? const Color(0xFF4A4A4A) : const Color(0xFFD6D6D6);
       completedText = isDark ? const Color(0xFFFFFFFF) : const Color(0xFF111111);
@@ -278,12 +279,32 @@ class AppColors {
     activePrimary = theme.primary;
     activeWarmAccent = theme.warmAccent;
     activeTextPrimary = theme.textPrimary;
+    if (achromatopsiaModeEnabled) {
+      final isDark = theme.key == themeDark;
+      primaryPurple = isDark ? const Color(0xFFE0E0E0) : const Color(0xFF333333);
+      warmBrown = isDark ? const Color(0xFFBDBDBD) : const Color(0xFF555555);
+      lightLavender = isDark ? const Color(0xFF3A3A3A) : const Color(0xFFE5E5E5);
+      background = isDark ? const Color(0xFF181818) : const Color(0xFFF5F5F5);
+      textPrimary = isDark ? const Color(0xFFF5F5F5) : const Color(0xFF222222);
+      textSecondary = isDark ? const Color(0xFFBDBDBD) : const Color(0xFF666666);
+      divider = isDark ? const Color(0xFF555555) : const Color(0xFFBDBDBD);
+      activeBackground = background;
+      activePrimary = primaryPurple;
+      activeWarmAccent = warmBrown;
+      activeTextPrimary = textPrimary;
+    }
     cardSurface = theme.key == themeDark
-        ? const Color(0xFF24212B)
-        : Colors.white;
+        ? (achromatopsiaModeEnabled
+              ? const Color(0xFF252525)
+              : const Color(0xFF24212B))
+        : (achromatopsiaModeEnabled ? const Color(0xFFFFFFFF) : Colors.white);
     inputSurface = theme.key == themeDark
-        ? const Color(0xFF2C2734)
-        : const Color(0xFFF9FAFB);
+        ? (achromatopsiaModeEnabled
+              ? const Color(0xFF303030)
+              : const Color(0xFF2C2734))
+        : (achromatopsiaModeEnabled
+              ? const Color(0xFFEAEAEA)
+              : const Color(0xFFF9FAFB));
     _applyStatusColors();
   }
 
