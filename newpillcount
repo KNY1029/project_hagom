@@ -1,0 +1,439 @@
+diff --git a/app/lib/models/medication_item.dart b/app/lib/models/medication_item.dart
+--- a/app/lib/models/medication_item.dart
++++ b/app/lib/models/medication_item.dart
+@@
+   bool
+   isArchived; // 🌟 [보관/소프트삭제]: 현재 탭에서는 숨기되, 과거 달력 기록 및 다운로드 엑셀 데이터에는 영구 보존!
+ 
++  /// Optional pill inventory. A null count means tracking is not enabled.
++  int? initialPillCount;
++  int? remainingPillCount;
++
+   MedicationItem({
+@@
+     DateTime? startDate,
+     this.endDate,
++    this.initialPillCount,
++    this.remainingPillCount,
+   }) : repeatDays = repeatDays ?? [],
+@@
+     'endDate': endDate?.toIso8601String(),
++    'initialPillCount': initialPillCount,
++    'remainingPillCount': remainingPillCount,
+   };
+@@
+     endDate: DateTime.tryParse(json['endDate'] as String? ?? ''),
++    initialPillCount: (json['initialPillCount'] as num?)?.toInt(),
++    remainingPillCount: (json['remainingPillCount'] as num?)?.toInt(),
+   );
+diff --git a/app/lib/state/app_state_manager.dart b/app/lib/state/app_state_manager.dart
+--- a/app/lib/state/app_state_manager.dart
++++ b/app/lib/state/app_state_manager.dart
+@@
+   // 특정 회차 실제 복용 시간 수정
+   void updateSlotTakenTime(String medId, int slotIndex, String newTakenTime) {
+     final med = _medications.firstWhere((m) => m.id == medId);
+     if (slotIndex >= 0 && slotIndex < med.doseSlots.length) {
+-      med.doseSlots[slotIndex].takenTime = newTakenTime;
+-      med.doseSlots[slotIndex].isCompleted = true;
++      final slot = med.doseSlots[slotIndex];
++      final wasCompleted = slot.isCompleted;
++      slot.takenTime = newTakenTime;
++      slot.isCompleted = true;
+       final now = DateTime.now();
+-      med.doseSlots[slotIndex].takenDate = DateTime(
++      slot.takenDate = DateTime(
+         now.year,
+         now.month,
+         now.day,
+       );
++      if (!wasCompleted) {
++        _decrementPillCount(med);
++      }
+       notifyListeners();
+     }
+   }
+ 
++  /// A completed dose consumes one tracked pill.
++  void _decrementPillCount(MedicationItem med) {
++    final count = med.remainingPillCount;
++    if (count != null) {
++      med.remainingPillCount = (count - 1).clamp(0, 999999);
++    }
++  }
++
++  /// Undoing a dose restores one pill. Counts can exceed the original amount
++  /// if the user has recorded a refill in Settings.
++  void _restorePillCount(MedicationItem med) {
++    final count = med.remainingPillCount;
++    if (count != null) {
++      med.remainingPillCount = (count + 1).clamp(0, 999999);
++    }
++  }
++
++  /// Set or disable pill tracking. When enabling or changing the initial
++  /// amount, reset the remaining count to the new initial amount.
++  void setMedicationPillCount({
++    required String medId,
++    required int initialCount,
++    required bool enabled,
++    bool resetRemaining = true,
++  }) {
++    final med = _medications.firstWhere((m) => m.id == medId);
++    if (!enabled) {
++      med.initialPillCount = null;
++      med.remainingPillCount = null;
++    } else {
++      final count = initialCount.clamp(0, 999999);
++      med.initialPillCount = count;
++      if (resetRemaining || med.remainingPillCount == null) {
++        med.remainingPillCount = count;
++      }
++    }
++    notifyListeners();
++  }
++
++  /// Adjust the current inventory, for example after a refill.
++  void setRemainingPillCount(String medId, int count) {
++    final med = _medications.firstWhere((m) => m.id == medId);
++    if (med.initialPillCount == null) return;
++    med.remainingPillCount = count.clamp(0, 999999);
++    notifyListeners();
++  }
++
+@@
+   void completeNextSlot(String medId, {String? customTakenTime}) {
+@@
+     }
+     if (targetSlot != null) {
++      final wasCompleted = targetSlot.isCompleted;
+       targetSlot.isCompleted = true;
+@@
+       targetSlot.takenDate = DateTime(now.year, now.month, now.day);
+ 
++      if (!wasCompleted) {
++        _decrementPillCount(med);
++      }
++
+       // N시간 간격 약물인 경우 다음 회차 시간 동적 재계산
+@@
+   void completeSlot(String medId, int slotIndex) {
+@@
+         slot.takenTime = '$period $displayHour:$minute';
+         slot.takenDate = DateTime(now.year, now.month, now.day);
+ 
++        _decrementPillCount(med);
++
+         _recalculateHourlyNextSlot(med, now);
+@@
+   void cancelSpecificSlot(String medId, int slotIndex) {
+     final med = _medications.firstWhere((m) => m.id == medId);
+     if (slotIndex >= 0 && slotIndex < med.doseSlots.length) {
+-      med.doseSlots[slotIndex].isCompleted = false;
+-      med.doseSlots[slotIndex].takenTime = null;
+-      med.doseSlots[slotIndex].takenDate = null;
++      final slot = med.doseSlots[slotIndex];
++      final wasCompleted = slot.isCompleted;
++      slot.isCompleted = false;
++      slot.takenTime = null;
++      slot.takenDate = null;
++      if (wasCompleted) {
++        _restorePillCount(med);
++      }
+       notifyListeners();
+     }
+   }
+@@
+       if (med.doseSlots[i].isCompleted) {
+         med.doseSlots[i].isCompleted = false;
+         med.doseSlots[i].takenTime = null;
+         med.doseSlots[i].takenDate = null;
++        _restorePillCount(med);
+         break;
+       }
+@@
+-  void addMedication({
++  String addMedication({
+     required String name,
+@@
+     DateTime? startDate,
+     DateTime? endDate,
++    int? initialPillCount,
+   }) {
++    final id = 'med_${DateTime.now().millisecondsSinceEpoch}';
+     _medications.add(
+       MedicationItem(
+-        id: 'med_${DateTime.now().millisecondsSinceEpoch}',
++        id: id,
+@@
+         startDate: startDate,
+         endDate: endDate,
++        initialPillCount: initialPillCount == null
++            ? null
++            : initialPillCount.clamp(0, 999999),
++        remainingPillCount: initialPillCount == null
++            ? null
++            : initialPillCount.clamp(0, 999999),
+       ),
+     );
+     notifyListeners();
++    return id;
+   }
+diff --git a/app/lib/screens/meds_tab_view.dart b/app/lib/screens/meds_tab_view.dart
+--- a/app/lib/screens/meds_tab_view.dart
++++ b/app/lib/screens/meds_tab_view.dart
+@@
+     bool isPrescription = isEditing ? med.isPrescription : false;
++    bool trackPillCount = isEditing && med.initialPillCount != null;
++    final pillCountCtrl = TextEditingController(
++      text: isEditing ? (med.initialPillCount?.toString() ?? '') : '',
++    );
+     showModalBottomSheet(
+@@
+                       ),
++                      const SizedBox(height: 12),
++                      Container(
++                        padding: const EdgeInsets.all(12),
++                        decoration: BoxDecoration(
++                          color: AppColors.lightLavender.withValues(alpha: 0.25),
++                          borderRadius: BorderRadius.circular(10),
++                        ),
++                        child: Column(
++                          crossAxisAlignment: CrossAxisAlignment.start,
++                          children: [
++                            SwitchListTile(
++                              contentPadding: EdgeInsets.zero,
++                              dense: true,
++                              title: const Text(
++                                '남은 알약 수 추적하기',
++                                style: TextStyle(
++                                  fontSize: 13,
++                                  fontWeight: FontWeight.w600,
++                                ),
++                              ),
++                              subtitle: const Text(
++                                '복용 완료를 기록할 때마다 개수가 줄어들어요.',
++                                style: TextStyle(fontSize: 11.5),
++                              ),
++                              value: trackPillCount,
++                              activeThumbColor: AppColors.primaryPurple,
++                              onChanged: (value) {
++                                setModalState(() => trackPillCount = value);
++                              },
++                            ),
++                            if (trackPillCount) ...[
++                              const SizedBox(height: 6),
++                              TextField(
++                                controller: pillCountCtrl,
++                                keyboardType: TextInputType.number,
++                                inputFormatters: const [],
++                                decoration: InputDecoration(
++                                  isDense: true,
++                                  labelText: '처음 받은 알약 수',
++                                  hintText: '선택 입력',
++                                  suffixText: '정',
++                                  border: OutlineInputBorder(
++                                    borderRadius: BorderRadius.circular(8),
++                                  ),
++                                ),
++                              ),
++                            ] else
++                              const Padding(
++                                padding: EdgeInsets.only(left: 12, bottom: 8),
++                                child: Text(
++                                  '사용하지 않으려면 이 기능을 꺼 두세요.',
++                                  style: TextStyle(fontSize: 11.5),
++                                ),
++                              ),
++                          ],
++                        ),
++                      ),
+                       const SizedBox(height: 24),
+@@
+                                   final slotsToSave = recurrenceType == '필요 시'
+                                       ? [
+                                           ...existingAsNeededHistory,
+                                           ...currentSlots,
+                                         ]
+                                       : currentSlots;
++                                  final parsedPillCount =
++                                      int.tryParse(pillCountCtrl.text.trim());
++                                  if (trackPillCount &&
++                                      (parsedPillCount == null ||
++                                          parsedPillCount < 0)) {
++                                    ScaffoldMessenger.of(context).showSnackBar(
++                                      const SnackBar(
++                                        content: Text(
++                                          '처음 받은 알약 수를 0 이상의 정수로 입력하거나 추적 기능을 꺼 주세요.',
++                                        ),
++                                      ),
++                                    );
++                                    return;
++                                  }
+                                   if (isEditing) {
+                                     _state.updateMedication(
+@@
+                                       endDate: endDate,
+                                     );
++                                    _state.setMedicationPillCount(
++                                      medId: med.id,
++                                      initialCount: parsedPillCount ?? 0,
++                                      enabled: trackPillCount,
++                                      resetRemaining:
++                                          trackPillCount &&
++                                          (!med.usePillCount ||
++                                              med.initialPillCount !=
++                                                  parsedPillCount),
++                                    );
+                                   } else {
+-                                    _state.addMedication(
++                                    _state.addMedication(
+                                       name: nameCtrl.text.trim(),
+@@
+                                       startDate: startDate,
+                                       endDate: endDate,
++                                      initialPillCount: trackPillCount
++                                          ? parsedPillCount
++                                          : null,
+                                     );
+                                   }
+diff --git a/app/lib/screens/settings_screen.dart b/app/lib/screens/settings_screen.dart
+--- a/app/lib/screens/settings_screen.dart
++++ b/app/lib/screens/settings_screen.dart
+@@
+   Future<void> _sendTestNotification() async {
+@@
+       ..showSnackBar(SnackBar(content: Text(message)));
+   }
+ 
++  Future<void> _showPillCountDialog() async {
++    final meds = _state.medications
++        .where((med) => med.initialPillCount != null)
++        .toList();
++
++    await showDialog<void>(
++      context: context,
++      builder: (dialogContext) => StatefulBuilder(
++        builder: (dialogContext, setDialogState) => AlertDialog(
++          title: const Text('남은 알약 수'),
++          content: SizedBox(
++            width: 360,
++            child: meds.isEmpty
++                ? const Text(
++                    '알약 수 추적을 사용 중인 약이 없어요. 약을 추가하거나 수정할 때 추적 기능을 켤 수 있어요.',
++                  )
++                : ListView(
++                    shrinkWrap: true,
++                    children: meds.map((med) {
++                      final count = med.remainingPillCount ?? 0;
++                      return ListTile(
++                        contentPadding: EdgeInsets.zero,
++                        title: Text(
++                          med.name,
++                          style: const TextStyle(fontWeight: FontWeight.w600),
++                        ),
++                        subtitle: Text('${med.dosage} · 현재 $count정'),
++                        trailing: Row(
++                          mainAxisSize: MainAxisSize.min,
++                          children: [
++                            IconButton(
++                              tooltip: '알약 수 줄이기',
++                              onPressed: count == 0
++                                  ? null
++                                  : () {
++                                      _state.setRemainingPillCount(
++                                        med.id,
++                                        count - 1,
++                                      );
++                                      setDialogState(() {});
++                                    },
++                              icon: const Icon(Icons.remove_circle_outline),
++                            ),
++                            IconButton(
++                              tooltip: '알약 추가',
++                              onPressed: () {
++                                _state.setRemainingPillCount(
++                                  med.id,
++                                  count + 1,
++                                );
++                                setDialogState(() {});
++                              },
++                              icon: const Icon(Icons.add_circle_outline),
++                            ),
++                          ],
++                        ),
++                      );
++                    }).toList(),
++                  ),
++          ),
++          actions: [
++            TextButton(
++              onPressed: () => Navigator.of(dialogContext).pop(),
++              child: const Text('닫기'),
++            ),
++          ],
++        ),
++      ),
++    );
++  }
++
+@@
+-                      '정신약학 맞춤 복약 솔루션 · v0.111.316',
++                      '정신약학 맞춤 복약 솔루션 · v0.111.317',
+@@
+-            // 📊 2. 데이터 내보내기 & 의료진 리포트
++            // 💊 남은 알약 수 확인 및 조정
++            Padding(
++              padding: const EdgeInsets.only(left: 4, bottom: 8),
++              child: Text(
++                '복약 잔여량',
++                style: TextStyle(
++                  fontSize: 13,
++                  fontWeight: FontWeight.bold,
++                  color: AppColors.textSecondary,
++                ),
++              ),
++            ),
++            Container(
++              decoration: BoxDecoration(
++                color: Colors.white,
++                borderRadius: BorderRadius.circular(12),
++                border: Border.all(
++                  color: AppColors.divider.withValues(alpha: 0.5),
++                ),
++              ),
++              child: ListTile(
++                contentPadding: const EdgeInsets.symmetric(
++                  horizontal: 16,
++                  vertical: 4,
++                ),
++                leading: Icon(
++                  Icons.medication_outlined,
++                  color: AppColors.primaryPurple,
++                ),
++                title: Text(
++                  '남은 알약 수 확인',
++                  style: TextStyle(
++                    fontSize: 14,
++                    fontWeight: FontWeight.w600,
++                    color: AppColors.textPrimary,
++                  ),
++                ),
++                subtitle: Text(
++                  '복용 중인 약의 수량 확인 및 보충 기록',
++                  style: TextStyle(
++                    fontSize: 11.5,
++                    color: AppColors.textSecondary,
++                  ),
++                ),
++                trailing: const Icon(
++                  Icons.chevron_right,
++                  size: 18,
++                  color: AppColors.textMuted,
++                ),
++                onTap: _showPillCountDialog,
++              ),
++            ),
++            const SizedBox(height: 18),
++
++            // 📊 2. 데이터 내보내기 & 의료진 리포트

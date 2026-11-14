@@ -1,0 +1,17 @@
+  Future<void> setupTutorialDemoData() async {
+    _medications.clear();
+    _habits.clear();
+    _tasks.clear();
+    _pastSlotRecords.clear();
+    _pastHabitRecords.clear();
+
+    _initDefaultData();
+
+    // Keep the tutorial to four habit examples by omitting the weekly sample.
+    _habits.removeWhere((habit) => habit.id == 'habit_5');
+
+    isTutorialDemoMode = true;
+    isDevSimulationMode = true;
+
+    notifyListeners();
+  }

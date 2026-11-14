@@ -1,0 +1,21 @@
+diff --git a/app/android/app/src/main/kotlin/com/healthpharma/hagom_app/HagomMonthCalendarWidgetProvider.kt b/app/android/app/src/main/kotlin/com/healthpharma/hagom_app/HagomMonthCalendarWidgetProvider.kt
+--- a/app/android/app/src/main/kotlin/com/healthpharma/hagom_app/HagomMonthCalendarWidgetProvider.kt
++++ b/app/android/app/src/main/kotlin/com/healthpharma/hagom_app/HagomMonthCalendarWidgetProvider.kt
+@@
+-                // 중앙 하곰이 마스코트 & 헤더 탭 -> 하곰이의 방
+-                setOnClickPendingIntent(
+-                    R.id.widget_month_header_center,
+-                    WidgetBindings.openAppIntent(context, "hagomwidget://opencalendar", 1004)
+-                )
+-
+                 // 스마트 라우팅 (오늘 아닌 날짜가 선택되었을 땐 어디 눌러도 달력 탭 해당 날짜로 직행)
+                 val calTargetUri = if (hasSelectedOtherDay) {
+                     "hagomwidget://opencalendar?date=$inspectingIso"
+@@
+                 setOnClickPendingIntent(R.id.widget_month_meds_box, medsIntent)
+                 setOnClickPendingIntent(R.id.widget_month_habits_box, habitsIntent)
+-                // 달력 위젯 여백/빈 공간 탭 시에도 달력 탭(또는 선택된 날짜)으로 시원하게 열림
+-                setOnClickPendingIntent(R.id.widget_month_container, calIntent)
++                // 월 이동 화살표와 제목 사이의 빈 공간은 터치해도 아무 동작을 하지 않는다.
++                // 제목 TextView 자체만 달력 화면을 여는 터치 영역으로 유지한다.
+                 setOnClickPendingIntent(R.id.widget_month_title, calIntent)

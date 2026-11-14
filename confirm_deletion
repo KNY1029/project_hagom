@@ -1,0 +1,118 @@
+diff --git a/app/lib/screens/calendar_tab_view.dart b/app/lib/screens/calendar_tab_view.dart
+--- a/app/lib/screens/calendar_tab_view.dart
++++ b/app/lib/screens/calendar_tab_view.dart
+@@
+-                                    onPressed: () {
+-                                      _state.deleteTask(t.id);
++                                    onPressed: () async {
++                                      final shouldDelete =
++                                          await showDialog<bool>(
++                                            context: context,
++                                            useRootNavigator: false,
++                                            builder: (dialogContext) =>
++                                                AlertDialog(
++                                                  title: const Text('일정 삭제'),
++                                                  content: Text(
++                                                    '\'${t.title}\' 일정을 삭제할까요?',
++                                                  ),
++                                                  actions: [
++                                                    TextButton(
++                                                      onPressed: () =>
++                                                          Navigator.of(
++                                                            dialogContext,
++                                                          ).pop(false),
++                                                      child: const Text('취소'),
++                                                    ),
++                                                    TextButton(
++                                                      onPressed: () =>
++                                                          Navigator.of(
++                                                            dialogContext,
++                                                          ).pop(true),
++                                                      child: const Text('삭제'),
++                                                    ),
++                                                  ],
++                                                ),
++                                          ) ??
++                                          false;
++
++                                      if (!shouldDelete || !mounted) return;
++                                      _state.deleteTask(t.id);
+                                       CelebrationToast.show(
+                                         context,
+                                         title: '삭제 완료',
+                                         message: '\'${t.title}\' 일정을 삭제했어요.',
+                                       );
+                                     },
+diff --git a/app/lib/screens/settings_screen.dart b/app/lib/screens/settings_screen.dart
+--- a/app/lib/screens/settings_screen.dart
++++ b/app/lib/screens/settings_screen.dart
+@@
+-  // 🎯 2. 특정 항목 영구 삭제 (보관된 약, 습관, 할일 중 선택 삭제)
++  Future<bool> _confirmPermanentItemDeletion({
++    required String itemName,
++    required String itemType,
++  }) async {
++    return await showDialog<bool>(
++          context: context,
++          builder: (dialogContext) => AlertDialog(
++            title: const Text('영구 삭제 확인'),
++            content: Text(
++              '\'$itemName\' $itemType 기록을 영구 삭제할까요? '
++              '삭제한 기록은 복구할 수 없어요.',
++            ),
++            actions: [
++              TextButton(
++                onPressed: () => Navigator.of(dialogContext).pop(false),
++                child: const Text('취소'),
++              ),
++              TextButton(
++                onPressed: () => Navigator.of(dialogContext).pop(true),
++                style: TextButton.styleFrom(
++                  foregroundColor: AppColors.missedRed,
++                ),
++                child: const Text('영구 삭제'),
++              ),
++            ],
++          ),
++        ) ??
++        false;
++  }
++
++  // 🎯 2. 특정 항목 영구 삭제 (보관된 약, 습관, 할일 중 선택 삭제)
+   void _showSpecificItemDeleteDialog() {
+@@
+-                                onPressed: () {
++                                onPressed: () async {
++                                  final confirmed =
++                                      await _confirmPermanentItemDeletion(
++                                        itemName: m.name,
++                                        itemType: '약',
++                                      );
++                                  if (!confirmed || !mounted) return;
+                                   _state.permanentlyDeleteMedication(m.id);
+                                   setSState(() {});
+                                   CelebrationToast.show(
+@@
+-                                onPressed: () {
++                                onPressed: () async {
++                                  final confirmed =
++                                      await _confirmPermanentItemDeletion(
++                                        itemName: h.title,
++                                        itemType: '습관',
++                                      );
++                                  if (!confirmed || !mounted) return;
+                                   _state.permanentlyDeleteHabit(h.id);
+                                   setSState(() {});
+                                   CelebrationToast.show(
+@@
+-                                onPressed: () {
++                                onPressed: () async {
++                                  final confirmed =
++                                      await _confirmPermanentItemDeletion(
++                                        itemName: t.title,
++                                        itemType: '일정',
++                                      );
++                                  if (!confirmed || !mounted) return;
+                                   _state.permanentlyDeleteTask(t.id);
+                                   setSState(() {});
+                                   CelebrationToast.show(

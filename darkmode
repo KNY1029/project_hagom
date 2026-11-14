@@ -1,0 +1,122 @@
+diff --git a/app/lib/constants/app_colors.dart b/app/lib/constants/app_colors.dart
+--- a/app/lib/constants/app_colors.dart
++++ b/app/lib/constants/app_colors.dart
+@@
+-  static const Color cardSurface = Colors.white;
+-  static const Color textMuted = Color(0xFF9CA3AF);
++  static Color cardSurface = Colors.white;
++  static Color textMuted = const Color(0xFF9CA3AF);
+@@
+   static const String themeDefault = 'default';
++  static const String themeDark = 'dark';
+@@
+   static const ThemePreset defaultTheme = ThemePreset(
+@@
+     divider: Color(0xFFE5E7EB),
+   );
+ 
++  static const ThemePreset darkTheme = ThemePreset(
++    key: themeDark,
++    name: '다크 모드',
++    description: '어두운 배경과 편안한 밝은 글자',
++    primary: Color(0xFFB9A2E8),
++    background: Color(0xFF17151D),
++    lightTint: Color(0xFF302A3A),
++    textPrimary: Color(0xFFF3F0F7),
++    textSecondary: Color(0xFFB9B2C4),
++    warmAccent: Color(0xFFD0A987),
++    divider: Color(0xFF403A49),
++  );
++
+@@
+   static const List<ThemePreset> builtInThemes = [
+     defaultTheme,
++    darkTheme,
+@@
+   static void applyTheme(ThemePreset theme) {
+@@
+     divider = theme.divider;
++    cardSurface = theme.key == themeDark
++        ? const Color(0xFF24212B)
++        : Colors.white;
++    textMuted = theme.key == themeDark
++        ? const Color(0xFFAAA3B5)
++        : const Color(0xFF9CA3AF);
+diff --git a/app/lib/main.dart b/app/lib/main.dart
+--- a/app/lib/main.dart
++++ b/app/lib/main.dart
+@@
+           theme: ThemeData(
+             useMaterial3: true,
++            brightness: state.currentThemeKey == AppColors.themeDark
++                ? Brightness.dark
++                : Brightness.light,
+             scaffoldBackgroundColor: AppColors.activeBackground,
+             colorScheme: ColorScheme.fromSeed(
+               seedColor: AppColors.activePrimary,
++              brightness: state.currentThemeKey == AppColors.themeDark
++                  ? Brightness.dark
++                  : Brightness.light,
+               primary: AppColors.activePrimary,
+               secondary: AppColors.activeWarmAccent,
+-              surface: Colors.white,
++              surface: AppColors.cardSurface,
+             ),
+             appBarTheme: AppBarTheme(
+-              backgroundColor: Colors.white,
++              backgroundColor: AppColors.cardSurface,
+               foregroundColor: AppColors.activeTextPrimary,
+               elevation: 0,
+             ),
+diff --git a/app/lib/screens/settings_screen.dart b/app/lib/screens/settings_screen.dart
+--- a/app/lib/screens/settings_screen.dart
++++ b/app/lib/screens/settings_screen.dart
+@@
+-            // 📊 2. 데이터 내보내기 & 의료진 리포트
++            // 화면 테마 설정
++            Container(
++              decoration: BoxDecoration(
++                color: AppColors.cardSurface,
++                borderRadius: BorderRadius.circular(12),
++                border: Border.all(
++                  color: AppColors.divider.withValues(alpha: 0.5),
++                ),
++              ),
++              child: SwitchListTile(
++                contentPadding: const EdgeInsets.symmetric(
++                  horizontal: 16,
++                  vertical: 4,
++                ),
++                activeThumbColor: AppColors.primaryPurple,
++                secondary: Icon(
++                  _state.currentThemeKey == AppColors.themeDark
++                      ? Icons.dark_mode_outlined
++                      : Icons.light_mode_outlined,
++                  color: AppColors.primaryPurple,
++                ),
++                title: Text(
++                  '다크 모드',
++                  style: TextStyle(
++                    fontSize: 14,
++                    fontWeight: FontWeight.w600,
++                    color: AppColors.textPrimary,
++                  ),
++                ),
++                subtitle: Text(
++                  '앱 화면을 어두운 색상으로 표시해요',
++                  style: TextStyle(
++                    fontSize: 11.5,
++                    color: AppColors.textSecondary,
++                  ),
++                ),
++                value: _state.currentThemeKey == AppColors.themeDark,
++                onChanged: (enabled) {
++                  _state.setTheme(
++                    enabled ? AppColors.themeDark : AppColors.themeDefault,
++                  );
++                },
++              ),
++            ),
++            const SizedBox(height: 18),
++
++            // 📊 2. 데이터 내보내기 & 의료진 리포트

@@ -1,0 +1,161 @@
+diff --git a/app/lib/widgets/hagom_celebration_overlay.dart b/app/lib/widgets/hagom_celebration_overlay.dart
+--- a/app/lib/widgets/hagom_celebration_overlay.dart
++++ b/app/lib/widgets/hagom_celebration_overlay.dart
+@@
+   static void show(
+     BuildContext context, {
+     required String assetPath,
+     required String title,
+     required String subtitle,
+     Duration duration = const Duration(milliseconds: 4500),
+     bool isDevPreview = false,
++    bool replayOnTap = false,
++    bool showBackButton = false,
+   }) {
+     AssetImage(assetPath).evict();
+     final uniquePlayKey = UniqueKey();
+@@
+         return _CelebrationOverlayContent(
+           assetPath: assetPath,
+           uniquePlayKey: uniquePlayKey,
+           title: title,
+           subtitle: subtitle,
+           duration: duration,
+           isDevPreview: isDevPreview,
++          replayOnTap: replayOnTap,
++          showBackButton: showBackButton,
+         );
+       },
+@@
+   final String title;
+   final String subtitle;
+   final Duration duration;
+   final bool isDevPreview;
++  final bool replayOnTap;
++  final bool showBackButton;
+@@
+     required this.title,
+     required this.subtitle,
+     required this.duration,
+     this.isDevPreview = false,
++    this.replayOnTap = false,
++    this.showBackButton = false,
+   });
+@@
+   void initState() {
+     super.initState();
+     _animKey = widget.uniquePlayKey;
+     _confettiController = ConfettiController(duration: const Duration(milliseconds: 100));
+     _confettiController.play();
+     if (widget.isDevPreview) {
+       _currentMode = 0;
+       _modeCycleTimer = Timer.periodic(const Duration(milliseconds: 4600), (timer) {
+         if (mounted) {
+           _switchMode((_currentMode + 1) % _totalModes);
+         }
+       });
+       _autoCloseTimer = Timer(const Duration(milliseconds: 60000), _closeImmediately);
+-    } else {
+-      // 🌟 실사용 모드: 1-B안 고정 (춤이 끝나고 약 4.5초 뒤 자동 종료)
++    } else if (!widget.replayOnTap) {
++      // 일반 축하는 자동 종료, 미리보기 재생 모드는 화면 터치로 다시 재생
+       _currentMode = 2;
+       _autoCloseTimer = Timer(widget.duration, _closeImmediately);
+     }
+   }
+@@
+   void _onTapAction() {
+-    if (widget.isDevPreview) {
++    if (widget.replayOnTap) {
++      _replayAnimation();
++    } else if (widget.isDevPreview) {
+       _switchMode((_currentMode + 1) % _totalModes);
+     } else {
+       _closeImmediately();
+     }
+   }
+ 
++  void _replayAnimation() {
++    AssetImage(widget.assetPath).evict();
++    setState(() {
++      _animKey = UniqueKey();
++    });
++    _confettiController.stop();
++    WidgetsBinding.instance.addPostFrameCallback((_) {
++      if (mounted) {
++        _confettiController.play();
++      }
++    });
++  }
++
+   void _closeImmediately() {
+     _autoCloseTimer?.cancel();
+     _modeCycleTimer?.cancel();
+     if (mounted && Navigator.of(context).canPop()) {
+       Navigator.of(context).pop();
+@@
+             if (widget.isDevPreview)
+               Positioned(
+                 top: MediaQuery.of(context).padding.top + 16,
+                 right: 16,
+                 child: Container(
+@@
+                   ),
+                 ),
+               ),
++
++            if (widget.showBackButton)
++              Positioned(
++                top: MediaQuery.of(context).padding.top + 8,
++                left: 12,
++                child: SafeArea(
++                  child: TextButton.icon(
++                    onPressed: _closeImmediately,
++                    icon: const Icon(Icons.arrow_back),
++                    label: const Text('뒤로'),
++                    style: TextButton.styleFrom(
++                      foregroundColor: AppColors.textPrimary,
++                      backgroundColor: Colors.white.withValues(alpha: 0.9),
++                      padding: const EdgeInsets.symmetric(
++                        horizontal: 12,
++                        vertical: 8,
++                      ),
++                      shape: RoundedRectangleBorder(
++                        borderRadius: BorderRadius.circular(10),
++                      ),
++                    ),
++                  ),
++                ),
++              ),
+           ],
+         ),
+       ),
+     );
+   }
+diff --git a/app/lib/screens/settings_screen.dart b/app/lib/screens/settings_screen.dart
+--- a/app/lib/screens/settings_screen.dart
++++ b/app/lib/screens/settings_screen.dart
+@@
+                     onTap: () {
+                       HagomCelebrationOverlay.show(
+                         context,
+                         assetPath: AppAssets.medsAllDoneWebp,
+                         title: '오늘 복약 모두 완료!',
+                         subtitle: '정말 대단해요! 오늘 복약을 전부 챙기셨어요.',
++                        replayOnTap: true,
++                        showBackButton: true,
+                       );
+                     },
+                   ),
+@@
+                     onTap: () {
+                       HagomCelebrationOverlay.show(
+                         context,
+                         assetPath: AppAssets.habitsAllDoneWebp,
+                         title: '오늘 습관 모두 실천 완료!',
+                         subtitle: '스스로와의 약속을 멋지게 지켜내셨어요.',
++                        replayOnTap: true,
++                        showBackButton: true,
+                       );
+                     },
+                   ),
