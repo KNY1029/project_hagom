@@ -191,7 +191,6 @@ class _SplashScreenState extends State<SplashScreen> {
           title: const Text('개발자 모드 잠금 해제'),
           content: TextField(
             controller: codeController,
-            autofocus: true,
             obscureText: true,
             decoration: InputDecoration(
               labelText: '접근 코드',

@@ -1359,25 +1359,37 @@ class _HabitsTabViewState extends State<HabitsTabView> {
                               onPressed: () =>
                                   _showHabitCompletionActions(habit, i),
                               labelStyle: TextStyle(
-                                fontSize: 10.5,
-                                color: AppColors.primaryPurple,
+                                fontSize: 10,
+                                color: i + 1 >=
+                                        (habit.targetPerDay <= 1
+                                            ? 2
+                                            : habit.targetPerDay)
+                                    ? AppColors.completedText
+                                    : AppColors.partialText,
                               ),
                               padding: const EdgeInsets.symmetric(
-                                horizontal: 6,
-                                vertical: 2,
+                                horizontal: 4,
+                                vertical: 0,
                               ),
                               visualDensity: const VisualDensity(
-                                horizontal: -3,
-                                vertical: -3,
+                                horizontal: -4,
+                                vertical: -4,
                               ),
                               materialTapTargetSize:
                                   MaterialTapTargetSize.shrinkWrap,
-                              backgroundColor: AppColors.primaryPurple
-                                  .withValues(alpha: 0.08),
+                              backgroundColor: i + 1 >=
+                                      (habit.targetPerDay <= 1
+                                          ? 2
+                                          : habit.targetPerDay)
+                                  ? AppColors.completedBg
+                                  : AppColors.partialBg,
                               side: BorderSide(
-                                color: AppColors.primaryPurple.withValues(
-                                  alpha: 0.25,
-                                ),
+                                color: i + 1 >=
+                                        (habit.targetPerDay <= 1
+                                            ? 2
+                                            : habit.targetPerDay)
+                                    ? AppColors.completedBorder
+                                    : AppColors.partialBorder,
                               ),
                             ),
                         ],

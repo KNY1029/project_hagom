@@ -59,7 +59,6 @@ class _TaskMemoDialogState extends State<_TaskMemoDialog> {
       width: 360,
       child: TextField(
         controller: _controller,
-        autofocus: true,
         minLines: 3,
         maxLines: 8,
         keyboardType: TextInputType.multiline,
@@ -546,7 +545,6 @@ class _CalendarTabViewState extends State<CalendarTabView> {
                                           width: 60,
                                           child: TextField(
                                             keyboardType: TextInputType.number,
-                                            autofocus: true,
                                             decoration: const InputDecoration(
                                               hintText: '',
                                               contentPadding:

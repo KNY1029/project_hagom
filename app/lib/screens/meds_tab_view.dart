@@ -894,7 +894,6 @@ class _MedsTabViewState extends State<MedsTabView> {
                                       ),
                                       content: TextField(
                                         controller: textCtrl,
-                                        autofocus: true,
                                         decoration: const InputDecoration(
                                           hintText: '',
                                         ),
@@ -1710,10 +1709,10 @@ class _MedsTabViewState extends State<MedsTabView> {
                     showDialog<void>(
                       context: context,
                       builder: (reasonContext) => AlertDialog(
+                        scrollable: true,
                         title: const Text('건너뛴 이유 수정'),
                         content: TextField(
                           controller: reasonController,
-                          autofocus: true,
                           maxLines: 3,
                           decoration: const InputDecoration(
                             hintText: '이유를 입력하세요 (선택사항)',
