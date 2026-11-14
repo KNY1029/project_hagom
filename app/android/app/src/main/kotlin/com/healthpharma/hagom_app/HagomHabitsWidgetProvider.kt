@@ -144,6 +144,11 @@ class HagomHabitsWidgetProvider : HomeWidgetProvider() {
                 }
             }
             }
+            WidgetBindings.applyTheme(
+                views, widgetData, R.id.widget_habits_container,
+                listOf(R.id.widget_habits_tag, R.id.widget_habits_progress, R.id.widget_habits_title,
+                    R.id.widget_habits_subtitle, R.id.widget_habits_status)
+            )
             appWidgetManager.updateAppWidget(appWidgetId, views)
         }
     }

@@ -19,6 +19,22 @@ import es.antonborri.home_widget.HomeWidgetBackgroundIntent
  */
 object WidgetBindings {
 
+    fun applyTheme(
+        views: RemoteViews,
+        prefs: SharedPreferences,
+        rootId: Int,
+        textIds: List<Int> = emptyList()
+    ) {
+        val dark = prefs.getString("theme_dark", "false") == "true"
+        views.setInt(
+            rootId,
+            "setBackgroundResource",
+            if (dark) R.drawable.hagom_widget_bg_dark else R.drawable.hagom_widget_bg
+        )
+        val primary = Color.parseColor(if (dark) "#F3F0F7" else "#1F2937")
+        textIds.forEach { id -> views.setTextColor(id, primary) }
+    }
+
     fun openAppIntent(context: Context, uri: String, requestCode: Int): PendingIntent {
         val intent = Intent(context, MainActivity::class.java).apply {
             action = HOME_WIDGET_LAUNCH_ACTION

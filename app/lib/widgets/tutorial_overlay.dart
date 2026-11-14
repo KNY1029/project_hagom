@@ -147,14 +147,22 @@ class _TutorialOverlayState extends State<TutorialOverlay> {
         widget.onSwitchTab(0);
       }
     } else if (_currentStep == 6) {
-      // Step 7: 위젯 시뮬레이터 화면을 열어주어 위젯 작동 모습을 보여주고 완료 다이얼로그 호출!
-      Navigator.of(context).push(
-        MaterialPageRoute(builder: (context) => const WidgetSimulatorScreen()),
-      ).then((_) {
-        if (mounted) {
-          _finishTutorial();
-        }
-      });
+      // 위젯 쇼룸을 먼저 체험하고, 같은 버튼을 다시 누르면
+      // 쇼룸을 닫은 뒤 튜토리얼 완료 화면으로 넘어간다.
+      if (!_hasVisitedFeatureScreen) {
+        setState(() => _hasVisitedFeatureScreen = true);
+        Navigator.of(context).push(
+          MaterialPageRoute(builder: (context) => const WidgetSimulatorScreen()),
+        ).then((_) {
+          if (mounted) setState(() {});
+        });
+      } else {
+        setState(() => _hasVisitedFeatureScreen = false);
+        Navigator.of(context).pop();
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted) _finishTutorial();
+        });
+      }
     } else {
       setState(() {
         _currentStep++;
@@ -218,11 +226,11 @@ class _TutorialOverlayState extends State<TutorialOverlay> {
     return Positioned(
       left: 16,
       right: 16,
-      bottom: 16,
+      bottom: MediaQuery.of(context).viewPadding.bottom + 24,
       child: Material(
         elevation: 10,
         borderRadius: BorderRadius.circular(16),
-        color: Colors.white,
+        color: AppColors.cardSurface,
         child: Container(
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(

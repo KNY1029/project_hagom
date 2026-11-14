@@ -72,6 +72,10 @@ class _MainNavigationShellState extends State<MainNavigationShell> {
   }
 
   void _finishTutorial() {
+    // 설정/방/위젯 쇼룸 위에서 종료해도 메인 첫 화면으로 한 번에 복귀한다.
+    if (mounted) {
+      Navigator.of(context).popUntil((route) => route.isFirst);
+    }
     _tutorialOverlayEntry?.remove();
     _tutorialOverlayEntry = null;
     if (mounted) setState(() => _isTutorialActive = false);

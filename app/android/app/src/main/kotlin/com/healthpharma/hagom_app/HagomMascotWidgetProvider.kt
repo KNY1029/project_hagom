@@ -77,6 +77,10 @@ class HagomMascotWidgetProvider : HomeWidgetProvider() {
                     )
                 }
             }
+            WidgetBindings.applyTheme(
+                views, widgetData, if (is1x1) R.id.widget_mascot_container_1x1 else R.id.widget_mascot_container,
+                listOf(R.id.widget_mascot_badge, R.id.widget_mascot_quote, R.id.widget_mascot_sub)
+            )
             appWidgetManager.updateAppWidget(appWidgetId, views)
         }
     }

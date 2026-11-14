@@ -276,6 +276,11 @@ class HagomMonthCalendarWidgetProvider : HomeWidgetProvider() {
                 // 제목 영역만 달력 화면으로 연결하고, 하곰이와 빈 공간은 클릭하지 않는다.
                 setOnClickPendingIntent(R.id.widget_month_title, calIntent)
             }
+            WidgetBindings.applyTheme(
+                views, widgetData, R.id.widget_month_container,
+                listOf(R.id.widget_month_title, R.id.widget_month_meds, R.id.widget_month_habits,
+                    R.id.widget_month_tasks_label, R.id.widget_month_tasks)
+            )
             appWidgetManager.updateAppWidget(appWidgetId, views)
         }
     }

@@ -29,6 +29,11 @@ class WidgetSimulatorScreen extends StatefulWidget {
 class _WidgetSimulatorScreenState extends State<WidgetSimulatorScreen> {
   final AppStateManager _state = AppStateManager();
 
+  bool get _isDark => Theme.of(context).brightness == Brightness.dark;
+  Color get _surface => AppColors.cardSurface;
+  Color get _inputSurface => AppColors.inputSurface;
+  Color get _softBorder => AppColors.divider;
+
   // 감정 모드 시뮬레이션 상태: 'auto'(앱 상태 자동 연동), 'joy', 'encourage', 'miss1to3', 'miss4plus'
   String _emotionMode = 'auto';
 
@@ -96,7 +101,7 @@ class _WidgetSimulatorScreenState extends State<WidgetSimulatorScreen> {
             Container(
               padding: const EdgeInsets.all(14),
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: _surface,
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(
                   color: AppColors.divider.withValues(alpha: 0.5),
@@ -254,10 +259,10 @@ class _WidgetSimulatorScreenState extends State<WidgetSimulatorScreen> {
     Color bottomChipFg;
 
     if (emotion == 'joy') {
-      bg = const Color(0xFFFAF7FF);
-      border = const Color(0xFFE0D5F2);
-      tagBg = const Color(0xFFEDE9FE);
-      tagText = const Color(0xFF6D28D9);
+      bg = _isDark ? const Color(0xFF29243A) : const Color(0xFFFAF7FF);
+      border = _isDark ? const Color(0xFF51456B) : const Color(0xFFE0D5F2);
+      tagBg = _isDark ? const Color(0xFF3D3158) : const Color(0xFFEDE9FE);
+      tagText = _isDark ? const Color(0xFFD6C5FF) : const Color(0xFF6D28D9);
       tagLabel = 'ALL CLEAR';
       badgeEmoji = '기쁨';
       mainQuote = '오늘 약과 루틴을 모두 완료했어요!\n스스로를 아끼는 마음이 정말 멋져요.';
@@ -265,8 +270,8 @@ class _WidgetSimulatorScreenState extends State<WidgetSimulatorScreen> {
       bottomChipBg = const Color(0xFFEDE9FE);
       bottomChipFg = const Color(0xFF6D28D9);
     } else if (emotion == 'encourage') {
-      bg = Colors.white;
-      border = const Color(0xFFE5E7EB);
+      bg = _surface;
+      border = _softBorder;
       tagBg = AppColors.successBg;
       tagText = AppColors.successGreen;
       tagLabel = 'MENTAL CARE';
@@ -277,16 +282,16 @@ class _WidgetSimulatorScreenState extends State<WidgetSimulatorScreen> {
       bottomChipBg = AppColors.successBg;
       bottomChipFg = AppColors.successGreen;
     } else if (emotion == 'miss1to3') {
-      bg = const Color(0xFFFAF9F7);
-      border = const Color(0xFFEAE6E1);
-      tagBg = const Color(0xFFF5EFE6);
-      tagText = const Color(0xFF8C6D53);
+      bg = _isDark ? const Color(0xFF302A25) : const Color(0xFFFAF9F7);
+      border = _isDark ? const Color(0xFF5A4A3D) : const Color(0xFFEAE6E1);
+      tagBg = _isDark ? const Color(0xFF46382C) : const Color(0xFFF5EFE6);
+      tagText = _isDark ? const Color(0xFFE2B992) : const Color(0xFF8C6D53);
       tagLabel = 'WE MISS YOU';
       badgeEmoji = '기다리고 있어요';
       mainQuote = '많이 바빴나요? 오늘 약은 챙겼어요?\n잠시 들러서 편안히 확인해 보세요.';
       bottomChipText = '연속 기록 유지까지 4시간 남음';
-      bottomChipBg = const Color(0xFFF5EFE6);
-      bottomChipFg = const Color(0xFF8C6D53);
+      bottomChipBg = _isDark ? const Color(0xFF46382C) : const Color(0xFFF5EFE6);
+      bottomChipFg = _isDark ? const Color(0xFFE2B992) : const Color(0xFF8C6D53);
     } else {
       // miss4plus (듀오링고 모드)
       bg = AppColors.missedRed.withValues(alpha: 0.06);
@@ -324,7 +329,7 @@ class _WidgetSimulatorScreenState extends State<WidgetSimulatorScreen> {
             width: 82,
             height: double.infinity,
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: _inputSurface,
               borderRadius: BorderRadius.circular(14),
               border: Border.all(color: border),
             ),
@@ -490,7 +495,7 @@ class _WidgetSimulatorScreenState extends State<WidgetSimulatorScreen> {
       height: 144,
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: _surface,
         borderRadius: BorderRadius.circular(20),
         border: Border.all(
           color: AppColors.divider.withValues(alpha: 0.8),
@@ -520,7 +525,7 @@ class _WidgetSimulatorScreenState extends State<WidgetSimulatorScreen> {
                         vertical: 3,
                       ),
                       decoration: BoxDecoration(
-                        color: const Color(0xFFF3EDF9),
+                        color: _isDark ? const Color(0xFF352B46) : const Color(0xFFF3EDF9),
                         borderRadius: BorderRadius.circular(6),
                       ),
                       child: Text(
@@ -572,9 +577,9 @@ class _WidgetSimulatorScreenState extends State<WidgetSimulatorScreen> {
                     vertical: 2,
                   ),
                   decoration: BoxDecoration(
-                    color: const Color(0xFFF8F9FA),
+                    color: _inputSurface,
                     borderRadius: BorderRadius.circular(4),
-                    border: Border.all(color: const Color(0xFFE2E8F0)),
+                    border: Border.all(color: _softBorder),
                   ),
                   child: Text(
                     medType,
@@ -693,7 +698,7 @@ class _WidgetSimulatorScreenState extends State<WidgetSimulatorScreen> {
       height: 144,
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: _surface,
         borderRadius: BorderRadius.circular(20),
         border: Border.all(
           color: AppColors.divider.withValues(alpha: 0.8),
@@ -777,9 +782,9 @@ class _WidgetSimulatorScreenState extends State<WidgetSimulatorScreen> {
                     vertical: 2,
                   ),
                   decoration: BoxDecoration(
-                    color: const Color(0xFFF8F9FA),
+                    color: _inputSurface,
                     borderRadius: BorderRadius.circular(4),
-                    border: Border.all(color: const Color(0xFFE2E8F0)),
+                    border: Border.all(color: _softBorder),
                   ),
                   child: Text(
                     '현재 상태: $statusLabel',
@@ -896,7 +901,7 @@ class _WidgetSimulatorScreenState extends State<WidgetSimulatorScreen> {
       height: 144,
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: _surface,
         borderRadius: BorderRadius.circular(20),
         border: Border.all(
           color: AppColors.divider.withValues(alpha: 0.8),
@@ -926,7 +931,7 @@ class _WidgetSimulatorScreenState extends State<WidgetSimulatorScreen> {
                         vertical: 3,
                       ),
                       decoration: BoxDecoration(
-                        color: const Color(0xFFFEF3C7),
+                        color: _isDark ? const Color(0xFF493B24) : const Color(0xFFFEF3C7),
                         borderRadius: BorderRadius.circular(6),
                       ),
                       child: const Text(
@@ -983,9 +988,9 @@ class _WidgetSimulatorScreenState extends State<WidgetSimulatorScreen> {
                     vertical: 2,
                   ),
                   decoration: BoxDecoration(
-                    color: const Color(0xFFF8F9FA),
+                    color: _inputSurface,
                     borderRadius: BorderRadius.circular(4),
-                    border: Border.all(color: const Color(0xFFE2E8F0)),
+                    border: Border.all(color: _softBorder),
                   ),
                   child: Text(
                     isCompleted ? '상태: 완료됨' : '상태: 진행 대기',

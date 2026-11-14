@@ -53,6 +53,10 @@ class HagomNativeWidgetSync {
       'theme_color_vision',
       AppColors.colorVisionModeEnabled ? 'true' : 'false',
     );
+    await HomeWidget.saveWidgetData<String>(
+      'theme_dark',
+      AppColors.background.computeLuminance() < 0.2 ? 'true' : 'false',
+    );
   }
 
   static Future<void> updateNativeWidget(AppStateManager state) async {

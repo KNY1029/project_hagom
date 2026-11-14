@@ -142,6 +142,11 @@ class HagomMedsWidgetProvider : HomeWidgetProvider() {
                 }
             }
             }
+            WidgetBindings.applyTheme(
+                views, widgetData, R.id.widget_meds_container,
+                listOf(R.id.widget_meds_tag, R.id.widget_meds_progress, R.id.widget_meds_title,
+                    R.id.widget_meds_subtitle, R.id.widget_meds_status)
+            )
             appWidgetManager.updateAppWidget(appWidgetId, views)
         }
     }
