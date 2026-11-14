@@ -40,6 +40,7 @@ class HagomCalendarWidgetProvider : HomeWidgetProvider() {
             val minW = opts.getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_WIDTH, 180)
             val is1x1 = (minW in 1..125)
             val openCalIntent = WidgetBindings.openAppIntent(context, "hagomwidget://opencalendar", 1003)
+            val isAchromatopsia = widgetData.getString("theme_achromatopsia", "false") == "true"
 
             val views = if (is1x1) {
                 // 🌟 1x1 모드: 오늘 할일 몇 개 중 몇 개 완료했는지 표시 & 탭 시 달력(할일) 탭 열기
@@ -63,7 +64,7 @@ class HagomCalendarWidgetProvider : HomeWidgetProvider() {
                 setTextViewText(R.id.widget_calendar_progress, WidgetBindings.text(widgetData, "calendar_progress"))
                 setTextViewText(R.id.widget_calendar_title, WidgetBindings.text(widgetData, "calendar_title"))
 
-                val tasksColorHex = if (widgetData.getString("theme_dark", "false") == "true") "#D6C5FF" else "#7B61A8"
+                val tasksColorHex = if (isAchromatopsia) "#555555" else if (widgetData.getString("theme_dark", "false") == "true") "#D6C5FF" else "#7B61A8"
                 setTextColor(R.id.widget_calendar_tag, Color.parseColor(tasksColorHex))
                 val sub = if (isNarrow) {
                     WidgetBindings.text(widgetData, "calendar_subtitle_short").ifEmpty {
@@ -84,9 +85,9 @@ class HagomCalendarWidgetProvider : HomeWidgetProvider() {
                 val allDone = widgetData.getString("calendar_all_done", "false") == "true"
                 val isColorVision = widgetData.getString("theme_color_vision", "false") == "true"
                 val bgRes = if (allDone) {
-                    if (isColorVision) R.drawable.hagom_widget_blue_btn_bg else R.drawable.hagom_widget_green_btn_bg
-                } else R.drawable.hagom_widget_task_btn_bg
-                val txtColor = if (allDone) Color.parseColor(if (isColorVision) "#1D4ED8" else "#1B6B46") else Color.WHITE
+                    if (isAchromatopsia) R.drawable.hagom_widget_mono_done_btn_bg else if (isColorVision) R.drawable.hagom_widget_blue_btn_bg else R.drawable.hagom_widget_green_btn_bg
+                } else if (isAchromatopsia) R.drawable.hagom_widget_mono_outline_btn_bg else R.drawable.hagom_widget_task_btn_bg
+                val txtColor = if (allDone) Color.parseColor(if (isAchromatopsia) "#FFFFFF" else if (isColorVision) "#1D4ED8" else "#1B6B46") else if (isAchromatopsia) Color.parseColor("#555555") else Color.WHITE
                 setInt(R.id.widget_calendar_btn, "setBackgroundResource", bgRes)
                 setTextColor(R.id.widget_calendar_btn_title, txtColor)
                 setInt(R.id.widget_calendar_btn_compact, "setBackgroundResource", bgRes)
@@ -141,7 +142,8 @@ class HagomCalendarWidgetProvider : HomeWidgetProvider() {
                 views.setInt(
                     R.id.widget_calendar_tag,
                     "setBackgroundResource",
-                    if (widgetData.getString("theme_dark", "false") == "true")
+                    if (isAchromatopsia) R.drawable.hagom_widget_tag_bg_mono
+                    else if (widgetData.getString("theme_dark", "false") == "true")
                         R.drawable.hagom_widget_tag_bg_dark
                     else R.drawable.hagom_widget_tag_bg
                 )

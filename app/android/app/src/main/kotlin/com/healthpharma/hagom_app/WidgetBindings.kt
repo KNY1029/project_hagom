@@ -26,12 +26,17 @@ object WidgetBindings {
         textIds: List<Int> = emptyList()
     ) {
         val dark = prefs.getString("theme_dark", "false") == "true"
+        val isAchromatopsia = prefs.getString("theme_achromatopsia", "false") == "true"
         views.setInt(
             rootId,
             "setBackgroundResource",
-            if (dark) R.drawable.hagom_widget_bg_dark else R.drawable.hagom_widget_bg
+            if (isAchromatopsia) {
+                if (dark) R.drawable.hagom_widget_bg_mono_dark else R.drawable.hagom_widget_bg_mono
+            } else if (dark) R.drawable.hagom_widget_bg_dark else R.drawable.hagom_widget_bg
         )
-        val primary = Color.parseColor(if (dark) "#F3F0F7" else "#1F2937")
+        val primary = Color.parseColor(if (isAchromatopsia) {
+            if (dark) "#F5F5F5" else "#222222"
+        } else if (dark) "#F3F0F7" else "#1F2937")
         textIds.forEach { id -> views.setTextColor(id, primary) }
     }
 

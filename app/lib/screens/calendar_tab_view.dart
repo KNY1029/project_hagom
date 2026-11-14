@@ -1546,7 +1546,7 @@ class _CalendarTabViewState extends State<CalendarTabView> {
                             hasMedBar = true;
                           } else {
                             medBarColor = pendingBarColor;
-                            hasMedBar = !isAchromatopsia;
+                            hasMedBar = true;
                           }
                         }
                       }
@@ -1664,7 +1664,17 @@ class _CalendarTabViewState extends State<CalendarTabView> {
                                       : Container(
                                           height: barThickness,
                                           decoration: BoxDecoration(
-                                            color: medBarColor,
+                                            color: isAchromatopsia &&
+                                                    !isMed100
+                                                ? Colors.transparent
+                                                : medBarColor,
+                                            border: isAchromatopsia &&
+                                                    !isMed100
+                                                ? Border.all(
+                                                    color: medBarColor,
+                                                    width: 1.2,
+                                                  )
+                                                : null,
                                             borderRadius: BorderRadius.circular(
                                               barThickness / 2,
                                             ),

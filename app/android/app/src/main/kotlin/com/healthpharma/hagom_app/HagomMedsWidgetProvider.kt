@@ -40,6 +40,7 @@ class HagomMedsWidgetProvider : HomeWidgetProvider() {
             val minW = opts.getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_WIDTH, 180)
             val is1x1 = (minW in 1..125) // 1x1 모드 판정
             val allDone = widgetData.getString("meds_all_done", "false") == "true"
+            val isAchromatopsia = widgetData.getString("theme_achromatopsia", "false") == "true"
             val openMedsIntent = WidgetBindings.openAppIntent(context, "hagomwidget://openmeds", 1001)
 
             val views = if (is1x1) {
@@ -73,7 +74,7 @@ class HagomMedsWidgetProvider : HomeWidgetProvider() {
                     setTextViewText(R.id.widget_meds_progress, WidgetBindings.text(widgetData, "meds_progress"))
                     setTextViewText(R.id.widget_meds_title, WidgetBindings.text(widgetData, "meds_title"))
 
-                    val medsColorHex = if (widgetData.getString("theme_dark", "false") == "true") "#D6C5FF" else "#7B61A8"
+                    val medsColorHex = if (isAchromatopsia) "#555555" else if (widgetData.getString("theme_dark", "false") == "true") "#D6C5FF" else "#7B61A8"
                     setTextColor(R.id.widget_meds_tag, Color.parseColor(medsColorHex))
                     val sub = if (isNarrow) {
                         WidgetBindings.text(widgetData, "meds_subtitle_short").ifEmpty {
@@ -94,7 +95,6 @@ class HagomMedsWidgetProvider : HomeWidgetProvider() {
                     // 🌟 복용 완료 시 보라색이 아닌 초록색 완료 버튼(배경 #EAF8F1, 텍스트 #1B6B46)으로 즉시 반영!
                     val isBtnDone = (btnTitle == "완료" || allDone)
                     val isColorVision = widgetData.getString("theme_color_vision", "false") == "true"
-                    val isAchromatopsia = widgetData.getString("theme_achromatopsia", "false") == "true"
                     val bgRes = if (isBtnDone) {
                         if (isAchromatopsia) R.drawable.hagom_widget_mono_done_btn_bg else if (isColorVision) R.drawable.hagom_widget_blue_btn_bg else R.drawable.hagom_widget_green_btn_bg
                     } else if (isAchromatopsia) R.drawable.hagom_widget_mono_outline_btn_bg else R.drawable.hagom_widget_btn_bg
@@ -152,7 +152,8 @@ class HagomMedsWidgetProvider : HomeWidgetProvider() {
                 views.setInt(
                     R.id.widget_meds_tag,
                     "setBackgroundResource",
-                    if (widgetData.getString("theme_dark", "false") == "true")
+                    if (isAchromatopsia) R.drawable.hagom_widget_tag_bg_mono
+                    else if (widgetData.getString("theme_dark", "false") == "true")
                         R.drawable.hagom_widget_tag_bg_dark
                     else R.drawable.hagom_widget_tag_bg
                 )
