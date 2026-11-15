@@ -1626,7 +1626,9 @@ class _MedsTabViewState extends State<MedsTabView> {
                       size: 18,
                       color: slot.isSkipped
                           ? AppColors.warmBrown
-                          : AppColors.successGreen,
+                          : (AppColors.achromatopsiaModeEnabled
+                                ? AppColors.completedText
+                                : AppColors.successGreen),
                     ),
                   ),
                   const SizedBox(width: 10),
@@ -2299,7 +2301,9 @@ class _MedsTabViewState extends State<MedsTabView> {
                       Icons.medication,
                       size: 19,
                       color: isAllDone
-                          ? AppColors.successGreen
+                          ? (AppColors.achromatopsiaModeEnabled
+                                ? AppColors.completedText
+                                : AppColors.successGreen)
                           : (med.isPrescription
                                 ? AppColors.primaryPurple
                                 : AppColors.textSecondary),
