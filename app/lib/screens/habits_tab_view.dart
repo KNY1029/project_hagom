@@ -931,9 +931,32 @@ class _HabitsTabViewState extends State<HabitsTabView> {
 
   @override
   Widget build(BuildContext context) {
-    // 🌟 오늘 실천해야 하는 습관 vs 이미 이번 주에 완료되어 오늘은 쉴 수 있는 습관 분리!
-    final todayHabits = _state.habits.where((h) => h.isDueToday).toList();
-    final otherHabits = _state.habits.where((h) => !h.isDueToday).toList();
+    // 🌟 1. 오늘 실천해야 하는 일일 습관 (매일/지정요일 습관 중 오늘 해당)
+    final todayDailyHabits = _state.habits
+        .where((h) => h.isDueToday && !h.isWeeklyFrequencyHabit)
+        .toList();
+
+    // 🌟 2. 주간 목표 습관들 (주 N회 목표를 가진 습관들: 침구 정리, 청소하기 등)
+    final weeklyHabits = _state.habits
+        .where((h) => h.isWeeklyFrequencyHabit)
+        .toList();
+
+    // 🌟 3. 오늘은 쉬는 일일 습관 (지정 요일 습관 중 오늘 해당 없는 것)
+    final restingDailyHabits = _state.habits
+        .where((h) => !h.isDueToday && !h.isWeeklyFrequencyHabit)
+        .toList();
+
+    int weeklyCompletedCount = 0;
+    for (final h in weeklyHabits) {
+      final weeklyMatch = RegExp(r'주\s*(\d+)회').firstMatch(h.recurrenceSummary);
+      final target = int.tryParse(weeklyMatch?.group(1) ?? '1') ?? 1;
+      final days = _state.weeklyHabitCompletionDays(h);
+      if (days.length >= target) {
+        weeklyCompletedCount++;
+      }
+    }
+    final bool isAllWeeklyDone = weeklyHabits.isNotEmpty &&
+        weeklyCompletedCount >= weeklyHabits.length;
 
     return ListView(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
@@ -941,53 +964,154 @@ class _HabitsTabViewState extends State<HabitsTabView> {
         _buildSlimProgressHeader(),
         const SizedBox(height: 12),
 
-        // 1. 오늘의 습관 카드들
-        if (todayHabits.isNotEmpty)
+        // 1. 오늘의 일일 습관
+        if (todayDailyHabits.isNotEmpty) ...[
+          Padding(
+            padding: const EdgeInsets.only(left: 2, bottom: 8),
+            child: Row(
+              children: [
+                Icon(Icons.today_rounded, size: 15, color: AppColors.primaryPurple),
+                const SizedBox(width: 5),
+                Text(
+                  '오늘의 습관',
+                  style: TextStyle(
+                    fontSize: 13.5,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.textPrimary,
+                  ),
+                ),
+              ],
+            ),
+          ),
           ReorderableListView.builder(
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
             buildDefaultDragHandles: false,
             proxyDecorator: (child, index, animation) => child,
-            itemCount: todayHabits.length,
+            itemCount: todayDailyHabits.length,
             onReorder: (oldIndex, newIndex) {
               if (newIndex > oldIndex) newIndex--;
               _state.reorderHabits(
-                todayHabits.map((habit) => habit.id).toList(),
+                todayDailyHabits.map((habit) => habit.id).toList(),
                 oldIndex,
                 newIndex,
               );
             },
             itemBuilder: (context, index) {
-              final habit = todayHabits[index];
+              final habit = todayDailyHabits[index];
               return ReorderableDelayedDragStartListener(
-                key: ValueKey('habit_${habit.id}'),
+                key: ValueKey('daily_habit_${habit.id}'),
                 index: index,
                 child: _buildHabitCard(habit),
               );
             },
           ),
+        ],
 
-        // 2. 오늘은 아니지만 관리 중인 습관 (하단에 아주 얇고 조용한 1줄로 표시!)
-        if (otherHabits.isNotEmpty) ...[
+        // 2. 🗓️ 이번 주 주간 목표 습관
+        if (weeklyHabits.isNotEmpty) ...[
           const SizedBox(height: 12),
+          Padding(
+            padding: const EdgeInsets.only(left: 2, bottom: 8),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Row(
+                  children: [
+                    Icon(Icons.event_repeat_rounded, size: 15, color: AppColors.primaryPurple),
+                    const SizedBox(width: 5),
+                    Text(
+                      '주간 목표 습관',
+                      style: TextStyle(
+                        fontSize: 13.5,
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.textPrimary,
+                      ),
+                    ),
+                  ],
+                ),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+                  decoration: BoxDecoration(
+                    color: isAllWeeklyDone
+                        ? AppColors.completedBg
+                        : AppColors.inputSurface,
+                    borderRadius: BorderRadius.circular(5),
+                    border: isAllWeeklyDone
+                        ? Border.all(color: AppColors.completedBorder)
+                        : Border.all(color: AppColors.divider),
+                  ),
+                  child: Text(
+                    isAllWeeklyDone ? '이번 주 달성 완료' : '$weeklyCompletedCount/${weeklyHabits.length}개 달성',
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.bold,
+                      color: isAllWeeklyDone
+                          ? AppColors.completedText
+                          : AppColors.textSecondary,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
           ReorderableListView.builder(
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
             buildDefaultDragHandles: false,
             proxyDecorator: (child, index, animation) => child,
-            itemCount: otherHabits.length,
+            itemCount: weeklyHabits.length,
             onReorder: (oldIndex, newIndex) {
               if (newIndex > oldIndex) newIndex--;
               _state.reorderHabits(
-                otherHabits.map((habit) => habit.id).toList(),
+                weeklyHabits.map((habit) => habit.id).toList(),
                 oldIndex,
                 newIndex,
               );
             },
             itemBuilder: (context, index) {
-              final habit = otherHabits[index];
+              final habit = weeklyHabits[index];
               return ReorderableDelayedDragStartListener(
-                key: ValueKey('other_habit_${habit.id}'),
+                key: ValueKey('weekly_habit_${habit.id}'),
+                index: index,
+                child: _buildWeeklyHabitCard(habit),
+              );
+            },
+          ),
+        ],
+
+        // 3. 오늘은 쉬는 습관
+        if (restingDailyHabits.isNotEmpty) ...[
+          const SizedBox(height: 14),
+          Padding(
+            padding: const EdgeInsets.only(left: 2, bottom: 6),
+            child: Text(
+              '오늘은 쉬는 습관',
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.bold,
+                color: AppColors.textSecondary,
+              ),
+            ),
+          ),
+          ReorderableListView.builder(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            buildDefaultDragHandles: false,
+            proxyDecorator: (child, index, animation) => child,
+            itemCount: restingDailyHabits.length,
+            onReorder: (oldIndex, newIndex) {
+              if (newIndex > oldIndex) newIndex--;
+              _state.reorderHabits(
+                restingDailyHabits.map((habit) => habit.id).toList(),
+                oldIndex,
+                newIndex,
+              );
+            },
+            itemBuilder: (context, index) {
+              final habit = restingDailyHabits[index];
+              return ReorderableDelayedDragStartListener(
+                key: ValueKey('resting_habit_${habit.id}'),
                 index: index,
                 child: _buildCompactOtherHabitCard(habit),
               );
@@ -1020,6 +1144,212 @@ class _HabitsTabViewState extends State<HabitsTabView> {
         ),
         const SizedBox(height: 24),
       ],
+    );
+  }
+
+  // 🌟 주간 목표 습관 전용 직관적 카드
+  Widget _buildWeeklyHabitCard(HabitItem habit) {
+    final weeklyMatch = RegExp(r'주\s*(\d+)회').firstMatch(habit.recurrenceSummary);
+    final weeklyTarget = int.tryParse(weeklyMatch?.group(1) ?? '1') ?? 1;
+    final weeklyDays = _state.weeklyHabitCompletionDays(habit);
+    final isWeeklyComplete = weeklyDays.length >= weeklyTarget;
+    final isDoneToday = habit.score >= 1.0;
+
+    Color getStatusColor() {
+      if (isWeeklyComplete || isDoneToday) return AppColors.completedText;
+      if (habit.score > 0.0) return AppColors.partialText;
+      return AppColors.textSecondary;
+    }
+
+    Color getStatusBg() {
+      if (isWeeklyComplete || isDoneToday) return AppColors.completedBg;
+      if (habit.score > 0.0) return AppColors.partialBg;
+      return Colors.transparent;
+    }
+
+    Color getStatusBorder() {
+      if (isWeeklyComplete || isDoneToday) return AppColors.completedBorder;
+      if (habit.score > 0.0) return AppColors.partialBorder;
+      return AppColors.divider;
+    }
+
+    String statusButtonText;
+    if (isWeeklyComplete) {
+      statusButtonText = weeklyDays.isNotEmpty ? '${weeklyDays.join(',')} 완료' : '완료';
+    } else if (isDoneToday) {
+      statusButtonText = '완료';
+    } else if (habit.score > 0.0) {
+      statusButtonText = '조금 실천';
+    } else {
+      statusButtonText = '대기';
+    }
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 8),
+      decoration: BoxDecoration(
+        color: AppColors.cardSurface,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: isWeeklyComplete
+              ? AppColors.completedBorder.withValues(alpha: 0.5)
+              : AppColors.divider.withValues(alpha: 0.6),
+          width: 1.0,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.015),
+            blurRadius: 6,
+            offset: const Offset(0, 1.5),
+          ),
+        ],
+      ),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(12),
+        onTap: () {
+          if (isWeeklyComplete || weeklyDays.isNotEmpty) {
+            _showWeeklyHabitRecordSheet(habit);
+          } else {
+            _showHabitEditModal(habit: habit);
+          }
+        },
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+          child: Row(
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // 상단 태그들
+                    Wrap(
+                      spacing: 5,
+                      runSpacing: 4,
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                          decoration: BoxDecoration(
+                            color: AppColors.primaryPurple.withValues(alpha: 0.1),
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                          child: Text(
+                            habit.recurrenceSummary,
+                            style: TextStyle(
+                              fontSize: 10.5,
+                              color: AppColors.primaryPurple,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                          decoration: BoxDecoration(
+                            color: isWeeklyComplete
+                                ? AppColors.completedBg
+                                : AppColors.inputSurface,
+                            borderRadius: BorderRadius.circular(4),
+                            border: Border.all(
+                              color: isWeeklyComplete
+                                  ? AppColors.completedBorder
+                                  : AppColors.divider,
+                              width: 0.8,
+                            ),
+                          ),
+                          child: Text(
+                            isWeeklyComplete
+                                ? '이번 주 달성 완료 (${weeklyDays.join(', ')}요일)'
+                                : '${weeklyDays.length}/$weeklyTarget회 완료${weeklyDays.isNotEmpty ? ' (${weeklyDays.join(', ')}요일)' : ''}',
+                            style: TextStyle(
+                              fontSize: 10.5,
+                              color: isWeeklyComplete
+                                  ? AppColors.completedText
+                                  : AppColors.textSecondary,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 5),
+                    Text(
+                      habit.title,
+                      style: TextStyle(
+                        fontSize: 14.5,
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.textPrimary,
+                      ),
+                    ),
+                    if (habit.subtitle.isNotEmpty) ...[
+                      const SizedBox(height: 2),
+                      Text(
+                        habit.subtitle,
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: AppColors.textSecondary,
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+              const SizedBox(width: 8),
+
+              // 우측 버튼: 이미 완료 시 실천기록 바텀시트, 미완료 시 오늘 실천 체크
+              GestureDetector(
+                onTap: () {
+                  if (isWeeklyComplete) {
+                    _showWeeklyHabitRecordSheet(habit);
+                  } else {
+                    final advanced = _state.advanceHabitProgress(habit.id);
+                    if (advanced) {
+                      CelebrationToast.show(
+                        context,
+                        title: '주간 습관 실천 완료',
+                        message: '\'${habit.title}\' 이번 주 목표에 한 걸음 다가갔어요!',
+                      );
+                    } else {
+                      CelebrationToast.show(
+                        context,
+                        title: '오늘 이미 완료한 습관이에요',
+                        message: '\'${habit.title}\' 실천을 되돌릴까요?',
+                        actionLabel: '되돌리기',
+                        onAction: () {
+                          _state.undoHabitProgress(habit.id);
+                          CelebrationToast.show(
+                            context,
+                            title: '되돌리기 완료',
+                            message: '\'${habit.title}\' 실천을 되돌렸어요.',
+                          );
+                        },
+                      );
+                    }
+                  }
+                },
+                child: SizedBox(
+                  width: 76,
+                  height: 32,
+                  child: Container(
+                    alignment: Alignment.center,
+                    decoration: BoxDecoration(
+                      color: getStatusBg(),
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: getStatusBorder()),
+                    ),
+                    child: Text(
+                      statusButtonText,
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.bold,
+                        color: getStatusColor(),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 

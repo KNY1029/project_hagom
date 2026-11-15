@@ -2636,7 +2636,7 @@ class _CalendarTabViewState extends State<CalendarTabView> {
                             child: Row(
                               children: [
                                 Text(
-                                  '일일 습관 (${dailyHabits.length}개)',
+                                  '일일 습관',
                                   style: TextStyle(
                                     fontSize: 12,
                                     fontWeight: FontWeight.bold,
@@ -2806,7 +2806,7 @@ class _CalendarTabViewState extends State<CalendarTabView> {
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
                                 Text(
-                                  '주간 목표 습관 (${weeklyHabits.length}개)',
+                                  '주간 목표 습관',
                                   style: TextStyle(
                                     fontSize: 12,
                                     fontWeight: FontWeight.bold,
