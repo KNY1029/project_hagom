@@ -1190,7 +1190,7 @@ class _HabitsTabViewState extends State<HabitsTabView> {
       final s = habit.score;
       if (s >= 1.0) return AppColors.completedBg;
       if (s > 0.0) return AppColors.partialBg;
-      return AppColors.inputSurface;
+      return Colors.transparent;
     }
 
     return Container(

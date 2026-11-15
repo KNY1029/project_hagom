@@ -123,15 +123,15 @@ class AppColors {
             (background == const Color(0xFF181818) ||
                 background == const Color(0xFF121212)));
     if (achromatopsiaModeEnabled) {
-      completedBg = isDark ? const Color(0xFF383838) : const Color(0xFFE5E5E5);
-      completedText = isDark ? const Color(0xFFFFFFFF) : const Color(0xFF222222);
-      completedBorder = isDark ? const Color(0xFF666666) : const Color(0xFF888888);
+      completedBg = isDark ? const Color(0xFFE5E5E5) : const Color(0xFFB5B5B5);
+      completedText = isDark ? const Color(0xFF111111) : const Color(0xFF111111);
+      completedBorder = isDark ? const Color(0xFFFFFFFF) : const Color(0xFF222222);
       successGreen = isDark ? const Color(0xFFE5E5E5) : const Color(0xFF222222);
-      successBg = isDark ? const Color(0xFF383838) : const Color(0xFFE5E5E5);
+      successBg = isDark ? const Color(0xFFE5E5E5) : const Color(0xFFB5B5B5);
       missedRed = isDark ? const Color(0xFFFFFFFF) : const Color(0xFF333333);
-      partialBg = isDark ? const Color(0xFF282828) : const Color(0xFFF2F2F2);
+      partialBg = isDark ? const Color(0xFF383838) : const Color(0xFFE5E5E5);
       partialText = isDark ? const Color(0xFFE0E0E0) : const Color(0xFF555555);
-      partialBorder = isDark ? const Color(0xFF444444) : const Color(0xFFCCCCCC);
+      partialBorder = isDark ? const Color(0xFF777777) : const Color(0xFF999999);
       partialOrange = isDark ? const Color(0xFFE0E0E0) : const Color(0xFF555555);
     } else if (colorVisionModeEnabled) {
       completedBg = isDark ? const Color(0xFF263B55) : const Color(0xFFE8F1FF);
