@@ -1474,7 +1474,7 @@ class AppStateManager extends ChangeNotifier {
           final habit6 = _habits.where((h) => h.id == 'habit_6').firstOrNull;
           if (habit6 != null) {
             habit6.title = '청소하기';
-            habit6.subtitle = '주 1회 · 오늘 완료!';
+            habit6.subtitle = '주 1회';
             habit6.recurrenceSummary = '주 1회';
             habit6.targetPerDay = 1;
             habit6.currentCount = 2; // 완료 상태
@@ -1489,7 +1489,7 @@ class AppStateManager extends ChangeNotifier {
               HabitItem(
                 id: 'habit_6',
                 title: '청소하기',
-                subtitle: '주 1회 · 오늘 완료!',
+                subtitle: '주 1회',
                 recurrenceSummary: '주 1회',
                 targetPerDay: 1,
                 currentCount: 2,
@@ -1725,7 +1725,7 @@ class AppStateManager extends ChangeNotifier {
       HabitItem(
         id: 'habit_6',
         title: '청소하기',
-        subtitle: '주 1회 · 오늘 완료!',
+        subtitle: '주 1회',
         recurrenceSummary: '주 1회',
         targetPerDay: 1,
         currentCount: 2, // 완료 상태
