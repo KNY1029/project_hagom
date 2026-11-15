@@ -1,0 +1,92 @@
+diff --git a/app/lib/state/app_state_manager.dart b/app/lib/state/app_state_manager.dart
+--- a/app/lib/state/app_state_manager.dart
++++ b/app/lib/state/app_state_manager.dart
+@@
+   int get accessDayCount => _accessDayKeys.length;
+ 
++  /// Selects the mascot image stage from attendance and the daily reset time.
++  ///
++  /// Returns a zero-based index for the nine widget images:
++  /// 0: attended today
++  /// 1–2: yesterday attended, today not yet attended; based on time to reset
++  /// 3–8: attendance streak has been broken for 1, 3, 5, 7, 10, or over 15 days
++  int get attendanceMascotStageIndex {
++    final now = DateTime.now();
++    final today = DateTime.parse(getEffectiveDayKey(now));
++    final todayKey = _dateKey(today);
++
++    if (_accessDayKeys.contains(todayKey)) return 0;
++
++    final previousDayKey = _dateKey(today.subtract(const Duration(days: 1)));
++    if (_accessDayKeys.contains(previousDayKey)) {
++      final nowMinutes = now.hour * 60 + now.minute;
++      final resetMinutes = dailyResetHour * 60 + dailyResetMinute;
++      final minutesUntilReset = resetMinutes > nowMinutes
++          ? resetMinutes - nowMinutes
++          : 24 * 60 - nowMinutes + resetMinutes;
++
++      return minutesUntilReset > 3 * 60 ? 1 : 2;
++    }
++
++    DateTime? lastAttendance;
++    for (final dayKey in _accessDayKeys) {
++      final date = DateTime.tryParse(dayKey);
++      if (date == null || date.isAfter(today)) continue;
++      if (lastAttendance == null || date.isAfter(lastAttendance)) {
++        lastAttendance = date;
++      }
++    }
++
++    // No attendance history yet: use the first, welcoming image.
++    if (lastAttendance == null) return 0;
++
++    // The current day is still in progress; count only fully missed days
++    // before it.
++    final missedDays = today.difference(lastAttendance).inDays - 1;
++    if (missedDays > 15) return 8;
++    if (missedDays >= 10) return 7;
++    if (missedDays >= 7) return 6;
++    if (missedDays >= 5) return 5;
++    if (missedDays >= 3) return 4;
++    if (missedDays >= 1) return 3;
++    return 0;
++  }
++
+   /// 앱 또는 위젯에서 활동한 날을 하루에 한 번만 누적한다.
+   Future<void> recordAccessDay([String? activityDayKey]) async {
+diff --git a/app/lib/services/hagom_native_widget_sync.dart b/app/lib/services/hagom_native_widget_sync.dart
+--- a/app/lib/services/hagom_native_widget_sync.dart
++++ b/app/lib/services/hagom_native_widget_sync.dart
+@@
+-      // 사용자가 위젯을 탭하여 회전시킨 단계와 대사 상태를 보존합니다.
+       final existingBadge = await HomeWidget.getWidgetData<String>('mascot_badge');
+       final existingQuoteIndex = await HomeWidget.getWidgetData<int>('mascot_quote_index');
+ 
+-      int stageIdx = state.mascotStageIndex;
+-      if (existingBadge != null) {
+-        final found = mascotStages.indexWhere((s) => s['badge'] == existingBadge);
+-        if (found != -1) {
+-          stageIdx = found;
+-          state.mascotStageIndex = stageIdx;
+-        }
+-      }
++      // The mascot image follows attendance, rather than a manually selected stage.
++      final stageIdx = state.attendanceMascotStageIndex;
++      final selectedStage = mascotStages[stageIdx];
++      final stageChanged =
++          existingBadge != null && existingBadge != selectedStage['badge'];
++      state.mascotStageIndex = stageIdx;
+ 
+       final currentStage =
+-          mascotStages[stageIdx.clamp(
+-            0,
+-            mascotStages.length - 1,
+-          )];
++          selectedStage;
+ 
+       final quotes = currentStage['quotes'] as List<String>;
+-      final quoteIndex = (existingQuoteIndex ?? state.mascotQuoteIndex).clamp(0, quotes.length - 1);
++      final quoteIndex = (stageChanged
++              ? 0
++              : (existingQuoteIndex ?? state.mascotQuoteIndex))
++          .clamp(0, quotes.length - 1);
