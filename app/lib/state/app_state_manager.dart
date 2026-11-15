@@ -1045,6 +1045,70 @@ class AppStateManager extends ChangeNotifier {
     );
   }
 
+  /// 🌟 달력 탭에서 특정 날짜(day)에 표시되어야 하는 습관인지 판별하는 로직
+  /// - 매일: 매일 표시
+  /// - 요일 지정: 해당 요일에만 표시
+  /// - 주 N회 (예: 주 1회):
+  ///   1) 해당 날짜에 실제로 완료/실천 기록(점수 > 0)이 있으면 해당 일자에만 표시!
+  ///   2) 일주일(월~일) 동안 목표 횟수를 다 채우지 못한 경우, 주의 마지막 날(일요일)에 미완료 상태로 1회 표시!
+  ///   3) 그 외의 날(실천 안 한 평일, 이미 목표 달성한 주의 일요일)은 표시하지 않음!
+  bool isHabitVisibleOnCalendarDay(HabitItem habit, DateTime day) {
+    if (habit.isArchived) return false;
+    final target = DateTime(day.year, day.month, day.day);
+    final start = DateTime(habit.startDate.year, habit.startDate.month, habit.startDate.day);
+    if (target.isBefore(start)) return false;
+
+    // 1. 매일 혹은 오늘만
+    if (habit.recurrenceSummary == '매일' || habit.recurrenceSummary == '오늘만') {
+      return habit.recurrenceSummary != '오늘만' || target == start;
+    }
+
+    // 2. 지정 요일형 (예: 매주 화, 목)
+    if (habit.repeatDays.isNotEmpty) {
+      final weekDayLabels = ['월', '화', '수', '목', '금', '토', '일'];
+      final dayName = weekDayLabels[day.weekday - 1];
+      return habit.repeatDays.contains(dayName);
+    }
+    final weekDayLabels = ['월', '화', '수', '목', '금', '토', '일'];
+    final dayName = weekDayLabels[day.weekday - 1];
+    if (habit.recurrenceSummary.contains(dayName)) {
+      return true;
+    }
+
+    // 3. 주 N회 (예: 주 1회) 주간 횟수 습관:
+    if (habit.isWeeklyFrequencyHabit) {
+      // 1) 해당 날짜에 실제로 실천(완료)한 기록이 있는가?
+      final scoreOnDay = getHabitScoreForDay(day, habit.id);
+      if (scoreOnDay > 0.0) {
+        return true;
+      }
+
+      // 2) 만약 해당 날짜가 일주일의 마지막 날(일요일)인 경우:
+      if (day.weekday == DateTime.sunday) {
+        final monday = target.subtract(const Duration(days: 6));
+        final match = RegExp(r'주\s*(\d+)회').firstMatch(habit.recurrenceSummary);
+        final targetPerWeek = match != null ? int.parse(match.group(1)!) : 1;
+
+        int completedCountThisWeek = 0;
+        for (int i = 0; i < 7; i++) {
+          final d = monday.add(Duration(days: i));
+          if (getHabitScoreForDay(d, habit.id) >= 1.0) {
+            completedCountThisWeek++;
+          }
+        }
+
+        // 그 주 동안 목표 횟수를 다 채우지 못했다면 마지막 날(일요일)에 미완료 상태로 표시!
+        if (completedCountThisWeek < targetPerWeek) {
+          return true;
+        }
+      }
+
+      return false;
+    }
+
+    return true;
+  }
+
   // 특정 날짜의 전체 습관 평균 달성률 (0.0 ~ 1.0)
   double? getHabitRateForDay(DateTime day) {
     final now = DateTime.now();
@@ -1053,7 +1117,7 @@ class AppStateManager extends ChangeNotifier {
 
     if (target.isAfter(today)) return null;
     final dueHabits = habits
-        .where((h) => h.isDueOn(day) && h.countsTowardDailyCompletion)
+        .where((h) => isHabitVisibleOnCalendarDay(h, day))
         .toList();
     if (dueHabits.isEmpty) return null;
     double sum = 0.0;

@@ -65,19 +65,16 @@ class HabitItem {
     if (recurrenceSummary.contains('주') && (recurrenceSummary.contains('회') || recurrenceSummary.contains('횟수'))) {
       final match = RegExp(r'주\s*(\d+)회').firstMatch(recurrenceSummary);
       final targetPerWeek = match != null ? int.parse(match.group(1)!) : 1;
-      // 🌟 과거 날짜는 달력 기록 표시 목적이므로 weeklyCompletedCount 무관하게 항상 표시 대상
       final now = DateTime.now();
       final today = DateTime(now.year, now.month, now.day);
-      if (target.isBefore(today)) return true;
-      // 오늘 날짜인 경우: 이미 이번 주 목표를 다 채웠더라도 오늘 실천/완료한 것이라면 당일 동안은 상단 목록에 유지!
-      // (오늘 실천한 적이 없는데 이미 이번 주 목표가 완료된 것이라면 다음날 이후이므로 아래로 내려보냄)
+      // 오늘 날짜인 경우: 이미 이번 주 목표를 채웠더라도 오늘 실천한 것이라면 오늘 동안은 상단 목록에 유지
       if (target.isAtSameMomentAs(today)) {
         if (weeklyCompletedCount >= targetPerWeek) {
           return currentCount > 0 || score >= 1.0;
         }
         return true;
       }
-      // 미래: 이미 이번 주 목표를 다 채웠다면 실천 대상에서 제외
+      // 오늘이 아닌 날: 이미 이번 주 목표를 다 채웠다면 실천 대상 제외
       if (weeklyCompletedCount >= targetPerWeek) {
         return false;
       }

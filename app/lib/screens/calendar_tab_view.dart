@@ -2432,7 +2432,7 @@ class _CalendarTabViewState extends State<CalendarTabView> {
                               isSelectedDateBeforeTracking ||
                                   (!isSelectedDateFuture &&
                                       !_state.allHabits.any(
-                                        (h) => !h.isArchived && h.isDueOn(_selectedDate),
+                                        (h) => _state.isHabitVisibleOnCalendarDay(h, _selectedDate),
                                       ))
                                   ? '기록 전'
                                   : (isSelectedDateFuture || selectedHabitRate == null
@@ -2442,8 +2442,8 @@ class _CalendarTabViewState extends State<CalendarTabView> {
                                               : (selectedHabitRate > 0.0
                                                     ? (AppColors.achromatopsiaModeEnabled
                                                           ? '일부 미완료'
-                                                          : '${(selectedHabitRate * _state.allHabits.where((h) => h.isDueOn(_selectedDate)).length).toStringAsFixed(1)}/${_state.allHabits.where((h) => h.isDueOn(_selectedDate)).length}개 실천')
-                                                    : '미실천'))),
+                                                          : '${(selectedHabitRate * _state.allHabits.where((h) => _state.isHabitVisibleOnCalendarDay(h, _selectedDate)).length).toStringAsFixed(1)}/${_state.allHabits.where((h) => _state.isHabitVisibleOnCalendarDay(h, _selectedDate)).length}개 실천')
+                                                    : (isSelectedDatePast ? '미완료' : '미실천')))),
                               style: TextStyle(
                                 fontSize: 11.5,
                                 fontWeight: FontWeight.bold,
@@ -2480,7 +2480,7 @@ class _CalendarTabViewState extends State<CalendarTabView> {
                 const SizedBox(height: 10),
                 Column(
                   children: _state.allHabits
-                      .where((h) => h.isDueOn(_selectedDate))
+                      .where((h) => _state.isHabitVisibleOnCalendarDay(h, _selectedDate))
                       .map((habit) {
                         final hScore = _state.getHabitScoreForDay(
                           _selectedDate,
@@ -2492,27 +2492,41 @@ class _CalendarTabViewState extends State<CalendarTabView> {
                             !isSelectedDateBeforeTracking &&
                             hScore > 0.0 &&
                             hScore < 1.0;
-                        String label = isSelectedDateBeforeTracking &&
-                                hScore == 0.0
-                            ? '기록 전'
-                            : (isSelectedDateFuture ? '기록 대기' : '대기');
+                        String label;
+                        if (isSelectedDateBeforeTracking && hScore == 0.0) {
+                          label = '기록 전';
+                        } else if (isSelectedDateFuture) {
+                          label = '기록 대기';
+                        } else if (isFull) {
+                          label = '완료';
+                        } else if (isPart) {
+                          if (AppColors.achromatopsiaModeEnabled) {
+                            label = '미완료';
+                          } else {
+                            label = '조금 실천';
+                          }
+                        } else {
+                          // hScore == 0.0
+                          if (isSelectedDatePast) {
+                            label = '미완료';
+                          } else {
+                            label = '대기'; // 오늘 실천 전
+                          }
+                        }
                         Color bg = AppColors.cardSurface;
                         Color border = AppColors.divider;
                         Color textCol = AppColors.textSecondary;
 
                         if (isFull) {
-                          label = '완료';
                           bg = AppColors.completedBg;
                           border = AppColors.completedBorder;
                           textCol = AppColors.completedText;
                         } else if (isPart) {
                           if (AppColors.achromatopsiaModeEnabled) {
-                            label = '미완료';
                             bg = AppColors.cardSurface;
                             border = AppColors.divider;
                             textCol = AppColors.textSecondary;
                           } else {
-                            label = '조금 실천';
                             bg = AppColors.partialBg;
                             border = AppColors.partialBorder;
                             textCol = AppColors.partialText;
