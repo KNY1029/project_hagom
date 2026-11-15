@@ -1144,6 +1144,9 @@ class _HabitsTabViewState extends State<HabitsTabView> {
       backgroundColor: Colors.transparent,
       builder: (sheetContext) => SafeArea(
         child: Container(
+          constraints: BoxConstraints(
+            maxHeight: MediaQuery.of(sheetContext).size.height * 0.85,
+          ),
           margin: const EdgeInsets.fromLTRB(12, 0, 12, 12),
           padding: const EdgeInsets.fromLTRB(20, 10, 20, 14),
           decoration: BoxDecoration(
@@ -1199,180 +1202,185 @@ class _HabitsTabViewState extends State<HabitsTabView> {
                 ],
               ),
               const SizedBox(height: 12),
-              ...records.map((rec) {
-                final date = rec['date'] as DateTime;
-                final dayLabel = rec['dayLabel'] as String;
-                final timeStr = rec['time'] as String;
-                final isToday = rec['isToday'] as bool;
-                final isFull = rec['isFull'] as bool;
-
-                return Container(
-                  margin: const EdgeInsets.only(bottom: 10),
-                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-                  decoration: BoxDecoration(
-                    color: AppColors.inputSurface,
-                    borderRadius: BorderRadius.circular(14),
-                    border: Border.all(color: AppColors.divider),
-                  ),
+              Flexible(
+                child: SingleChildScrollView(
                   child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // 1. 상단: 상태 칩 + 날짜(요일) + 실천 시각
-                      Row(
-                        children: [
-                          Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3.5),
-                            decoration: BoxDecoration(
-                              color: isFull ? AppColors.completedBg : AppColors.partialBg,
-                              borderRadius: BorderRadius.circular(6),
-                              border: Border.all(
-                                color: isFull ? AppColors.completedBorder : AppColors.partialBorder,
-                              ),
-                            ),
-                            child: Text(
-                              isFull ? '완료' : '조금 실천',
-                              style: TextStyle(
-                                fontSize: 11,
-                                fontWeight: FontWeight.bold,
-                                color: isFull ? AppColors.completedText : AppColors.partialText,
-                              ),
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          Expanded(
-                            child: Text(
-                              '${date.month}월 ${date.day}일 (${dayLabel}요일)${isToday ? ' · 오늘' : ''}',
-                              style: TextStyle(
-                                fontSize: 13,
-                                fontWeight: FontWeight.bold,
-                                color: AppColors.textPrimary,
-                              ),
-                            ),
-                          ),
-                          Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Icon(Icons.schedule, size: 13.5, color: AppColors.textMuted),
-                              const SizedBox(width: 3.5),
-                              Text(
-                                timeStr,
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  color: AppColors.textSecondary,
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 10),
-                      const Divider(height: 1),
-                      const SizedBox(height: 6),
+                    mainAxisSize: MainAxisSize.min,
+                    children: records.map((rec) {
+                      final date = rec['date'] as DateTime;
+                      final dayLabel = rec['dayLabel'] as String;
+                      final timeStr = rec['time'] as String;
+                      final isToday = rec['isToday'] as bool;
+                      final isFull = rec['isFull'] as bool;
 
-                      // 2. 하단: [취소], [요일 변경], [시각 수정] 버튼들 (우측 정렬, 넓은 여백 확보)
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.end,
-                        children: [
-                          TextButton(
-                            style: TextButton.styleFrom(
-                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
-                              visualDensity: VisualDensity.compact,
+                      return Container(
+                        margin: const EdgeInsets.only(bottom: 10),
+                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                        decoration: BoxDecoration(
+                          color: AppColors.inputSurface,
+                          borderRadius: BorderRadius.circular(14),
+                          border: Border.all(color: AppColors.divider),
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            // 1. 상단: 상태 칩 + 날짜(요일) + 실천 시각
+                            Row(
+                              children: [
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3.5),
+                                  decoration: BoxDecoration(
+                                    color: isFull ? AppColors.completedBg : AppColors.partialBg,
+                                    borderRadius: BorderRadius.circular(6),
+                                    border: Border.all(
+                                      color: isFull ? AppColors.completedBorder : AppColors.partialBorder,
+                                    ),
+                                  ),
+                                  child: Text(
+                                    isFull ? '완료' : '조금 실천',
+                                    style: TextStyle(
+                                      fontSize: 11,
+                                      fontWeight: FontWeight.bold,
+                                      color: isFull ? AppColors.completedText : AppColors.partialText,
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(width: 8),
+                                Expanded(
+                                  child: Text(
+                                    '${date.month}월 ${date.day}일 (${dayLabel}요일)${isToday ? ' · 오늘' : ''}',
+                                    style: TextStyle(
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.bold,
+                                      color: AppColors.textPrimary,
+                                    ),
+                                  ),
+                                ),
+                                Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Icon(Icons.schedule, size: 13.5, color: AppColors.textMuted),
+                                    const SizedBox(width: 3.5),
+                                    Text(
+                                      timeStr,
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        color: AppColors.textSecondary,
+                                        fontWeight: FontWeight.w500,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ],
                             ),
-                            onPressed: () {
-                              Navigator.of(sheetContext).pop();
-                              _state.resetPastHabitProgress(date, habit.id);
-                              CelebrationToast.show(
-                                context,
-                                title: '기록을 취소했어요',
-                                message: '$dayLabel요일 실천 기록을 취소했어요.',
-                              );
-                            },
-                            child: Text(
-                              '취소',
-                              style: TextStyle(
-                                color: AppColors.warmBrown,
-                                fontSize: 12,
-                                fontWeight: FontWeight.bold,
-                              ),
+                            const SizedBox(height: 10),
+                            const Divider(height: 1),
+                            const SizedBox(height: 6),
+
+                            // 2. 하단: [취소], [요일 변경], [시각 수정] 버튼들 (기호 없이 단정하게 텍스트만 표시)
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.end,
+                              children: [
+                                TextButton(
+                                  style: TextButton.styleFrom(
+                                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
+                                    visualDensity: VisualDensity.compact,
+                                  ),
+                                  onPressed: () {
+                                    Navigator.of(sheetContext).pop();
+                                    _state.resetPastHabitProgress(date, habit.id);
+                                    CelebrationToast.show(
+                                      context,
+                                      title: '기록을 취소했어요',
+                                      message: '$dayLabel요일 실천 기록을 취소했어요.',
+                                    );
+                                  },
+                                  child: Text(
+                                    '취소',
+                                    style: TextStyle(
+                                      color: AppColors.warmBrown,
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(width: 6),
+                                OutlinedButton(
+                                  style: OutlinedButton.styleFrom(
+                                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                                    visualDensity: VisualDensity.compact,
+                                    side: BorderSide(color: AppColors.primaryPurple, width: 0.9),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(7),
+                                    ),
+                                  ),
+                                  onPressed: () async {
+                                    Navigator.of(sheetContext).pop();
+                                    await _showChangeWeeklyRecordDayDialog(
+                                      habit: habit,
+                                      currentDate: date,
+                                      currentDayLabel: dayLabel,
+                                      timeStr: timeStr,
+                                    );
+                                  },
+                                  child: Text(
+                                    '요일 변경',
+                                    style: TextStyle(
+                                      color: AppColors.primaryPurple,
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(width: 6),
+                                ElevatedButton(
+                                  style: ElevatedButton.styleFrom(
+                                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                                    visualDensity: VisualDensity.compact,
+                                    backgroundColor: AppColors.primaryPurple,
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(7),
+                                    ),
+                                  ),
+                                  onPressed: () async {
+                                    Navigator.of(sheetContext).pop();
+                                    final initial = _parseKoreanTime(timeStr);
+                                    final picked = await AppTimePicker.show(
+                                      context,
+                                      initialTime: initial,
+                                      title: '실천 시각 수정',
+                                    );
+                                    if (picked == null) return;
+                                    final period = picked.period == DayPeriod.am ? '오전' : '오후';
+                                    final hour = picked.hourOfPeriod == 0 ? 12 : picked.hourOfPeriod;
+                                    final newTimeStr = '$period $hour:${picked.minute.toString().padLeft(2, '0')}';
+                                    _state.updatePastHabitCompletionTime(date, habit.id, newTimeStr);
+                                    if (mounted) {
+                                      CelebrationToast.show(
+                                        context,
+                                        title: '실천 시각을 수정했어요',
+                                        message: '$dayLabel요일 시각을 $newTimeStr(으)로 변경했어요.',
+                                      );
+                                    }
+                                  },
+                                  child: const Text(
+                                    '시각 수정',
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ),
+                              ],
                             ),
-                          ),
-                          const SizedBox(width: 6),
-                          OutlinedButton.icon(
-                            style: OutlinedButton.styleFrom(
-                              padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 5),
-                              visualDensity: VisualDensity.compact,
-                              side: BorderSide(color: AppColors.primaryPurple, width: 0.9),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(7),
-                              ),
-                            ),
-                            onPressed: () async {
-                              Navigator.of(sheetContext).pop();
-                              await _showChangeWeeklyRecordDayDialog(
-                                habit: habit,
-                                currentDate: date,
-                                currentDayLabel: dayLabel,
-                                timeStr: timeStr,
-                              );
-                            },
-                            icon: Icon(Icons.swap_horiz, size: 14, color: AppColors.primaryPurple),
-                            label: Text(
-                              '요일 변경',
-                              style: TextStyle(
-                                color: AppColors.primaryPurple,
-                                fontSize: 12,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ),
-                          const SizedBox(width: 6),
-                          ElevatedButton.icon(
-                            style: ElevatedButton.styleFrom(
-                              padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 5),
-                              visualDensity: VisualDensity.compact,
-                              backgroundColor: AppColors.primaryPurple,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(7),
-                              ),
-                            ),
-                            onPressed: () async {
-                              Navigator.of(sheetContext).pop();
-                              final initial = _parseKoreanTime(timeStr);
-                              final picked = await AppTimePicker.show(
-                                context,
-                                initialTime: initial,
-                                title: '실천 시각 수정',
-                              );
-                              if (picked == null) return;
-                              final period = picked.period == DayPeriod.am ? '오전' : '오후';
-                              final hour = picked.hourOfPeriod == 0 ? 12 : picked.hourOfPeriod;
-                              final newTimeStr = '$period $hour:${picked.minute.toString().padLeft(2, '0')}';
-                              _state.updatePastHabitCompletionTime(date, habit.id, newTimeStr);
-                              if (mounted) {
-                                CelebrationToast.show(
-                                  context,
-                                  title: '실천 시각을 수정했어요',
-                                  message: '$dayLabel요일 시각을 $newTimeStr(으)로 변경했어요.',
-                                );
-                              }
-                            },
-                            icon: const Icon(Icons.edit, size: 12.5, color: Colors.white),
-                            label: const Text(
-                              '시각 수정',
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 12,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
+                          ],
+                        ),
+                      );
+                    }).toList(),
                   ),
-                );
-              }),
+                ),
+              ),
             ],
           ),
         ),
@@ -1417,9 +1425,14 @@ class _HabitsTabViewState extends State<HabitsTabView> {
 
     await showModalBottomSheet<void>(
       context: context,
+      isScrollControlled: true,
+      requestFocus: false,
       backgroundColor: Colors.transparent,
       builder: (sheetCtx) => SafeArea(
         child: Container(
+          constraints: BoxConstraints(
+            maxHeight: MediaQuery.of(sheetCtx).size.height * 0.85,
+          ),
           margin: const EdgeInsets.fromLTRB(12, 0, 12, 12),
           padding: const EdgeInsets.fromLTRB(20, 16, 20, 16),
           decoration: BoxDecoration(
@@ -1456,48 +1469,49 @@ class _HabitsTabViewState extends State<HabitsTabView> {
                 style: TextStyle(fontSize: 12.5, color: AppColors.textSecondary),
               ),
               const SizedBox(height: 12),
-              ...candidates.map((cand) {
-                final targetDate = cand['date'] as DateTime;
-                final labelText = cand['label'] as String;
-                final targetDayLabel = cand['dayLabel'] as String;
-                return Container(
-                  margin: const EdgeInsets.only(bottom: 6),
-                  width: double.infinity,
-                  child: OutlinedButton(
-                    style: OutlinedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
-                      alignment: Alignment.centerLeft,
-                      side: BorderSide(color: AppColors.divider),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                    ),
-                    onPressed: () {
-                      Navigator.of(sheetCtx).pop();
-                      _state.moveWeeklyHabitRecord(habit.id, currentDate, targetDate);
-                      CelebrationToast.show(
-                        context,
-                        title: '실천 요일 변경 완료',
-                        message: '$currentDayLabel요일 기록을 $targetDayLabel요일로 변경했어요.',
-                      );
-                    },
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          labelText,
-                          style: TextStyle(
-                            fontSize: 13.5,
-                            color: AppColors.textPrimary,
-                            fontWeight: FontWeight.w600,
+              Flexible(
+                child: SingleChildScrollView(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: candidates.map((cand) {
+                      final targetDate = cand['date'] as DateTime;
+                      final labelText = cand['label'] as String;
+                      final targetDayLabel = cand['dayLabel'] as String;
+                      return Container(
+                        margin: const EdgeInsets.only(bottom: 6),
+                        width: double.infinity,
+                        child: OutlinedButton(
+                          style: OutlinedButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+                            alignment: Alignment.centerLeft,
+                            side: BorderSide(color: AppColors.divider),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                          ),
+                          onPressed: () {
+                            Navigator.of(sheetCtx).pop();
+                            _state.moveWeeklyHabitRecord(habit.id, currentDate, targetDate);
+                            CelebrationToast.show(
+                              context,
+                              title: '실천 요일 변경 완료',
+                              message: '$currentDayLabel요일 기록을 $targetDayLabel요일로 변경했어요.',
+                            );
+                          },
+                          child: Text(
+                            labelText,
+                            style: TextStyle(
+                              fontSize: 13.5,
+                              color: AppColors.textPrimary,
+                              fontWeight: FontWeight.w600,
+                            ),
                           ),
                         ),
-                        Icon(Icons.arrow_forward_ios, size: 13, color: AppColors.textMuted),
-                      ],
-                    ),
+                      );
+                    }).toList(),
                   ),
-                );
-              }),
+                ),
+              ),
             ],
           ),
         ),

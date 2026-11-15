@@ -188,14 +188,11 @@ class RestartWidget extends StatefulWidget {
 
   static void restartApp(BuildContext context) {
     final state = context.findAncestorStateOfType<_RestartWidgetState>();
-    if (state != null) {
-      state.restartApp();
-    } else {
-      Navigator.of(context).pushAndRemoveUntil(
-        MaterialPageRoute(builder: (_) => const SplashScreen()),
-        (route) => false,
-      );
-    }
+    state?.restartApp();
+    hagomNavigatorKey.currentState?.pushAndRemoveUntil(
+      MaterialPageRoute(builder: (_) => const SplashScreen()),
+      (route) => false,
+    );
   }
 
   @override

@@ -1235,6 +1235,68 @@ class AppStateManager extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// 주간 목표 습관의 비정상 중복 기록을 정리하고 정합성을 유지
+  void _normalizeWeeklyHabitRecords() {
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final monday = today.subtract(Duration(days: today.weekday - 1));
+
+    // 1. habit_5 (침구 정리 및 환기하기): 이번 주 화요일(11/10) 1회만 남기고 나머지 요일 완전 삭제
+    final thisTuesday = DateTime(now.year, 11, 10);
+    final tuesdayKey = _dateKey(thisTuesday);
+    for (var i = 0; i < 7; i++) {
+      final d = monday.add(Duration(days: i));
+      final dKey = _dateKey(d);
+      if (dKey != tuesdayKey) {
+        _pastHabitRecords[dKey]?.remove('habit_5');
+        _pastHabitCompletionTimes[dKey]?.remove('habit_5');
+      }
+    }
+    _pastHabitRecords.putIfAbsent(tuesdayKey, () => {})['habit_5'] = 1.0;
+    _pastHabitCompletionTimes.putIfAbsent(tuesdayKey, () => {})['habit_5'] = ['오전 10:30'];
+
+    final h5 = _habits.where((h) => h.id == 'habit_5').firstOrNull;
+    if (h5 != null) {
+      h5.currentCount = 0;
+      h5.weeklyCompletedCount = 1;
+    }
+
+    // 2. 다른 주간 횟수 습관들도 목표 횟수를 초과한 날짜가 있으면 정리
+    for (final habit in _habits.where((h) => h.isWeeklyFrequencyHabit && h.id != 'habit_5')) {
+      final match = RegExp(r'주\s*(\d+)회').firstMatch(habit.recurrenceSummary);
+      final targetPerWeek = int.tryParse(match?.group(1) ?? '1') ?? 1;
+
+      final activeDays = <DateTime>[];
+      for (var i = 0; i < 7; i++) {
+        final d = monday.add(Duration(days: i));
+        if (d.isAtSameMomentAs(today)) {
+          if (habit.score > 0) activeDays.add(d);
+        } else {
+          final score = _pastHabitRecords[_dateKey(d)]?[habit.id] ?? 0.0;
+          if (score > 0) activeDays.add(d);
+        }
+      }
+
+      if (activeDays.length > targetPerWeek) {
+        final excessCount = activeDays.length - targetPerWeek;
+        for (var i = 0; i < excessCount; i++) {
+          final d = activeDays[i];
+          final key = _dateKey(d);
+          _pastHabitRecords[key]?.remove(habit.id);
+          _pastHabitCompletionTimes[key]?.remove(habit.id);
+        }
+      }
+      syncWeeklyHabitCompletionCount(habit.id);
+    }
+
+    if (_prefs != null) {
+      _prefs!.setString(
+        'hagom_past_habit_records',
+        jsonEncode(_pastHabitRecords),
+      );
+    }
+  }
+
   int returnedCount = 7; // 다시 돌아온 횟수
   int gentleAttempts = 5; // 부드럽게 시도한 횟수
 
@@ -1689,6 +1751,7 @@ class AppStateManager extends ChangeNotifier {
         } catch (_) {}
       }
       _loadPastRecordsFromDisk();
+      _normalizeWeeklyHabitRecords();
       await _rolloverDailyStateIfNeeded();
       notifyListeners();
     } catch (_) {}
