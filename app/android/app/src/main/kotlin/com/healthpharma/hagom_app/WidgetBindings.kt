@@ -152,9 +152,13 @@ object WidgetBindings {
             views.setTextColor(btnId, doneTextColor)
         } else if (customLabel.isNotEmpty()) {
             views.setTextViewText(btnId, customLabel)
-            if (customState == "partial" && !isAchromatopsia) {
-                val partialBg = R.drawable.hagom_widget_brown_btn_bg
-                val partialTextColor = Color.parseColor("#8B5E3C")
+            if (customState == "partial") {
+                val partialBg = if (isAchromatopsia) {
+                    if (isDark) R.drawable.hagom_widget_mono_partial_dark_btn_bg else R.drawable.hagom_widget_mono_partial_btn_bg
+                } else R.drawable.hagom_widget_brown_btn_bg
+                val partialTextColor = Color.parseColor(if (isAchromatopsia) {
+                    if (isDark) "#E0E0E0" else "#555555"
+                } else "#8B5E3C")
                 views.setInt(btnId, "setBackgroundResource", partialBg)
                 views.setTextColor(btnId, partialTextColor)
             } else {
