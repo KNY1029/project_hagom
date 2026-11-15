@@ -110,6 +110,7 @@ class AppColors {
   static Color partialOrange = const Color(0xFF8B5E3C);
   static const Color neutralDark = Color(0xFF4B5563);
   static Color missedRed = const Color(0xFFEF4444);
+  static Color onPrimary = Colors.white;
 
   static void setColorVisionMode(bool enabled) {
     colorVisionModeEnabled = enabled;
@@ -294,6 +295,9 @@ class AppColors {
       activePrimary = primaryPurple;
       activeWarmAccent = warmBrown;
       activeTextPrimary = textPrimary;
+      onPrimary = isDark ? const Color(0xFF111111) : Colors.white;
+    } else {
+      onPrimary = Colors.white;
     }
     cardSurface = theme.key == themeDark
         ? (achromatopsiaModeEnabled

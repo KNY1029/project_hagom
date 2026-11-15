@@ -406,10 +406,10 @@ class _MedsTabViewState extends State<MedsTabView> {
                                     borderRadius: BorderRadius.circular(10),
                                   ),
                                 ),
-                                child: const Text(
+                                child: Text(
                                   '복용 시간 설정 ➔',
                                   style: TextStyle(
-                                    color: Colors.white,
+                                    color: AppColors.onPrimary,
                                     fontWeight: FontWeight.bold,
                                     fontSize: 15,
                                   ),
@@ -1564,8 +1564,8 @@ class _MedsTabViewState extends State<MedsTabView> {
                                 ),
                                 child: Text(
                                   isEditing ? '수정 내용 저장' : '약 추가 완료',
-                                  style: const TextStyle(
-                                    color: Colors.white,
+                                  style: TextStyle(
+                                    color: AppColors.onPrimary,
                                     fontWeight: FontWeight.bold,
                                     fontSize: 15,
                                   ),

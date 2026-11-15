@@ -31,7 +31,7 @@ class DailyGreetingModal extends StatelessWidget {
 
     return Dialog(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-      backgroundColor: Colors.white,
+      backgroundColor: AppColors.cardSurface,
       insetPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 24),
@@ -43,7 +43,7 @@ class DailyGreetingModal extends StatelessWidget {
               width: 170,
               height: 170,
               decoration: BoxDecoration(
-                color: const Color(0xFFFAF7F2),
+                color: AppColors.inputSurface,
                 borderRadius: BorderRadius.circular(20),
                 border: Border.all(color: AppColors.divider.withValues(alpha: 0.5)),
               ),
@@ -109,12 +109,12 @@ class DailyGreetingModal extends StatelessWidget {
                   elevation: 0,
                 ),
                 onPressed: () => Navigator.of(context).pop(),
-                child: const Text(
+                child: Text(
                   '오늘 하루도 편안하게 시작하기',
                   style: TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.bold,
-                    color: Colors.white,
+                    color: AppColors.onPrimary,
                   ),
                 ),
               ),

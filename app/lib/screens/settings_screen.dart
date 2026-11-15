@@ -405,7 +405,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 child: Text(
                   '확인',
                   style: TextStyle(
-                    color: Colors.white,
+                    color: AppColors.onPrimary,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
@@ -691,7 +691,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       ElevatedButton(
                         style: ElevatedButton.styleFrom(
                           backgroundColor: AppColors.primaryPurple,
-                          foregroundColor: Colors.white,
+                          foregroundColor: AppColors.onPrimary,
                           padding: const EdgeInsets.symmetric(
                             horizontal: 12,
                             vertical: 8,
@@ -1703,7 +1703,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       ),
                       SizedBox(height: 3),
                       Text(
-                        '정신약학 맞춤 복약 솔루션 · v0.143.366',
+                        '정신약학 맞춤 복약 솔루션 · v0.143.367',
                         style: TextStyle(
                           fontSize: 12,
                           color: AppColors.textSecondary,

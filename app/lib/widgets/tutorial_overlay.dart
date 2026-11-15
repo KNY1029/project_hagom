@@ -319,7 +319,7 @@ class _TutorialOverlayState extends State<TutorialOverlay> {
                         ? (step['returnBtnText'] as String? ??
                             '위젯 체험을 마쳤어요 · 가이드 완료')
                         : (step['btnText'] as String? ?? '다음'),
-                    style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13),
+                    style: TextStyle(color: AppColors.onPrimary, fontWeight: FontWeight.bold, fontSize: 13),
                   ),
                 ),
               ),

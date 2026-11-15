@@ -908,8 +908,8 @@ class _HabitsTabViewState extends State<HabitsTabView> {
                               ),
                               child: Text(
                                 isEditing ? '수정 내용 저장' : '습관 추가 완료',
-                                style: const TextStyle(
-                                  color: Colors.white,
+                                style: TextStyle(
+                                  color: AppColors.onPrimary,
                                   fontWeight: FontWeight.bold,
                                   fontSize: 15,
                                 ),

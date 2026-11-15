@@ -171,7 +171,7 @@ class _SplashScreenState extends State<SplashScreen> {
                 _startTutorialOnMain = true;
                 _checkGreetingAndProceed();
               },
-              child: const Text('가이드 시작하기', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13.5)),
+              child: Text('가이드 시작하기', style: TextStyle(color: AppColors.onPrimary, fontWeight: FontWeight.bold, fontSize: 13.5)),
               ),
             ),
           ),
@@ -323,12 +323,12 @@ class _SplashScreenState extends State<SplashScreen> {
                     elevation: 0,
                   ),
                   onPressed: _proceedToMain,
-                  child: const Text(
+                  child: Text(
                     '시작하기',
                     style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
-                      color: Colors.white,
+                      color: AppColors.onPrimary,
                     ),
                   ),
                 ),
