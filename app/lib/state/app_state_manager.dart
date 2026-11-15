@@ -982,6 +982,13 @@ class AppStateManager extends ChangeNotifier {
         _pastHabitRecords[key]!.containsKey(habitId)) {
       return _pastHabitRecords[key]![habitId]!;
     }
+
+    final habit = _habits.where((h) => h.id == habitId).firstOrNull;
+    // 🌟 [주간 횟수 습관]: 명시적 기록(_pastHabitRecords) 외에는 절대 가상 홀짝 더미 완료 점수를 반환하지 않고 미실천(0.0)으로 처리!
+    if (habit != null && habit.isWeeklyFrequencyHabit) {
+      return 0.0;
+    }
+
     // 개발자 모드가 아니면 사용자가 소급 수정한 기록(_pastHabitRecords)만 반환하고 기본값은 대기(0.0)
     if (!isDevSimulationMode) {
       return 0.0;
