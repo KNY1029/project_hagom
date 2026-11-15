@@ -1039,11 +1039,27 @@ class _HabitsTabViewState extends State<HabitsTabView> {
       scheduleText = weeklyDays.isNotEmpty
           ? '${weeklyDays.length}/$weeklyTarget회 완료 (${weeklyDays.join(', ')}요일)'
           : '주 $weeklyTarget회 실천 예정';
-    } else if (habit.repeatDays.isNotEmpty) {
-      final day = habit.repeatDays.first;
-      scheduleText = '매주 ${day}요일 예정';
     } else {
-      scheduleText = '다음 실천 예정';
+      final weekLabels = ['월', '화', '수', '목', '금', '토', '일'];
+      final targetDays = habit.repeatDays.isNotEmpty
+          ? habit.repeatDays
+          : weekLabels.where((l) => habit.recurrenceSummary.contains(l)).toList();
+
+      if (targetDays.isNotEmpty) {
+        final todayWeekday = DateTime.now().weekday; // 1(월) ~ 7(일)
+        String? nextDay;
+        for (int i = 1; i <= 7; i++) {
+          final nextWeekday = ((todayWeekday - 1 + i) % 7) + 1;
+          final label = weekLabels[nextWeekday - 1];
+          if (targetDays.contains(label)) {
+            nextDay = label;
+            break;
+          }
+        }
+        scheduleText = nextDay != null ? '${nextDay}요일 예정' : '다음 실천 예정';
+      } else {
+        scheduleText = '다음 실천 예정';
+      }
     }
     final statusColor = isWeeklyComplete
         ? AppColors.successGreen
