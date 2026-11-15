@@ -1177,7 +1177,7 @@ class AppStateManager extends ChangeNotifier {
   }
 
   /// 과거 날짜 및 오늘의 습관 실천 시각 수정
-  void updatePastHabitCompletionTime(DateTime day, String habitId, String newTime) {
+  void updatePastHabitCompletionTime(DateTime day, String habitId, String newTime, [int completionIndex = 0]) {
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
     final target = DateTime(day.year, day.month, day.day);
@@ -1185,7 +1185,9 @@ class AppStateManager extends ChangeNotifier {
     if (target.isAtSameMomentAs(today)) {
       final habit = _habits.where((h) => h.id == habitId).firstOrNull;
       if (habit != null) {
-        if (habit.completionTimes.isNotEmpty) {
+        if (completionIndex >= 0 && completionIndex < habit.completionTimes.length) {
+          habit.completionTimes[completionIndex] = newTime;
+        } else if (habit.completionTimes.isNotEmpty) {
           habit.completionTimes[0] = newTime;
         } else {
           habit.completionTimes = [newTime];
@@ -1195,8 +1197,47 @@ class AppStateManager extends ChangeNotifier {
 
     final key = _dateKey(day);
     final times = _pastHabitCompletionTimes.putIfAbsent(key, () => {});
-    times[habitId] = [newTime];
+    final list = times[habitId] ?? <String>[];
+    if (completionIndex >= 0 && completionIndex < list.length) {
+      list[completionIndex] = newTime;
+      times[habitId] = list;
+    } else {
+      times[habitId] = [newTime];
+    }
     notifyListeners();
+  }
+
+  /// 과거 날짜 및 오늘의 개별 실천 기록 1개 취소
+  void cancelPastHabitCompletion(DateTime day, String habitId, int completionIndex) {
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final target = DateTime(day.year, day.month, day.day);
+
+    if (target.isAtSameMomentAs(today)) {
+      cancelHabitCompletion(habitId, completionIndex);
+      return;
+    }
+
+    final key = _dateKey(day);
+    final times = _pastHabitCompletionTimes[key]?[habitId];
+    if (times != null && completionIndex >= 0 && completionIndex < times.length) {
+      times.removeAt(completionIndex);
+      if (times.isEmpty) {
+        _pastHabitRecords.putIfAbsent(key, () => {})[habitId] = 0.0;
+        _pastHabitCompletionTimes[key]?.remove(habitId);
+      } else {
+        final habit = _habits.where((h) => h.id == habitId).firstOrNull;
+        final targetCount = (habit?.targetPerDay != null && habit!.targetPerDay > 1)
+            ? habit.targetPerDay
+            : 2;
+        _pastHabitRecords.putIfAbsent(key, () => {})[habitId] =
+            times.length >= targetCount ? 1.0 : (times.length / targetCount);
+      }
+      syncWeeklyHabitCompletionCount(habitId);
+      notifyListeners();
+    } else {
+      resetPastHabitProgress(day, habitId);
+    }
   }
 
   /// 주간 습관 실천 기록을 한 날짜에서 다른 날짜로 이동 (요일 변경 지원)

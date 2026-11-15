@@ -1136,6 +1136,7 @@ class _HabitsTabViewState extends State<HabitsTabView> {
     final monday = today.subtract(Duration(days: today.weekday - 1));
 
     final weeklyRecords = <Map<String, dynamic>>[];
+    final completionThreshold = habit.targetPerDay <= 1 ? 2 : habit.targetPerDay;
     for (int i = 0; i < 7; i++) {
       final day = monday.add(Duration(days: i));
       final score = _state.getHabitScoreForDay(day, habit.id);
@@ -1149,15 +1150,26 @@ class _HabitsTabViewState extends State<HabitsTabView> {
             'time': '오전 10:00',
             'isToday': day.isAtSameMomentAs(today),
             'isFull': score >= 1.0,
+            'completionIndex': 0,
           });
         } else {
-          for (final time in times) {
+          for (var tIdx = 0; tIdx < times.length; tIdx++) {
+            final bool isFull;
+            if (score < 1.0) {
+              isFull = false;
+            } else if (times.length == 1) {
+              isFull = true;
+            } else {
+              isFull = (tIdx + 1) >= completionThreshold;
+            }
+
             weeklyRecords.add({
               'date': day,
               'dayLabel': dayLabel,
-              'time': time,
+              'time': times[tIdx],
               'isToday': day.isAtSameMomentAs(today),
-              'isFull': score >= 1.0,
+              'isFull': isFull,
+              'completionIndex': tIdx,
             });
           }
         }
@@ -1332,6 +1344,7 @@ class _HabitsTabViewState extends State<HabitsTabView> {
                                 date: rec['date'] as DateTime,
                                 dayLabel: rec['dayLabel'] as String,
                                 timeStr: rec['time'] as String,
+                                completionIndex: rec['completionIndex'] as int? ?? 0,
                                 isToday: rec['isToday'] as bool,
                                 isFull: rec['isFull'] as bool,
                               ),
@@ -1548,6 +1561,7 @@ class _HabitsTabViewState extends State<HabitsTabView> {
     required DateTime date,
     required String dayLabel,
     required String timeStr,
+    int completionIndex = 0,
     required bool isToday,
     required bool isFull,
   }) async {
@@ -1684,11 +1698,19 @@ class _HabitsTabViewState extends State<HabitsTabView> {
                           ),
                           onPressed: () {
                             Navigator.of(sheetContext).pop();
-                            _state.resetPastHabitProgress(date, habit.id);
+                            if (isToday) {
+                              if (habit.completionTimes.length > 1 && completionIndex >= 0) {
+                                _state.cancelHabitCompletion(habit.id, completionIndex);
+                              } else {
+                                _state.resetHabitProgress(habit.id);
+                              }
+                            } else {
+                              _state.cancelPastHabitCompletion(date, habit.id, completionIndex);
+                            }
                             CelebrationToast.show(
                               context,
                               title: '기록을 취소했어요',
-                              message: '$dayLabel요일 실천 기록을 취소했어요.',
+                              message: '$dayLabel요일 $timeStr 실천 기록을 취소했어요.',
                             );
                           },
                           child: Text(
@@ -1750,7 +1772,7 @@ class _HabitsTabViewState extends State<HabitsTabView> {
                             final period = picked.period == DayPeriod.am ? '오전' : '오후';
                             final hour = picked.hourOfPeriod == 0 ? 12 : picked.hourOfPeriod;
                             final newTimeStr = '$period $hour:${picked.minute.toString().padLeft(2, '0')}';
-                            _state.updatePastHabitCompletionTime(date, habit.id, newTimeStr);
+                            _state.updatePastHabitCompletionTime(date, habit.id, newTimeStr, completionIndex);
                             if (mounted) {
                               CelebrationToast.show(
                                 context,
@@ -1787,19 +1809,42 @@ class _HabitsTabViewState extends State<HabitsTabView> {
     final monday = today.subtract(Duration(days: today.weekday - 1));
 
     final records = <Map<String, dynamic>>[];
+    final completionThreshold = habit.targetPerDay <= 1 ? 2 : habit.targetPerDay;
     for (int i = 0; i < 7; i++) {
       final day = monday.add(Duration(days: i));
       final score = _state.getHabitScoreForDay(day, habit.id);
       if (score > 0.0) {
         final times = _state.getHabitCompletionTimesForDay(day, habit.id);
-        final timeStr = times.isNotEmpty ? times.join(' · ') : '오전 10:00';
-        records.add({
-          'date': day,
-          'dayLabel': ['월', '화', '수', '목', '금', '토', '일'][day.weekday - 1],
-          'time': timeStr,
-          'isToday': day.isAtSameMomentAs(today),
-          'isFull': score >= 1.0,
-        });
+        final dayLabel = ['월', '화', '수', '목', '금', '토', '일'][day.weekday - 1];
+        if (times.isEmpty) {
+          records.add({
+            'date': day,
+            'dayLabel': dayLabel,
+            'time': '오전 10:00',
+            'isToday': day.isAtSameMomentAs(today),
+            'isFull': score >= 1.0,
+            'completionIndex': 0,
+          });
+        } else {
+          for (var tIdx = 0; tIdx < times.length; tIdx++) {
+            final bool isFull;
+            if (score < 1.0) {
+              isFull = false;
+            } else if (times.length == 1) {
+              isFull = true;
+            } else {
+              isFull = (tIdx + 1) >= completionThreshold;
+            }
+            records.add({
+              'date': day,
+              'dayLabel': dayLabel,
+              'time': times[tIdx],
+              'isToday': day.isAtSameMomentAs(today),
+              'isFull': isFull,
+              'completionIndex': tIdx,
+            });
+          }
+        }
       }
     }
 
@@ -1959,11 +2004,20 @@ class _HabitsTabViewState extends State<HabitsTabView> {
                                   ),
                                   onPressed: () {
                                     Navigator.of(sheetContext).pop();
-                                    _state.resetPastHabitProgress(date, habit.id);
+                                    final cIdx = rec['completionIndex'] as int? ?? 0;
+                                    if (isToday) {
+                                      if (habit.completionTimes.length > 1 && cIdx >= 0) {
+                                        _state.cancelHabitCompletion(habit.id, cIdx);
+                                      } else {
+                                        _state.resetHabitProgress(habit.id);
+                                      }
+                                    } else {
+                                      _state.cancelPastHabitCompletion(date, habit.id, cIdx);
+                                    }
                                     CelebrationToast.show(
                                       context,
                                       title: '기록을 취소했어요',
-                                      message: '$dayLabel요일 실천 기록을 취소했어요.',
+                                      message: '$dayLabel요일 $timeStr 실천 기록을 취소했어요.',
                                     );
                                   },
                                   child: Text(
@@ -2025,7 +2079,8 @@ class _HabitsTabViewState extends State<HabitsTabView> {
                                     final period = picked.period == DayPeriod.am ? '오전' : '오후';
                                     final hour = picked.hourOfPeriod == 0 ? 12 : picked.hourOfPeriod;
                                     final newTimeStr = '$period $hour:${picked.minute.toString().padLeft(2, '0')}';
-                                    _state.updatePastHabitCompletionTime(date, habit.id, newTimeStr);
+                                    final cIdx = rec['completionIndex'] as int? ?? 0;
+                                    _state.updatePastHabitCompletionTime(date, habit.id, newTimeStr, cIdx);
                                     if (mounted) {
                                       CelebrationToast.show(
                                         context,
