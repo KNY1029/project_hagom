@@ -1090,7 +1090,8 @@ class AppStateManager extends ChangeNotifier {
     return true;
   }
 
-  // 특정 날짜의 전체 습관 평균 달성률 (0.0 ~ 1.0)
+  // 특정 날짜의 일일 습관 평균 달성률 (0.0 ~ 1.0)
+  // 🌟 주간 목표(주 N회) 습관은 특정 날짜의 일일 달성률 왜곡을 방지하기 위해 분리 제외하고, 순수 일일 습관들의 평균 달성률만 산출!
   double? getHabitRateForDay(DateTime day) {
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
@@ -1098,37 +1099,12 @@ class AppStateManager extends ChangeNotifier {
 
     if (target.isAfter(today)) return null;
     final dueHabits = habits
-        .where((h) => isHabitVisibleOnCalendarDay(h, day))
+        .where((h) => isHabitVisibleOnCalendarDay(h, day) && !h.isWeeklyFrequencyHabit)
         .toList();
     if (dueHabits.isEmpty) return null;
     double sum = 0.0;
     for (final h in dueHabits) {
-      if (h.isWeeklyFrequencyHabit) {
-        final monday = target.subtract(Duration(days: target.weekday - 1));
-        final sunday = monday.add(const Duration(days: 6));
-        final isWeekFinished = today.isAfter(sunday);
-
-        final match = RegExp(r'주\s*(\d+)회').firstMatch(h.recurrenceSummary);
-        final targetPerWeek = match != null ? int.parse(match.group(1)!) : 1;
-
-        int completedCount = 0;
-        for (int i = 0; i < 7; i++) {
-          final d = monday.add(Duration(days: i));
-          if (getHabitScoreForDay(d, h.id) >= 1.0) {
-            completedCount++;
-          }
-        }
-
-        if (completedCount >= targetPerWeek) {
-          sum += 1.0; // 그 주차에 이미 목표 횟수 달성 완료
-        } else if (!isWeekFinished) {
-          sum += getHabitScoreForDay(day, h.id);
-        } else {
-          sum += 0.0; // 주차가 다 지났는데 미완료
-        }
-      } else {
-        sum += getHabitScoreForDay(day, h.id);
-      }
+      sum += getHabitScoreForDay(day, h.id);
     }
     return sum / dueHabits.length;
   }

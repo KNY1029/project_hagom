@@ -92,7 +92,8 @@ class _CalendarTabViewState extends State<CalendarTabView> {
   late DateTime _selectedDate;
   late DateTime _currentMonth;
   bool _isMedDetailsExpanded = false; // 복약 상세 펼침 여부 (기본은 접힘)
-  bool _isHabitDetailsExpanded = false; // 습관 상세 펼침 여부 (기본은 접힘)
+  bool _isDailyHabitDetailsExpanded = false; // 일일 습관 상세 펼침 여부 (기본은 접힘)
+  bool _isWeeklyHabitDetailsExpanded = false; // 주간 목표 습관 상세 펼침 여부 (기본은 접힘)
   @override
   void initState() {
     super.initState();
@@ -1379,14 +1380,6 @@ class _CalendarTabViewState extends State<CalendarTabView> {
         !isSelectedDateBeforeTracking &&
         selectedMedRate != null &&
         selectedMedRate > 0.0;
-    final selectedHabitComplete =
-        !isSelectedDateBeforeTracking &&
-        selectedHabitRate != null &&
-        selectedHabitRate >= 1.0;
-    final selectedHabitPartial =
-        !isSelectedDateBeforeTracking &&
-        selectedHabitRate != null &&
-        selectedHabitRate > 0.0;
     return ListView(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       children: [
@@ -2483,310 +2476,571 @@ class _CalendarTabViewState extends State<CalendarTabView> {
               const Divider(height: 1),
               const SizedBox(height: 12),
 
-              // 3. 🌱 [습관 현황 요약 및 펼침 아코디언]
-              InkWell(
-                borderRadius: BorderRadius.circular(8),
-                onTap:
-                    (isSelectedDatePast ||
-                        isSelectedDateToday ||
-                        isSelectedDateFuture)
-                    ? () {
-                        setState(() {
-                          _isHabitDetailsExpanded = !_isHabitDetailsExpanded;
-                        });
-                      }
-                    : null,
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 4),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              // 3. 🌱 [일일 습관 현황 요약 및 펼침 아코디언]
+              Builder(
+                builder: (context) {
+                  final dailyHabits = _state.allHabits
+                      .where((h) => _state.isHabitVisibleOnCalendarDay(h, _selectedDate) && !h.isWeeklyFrequencyHabit)
+                      .toList();
+                  double dailyScoreSum = 0.0;
+                  for (final h in dailyHabits) {
+                    dailyScoreSum += _state.getHabitScoreForDay(_selectedDate, h.id);
+                  }
+                  final double? currentDailyHabitRate = dailyHabits.isEmpty
+                      ? null
+                      : (dailyScoreSum / dailyHabits.length);
+                  final bool isCurrentDailyComplete = !isSelectedDateBeforeTracking &&
+                      currentDailyHabitRate != null &&
+                      currentDailyHabitRate >= 1.0;
+                  final bool isCurrentDailyPartial = !isSelectedDateBeforeTracking &&
+                      currentDailyHabitRate != null &&
+                      currentDailyHabitRate > 0.0 &&
+                      currentDailyHabitRate < 1.0;
+
+                  final String dailyBadgeText = isSelectedDateBeforeTracking || dailyHabits.isEmpty
+                      ? '기록 전'
+                      : (isSelectedDateFuture || currentDailyHabitRate == null
+                            ? '기록 대기'
+                            : (isCurrentDailyComplete
+                                  ? '전체 달성'
+                                  : (isCurrentDailyPartial
+                                        ? (AppColors.achromatopsiaModeEnabled
+                                              ? '일부 미완료'
+                                              : '${dailyScoreSum.toStringAsFixed(1)}/${dailyHabits.length}개 실천')
+                                        : (isSelectedDatePast ? '미완료' : '미실천'))));
+
+                  return Column(
                     children: [
-                      Row(
-                        children: [
-                          Text(
-                            '습관 현황',
-                            style: TextStyle(
-                              fontSize: 13.5,
-                              fontWeight: FontWeight.bold,
-                              color: AppColors.textPrimary,
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          // 습관 완료 여부 뱃지
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 8,
-                              vertical: 2,
-                            ),
-                            decoration: BoxDecoration(
-                              color: selectedHabitComplete
-                                  ? AppColors.completedBg
-                                  : (selectedHabitPartial && !AppColors.achromatopsiaModeEnabled
-                                        ? AppColors.partialOrange.withValues(
-                                            alpha: 0.12,
-                                          )
-                                        : AppColors.inputSurface),
-                              borderRadius: BorderRadius.circular(5),
-                              border: selectedHabitComplete
-                                  ? Border.all(color: AppColors.completedBorder)
-                                  : null,
-                            ),
-                            child: Text(
-                              isSelectedDateBeforeTracking ||
-                                  (!isSelectedDateFuture &&
-                                      !_state.allHabits.any(
-                                        (h) => _state.isHabitVisibleOnCalendarDay(h, _selectedDate),
-                                      ))
-                                  ? '기록 전'
-                                  : (isSelectedDateFuture || selectedHabitRate == null
-                                        ? '기록 대기'
-                                        : (selectedHabitRate >= 1.0
-                                              ? '전체 달성'
-                                              : (selectedHabitRate > 0.0
-                                                    ? (AppColors.achromatopsiaModeEnabled
-                                                          ? '일부 미완료'
-                                                          : '${(selectedHabitRate * _state.allHabits.where((h) => _state.isHabitVisibleOnCalendarDay(h, _selectedDate)).length).toStringAsFixed(1)}/${_state.allHabits.where((h) => _state.isHabitVisibleOnCalendarDay(h, _selectedDate)).length}개 실천')
-                                                    : (isSelectedDatePast ? '미완료' : '미실천')))),
-                              style: TextStyle(
-                                fontSize: 11.5,
-                                fontWeight: FontWeight.bold,
-                                color: selectedHabitComplete
-                                    ? AppColors.completedText
-                                    : (selectedHabitPartial && !AppColors.achromatopsiaModeEnabled
-                                          ? AppColors.partialOrange
-                                          : AppColors.textSecondary),
+                      InkWell(
+                        borderRadius: BorderRadius.circular(8),
+                        onTap: (isSelectedDatePast ||
+                                isSelectedDateToday ||
+                                isSelectedDateFuture)
+                            ? () {
+                                setState(() {
+                                  _isDailyHabitDetailsExpanded = !_isDailyHabitDetailsExpanded;
+                                });
+                              }
+                            : null,
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 4),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Row(
+                                children: [
+                                  Text(
+                                    '일일 습관',
+                                    style: TextStyle(
+                                      fontSize: 13.5,
+                                      fontWeight: FontWeight.bold,
+                                      color: AppColors.textPrimary,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 8),
+                                  // 일일 습관 완료 여부 뱃지
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 8,
+                                      vertical: 2,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: isCurrentDailyComplete
+                                          ? AppColors.completedBg
+                                          : (isCurrentDailyPartial && !AppColors.achromatopsiaModeEnabled
+                                                ? AppColors.partialOrange.withValues(
+                                                    alpha: 0.12,
+                                                  )
+                                                : AppColors.inputSurface),
+                                      borderRadius: BorderRadius.circular(5),
+                                      border: isCurrentDailyComplete
+                                          ? Border.all(color: AppColors.completedBorder)
+                                          : null,
+                                    ),
+                                    child: Text(
+                                      dailyBadgeText,
+                                      style: TextStyle(
+                                        fontSize: 11.5,
+                                        fontWeight: FontWeight.bold,
+                                        color: isCurrentDailyComplete
+                                            ? AppColors.completedText
+                                            : (isCurrentDailyPartial && !AppColors.achromatopsiaModeEnabled
+                                                  ? AppColors.partialOrange
+                                                  : AppColors.textSecondary),
+                                      ),
+                                    ),
+                                  ),
+                                ],
                               ),
-                            ),
-                          ),
-                        ],
-                      ),
-                      if (isSelectedDatePast ||
-                          isSelectedDateToday ||
-                          isSelectedDateFuture)
-                        Text(
-                          _isHabitDetailsExpanded
-                              ? '접기'
-                              : (isSelectedDatePast ? '수정하기' : '확인하기'),
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: AppColors.primaryPurple,
-                            fontWeight: FontWeight.bold,
+                              if (isSelectedDatePast ||
+                                  isSelectedDateToday ||
+                                  isSelectedDateFuture)
+                                Text(
+                                  _isDailyHabitDetailsExpanded
+                                      ? '접기'
+                                      : (isSelectedDatePast ? '수정하기' : '확인하기'),
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    color: AppColors.primaryPurple,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                            ],
                           ),
                         ),
-                    ],
-                  ),
-                ),
-              ),
+                      ),
 
-              // 펼쳤을 때 나오는 개별 습관 실천 상태 및 소급 체크
-              if (_isHabitDetailsExpanded) ...[
-                const SizedBox(height: 10),
-                Column(
-                  children: _state.allHabits
-                      .where((h) => _state.isHabitVisibleOnCalendarDay(h, _selectedDate))
-                      .map((habit) {
-                        final hScore = _state.getHabitScoreForDay(
-                          _selectedDate,
-                          habit.id,
-                        );
-                        final isFull =
-                            !isSelectedDateBeforeTracking && hScore >= 1.0;
-                        final isPart =
-                            !isSelectedDateBeforeTracking &&
-                            hScore > 0.0 &&
-                            hScore < 1.0;
+                      // 펼쳤을 때 나오는 일일 습관 목록
+                      if (_isDailyHabitDetailsExpanded) ...[
+                        const SizedBox(height: 10),
+                        Column(
+                          children: dailyHabits.map((habit) {
+                            final hScore = _state.getHabitScoreForDay(
+                              _selectedDate,
+                              habit.id,
+                            );
+                            final isFull =
+                                !isSelectedDateBeforeTracking && hScore >= 1.0;
+                            final isPart =
+                                !isSelectedDateBeforeTracking &&
+                                hScore > 0.0 &&
+                                hScore < 1.0;
 
-                        // 🌟 주간 목표(주 N회) 습관의 스마트 상태 판별
-                        final bool isWeekly = habit.isWeeklyFrequencyHabit;
-                        final List<String> weeklyDays = isWeekly
-                            ? _state.weeklyHabitCompletionDaysForDate(habit, _selectedDate)
-                            : const <String>[];
-                        final weeklyMatch = RegExp(r'주\s*(\d+)회').firstMatch(habit.recurrenceSummary);
-                        final targetPerWeek = int.tryParse(weeklyMatch?.group(1) ?? '1') ?? 1;
-                        final bool isWeeklyComplete = isWeekly && weeklyDays.length >= targetPerWeek;
+                            String label;
+                            Color bg = AppColors.cardSurface;
+                            Color border = AppColors.divider;
+                            Color textCol = AppColors.textSecondary;
 
-                        final selectedMonday = _selectedDate.subtract(Duration(days: _selectedDate.weekday - 1));
-                        final selectedSunday = selectedMonday.add(const Duration(days: 6));
-                        final bool isWeekFinished = today.isAfter(selectedSunday);
-
-                        String label;
-                        Color bg = AppColors.cardSurface;
-                        Color border = AppColors.divider;
-                        Color textCol = AppColors.textSecondary;
-                        String? weeklyStatusNote;
-
-                        if (isSelectedDateBeforeTracking && hScore == 0.0) {
-                          label = '기록 전';
-                        } else if (isSelectedDateFuture) {
-                          label = '기록 대기';
-                        } else if (isWeekly) {
-                          if (isWeeklyComplete) {
-                            // 🌟 이번 주에 이미 목표를 달성한 경우: 어느 날짜를 보든 언제 완료했는지를 일관되게 표시!
-                            label = '${weeklyDays.join(', ')}요일 완료';
-                            bg = AppColors.completedBg;
-                            border = AppColors.completedBorder;
-                            textCol = AppColors.completedText;
-                            if (!isFull) {
-                              weeklyStatusNote = '이번 주 목표 달성 (${weeklyDays.join(', ')}요일 실천)';
-                            }
-                          } else {
-                            // 아직 목표 미달성
-                            if (isWeekFinished) {
-                              // 그 주차가 다 지난 과거 주차 -> 미완료!
-                              label = '미완료';
+                            if (isSelectedDateBeforeTracking && hScore == 0.0) {
+                              label = '기록 전';
+                            } else if (isSelectedDateFuture) {
+                              label = '기록 대기';
+                            } else if (isFull) {
+                              label = '완료';
+                              bg = AppColors.completedBg;
+                              border = AppColors.completedBorder;
+                              textCol = AppColors.completedText;
+                            } else if (isPart) {
+                              if (AppColors.achromatopsiaModeEnabled) {
+                                label = '미완료';
+                                bg = AppColors.cardSurface;
+                                border = AppColors.divider;
+                                textCol = AppColors.textSecondary;
+                              } else {
+                                label = '조금 실천';
+                                bg = AppColors.partialBg;
+                                border = AppColors.partialBorder;
+                                textCol = AppColors.partialText;
+                              }
                             } else {
-                              // 그 주차가 아직 지나지 않음 -> 대기!
-                              label = '대기';
+                              label = isSelectedDatePast ? '미완료' : '대기';
                             }
-                          }
-                        } else {
-                          // 일반 매일 / 요일 지정 습관
-                          if (isFull) {
-                            label = '완료';
-                            bg = AppColors.completedBg;
-                            border = AppColors.completedBorder;
-                            textCol = AppColors.completedText;
-                          } else if (isPart) {
-                            if (AppColors.achromatopsiaModeEnabled) {
-                              label = '미완료';
-                              bg = AppColors.cardSurface;
-                              border = AppColors.divider;
-                              textCol = AppColors.textSecondary;
-                            } else {
-                              label = '조금 실천';
-                              bg = AppColors.partialBg;
-                              border = AppColors.partialBorder;
-                              textCol = AppColors.partialText;
-                            }
-                          } else {
-                            // hScore == 0.0
-                            if (isSelectedDatePast) {
-                              label = '미완료';
-                            } else {
-                              label = '대기'; // 오늘 실천 전
-                            }
-                          }
-                        }
-                        return Container(
-                          margin: const EdgeInsets.only(bottom: 4),
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 4,
-                            vertical: 8,
-                          ),
-                          decoration: BoxDecoration(
-                            border: Border(
-                              bottom: BorderSide(color: AppColors.divider),
-                            ),
-                          ),
-                          child: Row(
-                            children: [
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      habit.title,
-                                      style: TextStyle(
-                                        fontSize: 13,
-                                        fontWeight: FontWeight.bold,
-                                        color: AppColors.textPrimary,
-                                      ),
-                                    ),
-                                    const SizedBox(height: 2),
-                                    Text(
-                                      habit.subtitle,
-                                      style: TextStyle(
-                                        fontSize: 11,
-                                        color: AppColors.textSecondary,
-                                      ),
-                                    ),
-                                    if (weeklyStatusNote != null)
-                                      Padding(
-                                        padding: const EdgeInsets.only(top: 3),
-                                        child: Text(
-                                          weeklyStatusNote,
+
+                            return Container(
+                              margin: const EdgeInsets.only(bottom: 4),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 4,
+                                vertical: 8,
+                              ),
+                              decoration: BoxDecoration(
+                                border: Border(
+                                  bottom: BorderSide(color: AppColors.divider),
+                                ),
+                              ),
+                              child: Row(
+                                children: [
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          habit.title,
                                           style: TextStyle(
-                                            fontSize: 10.5,
-                                            fontWeight: FontWeight.w600,
-                                            color: AppColors.primaryPurple,
+                                            fontSize: 13,
+                                            fontWeight: FontWeight.bold,
+                                            color: AppColors.textPrimary,
                                           ),
                                         ),
-                                      ),
-                                    if (_state
-                                        .getHabitCompletionTimesForDay(
-                                          _selectedDate,
-                                          habit.id,
-                                        )
-                                        .isNotEmpty)
-                                      Padding(
-                                        padding: const EdgeInsets.only(top: 3),
-                                        child: Text(
-                                          '실천 시각: ${_state.getHabitCompletionTimesForDay(_selectedDate, habit.id).join(' · ')}',
+                                        const SizedBox(height: 2),
+                                        Text(
+                                          habit.subtitle,
                                           style: TextStyle(
-                                            fontSize: 10.5,
+                                            fontSize: 11,
                                             color: AppColors.textSecondary,
                                           ),
                                         ),
-                                      ),
-                                  ],
-                                ),
-                              ),
-                              const SizedBox(width: 8),
+                                        if (_state
+                                            .getHabitCompletionTimesForDay(
+                                              _selectedDate,
+                                              habit.id,
+                                            )
+                                            .isNotEmpty)
+                                          Padding(
+                                            padding: const EdgeInsets.only(top: 3),
+                                            child: Text(
+                                              '실천 시각: ${_state.getHabitCompletionTimesForDay(_selectedDate, habit.id).join(' · ')}',
+                                              style: TextStyle(
+                                                fontSize: 10.5,
+                                                color: AppColors.textSecondary,
+                                              ),
+                                            ),
+                                          ),
+                                      ],
+                                    ),
+                                  ),
+                                  const SizedBox(width: 8),
 
-                              // 습관 실천 소급 상태 선택 버튼 (클릭 시 확인 다이얼로그 팝업)
-                              InkWell(
-                                borderRadius: BorderRadius.circular(6),
-                                onTap: isSelectedDatePast
-                                    ? () => _onHabitBadgeTap(
-                                        habit,
-                                        isFull,
-                                        isPart,
-                                      )
-                                    : (isSelectedDateToday
-                                        ? () {
-                                            CelebrationToast.show(
-                                              context,
-                                              title: '오늘의 습관 실천',
-                                              message: '오늘 습관 실천은 [습관] 탭에서 체크해 주세요.',
-                                              actionLabel: '습관 탭으로 이동',
-                                              onAction: () {
-                                                _state.targetTabIndexRequested = 1;
-                                                _state.notifyListeners();
-                                              },
-                                              isCompletionNotice: false,
-                                            );
-                                          }
-                                        : null),
-                                child: Container(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 10,
-                                    vertical: 5,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    color: bg,
+                                  // 습관 실천 소급 상태 선택 버튼 (클릭 시 확인 다이얼로그 팝업)
+                                  InkWell(
                                     borderRadius: BorderRadius.circular(6),
-                                    border: Border.all(
-                                      color: border,
-                                      width: isFull ? 1.2 : 1.0,
+                                    onTap: isSelectedDatePast
+                                        ? () => _onHabitBadgeTap(
+                                            habit,
+                                            isFull,
+                                            isPart,
+                                          )
+                                        : (isSelectedDateToday
+                                            ? () {
+                                                CelebrationToast.show(
+                                                  context,
+                                                  title: '오늘의 습관 실천',
+                                                  message: '오늘 습관 실천은 [습관] 탭에서 체크해 주세요.',
+                                                  actionLabel: '습관 탭으로 이동',
+                                                  onAction: () {
+                                                    _state.targetTabIndexRequested = 1;
+                                                    _state.notifyListeners();
+                                                  },
+                                                  isCompletionNotice: false,
+                                                );
+                                              }
+                                            : null),
+                                    child: Container(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 10,
+                                        vertical: 5,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color: bg,
+                                        borderRadius: BorderRadius.circular(6),
+                                        border: Border.all(
+                                          color: border,
+                                          width: isFull ? 1.2 : 1.0,
+                                        ),
+                                      ),
+                                      child: Text(
+                                        label,
+                                        style: TextStyle(
+                                          fontSize: 11.5,
+                                          fontWeight: FontWeight.bold,
+                                          color: textCol,
+                                        ),
+                                      ),
                                     ),
                                   ),
-                                  child: Text(
-                                    label,
+                                ],
+                              ),
+                            );
+                          }).toList(),
+                        ),
+                      ],
+                    ],
+                  );
+                },
+              ),
+
+              // 4. 🗓️ [주간 목표 습관 현황 요약 및 펼침 아코디언]
+              Builder(
+                builder: (context) {
+                  final weeklyHabits = _state.allHabits
+                      .where((h) => _state.isHabitVisibleOnCalendarDay(h, _selectedDate) && h.isWeeklyFrequencyHabit)
+                      .toList();
+                  if (weeklyHabits.isEmpty) return const SizedBox.shrink();
+
+                  int weeklyCompletedCount = 0;
+                  for (final habit in weeklyHabits) {
+                    final weeklyDays = _state.weeklyHabitCompletionDaysForDate(habit, _selectedDate);
+                    final weeklyMatch = RegExp(r'주\s*(\d+)회').firstMatch(habit.recurrenceSummary);
+                    final targetPerWeek = int.tryParse(weeklyMatch?.group(1) ?? '1') ?? 1;
+                    if (weeklyDays.length >= targetPerWeek) {
+                      weeklyCompletedCount++;
+                    }
+                  }
+                  final bool isAllWeeklyComplete = weeklyCompletedCount >= weeklyHabits.length;
+                  final bool isPartialWeeklyComplete = weeklyCompletedCount > 0 && !isAllWeeklyComplete;
+
+                  final selectedMonday = _selectedDate.subtract(Duration(days: _selectedDate.weekday - 1));
+                  final selectedSunday = selectedMonday.add(const Duration(days: 6));
+                  final bool isWeekFinished = today.isAfter(selectedSunday);
+
+                  String weeklyBadgeText;
+                  if (isSelectedDateBeforeTracking) {
+                    weeklyBadgeText = '기록 전';
+                  } else if (isSelectedDateFuture && today.isBefore(selectedMonday)) {
+                    weeklyBadgeText = '기록 대기';
+                  } else if (isAllWeeklyComplete) {
+                    weeklyBadgeText = '전체 달성';
+                  } else if (isPartialWeeklyComplete) {
+                    weeklyBadgeText = '$weeklyCompletedCount/${weeklyHabits.length}개 달성';
+                  } else {
+                    weeklyBadgeText = isWeekFinished ? '미완료' : '진행 대기';
+                  }
+
+                  return Column(
+                    children: [
+                      const SizedBox(height: 12),
+                      const Divider(height: 1),
+                      const SizedBox(height: 12),
+                      InkWell(
+                        borderRadius: BorderRadius.circular(8),
+                        onTap: (isSelectedDatePast ||
+                                isSelectedDateToday ||
+                                isSelectedDateFuture)
+                            ? () {
+                                setState(() {
+                                  _isWeeklyHabitDetailsExpanded = !_isWeeklyHabitDetailsExpanded;
+                                });
+                              }
+                            : null,
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 4),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Row(
+                                children: [
+                                  Text(
+                                    '주간 목표 습관',
                                     style: TextStyle(
-                                      fontSize: 11.5,
+                                      fontSize: 13.5,
                                       fontWeight: FontWeight.bold,
-                                      color: textCol,
+                                      color: AppColors.textPrimary,
                                     ),
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 8,
+                                      vertical: 2,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: isAllWeeklyComplete
+                                          ? AppColors.completedBg
+                                          : (isPartialWeeklyComplete && !AppColors.achromatopsiaModeEnabled
+                                                ? AppColors.partialOrange.withValues(
+                                                    alpha: 0.12,
+                                                  )
+                                                : AppColors.inputSurface),
+                                      borderRadius: BorderRadius.circular(5),
+                                      border: isAllWeeklyComplete
+                                          ? Border.all(color: AppColors.completedBorder)
+                                          : null,
+                                    ),
+                                    child: Text(
+                                      weeklyBadgeText,
+                                      style: TextStyle(
+                                        fontSize: 11.5,
+                                        fontWeight: FontWeight.bold,
+                                        color: isAllWeeklyComplete
+                                            ? AppColors.completedText
+                                            : (isPartialWeeklyComplete && !AppColors.achromatopsiaModeEnabled
+                                                  ? AppColors.partialOrange
+                                                  : AppColors.textSecondary),
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              if (isSelectedDatePast ||
+                                  isSelectedDateToday ||
+                                  isSelectedDateFuture)
+                                Text(
+                                  _isWeeklyHabitDetailsExpanded
+                                      ? '접기'
+                                      : (isSelectedDatePast ? '수정하기' : '확인하기'),
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    color: AppColors.primaryPurple,
+                                    fontWeight: FontWeight.bold,
                                   ),
                                 ),
-                              ),
                             ],
                           ),
-                        );
-                      })
-                      .toList(),
-                ),
-              ],
+                        ),
+                      ),
+
+                      // 펼쳤을 때 나오는 주간 목표 습관 목록
+                      if (_isWeeklyHabitDetailsExpanded) ...[
+                        const SizedBox(height: 10),
+                        Column(
+                          children: weeklyHabits.map((habit) {
+                            final hScore = _state.getHabitScoreForDay(
+                              _selectedDate,
+                              habit.id,
+                            );
+                            final isFull =
+                                !isSelectedDateBeforeTracking && hScore >= 1.0;
+                            final isPart =
+                                !isSelectedDateBeforeTracking &&
+                                hScore > 0.0 &&
+                                hScore < 1.0;
+
+                            final weeklyDays = _state.weeklyHabitCompletionDaysForDate(habit, _selectedDate);
+                            final weeklyMatch = RegExp(r'주\s*(\d+)회').firstMatch(habit.recurrenceSummary);
+                            final targetPerWeek = int.tryParse(weeklyMatch?.group(1) ?? '1') ?? 1;
+                            final bool isWeeklyComplete = weeklyDays.length >= targetPerWeek;
+
+                            String label;
+                            Color bg = AppColors.cardSurface;
+                            Color border = AppColors.divider;
+                            Color textCol = AppColors.textSecondary;
+                            String? weeklyStatusNote;
+
+                            if (isSelectedDateBeforeTracking && hScore == 0.0) {
+                              label = '기록 전';
+                            } else if (isSelectedDateFuture && today.isBefore(selectedMonday)) {
+                              label = '기록 대기';
+                            } else if (isWeeklyComplete) {
+                              label = '${weeklyDays.join(', ')}요일 완료';
+                              bg = AppColors.completedBg;
+                              border = AppColors.completedBorder;
+                              textCol = AppColors.completedText;
+                              weeklyStatusNote = '이번 주 목표 달성 (${weeklyDays.join(', ')}요일 실천)';
+                            } else {
+                              if (isWeekFinished) {
+                                label = '미완료';
+                              } else {
+                                label = '대기';
+                              }
+                              if (weeklyDays.isNotEmpty) {
+                                weeklyStatusNote = '${weeklyDays.length}/$targetPerWeek회 실천 (${weeklyDays.join(', ')}요일)';
+                              } else {
+                                weeklyStatusNote = '주 $targetPerWeek회 실천 예정';
+                              }
+                            }
+
+                            return Container(
+                              margin: const EdgeInsets.only(bottom: 4),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 4,
+                                vertical: 8,
+                              ),
+                              decoration: BoxDecoration(
+                                border: Border(
+                                  bottom: BorderSide(color: AppColors.divider),
+                                ),
+                              ),
+                              child: Row(
+                                children: [
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          '${habit.title} (${habit.recurrenceSummary})',
+                                          style: TextStyle(
+                                            fontSize: 13,
+                                            fontWeight: FontWeight.bold,
+                                            color: AppColors.textPrimary,
+                                          ),
+                                        ),
+                                        const SizedBox(height: 2),
+                                        Text(
+                                          habit.subtitle,
+                                          style: TextStyle(
+                                            fontSize: 11,
+                                            color: AppColors.textSecondary,
+                                          ),
+                                        ),
+                                        if (weeklyStatusNote != null)
+                                          Padding(
+                                            padding: const EdgeInsets.only(top: 3),
+                                            child: Text(
+                                              weeklyStatusNote,
+                                              style: TextStyle(
+                                                fontSize: 10.5,
+                                                fontWeight: FontWeight.w600,
+                                                color: AppColors.primaryPurple,
+                                              ),
+                                            ),
+                                          ),
+                                        if (_state
+                                            .getHabitCompletionTimesForDay(
+                                              _selectedDate,
+                                              habit.id,
+                                            )
+                                            .isNotEmpty)
+                                          Padding(
+                                            padding: const EdgeInsets.only(top: 3),
+                                            child: Text(
+                                              '실천 시각: ${_state.getHabitCompletionTimesForDay(_selectedDate, habit.id).join(' · ')}',
+                                              style: TextStyle(
+                                                fontSize: 10.5,
+                                                color: AppColors.textSecondary,
+                                              ),
+                                            ),
+                                          ),
+                                      ],
+                                    ),
+                                  ),
+                                  const SizedBox(width: 8),
+
+                                  // 주간 습관 실천 상태 선택 버튼
+                                  InkWell(
+                                    borderRadius: BorderRadius.circular(6),
+                                    onTap: isSelectedDatePast
+                                        ? () => _onHabitBadgeTap(
+                                            habit,
+                                            isFull,
+                                            isPart,
+                                          )
+                                        : (isSelectedDateToday
+                                            ? () {
+                                                CelebrationToast.show(
+                                                  context,
+                                                  title: '오늘의 습관 실천',
+                                                  message: '오늘 습관 실천은 [습관] 탭에서 체크해 주세요.',
+                                                  actionLabel: '습관 탭으로 이동',
+                                                  onAction: () {
+                                                    _state.targetTabIndexRequested = 1;
+                                                    _state.notifyListeners();
+                                                  },
+                                                  isCompletionNotice: false,
+                                                );
+                                              }
+                                            : null),
+                                    child: Container(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 10,
+                                        vertical: 5,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color: bg,
+                                        borderRadius: BorderRadius.circular(6),
+                                        border: Border.all(
+                                          color: border,
+                                          width: isFull || isWeeklyComplete ? 1.2 : 1.0,
+                                        ),
+                                      ),
+                                      child: Text(
+                                        label,
+                                        style: TextStyle(
+                                          fontSize: 11.5,
+                                          fontWeight: FontWeight.bold,
+                                          color: textCol,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            );
+                          }).toList(),
+                        ),
+                      ],
+                    ],
+                  );
+                },
+              ),
             ],
           ),
         ),
