@@ -79,7 +79,7 @@ class HagomHabitsWidgetProvider : HomeWidgetProvider() {
                     setTextColor(
                         R.id.habits_celebration_badge,
                         Color.parseColor(if (isAchromatopsia) {
-                            if (isDark) "#111111" else "#FFFFFF"
+                            "#FFFFFF"
                         } else if (isColorVision) "#1D4ED8" else "#044E36")
                     )
                     setTextColor(
@@ -120,7 +120,7 @@ class HagomHabitsWidgetProvider : HomeWidgetProvider() {
                         "done" -> (if (isAchromatopsia) {
                             if (isDark) R.drawable.hagom_widget_mono_done_dark_btn_bg else R.drawable.hagom_widget_mono_done_btn_bg
                         } else if (isColorVision) R.drawable.hagom_widget_blue_btn_bg else R.drawable.hagom_widget_green_btn_bg) to Color.parseColor(if (isAchromatopsia) {
-                            if (isDark) "#111111" else "#FFFFFF"
+                            "#FFFFFF"
                         } else if (isColorVision) "#1D4ED8" else "#1B6B46")
                         "partial" -> (if (isAchromatopsia) {
                             if (isDark) R.drawable.hagom_widget_mono_partial_dark_btn_bg else R.drawable.hagom_widget_mono_partial_btn_bg

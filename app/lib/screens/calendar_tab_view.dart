@@ -156,6 +156,18 @@ class _CalendarTabViewState extends State<CalendarTabView> {
   }
 
   void _showCalendarLegend() {
+    // 다크모드 여부 판단 (전색맹 포함 모든 테마 대응)
+    final bool isDarkLegend = AppColors.background == AppColors.darkTheme.background ||
+        (AppColors.achromatopsiaModeEnabled &&
+            (AppColors.background == const Color(0xFF121212) ||
+                AppColors.background == const Color(0xFF181818)));
+    final Color legendStrokeColor = isDarkLegend ? const Color(0xFFCCCCCC) : const Color(0xFF333333);
+    final Color legendDotColor = isDarkLegend ? const Color(0xFFCCCCCC) : const Color(0xFF222222);
+    final Color monoFilledDotColor = isDarkLegend ? const Color(0xFFCCCCCC) : const Color(0xFF555555);
+    // 일반(비전색맹) 모드 미완료 색상: 다크모드에서는 더 밝게
+    final Color normalMedPartialColor = isDarkLegend ? const Color(0xFFB0B8C8) : const Color(0xFF9CA3AF);
+    final Color normalTaskPartialColor = isDarkLegend ? const Color(0xFFAAAAAA) : const Color(0xFFD1D5DB);
+
     Widget row({required Widget marker, required String label}) => Padding(
       padding: const EdgeInsets.symmetric(vertical: 6),
       child: Row(
@@ -183,9 +195,9 @@ class _CalendarTabViewState extends State<CalendarTabView> {
       width: 12,
       height: 12,
       decoration: BoxDecoration(
-        color: filled ? const Color(0xFF555555) : Colors.transparent,
+        color: filled ? monoFilledDotColor : Colors.transparent,
         shape: BoxShape.circle,
-        border: Border.all(color: const Color(0xFF333333), width: 1.5),
+        border: Border.all(color: legendStrokeColor, width: 1.5),
       ),
     );
     Widget outlineBar() => Container(
@@ -194,7 +206,7 @@ class _CalendarTabViewState extends State<CalendarTabView> {
       decoration: BoxDecoration(
         color: Colors.transparent,
         borderRadius: BorderRadius.circular(2),
-        border: Border.all(color: const Color(0xFF333333), width: 1.4),
+        border: Border.all(color: legendStrokeColor, width: 1.4),
       ),
     );
     Widget dottedBar() => SizedBox(
@@ -207,8 +219,8 @@ class _CalendarTabViewState extends State<CalendarTabView> {
           (_) => Container(
             width: 4,
             height: 4,
-            decoration: const BoxDecoration(
-              color: Color(0xFF222222),
+            decoration: BoxDecoration(
+              color: legendDotColor,
               shape: BoxShape.circle,
             ),
           ),
@@ -239,7 +251,7 @@ class _CalendarTabViewState extends State<CalendarTabView> {
         color: fill,
         borderRadius: BorderRadius.circular(3),
         border: Border.all(
-          color: const Color(0xFF333333),
+          color: legendStrokeColor,
           width: strong ? 1.5 : 1,
         ),
       ),
@@ -265,10 +277,10 @@ class _CalendarTabViewState extends State<CalendarTabView> {
             ] else ...[
               row(marker: bar(AppColors.missedRed), label: '처방약 미복용'),
               row(marker: bar(AppColors.successGreen), label: '복약 완료'),
-              row(marker: bar(const Color(0xFF9CA3AF)), label: '복약 미완료'),
+              row(marker: bar(normalMedPartialColor), label: '복약 미완료'),
               const Divider(),
               row(marker: dot(AppColors.successGreen), label: '할일 완료'),
-              row(marker: dot(const Color(0xFFD1D5DB)), label: '할일 미완료'),
+              row(marker: dot(normalTaskPartialColor), label: '할일 미완료'),
               const Divider(),
               row(marker: cell(AppColors.successBg), label: '습관 완료'),
               row(marker: cell(AppColors.cardSurface), label: '습관 미완료'),

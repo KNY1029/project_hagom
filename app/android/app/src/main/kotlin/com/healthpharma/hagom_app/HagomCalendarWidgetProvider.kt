@@ -93,7 +93,7 @@ class HagomCalendarWidgetProvider : HomeWidgetProvider() {
                 } else if (isAchromatopsia) R.drawable.hagom_widget_mono_outline_btn_bg else R.drawable.hagom_widget_task_btn_bg
                 val txtColor = if (allDone) {
                     Color.parseColor(if (isAchromatopsia) {
-                        if (isDark) "#111111" else "#FFFFFF"
+                        "#FFFFFF"
                     } else if (isColorVision) "#1D4ED8" else "#1B6B46")
                 } else if (isAchromatopsia) {
                     Color.parseColor(if (isDark) "#FFFFFF" else "#555555")
