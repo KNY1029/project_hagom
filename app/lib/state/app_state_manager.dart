@@ -1378,23 +1378,68 @@ class AppStateManager extends ChangeNotifier {
               habit.startDate = exampleStartDate;
             }
           }
-          if (!_habits.any((h) => h.id == 'habit_5')) {
-            // 이번 주 화요일(11/10)에 완료한 것으로 설정
-            final thisTuesday = DateTime(DateTime.now().year, 11, 10);
+          final thisTuesday = DateTime(DateTime.now().year, 11, 10);
+          final weekStart = thisTuesday.subtract(Duration(days: thisTuesday.weekday - 1));
+
+          final habit5 = _habits.where((h) => h.id == 'habit_5').firstOrNull;
+          if (habit5 != null) {
+            habit5.title = '침구 정리 및 환기하기';
+            habit5.subtitle = '주 1회';
+            habit5.recurrenceSummary = '주 1회';
+            habit5.targetPerDay = 1;
+            habit5.currentCount = 0;
+            habit5.weeklyCompletedCount = 1; // 이번 주 화요일 완료
+            habit5.weeklyPeriodStart = weekStart;
+            habit5.startDate = exampleStartDate;
+          } else {
             _habits.add(
               HabitItem(
                 id: 'habit_5',
-                title: '침구 정리 및 환기하기 (예시)',
+                title: '침구 정리 및 환기하기',
                 subtitle: '주 1회',
                 recurrenceSummary: '주 1회',
                 targetPerDay: 1,
                 currentCount: 0,
                 weeklyCompletedCount: 1, // 이번 주 화요일 완료
-                weeklyPeriodStart: thisTuesday.subtract(Duration(days: thisTuesday.weekday - 1)),
+                weeklyPeriodStart: weekStart,
                 startDate: exampleStartDate,
               ),
             );
           }
+
+          final habit6 = _habits.where((h) => h.id == 'habit_6').firstOrNull;
+          if (habit6 != null) {
+            habit6.title = '청소하기';
+            habit6.subtitle = '주 1회 · 오늘 완료!';
+            habit6.recurrenceSummary = '주 1회';
+            habit6.targetPerDay = 1;
+            habit6.currentCount = 2; // 완료 상태
+            habit6.weeklyCompletedCount = 1;
+            habit6.weeklyPeriodStart = weekStart;
+            habit6.startDate = exampleStartDate;
+            if (habit6.completionTimes.isEmpty) {
+              habit6.completionTimes = ['오전 11:00'];
+            }
+          } else {
+            _habits.add(
+              HabitItem(
+                id: 'habit_6',
+                title: '청소하기',
+                subtitle: '주 1회 · 오늘 완료!',
+                recurrenceSummary: '주 1회',
+                targetPerDay: 1,
+                currentCount: 2,
+                weeklyCompletedCount: 1,
+                weeklyPeriodStart: weekStart,
+                completionTimes: ['오전 11:00'],
+                startDate: exampleStartDate,
+              ),
+            );
+          }
+
+          final tuesdayKey = _dateKey(thisTuesday);
+          _pastHabitRecords.putIfAbsent(tuesdayKey, () => {})['habit_5'] = 1.0;
+          _pastHabitCompletionTimes.putIfAbsent(tuesdayKey, () => {})['habit_5'] = ['오전 10:30'];
         }
         if (isDevSimulationMode) {
           await _prefs!.setString(
@@ -1424,7 +1469,7 @@ class AppStateManager extends ChangeNotifier {
           (med) => med.id == 'med_1' || med.id == 'med_2' || med.id == 'med_3',
         );
         _habits.removeWhere(
-          (habit) => RegExp(r'^habit_[1-5]$').hasMatch(habit.id),
+          (habit) => RegExp(r'^habit_[1-6]$').hasMatch(habit.id),
         );
         _tasks.removeWhere(
           (task) =>
@@ -1603,7 +1648,7 @@ class AppStateManager extends ChangeNotifier {
       ),
       HabitItem(
         id: 'habit_5',
-        title: '침구 정리 및 환기하기 (예시)',
+        title: '침구 정리 및 환기하기',
         subtitle: '주 1회',
         recurrenceSummary: '주 1회',
         targetPerDay: 1,
@@ -1615,7 +1660,7 @@ class AppStateManager extends ChangeNotifier {
       // 🌟 [오늘 완료 주간 습관 예시]: 오늘 완료했으나 당일은 그 자리에 머무는 것 확인용
       HabitItem(
         id: 'habit_6',
-        title: '창문 닦기 (예시)',
+        title: '청소하기',
         subtitle: '주 1회 · 오늘 완료!',
         recurrenceSummary: '주 1회',
         targetPerDay: 1,

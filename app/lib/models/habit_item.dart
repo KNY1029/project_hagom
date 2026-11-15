@@ -69,8 +69,14 @@ class HabitItem {
       final now = DateTime.now();
       final today = DateTime(now.year, now.month, now.day);
       if (target.isBefore(today)) return true;
-      // 오늘 이후: 이미 이번 주 목표를 다 채웠다면 아직 완료 안 된 오늘도 실천 대상 유지 (당일은 그 자리에 머뭄)
-      if (target.isAtSameMomentAs(today)) return true;
+      // 오늘 날짜인 경우: 이미 이번 주 목표를 다 채웠더라도 오늘 실천/완료한 것이라면 당일 동안은 상단 목록에 유지!
+      // (오늘 실천한 적이 없는데 이미 이번 주 목표가 완료된 것이라면 다음날 이후이므로 아래로 내려보냄)
+      if (target.isAtSameMomentAs(today)) {
+        if (weeklyCompletedCount >= targetPerWeek) {
+          return currentCount > 0 || score >= 1.0;
+        }
+        return true;
+      }
       // 미래: 이미 이번 주 목표를 다 채웠다면 실천 대상에서 제외
       if (weeklyCompletedCount >= targetPerWeek) {
         return false;
