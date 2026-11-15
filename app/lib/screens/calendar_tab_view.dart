@@ -2395,7 +2395,21 @@ class _CalendarTabViewState extends State<CalendarTabView> {
                                                   );
                                                 }
                                               }
-                                            : null, // 오늘 날짜는 확인만 가능 (수정은 복약 탭에서)
+                                            : (isSelectedDateToday
+                                                ? () {
+                                                    CelebrationToast.show(
+                                                      context,
+                                                      title: '오늘의 복약 기록',
+                                                      message: '오늘 복약 기록은 [복약] 탭에서 체크해 주세요.',
+                                                      actionLabel: '복약 탭으로 이동',
+                                                      onAction: () {
+                                                        _state.targetTabIndexRequested = 0;
+                                                        _state.notifyListeners();
+                                                      },
+                                                      isCompletionNotice: false,
+                                                    );
+                                                  }
+                                                : null),
                                         child: Container(
                                           padding: const EdgeInsets.symmetric(
                                             horizontal: 9,
@@ -2728,7 +2742,21 @@ class _CalendarTabViewState extends State<CalendarTabView> {
                                         isFull,
                                         isPart,
                                       )
-                                    : null,
+                                    : (isSelectedDateToday
+                                        ? () {
+                                            CelebrationToast.show(
+                                              context,
+                                              title: '오늘의 습관 실천',
+                                              message: '오늘 습관 실천은 [습관] 탭에서 체크해 주세요.',
+                                              actionLabel: '습관 탭으로 이동',
+                                              onAction: () {
+                                                _state.targetTabIndexRequested = 1;
+                                                _state.notifyListeners();
+                                              },
+                                              isCompletionNotice: false,
+                                            );
+                                          }
+                                        : null),
                                 child: Container(
                                   padding: const EdgeInsets.symmetric(
                                     horizontal: 10,
