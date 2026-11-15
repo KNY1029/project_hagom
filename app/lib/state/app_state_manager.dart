@@ -186,14 +186,25 @@ class AppStateManager extends ChangeNotifier {
 
   // --- 🐻 하곰이 응원/상태 위젯 단계 (1~9단계) ---
   int mascotStageIndex = 0; // 0: 기대, 1: 기다림, ..., 8: 붕괴
+  int mascotQuoteIndex = 0; // 0~3: 현재 단계의 대사 인덱스
 
   void nextMascotStage() {
-    mascotStageIndex = (mascotStageIndex + 1) % 9;
+    if (mascotQuoteIndex < 3) {
+      mascotQuoteIndex++;
+    } else {
+      mascotQuoteIndex = 0;
+      mascotStageIndex = (mascotStageIndex + 1) % 9;
+    }
+    _prefs?.setInt('hagom_mascot_stage_index', mascotStageIndex);
+    _prefs?.setInt('hagom_mascot_quote_index', mascotQuoteIndex);
     notifyListeners();
   }
 
   void setMascotStage(int index) {
     mascotStageIndex = index.clamp(0, 8);
+    mascotQuoteIndex = 0;
+    _prefs?.setInt('hagom_mascot_stage_index', mascotStageIndex);
+    _prefs?.setInt('hagom_mascot_quote_index', mascotQuoteIndex);
     notifyListeners();
   }
 
@@ -1187,6 +1198,7 @@ class AppStateManager extends ChangeNotifier {
       await _prefs!.setBool('hagom_tasks_noti', tasksNotificationEnabled);
       await _prefs!.setBool('hagom_mascot_noti', mascotNotificationEnabled);
       await _prefs!.setInt('hagom_mascot_stage_index', mascotStageIndex);
+      await _prefs!.setInt('hagom_mascot_quote_index', mascotQuoteIndex);
       await _prefs!.setBool(
         'hagom_completion_feedback',
         completionFeedbackEnabled,
@@ -1425,6 +1437,7 @@ class AppStateManager extends ChangeNotifier {
       tasksNotificationEnabled = _prefs!.getBool('hagom_tasks_noti') ?? true;
       mascotNotificationEnabled = _prefs!.getBool('hagom_mascot_noti') ?? true;
       mascotStageIndex = _prefs!.getInt('hagom_mascot_stage_index') ?? 0;
+      mascotQuoteIndex = _prefs!.getInt('hagom_mascot_quote_index') ?? 0;
       completionFeedbackEnabled =
           _prefs!.getBool('hagom_completion_feedback') ?? true;
       notificationFrequency = _prefs!.getString('hagom_noti_freq') ?? '기본';

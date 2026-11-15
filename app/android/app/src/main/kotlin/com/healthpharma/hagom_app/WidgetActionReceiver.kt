@@ -123,7 +123,11 @@ class WidgetActionReceiver : BroadcastReceiver() {
                 val curBadge = prefs.getString("mascot_badge", "1. 기대") ?: "1. 기대"
                 val curIndex = mascotStages.indexOfFirst { it.first == curBadge }.let { if (it == -1) 0 else it }
                 val currentStage = mascotStages[curIndex]
-                val currentQuoteIndex = prefs.getInt("mascot_quote_index", 0)
+                val currentQuoteIndex = when (val v = prefs.all["mascot_quote_index"]) {
+                    is Number -> v.toInt()
+                    is String -> v.toIntOrNull() ?: 0
+                    else -> 0
+                }
                 val isLastQuote = currentQuoteIndex >= currentStage.second.lastIndex
                 val nextIndex = if (isLastQuote) (curIndex + 1) % mascotStages.size else curIndex
                 val nextStage = mascotStages[nextIndex]
@@ -132,6 +136,7 @@ class WidgetActionReceiver : BroadcastReceiver() {
                 editor.putString("mascot_badge", nextStage.first)
                 editor.putString("mascot_quote", nextStage.second[nextQuoteIndex])
                 editor.putInt("mascot_quote_index", nextQuoteIndex)
+                editor.putInt("mascot_stage_index", nextIndex)
                 editor.putString("mascot_sub", nextStage.third.first)
                 editor.putString("mascot_image", nextStage.third.second)
                 editor.apply()
@@ -357,6 +362,12 @@ class WidgetActionReceiver : BroadcastReceiver() {
                     provider.onUpdate(context, appWidgetManager, ids, prefs)
                 }
             }
+        }
+
+        // 🌟 마스코트 위젯 터치(대사 전환), 단순 리플(noop), 날짜 선택은 네이티브에서 100% 처리 완료되므로
+        // 무거운 플러터 백그라운드 엔진을 깨워 배터리를 낭비하거나 위젯 상태를 덮어쓰지 않도록 즉시 종료합니다.
+        if (action == "next_mascot_stage" || action == "noop" || action == "selectday") {
+            return
         }
 
         // 🌟 [최적화된 450ms 딜레이]:

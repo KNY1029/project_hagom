@@ -149,8 +149,8 @@ Future<void> handleWidgetUriAction(Uri? uri) async {
   } else if (action == 'openroom') {
     state.setTargetTab(0, openRoom: true);
   } else if (action == 'next_mascot_stage') {
-    state.nextMascotStage();
-    await state.flushForWidget();
+    // 위젯 대사 및 단계 전환은 안드로이드 네이티브(WidgetActionReceiver)에서 즉시 처리하므로
+    // 백그라운드에서 다시 위젯을 덮어쓰거나 이미지를 강제 점프시키지 않습니다.
   }
 }
 

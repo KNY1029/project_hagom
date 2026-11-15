@@ -174,19 +174,33 @@ class HagomNativeWidgetSync {
         },
       ];
 
+      // 사용자가 위젯을 탭하여 회전시킨 단계와 대사 상태를 보존합니다.
+      final existingBadge = await HomeWidget.getWidgetData<String>('mascot_badge');
+      final existingQuoteIndex = await HomeWidget.getWidgetData<int>('mascot_quote_index');
+
+      int stageIdx = state.mascotStageIndex;
+      if (existingBadge != null) {
+        final found = mascotStages.indexWhere((s) => s['badge'] == existingBadge);
+        if (found != -1) {
+          stageIdx = found;
+          state.mascotStageIndex = stageIdx;
+        }
+      }
+
       final currentStage =
-          mascotStages[state.mascotStageIndex.clamp(
+          mascotStages[stageIdx.clamp(
             0,
             mascotStages.length - 1,
           )];
+
+      final quotes = currentStage['quotes'] as List<String>;
+      final quoteIndex = (existingQuoteIndex ?? state.mascotQuoteIndex).clamp(0, quotes.length - 1);
+      state.mascotQuoteIndex = quoteIndex;
 
       await HomeWidget.saveWidgetData<String>(
         'mascot_badge',
         currentStage['badge']!,
       );
-      final quotes = currentStage['quotes'] as List<String>;
-      // 첫 문장부터 순서대로 보여주고, 터치할 때마다 같은 이미지의 다음 문장으로 이동해요.
-      final quoteIndex = 0;
       await HomeWidget.saveWidgetData<String>(
         'mascot_quote',
         quotes[quoteIndex],
