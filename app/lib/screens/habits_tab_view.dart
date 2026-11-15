@@ -1050,7 +1050,13 @@ class _HabitsTabViewState extends State<HabitsTabView> {
         : AppColors.textSecondary;
     return InkWell(
       borderRadius: BorderRadius.circular(8),
-      onTap: () => _showHabitEditModal(habit: habit),
+      onTap: () {
+        if (isWeeklyComplete || weeklyDays.isNotEmpty) {
+          _showWeeklyHabitRecordSheet(habit);
+        } else {
+          _showHabitEditModal(habit: habit);
+        }
+      },
       child: Container(
         margin: const EdgeInsets.only(bottom: 6),
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
@@ -1080,15 +1086,236 @@ class _HabitsTabViewState extends State<HabitsTabView> {
                 ),
               ),
             ),
-            Text(
-              scheduleText,
-              style: TextStyle(
-                fontSize: 11,
-                color: statusColor,
-                fontWeight: FontWeight.bold,
+            InkWell(
+              borderRadius: BorderRadius.circular(4),
+              onTap: (isWeeklyComplete || weeklyDays.isNotEmpty)
+                  ? () => _showWeeklyHabitRecordSheet(habit)
+                  : null,
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+                child: Text(
+                  scheduleText,
+                  style: TextStyle(
+                    fontSize: 11,
+                    color: statusColor,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
               ),
             ),
           ],
+        ),
+      ),
+    );
+  }
+
+  /// 🌟 이번 주에 완료된 주간 습관의 실천 기록(요일, 시각)을 확인하고 수정/취소하는 바텀시트
+  Future<void> _showWeeklyHabitRecordSheet(HabitItem habit) async {
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final monday = today.subtract(Duration(days: today.weekday - 1));
+
+    final records = <Map<String, dynamic>>[];
+    for (int i = 0; i < 7; i++) {
+      final day = monday.add(Duration(days: i));
+      final score = _state.getHabitScoreForDay(day, habit.id);
+      if (score >= 1.0) {
+        final times = _state.getHabitCompletionTimesForDay(day, habit.id);
+        final timeStr = times.isNotEmpty ? times.join(' · ') : '기록 없음';
+        records.add({
+          'date': day,
+          'dayLabel': ['월', '화', '수', '목', '금', '토', '일'][day.weekday - 1],
+          'time': timeStr,
+          'isToday': day.isAtSameMomentAs(today),
+        });
+      }
+    }
+
+    if (records.isEmpty) {
+      _showHabitEditModal(habit: habit);
+      return;
+    }
+
+    await showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      requestFocus: false,
+      backgroundColor: Colors.transparent,
+      builder: (sheetContext) => SafeArea(
+        child: Container(
+          margin: const EdgeInsets.fromLTRB(12, 0, 12, 12),
+          padding: const EdgeInsets.fromLTRB(20, 10, 20, 14),
+          decoration: BoxDecoration(
+            color: AppColors.cardSurface,
+            borderRadius: BorderRadius.circular(22),
+            border: Border.all(color: AppColors.divider),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Center(
+                child: Container(
+                  width: 38,
+                  height: 4,
+                  margin: const EdgeInsets.only(bottom: 12),
+                  decoration: BoxDecoration(
+                    color: AppColors.divider,
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+              ),
+              Row(
+                children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          '실천 기록',
+                          style: TextStyle(
+                            fontSize: 17,
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.textPrimary,
+                          ),
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          '${habit.title} · ${habit.recurrenceSummary}',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: AppColors.textSecondary,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  IconButton(
+                    onPressed: () => Navigator.of(sheetContext).pop(),
+                    icon: Icon(Icons.close, color: AppColors.textMuted),
+                    visualDensity: VisualDensity.compact,
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+              ...records.map((rec) {
+                final date = rec['date'] as DateTime;
+                final dayLabel = rec['dayLabel'] as String;
+                final timeStr = rec['time'] as String;
+                final isToday = rec['isToday'] as bool;
+
+                return Container(
+                  margin: const EdgeInsets.only(bottom: 8),
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                  decoration: BoxDecoration(
+                    color: AppColors.inputSurface,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: AppColors.divider),
+                  ),
+                  child: Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: AppColors.completedBg,
+                          borderRadius: BorderRadius.circular(6),
+                          border: Border.all(color: AppColors.completedBorder),
+                        ),
+                        child: Text(
+                          '완료',
+                          style: TextStyle(
+                            fontSize: 11.5,
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.completedText,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              '${date.month}월 ${date.day}일 ($dayLabel요일)${isToday ? ' · 오늘' : ''}',
+                              style: TextStyle(
+                                fontSize: 13,
+                                fontWeight: FontWeight.bold,
+                                color: AppColors.textPrimary,
+                              ),
+                            ),
+                            const SizedBox(height: 2),
+                            Row(
+                              children: [
+                                Icon(Icons.schedule, size: 14, color: AppColors.textMuted),
+                                const SizedBox(width: 4),
+                                Text(
+                                  timeStr,
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    color: AppColors.textSecondary,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
+                      TextButton(
+                        onPressed: () {
+                          Navigator.of(sheetContext).pop();
+                          _state.resetPastHabitProgress(date, habit.id);
+                          CelebrationToast.show(
+                            context,
+                            title: '기록을 취소했어요',
+                            message: '$dayLabel요일 실천 완료 기록을 취소했어요.',
+                          );
+                        },
+                        child: Text(
+                          '취소',
+                          style: TextStyle(
+                            color: AppColors.warmBrown,
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                      ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                          visualDensity: VisualDensity.compact,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                        ),
+                        onPressed: () async {
+                          Navigator.of(sheetContext).pop();
+                          final initial = _parseKoreanTime(timeStr);
+                          final picked = await AppTimePicker.show(
+                            context,
+                            initialTime: initial,
+                            title: '실천 시각 수정',
+                          );
+                          if (picked == null) return;
+                          final period = picked.period == DayPeriod.am ? '오전' : '오후';
+                          final hour = picked.hourOfPeriod == 0 ? 12 : picked.hourOfPeriod;
+                          final newTimeStr = '$period $hour:${picked.minute.toString().padLeft(2, '0')}';
+                          _state.updatePastHabitCompletionTime(date, habit.id, newTimeStr);
+                          if (mounted) {
+                            CelebrationToast.show(
+                              context,
+                              title: '실천 시각을 수정했어요',
+                              message: '$dayLabel요일 시각을 $newTimeStr(으)로 변경했어요.',
+                            );
+                          }
+                        },
+                        child: const Text('시각 수정', style: TextStyle(fontSize: 12)),
+                      ),
+                    ],
+                  ),
+                );
+              }),
+            ],
+          ),
         ),
       ),
     );

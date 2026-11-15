@@ -1181,6 +1181,20 @@ class _CalendarTabViewState extends State<CalendarTabView> {
 
   // 🌟 과거 습관 수정 시 바로 바뀌지 않고 상태를 신중히 선택하는 다이얼로그
   void _showPastHabitChoiceDialog(HabitItem habit, bool isFull, bool isPart) {
+    final bool isWeekly = habit.isWeeklyFrequencyHabit;
+    final List<String> weeklyDays = isWeekly
+        ? _state.weeklyHabitCompletionDaysForDate(habit, _selectedDate)
+        : const <String>[];
+    final weeklyMatch = RegExp(r'주\s*(\d+)회').firstMatch(habit.recurrenceSummary);
+    final targetPerWeek = int.tryParse(weeklyMatch?.group(1) ?? '1') ?? 1;
+
+    // 해당 날짜(_selectedDate)에 직접 완료한 상태인지
+    final bool isDoneOnSelectedDate = isFull;
+    // 이번 주차의 완료 목표를 이미 다른 날짜들에서 최대로 채웠는지
+    final bool isMaxWeeklyCompletedElsewhere = isWeekly &&
+        !isDoneOnSelectedDate &&
+        weeklyDays.length >= targetPerWeek;
+
     showDialog(
       context: context,
       builder: (dCtx) => AlertDialog(
@@ -1188,11 +1202,37 @@ class _CalendarTabViewState extends State<CalendarTabView> {
           '\'${habit.title}\' 실천 기록',
           style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
         ),
-        content: Text(
-          '${_selectedDate.month}월 ${_selectedDate.day}일에 이 습관을 어떻게 실천하셨나요?',
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              '${_selectedDate.month}월 ${_selectedDate.day}일에 이 습관을 어떻게 실천하셨나요?',
+            ),
+            if (isMaxWeeklyCompletedElsewhere) ...[
+              const SizedBox(height: 12),
+              Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: AppColors.cardSurface,
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: AppColors.divider),
+                ),
+                child: Text(
+                  '이미 이번 주(${weeklyDays.join(', ')}요일)에 주간 목표를 모두 완료했어요.\n이 날짜로 완료를 옮기시려면, 먼저 ${weeklyDays.join(', ')}요일에서 완료를 취소한 후 진행해주세요.',
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: AppColors.warmBrown,
+                    fontWeight: FontWeight.w600,
+                    height: 1.4,
+                  ),
+                ),
+              ),
+            ],
+          ],
         ),
         actions: [
-          // 1) 대기로 되돌리기
+          // 1) 대기 / 미완료로 되돌리기 (취소)
           TextButton(
             onPressed: () {
               Navigator.of(dCtx).pop();
@@ -1204,27 +1244,40 @@ class _CalendarTabViewState extends State<CalendarTabView> {
               );
             },
             child: Text(
-              '미완료',
-              style: TextStyle(color: AppColors.textSecondary),
+              isDoneOnSelectedDate ? '완료 취소' : '미완료',
+              style: TextStyle(
+                color: isDoneOnSelectedDate ? AppColors.warmBrown : AppColors.textSecondary,
+                fontWeight: isDoneOnSelectedDate ? FontWeight.bold : FontWeight.normal,
+              ),
             ),
           ),
           // 2) 조금 실천 (전색맹 모드에서는 표시 안 함)
           if (!AppColors.achromatopsiaModeEnabled)
             TextButton(
-              onPressed: () {
-                Navigator.of(dCtx).pop();
-                _state.resetPastHabitProgress(_selectedDate, habit.id);
-                _state.advancePastHabitProgress(_selectedDate, habit.id);
-                CelebrationToast.show(
-                  context,
-                  title: '작은 발걸음 기록',
-                  message: '조금이라도 실천한 것이 정말 큰 의미가 있어요.',
-                );
-              },
+              onPressed: isMaxWeeklyCompletedElsewhere
+                  ? () {
+                      CelebrationToast.show(
+                        context,
+                        title: '주간 목표 달성 완료 상태',
+                        message: '이미 이번 주(${weeklyDays.join(', ')}요일)에 완료했어요. ${weeklyDays.join(', ')}요일에서 먼저 취소해주세요.',
+                      );
+                    }
+                  : () {
+                      Navigator.of(dCtx).pop();
+                      _state.resetPastHabitProgress(_selectedDate, habit.id);
+                      _state.advancePastHabitProgress(_selectedDate, habit.id);
+                      CelebrationToast.show(
+                        context,
+                        title: '작은 발걸음 기록',
+                        message: '조금이라도 실천한 것이 정말 큰 의미가 있어요.',
+                      );
+                    },
               child: Text(
                 '조금 실천',
                 style: TextStyle(
-                  color: AppColors.partialText,
+                  color: isMaxWeeklyCompletedElsewhere
+                      ? AppColors.textMuted
+                      : AppColors.partialText,
                   fontWeight: FontWeight.bold,
                 ),
               ),
@@ -1232,26 +1285,38 @@ class _CalendarTabViewState extends State<CalendarTabView> {
           // 3) 완료
           ElevatedButton(
             style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.primaryPurple,
+              backgroundColor: isMaxWeeklyCompletedElsewhere
+                  ? AppColors.divider
+                  : AppColors.primaryPurple,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(8),
               ),
             ),
-            onPressed: () {
-              Navigator.of(dCtx).pop();
-              _state.resetPastHabitProgress(_selectedDate, habit.id);
-              _state.advancePastHabitProgress(_selectedDate, habit.id);
-              _state.advancePastHabitProgress(_selectedDate, habit.id);
-              CelebrationToast.show(
-                context,
-                title: '습관 실천 완료',
-                message: '\'${habit.title}\' 목표를 달성했어요. 언제든 멋져요.',
-              );
-            },
-            child: const Text(
+            onPressed: isMaxWeeklyCompletedElsewhere
+                ? () {
+                    CelebrationToast.show(
+                      context,
+                      title: '주간 목표 달성 완료 상태',
+                      message: '이미 이번 주(${weeklyDays.join(', ')}요일)에 완료했어요. ${weeklyDays.join(', ')}요일에서 먼저 취소해주세요.',
+                    );
+                  }
+                : () {
+                    Navigator.of(dCtx).pop();
+                    _state.resetPastHabitProgress(_selectedDate, habit.id);
+                    _state.advancePastHabitProgress(_selectedDate, habit.id);
+                    _state.advancePastHabitProgress(_selectedDate, habit.id);
+                    CelebrationToast.show(
+                      context,
+                      title: '습관 실천 완료',
+                      message: '\'${habit.title}\' 목표를 달성했어요. 언제든 멋져요.',
+                    );
+                  },
+            child: Text(
               '완료',
               style: TextStyle(
-                color: Colors.white,
+                color: isMaxWeeklyCompletedElsewhere
+                    ? AppColors.textMuted
+                    : Colors.white,
                 fontWeight: FontWeight.bold,
               ),
             ),
@@ -2517,19 +2582,15 @@ class _CalendarTabViewState extends State<CalendarTabView> {
                         } else if (isSelectedDateFuture) {
                           label = '기록 대기';
                         } else if (isWeekly) {
-                          if (isFull) {
-                            // 해당 날짜에 직접 실천 완료!
-                            label = '완료';
-                            bg = AppColors.completedBg;
-                            border = AppColors.completedBorder;
-                            textCol = AppColors.completedText;
-                          } else if (isWeeklyComplete) {
-                            // 당일 실천은 아니지만, 그 주차에 이미 목표 완료됨! 언제 완료했는지 표시!
+                          if (isWeeklyComplete) {
+                            // 🌟 이번 주에 이미 목표를 달성한 경우: 어느 날짜를 보든 언제 완료했는지를 일관되게 표시!
                             label = '${weeklyDays.join(', ')}요일 완료';
                             bg = AppColors.completedBg;
                             border = AppColors.completedBorder;
                             textCol = AppColors.completedText;
-                            weeklyStatusNote = '이번 주 목표 달성 (${weeklyDays.join(', ')}요일 실천)';
+                            if (!isFull) {
+                              weeklyStatusNote = '이번 주 목표 달성 (${weeklyDays.join(', ')}요일 실천)';
+                            }
                           } else {
                             // 아직 목표 미달성
                             if (isWeekFinished) {

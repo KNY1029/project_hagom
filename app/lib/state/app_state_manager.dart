@@ -1160,6 +1160,7 @@ class AppStateManager extends ChangeNotifier {
       ];
       gentleAttempts++;
     }
+    syncWeeklyHabitCompletionCount(habitId);
     notifyListeners();
     return nextVal;
   }
@@ -1172,12 +1173,31 @@ class AppStateManager extends ChangeNotifier {
 
     if (target.isAtSameMomentAs(today)) {
       resetHabitProgress(habitId);
+      syncWeeklyHabitCompletionCount(habitId);
       return;
     }
 
     final key = _dateKey(day);
     _pastHabitRecords.putIfAbsent(key, () => {})[habitId] = 0.0;
     _pastHabitCompletionTimes[key]?.remove(habitId);
+    syncWeeklyHabitCompletionCount(habitId);
+    notifyListeners();
+  }
+
+  /// 주간 습관의 완료 횟수 카운트를 최신 기록과 동기화
+  void syncWeeklyHabitCompletionCount(String habitId) {
+    final habit = _habits.where((h) => h.id == habitId).firstOrNull;
+    if (habit != null && habit.isWeeklyFrequencyHabit) {
+      habit.weeklyCompletedCount = weeklyHabitCompletionDays(habit).length;
+      notifyListeners();
+    }
+  }
+
+  /// 과거 날짜의 습관 실천 시각 수정
+  void updatePastHabitCompletionTime(DateTime day, String habitId, String newTime) {
+    final key = _dateKey(day);
+    final times = _pastHabitCompletionTimes.putIfAbsent(key, () => {});
+    times[habitId] = [newTime];
     notifyListeners();
   }
 
