@@ -167,7 +167,7 @@ void main() async {
     // 🌟 백그라운드 위젯 터치 핸들러가 SharedPreferences에 완전히 각인될 때까지 await 보장!
     await HomeWidget.registerInteractivityCallback(backgroundCallback);
   }
-  runApp(const HagomApp());
+  runApp(const RestartWidget(child: HagomApp()));
   if (!kIsWeb && defaultTargetPlatform == TargetPlatform.android) {
     final state = AppStateManager();
     state.ensureInitialized().then((_) async {
@@ -177,6 +177,46 @@ void main() async {
       await state.recordAccessDay(widgetDay);
       HagomNativeWidgetSync.updateNativeWidget(state);
     });
+  }
+}
+
+/// 🌟 [앱 전체 클린 재시작 래퍼]
+/// 데이터 전체 초기화 등 앱의 모든 위젯 트리와 화면 상태를 처음부터 리셋할 때 사용합니다.
+class RestartWidget extends StatefulWidget {
+  final Widget child;
+  const RestartWidget({super.key, required this.child});
+
+  static void restartApp(BuildContext context) {
+    final state = context.findAncestorStateOfType<_RestartWidgetState>();
+    if (state != null) {
+      state.restartApp();
+    } else {
+      Navigator.of(context).pushAndRemoveUntil(
+        MaterialPageRoute(builder: (_) => const SplashScreen()),
+        (route) => false,
+      );
+    }
+  }
+
+  @override
+  State<RestartWidget> createState() => _RestartWidgetState();
+}
+
+class _RestartWidgetState extends State<RestartWidget> {
+  Key _key = UniqueKey();
+
+  void restartApp() {
+    setState(() {
+      _key = UniqueKey();
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return KeyedSubtree(
+      key: _key,
+      child: widget.child,
+    );
   }
 }
 

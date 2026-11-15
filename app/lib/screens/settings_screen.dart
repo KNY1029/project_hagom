@@ -11,6 +11,7 @@ import 'widget_simulator_screen.dart';
 import '../widgets/app_time_picker.dart';
 import '../widgets/celebration_toast.dart';
 import '../widgets/hagom_celebration_overlay.dart';
+import '../main.dart';
 
 /// ⚙️ 실제 작동하는 하곰이 설정 화면 (PRD 5.4절 준수)
 class SettingsScreen extends StatefulWidget {
@@ -1574,11 +1575,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               Navigator.of(dCtx).pop();
               await _state.resetAllData();
               if (mounted) {
-                CelebrationToast.show(
-                  context,
-                  title: '초기화 완료',
-                  message: '모든 데이터가 깨끗하게 초기 상태로 리셋되었어요.',
-                );
+                RestartWidget.restartApp(context);
               }
             },
             child: Text(
@@ -1703,7 +1700,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       ),
                       SizedBox(height: 3),
                       Text(
-                        '정신약학 맞춤 복약 솔루션 · v0.143.372',
+                        '정신약학 맞춤 복약 솔루션 · v0.143.373',
                         style: TextStyle(
                           fontSize: 12,
                           color: AppColors.textSecondary,
