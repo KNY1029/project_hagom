@@ -1379,15 +1379,18 @@ class AppStateManager extends ChangeNotifier {
             }
           }
           if (!_habits.any((h) => h.id == 'habit_5')) {
+            // 이번 주 화요일(11/10)에 완료한 것으로 설정
+            final thisTuesday = DateTime(DateTime.now().year, 11, 10);
             _habits.add(
               HabitItem(
                 id: 'habit_5',
                 title: '침구 정리 및 환기하기 (예시)',
-                subtitle: '주 1회 · 이미 이번 주 완료됨',
+                subtitle: '주 1회',
                 recurrenceSummary: '주 1회',
                 targetPerDay: 1,
                 currentCount: 0,
-                weeklyCompletedCount: 1, // 이번 주 완료 상태
+                weeklyCompletedCount: 1, // 이번 주 화요일 완료
+                weeklyPeriodStart: thisTuesday.subtract(Duration(days: thisTuesday.weekday - 1)),
                 startDate: exampleStartDate,
               ),
             );
@@ -1601,14 +1604,31 @@ class AppStateManager extends ChangeNotifier {
       HabitItem(
         id: 'habit_5',
         title: '침구 정리 및 환기하기 (예시)',
-        subtitle: '주 1회 · 이미 이번 주 완료됨',
+        subtitle: '주 1회',
         recurrenceSummary: '주 1회',
         targetPerDay: 1,
         currentCount: 0,
         weeklyCompletedCount: 1,
+        weeklyPeriodStart: DateTime(DateTime.now().year, 11, 9), // 이번 주 월요일
+        startDate: exampleHabitStartDate,
+      ),
+      // 🌟 [오늘 완료 주간 습관 예시]: 오늘 완료했으나 당일은 그 자리에 머무는 것 확인용
+      HabitItem(
+        id: 'habit_6',
+        title: '창문 닦기 (예시)',
+        subtitle: '주 1회 · 오늘 완료!',
+        recurrenceSummary: '주 1회',
+        targetPerDay: 1,
+        currentCount: 2, // 완료 상태
+        weeklyCompletedCount: 1,
+        weeklyPeriodStart: DateTime(DateTime.now().year, 11, 9), // 이번 주 월요일
         startDate: exampleHabitStartDate,
       ),
     ]);
+    // 🌟 habit_5: 이번 주 화요일(11/10)에 완료했다는 과거 기록 세팅
+    final tuesdayKey = _dateKey(DateTime(DateTime.now().year, 11, 10));
+    _pastHabitRecords.putIfAbsent(tuesdayKey, () => {})['habit_5'] = 1.0;
+    _pastHabitCompletionTimes.putIfAbsent(tuesdayKey, () => {})['habit_5'] = ['오전 10:30'];
     // 기본 예시 일정 (PRD 5.3절 명세: 보고서 작성, 병원 진료 등)
     // 🌟 [할일 검증용]: 11월 1일(1개), 2일(2개), 3일(3개), 4일(4개), 5일(5개), 6일(6개)
     final now = DateTime.now();
