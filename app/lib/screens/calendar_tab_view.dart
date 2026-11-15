@@ -1179,21 +1179,78 @@ class _CalendarTabViewState extends State<CalendarTabView> {
     );
   }
 
+  // 🌟 주간 목표 이미 달성 시 다른 날짜에서 안내만 단정하게 표시하는 알림 다이얼로그
+  void _showWeeklyHabitGoalReachedDialog(
+    HabitItem habit,
+    List<String> weeklyDays,
+    int targetPerWeek,
+  ) {
+    showDialog<void>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Row(
+          children: [
+            Icon(Icons.info_outline, color: AppColors.primaryPurple, size: 22),
+            const SizedBox(width: 8),
+            const Text(
+              '주간 목표 달성 완료',
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+            ),
+          ],
+        ),
+        content: Text(
+          '\'${habit.title}\'은(는) 이미 이번 주(${weeklyDays.join(', ')}요일)에 주간 목표(주 $targetPerWeek회)를 모두 달성했어요.\n\n이 날짜(${_selectedDate.month}월 ${_selectedDate.day}일)로 실천 기록을 변경하시려면, 먼저 완료했던 ${weeklyDays.join(', ')}요일에서 완료를 취소한 후 진행해주세요.',
+          style: TextStyle(
+            fontSize: 13.5,
+            height: 1.5,
+            color: AppColors.textPrimary,
+          ),
+        ),
+        actions: [
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.primaryPurple,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+            ),
+            onPressed: () => Navigator.of(ctx).pop(),
+            child: const Text(
+              '확인',
+              style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // 🌟 과거 습관 탭 시 분기: 주간 목표 초과 시 안내 팝업, 아니면 소급 수정 다이얼로그
+  void _onHabitBadgeTap(HabitItem habit, bool isFull, bool isPart) {
+    final bool isWeekly = habit.isWeeklyFrequencyHabit;
+    if (isWeekly) {
+      final weeklyDays = _state.weeklyHabitCompletionDaysForDate(habit, _selectedDate);
+      final weeklyMatch = RegExp(r'주\s*(\d+)회').firstMatch(habit.recurrenceSummary);
+      final targetPerWeek = int.tryParse(weeklyMatch?.group(1) ?? '1') ?? 1;
+
+      final bool isDoneOnSelectedDate = isFull;
+      final bool isMaxWeeklyCompletedElsewhere = !isDoneOnSelectedDate && weeklyDays.length >= targetPerWeek;
+
+      if (isMaxWeeklyCompletedElsewhere) {
+        // 🌟 사용자가 요청한 깔끔한 안내 전용 다이얼로그 팝업!
+        _showWeeklyHabitGoalReachedDialog(habit, weeklyDays, targetPerWeek);
+        return;
+      }
+    }
+
+    _showPastHabitChoiceDialog(habit, isFull, isPart);
+  }
+
   // 🌟 과거 습관 수정 시 바로 바뀌지 않고 상태를 신중히 선택하는 다이얼로그
   void _showPastHabitChoiceDialog(HabitItem habit, bool isFull, bool isPart) {
-    final bool isWeekly = habit.isWeeklyFrequencyHabit;
-    final List<String> weeklyDays = isWeekly
-        ? _state.weeklyHabitCompletionDaysForDate(habit, _selectedDate)
-        : const <String>[];
-    final weeklyMatch = RegExp(r'주\s*(\d+)회').firstMatch(habit.recurrenceSummary);
-    final targetPerWeek = int.tryParse(weeklyMatch?.group(1) ?? '1') ?? 1;
-
     // 해당 날짜(_selectedDate)에 직접 완료한 상태인지
     final bool isDoneOnSelectedDate = isFull;
-    // 이번 주차의 완료 목표를 이미 다른 날짜들에서 최대로 채웠는지
-    final bool isMaxWeeklyCompletedElsewhere = isWeekly &&
-        !isDoneOnSelectedDate &&
-        weeklyDays.length >= targetPerWeek;
 
     showDialog(
       context: context,
@@ -1209,26 +1266,6 @@ class _CalendarTabViewState extends State<CalendarTabView> {
             Text(
               '${_selectedDate.month}월 ${_selectedDate.day}일에 이 습관을 어떻게 실천하셨나요?',
             ),
-            if (isMaxWeeklyCompletedElsewhere) ...[
-              const SizedBox(height: 12),
-              Container(
-                padding: const EdgeInsets.all(10),
-                decoration: BoxDecoration(
-                  color: AppColors.cardSurface,
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: AppColors.divider),
-                ),
-                child: Text(
-                  '이미 이번 주(${weeklyDays.join(', ')}요일)에 주간 목표를 모두 완료했어요.\n이 날짜로 완료를 옮기시려면, 먼저 ${weeklyDays.join(', ')}요일에서 완료를 취소한 후 진행해주세요.',
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: AppColors.warmBrown,
-                    fontWeight: FontWeight.w600,
-                    height: 1.4,
-                  ),
-                ),
-              ),
-            ],
           ],
         ),
         actions: [
@@ -1237,10 +1274,19 @@ class _CalendarTabViewState extends State<CalendarTabView> {
             onPressed: () {
               Navigator.of(dCtx).pop();
               _state.resetPastHabitProgress(_selectedDate, habit.id);
+              final now = DateTime.now();
+              final today = DateTime(now.year, now.month, now.day);
+              final isPast = _selectedDate.isBefore(today);
               CelebrationToast.show(
                 context,
-                title: '대기 상태로 변경',
-                message: '\'${habit.title}\'을(를) 대기로 변경했어요.',
+                title: isDoneOnSelectedDate
+                    ? '실천 기록 취소'
+                    : (isPast ? '미완료 상태로 변경' : '대기 상태로 변경'),
+                message: isDoneOnSelectedDate
+                    ? '\'${habit.title}\' 실천 기록을 취소했어요.'
+                    : (isPast
+                        ? '\'${habit.title}\'을(를) 미완료로 기록했어요.'
+                        : '\'${habit.title}\'을(를) 대기로 변경했어요.'),
               );
             },
             child: Text(
@@ -1254,30 +1300,20 @@ class _CalendarTabViewState extends State<CalendarTabView> {
           // 2) 조금 실천 (전색맹 모드에서는 표시 안 함)
           if (!AppColors.achromatopsiaModeEnabled)
             TextButton(
-              onPressed: isMaxWeeklyCompletedElsewhere
-                  ? () {
-                      CelebrationToast.show(
-                        context,
-                        title: '주간 목표 달성 완료 상태',
-                        message: '이미 이번 주(${weeklyDays.join(', ')}요일)에 완료했어요. ${weeklyDays.join(', ')}요일에서 먼저 취소해주세요.',
-                      );
-                    }
-                  : () {
-                      Navigator.of(dCtx).pop();
-                      _state.resetPastHabitProgress(_selectedDate, habit.id);
-                      _state.advancePastHabitProgress(_selectedDate, habit.id);
-                      CelebrationToast.show(
-                        context,
-                        title: '작은 발걸음 기록',
-                        message: '조금이라도 실천한 것이 정말 큰 의미가 있어요.',
-                      );
-                    },
+              onPressed: () {
+                Navigator.of(dCtx).pop();
+                _state.resetPastHabitProgress(_selectedDate, habit.id);
+                _state.advancePastHabitProgress(_selectedDate, habit.id);
+                CelebrationToast.show(
+                  context,
+                  title: '작은 발걸음 기록',
+                  message: '조금이라도 실천한 것이 정말 큰 의미가 있어요.',
+                );
+              },
               child: Text(
                 '조금 실천',
                 style: TextStyle(
-                  color: isMaxWeeklyCompletedElsewhere
-                      ? AppColors.textMuted
-                      : AppColors.partialText,
+                  color: AppColors.partialText,
                   fontWeight: FontWeight.bold,
                 ),
               ),
@@ -1285,38 +1321,26 @@ class _CalendarTabViewState extends State<CalendarTabView> {
           // 3) 완료
           ElevatedButton(
             style: ElevatedButton.styleFrom(
-              backgroundColor: isMaxWeeklyCompletedElsewhere
-                  ? AppColors.divider
-                  : AppColors.primaryPurple,
+              backgroundColor: AppColors.primaryPurple,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(8),
               ),
             ),
-            onPressed: isMaxWeeklyCompletedElsewhere
-                ? () {
-                    CelebrationToast.show(
-                      context,
-                      title: '주간 목표 달성 완료 상태',
-                      message: '이미 이번 주(${weeklyDays.join(', ')}요일)에 완료했어요. ${weeklyDays.join(', ')}요일에서 먼저 취소해주세요.',
-                    );
-                  }
-                : () {
-                    Navigator.of(dCtx).pop();
-                    _state.resetPastHabitProgress(_selectedDate, habit.id);
-                    _state.advancePastHabitProgress(_selectedDate, habit.id);
-                    _state.advancePastHabitProgress(_selectedDate, habit.id);
-                    CelebrationToast.show(
-                      context,
-                      title: '습관 실천 완료',
-                      message: '\'${habit.title}\' 목표를 달성했어요. 언제든 멋져요.',
-                    );
-                  },
-            child: Text(
+            onPressed: () {
+              Navigator.of(dCtx).pop();
+              _state.resetPastHabitProgress(_selectedDate, habit.id);
+              _state.advancePastHabitProgress(_selectedDate, habit.id);
+              _state.advancePastHabitProgress(_selectedDate, habit.id);
+              CelebrationToast.show(
+                context,
+                title: '습관 실천 완료',
+                message: '\'${habit.title}\' 목표를 달성했어요. 언제든 멋져요.',
+              );
+            },
+            child: const Text(
               '완료',
               style: TextStyle(
-                color: isMaxWeeklyCompletedElsewhere
-                    ? AppColors.textMuted
-                    : Colors.white,
+                color: Colors.white,
                 fontWeight: FontWeight.bold,
               ),
             ),
@@ -2699,7 +2723,7 @@ class _CalendarTabViewState extends State<CalendarTabView> {
                               InkWell(
                                 borderRadius: BorderRadius.circular(6),
                                 onTap: isSelectedDatePast
-                                    ? () => _showPastHabitChoiceDialog(
+                                    ? () => _onHabitBadgeTap(
                                         habit,
                                         isFull,
                                         isPart,

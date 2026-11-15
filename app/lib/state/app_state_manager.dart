@@ -1201,6 +1201,40 @@ class AppStateManager extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// 주간 습관 실천 기록을 한 날짜에서 다른 날짜로 이동 (요일 변경 지원)
+  void moveWeeklyHabitRecord(String habitId, DateTime fromDate, DateTime toDate) {
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final fromTarget = DateTime(fromDate.year, fromDate.month, fromDate.day);
+    final toTarget = DateTime(toDate.year, toDate.month, toDate.day);
+
+    final habit = _habits.where((h) => h.id == habitId).firstOrNull;
+    if (habit == null) return;
+
+    // 1. fromDate의 점수 및 시각 가져오기
+    final double fromScore = getHabitScoreForDay(fromTarget, habitId);
+    List<String> fromTimes = getHabitCompletionTimesForDay(fromTarget, habitId);
+    if (fromTimes.isEmpty) {
+      fromTimes = ['오전 10:00'];
+    }
+
+    // 2. fromDate 초기화
+    resetPastHabitProgress(fromTarget, habitId);
+
+    // 3. toDate에 기록 적용
+    if (toTarget.isAtSameMomentAs(today)) {
+      habit.currentCount = fromScore >= 1.0 ? (habit.targetPerDay <= 1 ? 2 : habit.targetPerDay) : 1;
+      habit.completionTimes = List<String>.from(fromTimes);
+    } else {
+      final toKey = _dateKey(toTarget);
+      _pastHabitRecords.putIfAbsent(toKey, () => {})[habitId] = fromScore > 0 ? fromScore : 1.0;
+      _pastHabitCompletionTimes.putIfAbsent(toKey, () => {})[habitId] = List<String>.from(fromTimes);
+    }
+
+    syncWeeklyHabitCompletionCount(habitId);
+    notifyListeners();
+  }
+
   int returnedCount = 7; // 다시 돌아온 횟수
   int gentleAttempts = 5; // 부드럽게 시도한 횟수
 

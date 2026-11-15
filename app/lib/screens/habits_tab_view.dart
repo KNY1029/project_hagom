@@ -1109,7 +1109,7 @@ class _HabitsTabViewState extends State<HabitsTabView> {
     );
   }
 
-  /// 🌟 이번 주에 완료된 주간 습관의 실천 기록(요일, 시각)을 확인하고 수정/취소하는 바텀시트
+  /// 🌟 이번 주에 완료된 주간 습관의 실천 기록(요일, 시각)을 확인하고 수정/취소/요일변경하는 바텀시트
   Future<void> _showWeeklyHabitRecordSheet(HabitItem habit) async {
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
@@ -1119,14 +1119,15 @@ class _HabitsTabViewState extends State<HabitsTabView> {
     for (int i = 0; i < 7; i++) {
       final day = monday.add(Duration(days: i));
       final score = _state.getHabitScoreForDay(day, habit.id);
-      if (score >= 1.0) {
+      if (score > 0.0) {
         final times = _state.getHabitCompletionTimesForDay(day, habit.id);
-        final timeStr = times.isNotEmpty ? times.join(' · ') : '기록 없음';
+        final timeStr = times.isNotEmpty ? times.join(' · ') : '오전 10:00';
         records.add({
           'date': day,
           'dayLabel': ['월', '화', '수', '목', '금', '토', '일'][day.weekday - 1],
           'time': timeStr,
           'isToday': day.isAtSameMomentAs(today),
+          'isFull': score >= 1.0,
         });
       }
     }
@@ -1172,7 +1173,7 @@ class _HabitsTabViewState extends State<HabitsTabView> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          '실천 기록',
+                          '이번 주 실천 기록',
                           style: TextStyle(
                             fontSize: 17,
                             fontWeight: FontWeight.bold,
@@ -1203,6 +1204,7 @@ class _HabitsTabViewState extends State<HabitsTabView> {
                 final dayLabel = rec['dayLabel'] as String;
                 final timeStr = rec['time'] as String;
                 final isToday = rec['isToday'] as bool;
+                final isFull = rec['isFull'] as bool;
 
                 return Container(
                   margin: const EdgeInsets.only(bottom: 8),
@@ -1215,30 +1217,32 @@ class _HabitsTabViewState extends State<HabitsTabView> {
                   child: Row(
                     children: [
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3.5),
                         decoration: BoxDecoration(
-                          color: AppColors.completedBg,
+                          color: isFull ? AppColors.completedBg : AppColors.partialBg,
                           borderRadius: BorderRadius.circular(6),
-                          border: Border.all(color: AppColors.completedBorder),
+                          border: Border.all(
+                            color: isFull ? AppColors.completedBorder : AppColors.partialBorder,
+                          ),
                         ),
                         child: Text(
-                          '완료',
+                          isFull ? '완료' : '조금 실천',
                           style: TextStyle(
-                            fontSize: 11.5,
+                            fontSize: 11,
                             fontWeight: FontWeight.bold,
-                            color: AppColors.completedText,
+                            color: isFull ? AppColors.completedText : AppColors.partialText,
                           ),
                         ),
                       ),
-                      const SizedBox(width: 10),
+                      const SizedBox(width: 8),
                       Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              '${date.month}월 ${date.day}일 ($dayLabel요일)${isToday ? ' · 오늘' : ''}',
+                              '${date.month}월 ${date.day}일 ($dayLabel)${isToday ? ' · 오늘' : ''}',
                               style: TextStyle(
-                                fontSize: 13,
+                                fontSize: 12.5,
                                 fontWeight: FontWeight.bold,
                                 color: AppColors.textPrimary,
                               ),
@@ -1246,12 +1250,12 @@ class _HabitsTabViewState extends State<HabitsTabView> {
                             const SizedBox(height: 2),
                             Row(
                               children: [
-                                Icon(Icons.schedule, size: 14, color: AppColors.textMuted),
-                                const SizedBox(width: 4),
+                                Icon(Icons.schedule, size: 13, color: AppColors.textMuted),
+                                const SizedBox(width: 3),
                                 Text(
                                   timeStr,
                                   style: TextStyle(
-                                    fontSize: 12,
+                                    fontSize: 11.5,
                                     color: AppColors.textSecondary,
                                   ),
                                 ),
@@ -1261,30 +1265,67 @@ class _HabitsTabViewState extends State<HabitsTabView> {
                         ),
                       ),
                       TextButton(
+                        style: TextButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 4),
+                          minimumSize: Size.zero,
+                          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                        ),
                         onPressed: () {
                           Navigator.of(sheetContext).pop();
                           _state.resetPastHabitProgress(date, habit.id);
                           CelebrationToast.show(
                             context,
                             title: '기록을 취소했어요',
-                            message: '$dayLabel요일 실천 완료 기록을 취소했어요.',
+                            message: '$dayLabel요일 실천 기록을 취소했어요.',
                           );
                         },
                         child: Text(
                           '취소',
                           style: TextStyle(
                             color: AppColors.warmBrown,
-                            fontSize: 12,
+                            fontSize: 11.5,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
                       ),
+                      const SizedBox(width: 4),
+                      OutlinedButton(
+                        style: OutlinedButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 5),
+                          minimumSize: Size.zero,
+                          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                          side: BorderSide(color: AppColors.primaryPurple, width: 0.9),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(6),
+                          ),
+                        ),
+                        onPressed: () async {
+                          Navigator.of(sheetContext).pop();
+                          await _showChangeWeeklyRecordDayDialog(
+                            habit: habit,
+                            currentDate: date,
+                            currentDayLabel: dayLabel,
+                            timeStr: timeStr,
+                          );
+                        },
+                        child: Text(
+                          '요일 변경',
+                          style: TextStyle(
+                            color: AppColors.primaryPurple,
+                            fontSize: 11.5,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 4),
                       ElevatedButton(
                         style: ElevatedButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                          visualDensity: VisualDensity.compact,
+                          padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 5),
+                          minimumSize: Size.zero,
+                          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                          backgroundColor: AppColors.primaryPurple,
                           shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
+                            borderRadius: BorderRadius.circular(6),
                           ),
                         ),
                         onPressed: () async {
@@ -1308,9 +1349,141 @@ class _HabitsTabViewState extends State<HabitsTabView> {
                             );
                           }
                         },
-                        child: const Text('시각 수정', style: TextStyle(fontSize: 12)),
+                        child: const Text(
+                          '시각 수정',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 11.5,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
                       ),
                     ],
+                  ),
+                );
+              }),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  /// 🌟 주간 습관 실천 기록의 요일을 이번 주 내 다른 요일로 변경하는 바텀시트
+  Future<void> _showChangeWeeklyRecordDayDialog({
+    required HabitItem habit,
+    required DateTime currentDate,
+    required String currentDayLabel,
+    required String timeStr,
+  }) async {
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final monday = today.subtract(Duration(days: today.weekday - 1));
+    final labels = ['월', '화', '수', '목', '금', '토', '일'];
+
+    final candidates = <Map<String, dynamic>>[];
+    for (int i = 0; i < 7; i++) {
+      final d = monday.add(Duration(days: i));
+      if (d.isAtSameMomentAs(currentDate)) continue;
+      final score = _state.getHabitScoreForDay(d, habit.id);
+      if (score > 0.0) continue; // 이미 완료/실천 기록이 있는 요일은 제외
+
+      candidates.add({
+        'date': d,
+        'label': '${labels[i]}요일 (${d.month}월 ${d.day}일)',
+        'dayLabel': labels[i],
+      });
+    }
+
+    if (candidates.isEmpty) {
+      CelebrationToast.show(
+        context,
+        title: '변경 가능한 요일 없음',
+        message: '이번 주에 변경할 수 있는 빈 요일이 없어요.',
+      );
+      return;
+    }
+
+    await showModalBottomSheet<void>(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (sheetCtx) => SafeArea(
+        child: Container(
+          margin: const EdgeInsets.fromLTRB(12, 0, 12, 12),
+          padding: const EdgeInsets.fromLTRB(20, 16, 20, 16),
+          decoration: BoxDecoration(
+            color: AppColors.cardSurface,
+            borderRadius: BorderRadius.circular(22),
+            border: Border.all(color: AppColors.divider),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      '실천 요일 변경',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.textPrimary,
+                      ),
+                    ),
+                  ),
+                  IconButton(
+                    onPressed: () => Navigator.of(sheetCtx).pop(),
+                    icon: Icon(Icons.close, color: AppColors.textMuted),
+                    visualDensity: VisualDensity.compact,
+                  ),
+                ],
+              ),
+              const SizedBox(height: 2),
+              Text(
+                '현재 \'$currentDayLabel요일\' 실천 기록을 이번 주의 어느 요일로 옮기시겠어요?',
+                style: TextStyle(fontSize: 12.5, color: AppColors.textSecondary),
+              ),
+              const SizedBox(height: 12),
+              ...candidates.map((cand) {
+                final targetDate = cand['date'] as DateTime;
+                final labelText = cand['label'] as String;
+                final targetDayLabel = cand['dayLabel'] as String;
+                return Container(
+                  margin: const EdgeInsets.only(bottom: 6),
+                  width: double.infinity,
+                  child: OutlinedButton(
+                    style: OutlinedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+                      alignment: Alignment.centerLeft,
+                      side: BorderSide(color: AppColors.divider),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                    ),
+                    onPressed: () {
+                      Navigator.of(sheetCtx).pop();
+                      _state.moveWeeklyHabitRecord(habit.id, currentDate, targetDate);
+                      CelebrationToast.show(
+                        context,
+                        title: '실천 요일 변경 완료',
+                        message: '$currentDayLabel요일 기록을 $targetDayLabel요일로 변경했어요.',
+                      );
+                    },
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          labelText,
+                          style: TextStyle(
+                            fontSize: 13.5,
+                            color: AppColors.textPrimary,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        Icon(Icons.arrow_forward_ios, size: 13, color: AppColors.textMuted),
+                      ],
+                    ),
                   ),
                 );
               }),
