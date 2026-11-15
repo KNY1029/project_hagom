@@ -1176,8 +1176,23 @@ class AppStateManager extends ChangeNotifier {
     }
   }
 
-  /// 과거 날짜의 습관 실천 시각 수정
+  /// 과거 날짜 및 오늘의 습관 실천 시각 수정
   void updatePastHabitCompletionTime(DateTime day, String habitId, String newTime) {
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final target = DateTime(day.year, day.month, day.day);
+
+    if (target.isAtSameMomentAs(today)) {
+      final habit = _habits.where((h) => h.id == habitId).firstOrNull;
+      if (habit != null) {
+        if (habit.completionTimes.isNotEmpty) {
+          habit.completionTimes[0] = newTime;
+        } else {
+          habit.completionTimes = [newTime];
+        }
+      }
+    }
+
     final key = _dateKey(day);
     final times = _pastHabitCompletionTimes.putIfAbsent(key, () => {});
     times[habitId] = [newTime];
