@@ -364,9 +364,10 @@ class WidgetActionReceiver : BroadcastReceiver() {
             }
         }
 
-        // 🌟 마스코트 위젯 터치(대사 전환), 단순 리플(noop), 날짜 선택은 네이티브에서 100% 처리 완료되므로
+        // 🌟 마스코트 위젯 터치(대사 전환) 및 단순 리플(noop)은 네이티브에서 100% 처리 완료되므로
         // 무거운 플러터 백그라운드 엔진을 깨워 배터리를 낭비하거나 위젯 상태를 덮어쓰지 않도록 즉시 종료합니다.
-        if (action == "next_mascot_stage" || action == "noop" || action == "selectday") {
+        // (주의: selectday 날짜 선택은 날짜별 상세 일정/복약/습관 계산을 위해 플러터 백그라운드로 전달되어야 합니다!)
+        if (action == "next_mascot_stage" || action == "noop") {
             return
         }
 
