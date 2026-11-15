@@ -1557,11 +1557,24 @@ class AppStateManager extends ChangeNotifier {
           final tuesdayKey = _dateKey(thisTuesday);
           _pastHabitRecords.putIfAbsent(tuesdayKey, () => {})['habit_5'] = 1.0;
           _pastHabitCompletionTimes.putIfAbsent(tuesdayKey, () => {})['habit_5'] = ['오전 10:30'];
+
+          // 🌟 침구 정리(habit_5)는 주 1회 목표이므로, 이번 주의 다른 요일에 남아있던 중복 과거 기록 말끔히 정리 (화요일 1회만 유지)
+          for (var i = 0; i < 7; i++) {
+            final d = DateTime(weekStart.year, weekStart.month, weekStart.day).add(Duration(days: i));
+            if (d.year != thisTuesday.year || d.month != thisTuesday.month || d.day != thisTuesday.day) {
+              _pastHabitRecords[_dateKey(d)]?.remove('habit_5');
+              _pastHabitCompletionTimes[_dateKey(d)]?.remove('habit_5');
+            }
+          }
         }
         if (isDevSimulationMode) {
           await _prefs!.setString(
             'hagom_habits',
             jsonEncode(_habits.map((h) => h.toJson()).toList()),
+          );
+          await _prefs!.setString(
+            'hagom_past_habit_records',
+            jsonEncode(_pastHabitRecords),
           );
         }
       }
