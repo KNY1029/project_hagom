@@ -1029,11 +1029,16 @@ class _HabitsTabViewState extends State<HabitsTabView> {
     final weeklyTarget = int.tryParse(weeklyMatch?.group(1) ?? '0') ?? 0;
     final isWeeklyComplete = weeklyTarget > 0 &&
         habit.weeklyCompletedCount >= weeklyTarget;
+    final weeklyDays = _state.weeklyHabitCompletionDays(habit);
     String scheduleText;
     if (isWeeklyComplete) {
-      scheduleText = '이번 주 달성 완료';
+      scheduleText = weeklyDays.isNotEmpty
+          ? '이번 주 달성 완료 (${weeklyDays.join(', ')}요일)'
+          : '이번 주 달성 완료';
     } else if (weeklyTarget > 0) {
-      scheduleText = '주 $weeklyTarget회 실천 예정';
+      scheduleText = weeklyDays.isNotEmpty
+          ? '${weeklyDays.length}/$weeklyTarget회 완료 (${weeklyDays.join(', ')}요일)'
+          : '주 $weeklyTarget회 실천 예정';
     } else if (habit.repeatDays.isNotEmpty) {
       final day = habit.repeatDays.first;
       scheduleText = '매주 ${day}요일 예정';

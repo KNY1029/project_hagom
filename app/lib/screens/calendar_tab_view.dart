@@ -2492,44 +2492,80 @@ class _CalendarTabViewState extends State<CalendarTabView> {
                             !isSelectedDateBeforeTracking &&
                             hScore > 0.0 &&
                             hScore < 1.0;
+
+                        // 🌟 주간 목표(주 N회) 습관의 스마트 상태 판별
+                        final bool isWeekly = habit.isWeeklyFrequencyHabit;
+                        final List<String> weeklyDays = isWeekly
+                            ? _state.weeklyHabitCompletionDaysForDate(habit, _selectedDate)
+                            : const <String>[];
+                        final weeklyMatch = RegExp(r'주\s*(\d+)회').firstMatch(habit.recurrenceSummary);
+                        final targetPerWeek = int.tryParse(weeklyMatch?.group(1) ?? '1') ?? 1;
+                        final bool isWeeklyComplete = isWeekly && weeklyDays.length >= targetPerWeek;
+
+                        final selectedMonday = _selectedDate.subtract(Duration(days: _selectedDate.weekday - 1));
+                        final selectedSunday = selectedMonday.add(const Duration(days: 6));
+                        final bool isWeekFinished = today.isAfter(selectedSunday);
+
                         String label;
+                        Color bg = AppColors.cardSurface;
+                        Color border = AppColors.divider;
+                        Color textCol = AppColors.textSecondary;
+                        String? weeklyStatusNote;
+
                         if (isSelectedDateBeforeTracking && hScore == 0.0) {
                           label = '기록 전';
                         } else if (isSelectedDateFuture) {
                           label = '기록 대기';
-                        } else if (isFull) {
-                          label = '완료';
-                        } else if (isPart) {
-                          if (AppColors.achromatopsiaModeEnabled) {
-                            label = '미완료';
+                        } else if (isWeekly) {
+                          if (isFull) {
+                            // 해당 날짜에 직접 실천 완료!
+                            label = '완료';
+                            bg = AppColors.completedBg;
+                            border = AppColors.completedBorder;
+                            textCol = AppColors.completedText;
+                          } else if (isWeeklyComplete) {
+                            // 당일 실천은 아니지만, 그 주차에 이미 목표 완료됨! 언제 완료했는지 표시!
+                            label = '${weeklyDays.join(', ')}요일 완료';
+                            bg = AppColors.completedBg;
+                            border = AppColors.completedBorder;
+                            textCol = AppColors.completedText;
+                            weeklyStatusNote = '이번 주 목표 달성 (${weeklyDays.join(', ')}요일 실천)';
                           } else {
-                            label = '조금 실천';
+                            // 아직 목표 미달성
+                            if (isWeekFinished) {
+                              // 그 주차가 다 지난 과거 주차 -> 미완료!
+                              label = '미완료';
+                            } else {
+                              // 그 주차가 아직 지나지 않음 -> 대기!
+                              label = '대기';
+                            }
                           }
                         } else {
-                          // hScore == 0.0
-                          if (isSelectedDatePast) {
-                            label = '미완료';
+                          // 일반 매일 / 요일 지정 습관
+                          if (isFull) {
+                            label = '완료';
+                            bg = AppColors.completedBg;
+                            border = AppColors.completedBorder;
+                            textCol = AppColors.completedText;
+                          } else if (isPart) {
+                            if (AppColors.achromatopsiaModeEnabled) {
+                              label = '미완료';
+                              bg = AppColors.cardSurface;
+                              border = AppColors.divider;
+                              textCol = AppColors.textSecondary;
+                            } else {
+                              label = '조금 실천';
+                              bg = AppColors.partialBg;
+                              border = AppColors.partialBorder;
+                              textCol = AppColors.partialText;
+                            }
                           } else {
-                            label = '대기'; // 오늘 실천 전
-                          }
-                        }
-                        Color bg = AppColors.cardSurface;
-                        Color border = AppColors.divider;
-                        Color textCol = AppColors.textSecondary;
-
-                        if (isFull) {
-                          bg = AppColors.completedBg;
-                          border = AppColors.completedBorder;
-                          textCol = AppColors.completedText;
-                        } else if (isPart) {
-                          if (AppColors.achromatopsiaModeEnabled) {
-                            bg = AppColors.cardSurface;
-                            border = AppColors.divider;
-                            textCol = AppColors.textSecondary;
-                          } else {
-                            bg = AppColors.partialBg;
-                            border = AppColors.partialBorder;
-                            textCol = AppColors.partialText;
+                            // hScore == 0.0
+                            if (isSelectedDatePast) {
+                              label = '미완료';
+                            } else {
+                              label = '대기'; // 오늘 실천 전
+                            }
                           }
                         }
                         return Container(
@@ -2565,6 +2601,18 @@ class _CalendarTabViewState extends State<CalendarTabView> {
                                         color: AppColors.textSecondary,
                                       ),
                                     ),
+                                    if (weeklyStatusNote != null)
+                                      Padding(
+                                        padding: const EdgeInsets.only(top: 3),
+                                        child: Text(
+                                          weeklyStatusNote,
+                                          style: TextStyle(
+                                            fontSize: 10.5,
+                                            fontWeight: FontWeight.w600,
+                                            color: AppColors.primaryPurple,
+                                          ),
+                                        ),
+                                      ),
                                     if (_state
                                         .getHabitCompletionTimesForDay(
                                           _selectedDate,

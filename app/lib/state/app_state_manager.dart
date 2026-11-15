@@ -127,24 +127,27 @@ class AppStateManager extends ChangeNotifier {
   // 🌟 전체 습관 목록 (과거 달력 및 엑셀 다운로드용)
   List<HabitItem> get allHabits => _habits;
 
-  /// 주간 횟수 습관의 이번 주 완료 요일 목록(월~일 순서)
-  List<String> weeklyHabitCompletionDays(HabitItem habit, [DateTime? now]) {
-    final today = now ?? DateTime.now();
-    habit.ensureWeeklyPeriod(today);
-    final periodStart = habit.weeklyPeriodStart ?? today;
+  /// 주간 횟수 습관의 특정 날짜가 속한 주차 완료 요일 목록(월~일 순서)
+  List<String> weeklyHabitCompletionDaysForDate(HabitItem habit, DateTime targetDate) {
+    final monday = targetDate.subtract(Duration(days: targetDate.weekday - 1));
     final labels = ['월', '화', '수', '목', '금', '토', '일'];
     final days = <String>[];
-    for (var i = 0; i <= today.difference(periodStart).inDays; i++) {
-      final day = periodStart.add(Duration(days: i));
-      final record = _pastHabitRecords[_dateKey(day)]?[habit.id];
-      final isToday = day.year == today.year &&
-          day.month == today.month &&
-          day.day == today.day;
+    final today = DateTime.now();
+
+    for (var i = 0; i < 7; i++) {
+      final d = DateTime(monday.year, monday.month, monday.day).add(Duration(days: i));
+      final record = _pastHabitRecords[_dateKey(d)]?[habit.id];
+      final isToday = d.year == today.year && d.month == today.month && d.day == today.day;
       if ((record != null && record >= 1.0) || (isToday && habit.score >= 1.0)) {
-        days.add(labels[day.weekday - 1]);
+        days.add(labels[d.weekday - 1]);
       }
     }
     return days.toSet().toList();
+  }
+
+  /// 주간 횟수 습관의 이번 주 완료 요일 목록(월~일 순서)
+  List<String> weeklyHabitCompletionDays(HabitItem habit, [DateTime? now]) {
+    return weeklyHabitCompletionDaysForDate(habit, now ?? DateTime.now());
   }
 
   // 🌟 오늘 실천해야 하는 습관 통계 (활성 습관만 집계!)
@@ -1048,10 +1051,7 @@ class AppStateManager extends ChangeNotifier {
   /// 🌟 달력 탭에서 특정 날짜(day)에 표시되어야 하는 습관인지 판별하는 로직
   /// - 매일: 매일 표시
   /// - 요일 지정: 해당 요일에만 표시
-  /// - 주 N회 (예: 주 1회):
-  ///   1) 해당 날짜에 실제로 완료/실천 기록(점수 > 0)이 있으면 해당 일자에만 표시!
-  ///   2) 일주일(월~일) 동안 목표 횟수를 다 채우지 못한 경우, 주의 마지막 날(일요일)에 미완료 상태로 1회 표시!
-  ///   3) 그 외의 날(실천 안 한 평일, 이미 목표 달성한 주의 일요일)은 표시하지 않음!
+  /// - 주 N회 (예: 주 1회): 달력 탭에서 매일 표시하되 주차 완료 상태를 표시
   bool isHabitVisibleOnCalendarDay(HabitItem habit, DateTime day) {
     if (habit.isArchived) return false;
     final target = DateTime(day.year, day.month, day.day);
@@ -1075,35 +1075,9 @@ class AppStateManager extends ChangeNotifier {
       return true;
     }
 
-    // 3. 주 N회 (예: 주 1회) 주간 횟수 습관:
+    // 3. 주 N회 (예: 주 1회) 주간 횟수 습관: 달력 탭에서 매일 표시
     if (habit.isWeeklyFrequencyHabit) {
-      // 1) 해당 날짜에 실제로 실천(완료)한 기록이 있는가?
-      final scoreOnDay = getHabitScoreForDay(day, habit.id);
-      if (scoreOnDay > 0.0) {
-        return true;
-      }
-
-      // 2) 만약 해당 날짜가 일주일의 마지막 날(일요일)인 경우:
-      if (day.weekday == DateTime.sunday) {
-        final monday = target.subtract(const Duration(days: 6));
-        final match = RegExp(r'주\s*(\d+)회').firstMatch(habit.recurrenceSummary);
-        final targetPerWeek = match != null ? int.parse(match.group(1)!) : 1;
-
-        int completedCountThisWeek = 0;
-        for (int i = 0; i < 7; i++) {
-          final d = monday.add(Duration(days: i));
-          if (getHabitScoreForDay(d, habit.id) >= 1.0) {
-            completedCountThisWeek++;
-          }
-        }
-
-        // 그 주 동안 목표 횟수를 다 채우지 못했다면 마지막 날(일요일)에 미완료 상태로 표시!
-        if (completedCountThisWeek < targetPerWeek) {
-          return true;
-        }
-      }
-
-      return false;
+      return true;
     }
 
     return true;
@@ -1122,7 +1096,32 @@ class AppStateManager extends ChangeNotifier {
     if (dueHabits.isEmpty) return null;
     double sum = 0.0;
     for (final h in dueHabits) {
-      sum += getHabitScoreForDay(day, h.id);
+      if (h.isWeeklyFrequencyHabit) {
+        final monday = target.subtract(Duration(days: target.weekday - 1));
+        final sunday = monday.add(const Duration(days: 6));
+        final isWeekFinished = today.isAfter(sunday);
+
+        final match = RegExp(r'주\s*(\d+)회').firstMatch(h.recurrenceSummary);
+        final targetPerWeek = match != null ? int.parse(match.group(1)!) : 1;
+
+        int completedCount = 0;
+        for (int i = 0; i < 7; i++) {
+          final d = monday.add(Duration(days: i));
+          if (getHabitScoreForDay(d, h.id) >= 1.0) {
+            completedCount++;
+          }
+        }
+
+        if (completedCount >= targetPerWeek) {
+          sum += 1.0; // 그 주차에 이미 목표 횟수 달성 완료
+        } else if (!isWeekFinished) {
+          sum += getHabitScoreForDay(day, h.id);
+        } else {
+          sum += 0.0; // 주차가 다 지났는데 미완료
+        }
+      } else {
+        sum += getHabitScoreForDay(day, h.id);
+      }
     }
     return sum / dueHabits.length;
   }
