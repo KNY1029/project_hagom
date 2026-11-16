@@ -1910,7 +1910,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       ),
                       SizedBox(height: 3),
                       Text(
-                        '정신약학 맞춤 복약 솔루션 · v0.143.399',
+                        '정신약학 맞춤 복약 솔루션 · v0.143.400',
                         style: TextStyle(
                           fontSize: 12,
                           color: AppColors.textSecondary,
@@ -2007,10 +2007,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         const SizedBox(height: 6),
                         Text(
                           _state.notificationRate == '최소'
-                              ? '유저님이 직접 계획한 실천사항을 시간에 맞춰 안내해요!'
+                              ? '정해진 시각에 1회만 조용히 알려드려요 (재알림 없음)'
                               : (_state.notificationRate == '중간'
-                                    ? '실천 알림에 더해, 하곰이가 종종 말을 걸어와요!'
-                                    : '하곰이의 밀착 케어! 스파르타식 관리를 받아요!'),
+                                    ? '정해진 시각 알림과 함께 미완료 시 30분 뒤 1회 재알림을 드려요'
+                                    : '미완료 시 30분, 1시간 뒤 연속 2회 재알림으로 확실하게 챙겨드려요'),
                           style: const TextStyle(
                             fontSize: 11.5,
                             color: AppColors.textMuted,
@@ -2294,18 +2294,28 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       style: TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.w600,
-                        color: AppColors.textPrimary,
+                        color: _state.notificationRate == '최소'
+                            ? AppColors.textMuted
+                            : AppColors.textPrimary,
                       ),
                     ),
                     subtitle: Text(
-                      '다정한 힐링과 응원의 한마디',
+                      _state.notificationRate == '최소'
+                          ? '알림 빈도가 최소일 때는 대화 알림이 꺼져 있어요'
+                          : '다정한 힐링과 응원의 한마디 (꺼도 필수 재알림은 유지돼요)',
                       style: TextStyle(
                         fontSize: 11.5,
-                        color: AppColors.textSecondary,
+                        color: _state.notificationRate == '최소'
+                            ? AppColors.textMuted
+                            : AppColors.textSecondary,
                       ),
                     ),
-                    value: _state.mascotNotificationEnabled,
-                    onChanged: (val) => _state.setMascotNotification(val),
+                    value: _state.notificationRate == '최소'
+                        ? false
+                        : _state.mascotNotificationEnabled,
+                    onChanged: _state.notificationRate == '최소'
+                        ? null
+                        : (val) => _state.setMascotNotification(val),
                   ),
                   Divider(height: 1, color: AppColors.divider),
                     ],

@@ -104,21 +104,43 @@ class HagomAlarmManager {
             schedules.add(schedule);
           }
 
-          // 최대 모드: 30분 뒤 재알림 추가 등록!
-          if (state.notificationRate == '최대' && interval == null) {
-            final repeatMinute = (time['minute']! + 30) % 60;
-            final repeatHour = time['hour']! + ((time['minute']! + 30) ~/ 60);
+          // 🌟 재알림 등록 (중간: 30분 뒤 1회, 최대: 30분 뒤 1회 + 60분 뒤 2차 강력 재알림)
+          if (state.notificationRate != '최소' && interval == null) {
+            final repeatDays = _getRepeatDaysList(med.recurrenceSummary, med.repeatDays);
+
+            // 1차 재알림 (+30분)
+            final r1Minute = (time['minute']! + 30) % 60;
+            final r1Hour = (time['hour']! + ((time['minute']! + 30) ~/ 60)) % 24;
             schedules.add({
               'id': nextId++,
-              'hour': repeatHour % 24,
-              'minute': repeatMinute,
+              'hour': r1Hour,
+              'minute': r1Minute,
               'title': '하곰이 복약 재알림',
-              'message': '애써 돈 들여서 타온 약, 낭비하지 말자구요^^;',
+              'message': '혹시 깜빡하셨나요? ${med.name} 지금 챙겨드세요!',
               'isEssential': true,
               'actionUri':
                   'hagomwidget://checkmed?id=${Uri.encodeComponent(med.id)}&slot=$i',
               'actionLabel': '복용 완료',
+              if (repeatDays.isNotEmpty) 'repeatDays': repeatDays,
             });
+
+            // 2차 재알림 (+60분, 최대 모드 전용 스파르타 케어)
+            if (state.notificationRate == '최대') {
+              final r2Minute = time['minute']!;
+              final r2Hour = (time['hour']! + 1) % 24;
+              schedules.add({
+                'id': nextId++,
+                'hour': r2Hour,
+                'minute': r2Minute,
+                'title': '하곰이 복약 2차 재알림',
+                'message': '애써 돈 들여서 타온 ${med.name}, 낭비하지 말고 꼭 챙겨드세요!',
+                'isEssential': true,
+                'actionUri':
+                    'hagomwidget://checkmed?id=${Uri.encodeComponent(med.id)}&slot=$i',
+                'actionLabel': '복용 완료',
+                if (repeatDays.isNotEmpty) 'repeatDays': repeatDays,
+              });
+            }
           }
         }
       }
@@ -131,6 +153,10 @@ class HagomAlarmManager {
         for (final timeStr in habit.scheduledTimes) {
           final time = _parseKoreanTime(timeStr);
           if (time != null) {
+            final repeatDays = _getRepeatDaysList(
+              habit.recurrenceSummary,
+              habit.repeatDays,
+            );
             schedules.add({
               'id': nextId++,
               'hour': time['hour'],
@@ -141,11 +167,43 @@ class HagomAlarmManager {
               'actionUri':
                   'hagomwidget://checkhabit?id=${Uri.encodeComponent(habit.id)}&cur=${habit.currentCount}&target=${habit.targetPerDay}',
               'actionLabel': '실천 완료',
-              'repeatDays': _getRepeatDaysList(
-                habit.recurrenceSummary,
-                habit.repeatDays,
-              ),
+              if (repeatDays.isNotEmpty) 'repeatDays': repeatDays,
             });
+
+            // 🌟 재알림 등록 (중간: 30분 뒤 1회, 최대: 30분 뒤 1회 + 60분 뒤 2차 강력 재알림)
+            if (state.notificationRate != '최소') {
+              final r1Minute = (time['minute']! + 30) % 60;
+              final r1Hour = (time['hour']! + ((time['minute']! + 30) ~/ 60)) % 24;
+              schedules.add({
+                'id': nextId++,
+                'hour': r1Hour,
+                'minute': r1Minute,
+                'title': '하곰이 습관 재알림',
+                'message': '유저님, 아직 ${habit.title} 실천 전인가요? 지금 해봐요!',
+                'isEssential': true,
+                'actionUri':
+                    'hagomwidget://checkhabit?id=${Uri.encodeComponent(habit.id)}&cur=${habit.currentCount}&target=${habit.targetPerDay}',
+                'actionLabel': '실천 완료',
+                if (repeatDays.isNotEmpty) 'repeatDays': repeatDays,
+              });
+
+              if (state.notificationRate == '최대') {
+                final r2Minute = time['minute']!;
+                final r2Hour = (time['hour']! + 1) % 24;
+                schedules.add({
+                  'id': nextId++,
+                  'hour': r2Hour,
+                  'minute': r2Minute,
+                  'title': '하곰이 습관 2차 재알림',
+                  'message': '오늘의 습관 ${habit.title}, 포기하지 말고 힘내서 완료해요!',
+                  'isEssential': true,
+                  'actionUri':
+                      'hagomwidget://checkhabit?id=${Uri.encodeComponent(habit.id)}&cur=${habit.currentCount}&target=${habit.targetPerDay}',
+                  'actionLabel': '실천 완료',
+                  if (repeatDays.isNotEmpty) 'repeatDays': repeatDays,
+                });
+              }
+            }
           }
         }
       }
@@ -212,6 +270,41 @@ class HagomAlarmManager {
               'actionLabel': '완료',
               if (repeatDays.isNotEmpty) 'repeatDays': repeatDays,
             });
+
+            // 🌟 재알림 등록 (중간: 30분 뒤 1회, 최대: 30분 뒤 1회 + 60분 뒤 2차 강력 재알림)
+            if (state.notificationRate != '최소') {
+              final r1Minute = (alarmMinute + 30) % 60;
+              final r1Hour = (alarmHour + ((alarmMinute + 30) ~/ 60)) % 24;
+              schedules.add({
+                'id': nextId++,
+                'hour': r1Hour,
+                'minute': r1Minute,
+                'title': '하곰이 할 일 재알림',
+                'message': '${task.title} 잊지 않으셨죠? 지금 챙겨봐요!',
+                'isEssential': true,
+                'actionUri':
+                    'hagomwidget://checktask?id=${Uri.encodeComponent(task.id)}',
+                'actionLabel': '완료',
+                if (repeatDays.isNotEmpty) 'repeatDays': repeatDays,
+              });
+
+              if (state.notificationRate == '최대') {
+                final r2Minute = alarmMinute;
+                final r2Hour = (alarmHour + 1) % 24;
+                schedules.add({
+                  'id': nextId++,
+                  'hour': r2Hour,
+                  'minute': r2Minute,
+                  'title': '하곰이 할 일 2차 재알림',
+                  'message': '${task.title} 아직 완료 전이에요. 확인해 주세요!',
+                  'isEssential': true,
+                  'actionUri':
+                      'hagomwidget://checktask?id=${Uri.encodeComponent(task.id)}',
+                  'actionLabel': '완료',
+                  if (repeatDays.isNotEmpty) 'repeatDays': repeatDays,
+                });
+              }
+            }
           } else {
           final alarmDate = time == null
               ? dueDay.subtract(
@@ -232,6 +325,39 @@ class HagomAlarmManager {
                   'hagomwidget://checktask?id=${Uri.encodeComponent(task.id)}',
               'actionLabel': '완료',
             });
+
+            // 🌟 단일 할일 재알림 등록 (중간: 30분 뒤, 최대: 30분 뒤 + 60분 뒤)
+            if (state.notificationRate != '최소') {
+              final r1Date = scheduledAlarmDate.add(const Duration(minutes: 30));
+              if (r1Date.isAfter(now)) {
+                schedules.add({
+                  'id': nextId++,
+                  'triggerAtMillis': r1Date.millisecondsSinceEpoch,
+                  'title': '하곰이 할 일 재알림',
+                  'message': '${task.title} 잊지 않으셨죠? 지금 챙겨봐요!',
+                  'isEssential': true,
+                  'actionUri':
+                      'hagomwidget://checktask?id=${Uri.encodeComponent(task.id)}',
+                  'actionLabel': '완료',
+                });
+              }
+
+              if (state.notificationRate == '최대') {
+                final r2Date = scheduledAlarmDate.add(const Duration(minutes: 60));
+                if (r2Date.isAfter(now)) {
+                  schedules.add({
+                    'id': nextId++,
+                    'triggerAtMillis': r2Date.millisecondsSinceEpoch,
+                    'title': '하곰이 할 일 2차 재알림',
+                    'message': '${task.title} 아직 완료 전이에요. 확인해 주세요!',
+                    'isEssential': true,
+                    'actionUri':
+                        'hagomwidget://checktask?id=${Uri.encodeComponent(task.id)}',
+                    'actionLabel': '완료',
+                  });
+                }
+              }
+            }
           }
         }
       }
