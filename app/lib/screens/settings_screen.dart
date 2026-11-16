@@ -469,74 +469,127 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 ),
               ),
               const SizedBox(height: 18),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    '시작 시간',
-                    style: TextStyle(
-                      fontSize: 13.5,
-                      fontWeight: FontWeight.w600,
-                      color: AppColors.textPrimary,
-                    ),
-                  ),
-                  DropdownButton<int>(
-                    value: tempStart,
-                    dropdownColor: AppColors.cardSurface,
-                    items: List.generate(24, (i) => DropdownMenuItem(
-                      value: i,
-                      child: Text(
-                        _formatHourString(i),
-                        style: TextStyle(fontSize: 13, color: AppColors.textPrimary),
-                      ),
-                    )),
-                    onChanged: (val) {
-                      if (val != null) {
-                        setDlgState(() {
-                          tempStart = val;
-                          if (tempEnd <= tempStart) {
-                            tempEnd = (tempStart + 1).clamp(0, 23);
-                          }
-                        });
+              // 1) 시작 시간 설정 카드 (앱 타임피커 연동)
+              InkWell(
+                borderRadius: BorderRadius.circular(12),
+                onTap: () async {
+                  final picked = await AppTimePicker.show(
+                    context,
+                    initialTime: TimeOfDay(hour: tempStart, minute: 0),
+                    title: '알림 수신 시작 시간',
+                  );
+                  if (picked != null) {
+                    setDlgState(() {
+                      tempStart = picked.hour;
+                      if (tempEnd <= tempStart) {
+                        tempEnd = (tempStart + 1).clamp(0, 23);
                       }
-                    },
+                    });
+                  }
+                },
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                  decoration: BoxDecoration(
+                    color: AppColors.inputSurface,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: AppColors.divider),
                   ),
-                ],
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Row(
+                        children: [
+                          Icon(Icons.wb_sunny_outlined, size: 18, color: AppColors.primaryPurple),
+                          const SizedBox(width: 8),
+                          Text(
+                            '시작 시간',
+                            style: TextStyle(
+                              fontSize: 13.5,
+                              fontWeight: FontWeight.w600,
+                              color: AppColors.textPrimary,
+                            ),
+                          ),
+                        ],
+                      ),
+                      Row(
+                        children: [
+                          Text(
+                            _formatHourString(tempStart),
+                            style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.bold,
+                              color: AppColors.primaryPurple,
+                            ),
+                          ),
+                          const SizedBox(width: 4),
+                          const Icon(Icons.edit_calendar_outlined, size: 16, color: AppColors.textMuted),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
               ),
               const SizedBox(height: 10),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    '종료 시간',
-                    style: TextStyle(
-                      fontSize: 13.5,
-                      fontWeight: FontWeight.w600,
-                      color: AppColors.textPrimary,
-                    ),
-                  ),
-                  DropdownButton<int>(
-                    value: tempEnd,
-                    dropdownColor: AppColors.cardSurface,
-                    items: List.generate(24, (i) => DropdownMenuItem(
-                      value: i,
-                      child: Text(
-                        _formatHourString(i),
-                        style: TextStyle(fontSize: 13, color: AppColors.textPrimary),
-                      ),
-                    )),
-                    onChanged: (val) {
-                      if (val != null) {
-                        setDlgState(() {
-                          tempEnd = val;
-                          if (tempEnd <= tempStart) {
-                            tempStart = (tempEnd - 1).clamp(0, 23);
-                          }
-                        });
+
+              // 2) 종료 시간 설정 카드 (앱 타임피커 연동)
+              InkWell(
+                borderRadius: BorderRadius.circular(12),
+                onTap: () async {
+                  final picked = await AppTimePicker.show(
+                    context,
+                    initialTime: TimeOfDay(hour: tempEnd, minute: 0),
+                    title: '알림 수신 종료 시간',
+                  );
+                  if (picked != null) {
+                    setDlgState(() {
+                      tempEnd = picked.hour;
+                      if (tempEnd <= tempStart) {
+                        tempStart = (tempEnd - 1).clamp(0, 23);
                       }
-                    },
+                    });
+                  }
+                },
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                  decoration: BoxDecoration(
+                    color: AppColors.inputSurface,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: AppColors.divider),
                   ),
-                ],
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Row(
+                        children: [
+                          Icon(Icons.nights_stay_outlined, size: 18, color: AppColors.primaryPurple),
+                          const SizedBox(width: 8),
+                          Text(
+                            '종료 시간',
+                            style: TextStyle(
+                              fontSize: 13.5,
+                              fontWeight: FontWeight.w600,
+                              color: AppColors.textPrimary,
+                            ),
+                          ),
+                        ],
+                      ),
+                      Row(
+                        children: [
+                          Text(
+                            _formatHourString(tempEnd),
+                            style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.bold,
+                              color: AppColors.primaryPurple,
+                            ),
+                          ),
+                          const SizedBox(width: 4),
+                          const Icon(Icons.edit_calendar_outlined, size: 16, color: AppColors.textMuted),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
               ),
             ],
           ),
@@ -1852,7 +1905,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       ),
                       SizedBox(height: 3),
                       Text(
-                        '정신약학 맞춤 복약 솔루션 · v0.143.396',
+                        '정신약학 맞춤 복약 솔루션 · v0.143.397',
                         style: TextStyle(
                           fontSize: 12,
                           color: AppColors.textSecondary,
