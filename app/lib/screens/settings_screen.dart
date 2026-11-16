@@ -1910,7 +1910,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       ),
                       SizedBox(height: 3),
                       Text(
-                        '정신약학 맞춤 복약 솔루션 · v0.143.401',
+                        '정신약학 맞춤 복약 솔루션 · v0.143.402',
                         style: TextStyle(
                           fontSize: 12,
                           color: AppColors.textSecondary,
@@ -2007,9 +2007,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         const SizedBox(height: 6),
                         Text(
                           _state.notificationRate == '최소'
-                              ? '유저님이 직접 계획한 실천사항을 시간에 맞춰 안내해요 (재알림 없음)'
+                              ? '유저님이 직접 계획한 실천사항을 시간에 맞춰 안내해요'
                               : (_state.notificationRate == '중간'
-                                    ? '실천 알림에 더해, 하곰이가 종종 말을 걸어와요 (재알림 없음)'
+                                    ? '실천 알림에 더해, 하곰이가 종종 말을 걸어와요'
                                     : '미완료 시 30분 뒤 1회 재알림과 함께 하곰이가 밀착 케어해요'),
                           style: const TextStyle(
                             fontSize: 11.5,
@@ -2302,7 +2302,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     subtitle: Text(
                       _state.notificationRate == '최소'
                           ? '알림 빈도가 최소일 때는 대화 알림이 꺼져 있어요'
-                          : '다정한 힐링과 응원의 한마디 (최대 모드의 재알림은 유지돼요)',
+                          : '다정한 힐링과 응원의 한마디',
                       style: TextStyle(
                         fontSize: 11.5,
                         color: _state.notificationRate == '최소'
