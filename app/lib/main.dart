@@ -162,21 +162,40 @@ Future<void> backgroundCallback(Uri? uri) async {
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
+  FlutterError.onError = (details) {
+    FlutterError.presentError(details);
+    debugPrint('FlutterError: ${details.exception}');
+  };
+
   if (!kIsWeb && defaultTargetPlatform == TargetPlatform.android) {
-    // 무료 Apple 계정 빌드에서는 App Group을 사용하지 않고 Android 위젯만 동기화해요.
-    // 🌟 백그라운드 위젯 터치 핸들러가 SharedPreferences에 완전히 각인될 때까지 await 보장!
-    await HomeWidget.registerInteractivityCallback(backgroundCallback);
+    try {
+      // 무료 Apple 계정 빌드에서는 App Group을 사용하지 않고 Android 위젯만 동기화해요.
+      // 🌟 백그라운드 위젯 터치 핸들러가 SharedPreferences에 완전히 각인될 때까지 await 보장!
+      await HomeWidget.registerInteractivityCallback(backgroundCallback);
+    } catch (e) {
+      debugPrint('HomeWidget register error: $e');
+    }
   }
+
   runApp(const RestartWidget(child: HagomApp()));
+
   if (!kIsWeb && defaultTargetPlatform == TargetPlatform.android) {
-    final state = AppStateManager();
-    state.ensureInitialized().then((_) async {
-      final widgetDay = await HomeWidget.getWidgetData<String>(
-        'hagom_widget_access_day',
-      );
-      await state.recordAccessDay(widgetDay);
-      HagomNativeWidgetSync.updateNativeWidget(state);
-    });
+    try {
+      final state = AppStateManager();
+      state.ensureInitialized().then((_) async {
+        try {
+          final widgetDay = await HomeWidget.getWidgetData<String>(
+            'hagom_widget_access_day',
+          );
+          await state.recordAccessDay(widgetDay);
+          HagomNativeWidgetSync.updateNativeWidget(state);
+        } catch (e) {
+          debugPrint('NativeWidget update error: $e');
+        }
+      });
+    } catch (e) {
+      debugPrint('AppStateManager init error: $e');
+    }
   }
 }
 
