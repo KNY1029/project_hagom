@@ -192,7 +192,7 @@ class AppStateManager extends ChangeNotifier {
   int mascotQuoteIndex = 0; // 0~3: 현재 단계의 대사 인덱스
 
   void nextMascotStage() {
-    if (mascotQuoteIndex < 3) {
+    if (mascotQuoteIndex < 1) {
       mascotQuoteIndex++;
     } else {
       mascotQuoteIndex = 0;
@@ -229,6 +229,54 @@ class AppStateManager extends ChangeNotifier {
   final Set<String> _accessDayKeys = <String>{};
 
   int get accessDayCount => _accessDayKeys.length;
+
+  /// Selects the mascot image stage from attendance and the daily reset time.
+  ///
+  /// Returns a zero-based index for the nine widget images:
+  /// 0: attended today
+  /// 1–2: yesterday attended, today not yet attended; based on time to reset
+  /// 3–8: attendance streak has been broken for 1, 3, 5, 7, 10, or over 15 days
+  int get attendanceMascotStageIndex {
+    final now = DateTime.now();
+    final today = DateTime.parse(getEffectiveDayKey(now));
+    final todayKey = _dateKey(today);
+
+    if (_accessDayKeys.contains(todayKey)) return 0;
+
+    final previousDayKey = _dateKey(today.subtract(const Duration(days: 1)));
+    if (_accessDayKeys.contains(previousDayKey)) {
+      final nowMinutes = now.hour * 60 + now.minute;
+      final resetMinutes = dailyResetHour * 60 + dailyResetMinute;
+      final minutesUntilReset = resetMinutes > nowMinutes
+          ? resetMinutes - nowMinutes
+          : 24 * 60 - nowMinutes + resetMinutes;
+
+      return minutesUntilReset > 3 * 60 ? 1 : 2;
+    }
+
+    DateTime? lastAttendance;
+    for (final dayKey in _accessDayKeys) {
+      final date = DateTime.tryParse(dayKey);
+      if (date == null || date.isAfter(today)) continue;
+      if (lastAttendance == null || date.isAfter(lastAttendance)) {
+        lastAttendance = date;
+      }
+    }
+
+    // No attendance history yet: use the first, welcoming image.
+    if (lastAttendance == null) return 0;
+
+    // The current day is still in progress; count only fully missed days
+    // before it.
+    final missedDays = today.difference(lastAttendance).inDays - 1;
+    if (missedDays > 15) return 8;
+    if (missedDays >= 10) return 7;
+    if (missedDays >= 7) return 6;
+    if (missedDays >= 5) return 5;
+    if (missedDays >= 3) return 4;
+    if (missedDays >= 1) return 3;
+    return 0;
+  }
 
   /// 앱 또는 위젯에서 활동한 날을 하루에 한 번만 누적한다.
   Future<void> recordAccessDay([String? activityDayKey]) async {

@@ -63,12 +63,16 @@ class HagomMascotWidgetProvider : HomeWidgetProvider() {
                 // 🌟 3x1 기본 모드: 캐릭터 + 3단 응원 대사 + 탭하여 다음 표정 전환
                 RemoteViews(context.packageName, R.layout.hagom_mascot_widget).apply {
                     val badge = widgetData.getString("mascot_badge", "1. 기대")
-                    val quote = widgetData.getString("mascot_quote", "유저가 접속해서 기록을 이어갈 것이라 믿고 웃어주는 모습")
-                    val sub = widgetData.getString("mascot_sub", "비처벌적 푸시")
+                    val quote = widgetData.getString("mascot_quote", "하곰이는 언제나 여기 있어요!")
+                    val sub = widgetData.getString("mascot_sub", "")
 
                     setTextViewText(R.id.widget_mascot_badge, badge)
                     setTextViewText(R.id.widget_mascot_quote, quote)
                     setTextViewText(R.id.widget_mascot_sub, sub)
+                    setViewVisibility(
+                        R.id.widget_mascot_sub,
+                        if (!sub.isNullOrEmpty()) android.view.View.VISIBLE else android.view.View.GONE
+                    )
                     setViewVisibility(
                         R.id.widget_mascot_badge,
                         if (widgetData.getString("mascot_show_badge", "false") == "true")

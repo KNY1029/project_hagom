@@ -107,18 +107,20 @@ class WidgetActionReceiver : BroadcastReceiver() {
             }
 
             "next_mascot_stage" -> {
-                // 🐻 같은 이미지의 문장을 모두 보여준 뒤에 다음 이미지로 이동!
                 val mascotStages = listOf(
-                    Triple("1. 기대", listOf("오늘도 하곰이랑 편안하게 시작해 볼까요?", "한 가지만 실천해도 충분해요🌱", "오늘도 여기까지 온 스스로가 참 대견해요✨", "천천히 편안한 속도로 가요☁️"), "오늘도 따뜻한 응원" to "hagom_widget_stage_1"),
-                    Triple("2. 기다림", listOf("오늘의 할 일, 잊지 않았죠?👀", "몇 시에 무엇을 해야 하는지 잠시 점검해 볼까요?", "체크리스트의 일을 하나씩 천천히 해내 봐요!", "하곰이는 여기서 조용히 기다리고 있을게요."), "천천히 하나씩" to "hagom_widget_stage_2"),
-                    Triple("3. 부담", listOf("약은 정해진 시간에 꾸준히 챙기는 게 중요해요💗", "오늘도 스스로를 돌볼 시간이에요.", "앗 하곰이랑 눈 마주쳤으니 물 한 모금 마시기👀", "하루 여덟 잔 물, 건강으로 가는 길! 물 한 잔 어때요?"), "몸을 돌보는 시간" to "hagom_widget_stage_3"),
-                    Triple("4. 당황", listOf("요즘 얼굴을 통 못 보네요 우리…?", "유저님, 보고 싶었어요😭", "다시 와줘서 고마워요. 오늘은 무리하지 말아요.", "디지털 디톡스 하러 간 거였죠? 하곰이는 이해해요."), "다시 만나서 반가워요" to "hagom_widget_stage_4"),
-                    Triple("5. 분노", listOf("오늘의 습관, 하나만 살펴보고 갈까요?👀", "매일매일 습관을 이어가는 당신, 조금 멋있을지도…🌹", "계획한 체크박스를 하나씩 채우면 기분 참 좋겠어요!", "앱에 들러준 것만으로도 오늘의 출석은 성공이에요."), "살짝 매콤한 독려" to "hagom_widget_stage_5"),
-                    Triple("6. 슬픔", listOf("때로는 슬퍼도 괜찮아요. 하곰이가 곁에 있을게요.", "한 번 하늘을 보며 깊게 숨 쉬어 보는 건 어때요?", "지금의 감정을 한 단어로만 떠올려 봐도 좋아요.", "웃는 표정 하나가 마음을 조금 가볍게 해줄지도 몰라요☺️"), "마음도 살펴봐요" to "hagom_widget_stage_6"),
-                    Triple("7. 피로", listOf("어젯밤은 푹 잤나요? 피곤하다면 잠깐 쉬어도 좋아요.", "밤에는 폰을 잠시 내려놓고 푹 쉬어요🌝", "하루 세 끼, 밥은 꼭꼭 챙겨 먹고 있나요?🍚", "꾸물꾸물한 날엔 가볍게 샤워로 기분전환 어때요?"), "잠깐 쉬어가도 괜찮아요" to "hagom_widget_stage_7"),
-                    Triple("8. 절망", listOf("하곰이랑 눈 마주쳤으니 물 한 모금 마시기👀", "현대인도 가끔은 햇빛을 쬐어야 해요. 곰처럼요!🐻", "깨끗한 책상은 생각 정리에도 도움이 될지 몰라요~", "지금은 귀찮아도 나중엔 하곰이와 이만큼 성장해 있을걸요🏔️"), "조금 더 가까이 케어" to "hagom_widget_stage_8"),
-                    Triple("9. 붕괴", listOf("앱도 지우지 그래요 아예? …농담이에요, 다시 만나서 좋아요.", "이웃집 녹색 부엉이가 위치추적기를 빌려준대요…!", "실눈인 하곰이가 기어코 눈 뜨는 걸 보고 싶은 건가요🫪", "알림 와서 놀랐어요? 귀여운 하곰이가 말 걸고 싶었어요."), "하곰이의 매콤한 한마디" to "hagom_widget_stage_9")
+                    Triple("1. 기대", listOf("하곰이는 언제나 여기 있어요!", "내일도 힘내서 가보자고요✨"), "hagom_widget_stage_1"),
+                    Triple("2. 기다림", listOf("하곰은(뚠뚠) 오늘도(뚠뚠) 접속을~ 기다리네(뚠뚠)", "오늘 할 일도 마치고 오실 때까지, 조용히 기다릴게요!"), "hagom_widget_stage_2"),
+                    Triple("3. 부담", listOf("있죠 나 알고 있어요, 유저님은 할 수 있는 아이라는 거~", "유저니이임!! 나를 두고 어디 가신 거예요오오!!!!"), "hagom_widget_stage_3"),
+                    Triple("4. 당황", listOf("하곰이 조금은 슬플지도 몰라요...", "어라...? 연속 방문 기록이 깨지고 있어요😳"), "hagom_widget_stage_4"),
+                    Triple("5. 분노", listOf("요즘 많이 바쁜가 봐요...!!", "충격: 하곰이 앱 이용횟수 급감해"), "hagom_widget_stage_5"),
+                    Triple("6. 슬픔", listOf("너 떠난 이곳은 잠겨 눈물로🎵", "유저님, 큰일이에요!! 애써 쌓은 기록이..."), "hagom_widget_stage_6"),
+                    Triple("7. 피로", listOf("(진짜 안 올 거예요?? 아니 진짜로?)", "우리... 좋았잖아요....."), "hagom_widget_stage_7"),
+                    Triple("8. 절망", listOf("하곰이는 늘 유저님뿐이었는데ㅠ", "어쩜... 다른 앱으로 갈아타버린 거예요?"), "hagom_widget_stage_8"),
+                    Triple("9. 붕괴", listOf("그럼 하곰이... 삭제돼도 되니...?", "하... 유저님- 아니, 당신. 이런 관계 하곰이는 이제 지쳤어요."), "hagom_widget_stage_9")
                 )
+
+                val isDevMode = prefs.getString("is_developer_mode", "false") == "true" ||
+                                prefs.getString("mascot_show_badge", "false") == "true"
 
                 val curBadge = prefs.getString("mascot_badge", "1. 기대") ?: "1. 기대"
                 val curIndex = mascotStages.indexOfFirst { it.first == curBadge }.let { if (it == -1) 0 else it }
@@ -128,17 +130,29 @@ class WidgetActionReceiver : BroadcastReceiver() {
                     is String -> v.toIntOrNull() ?: 0
                     else -> 0
                 }
-                val isLastQuote = currentQuoteIndex >= currentStage.second.lastIndex
-                val nextIndex = if (isLastQuote) (curIndex + 1) % mascotStages.size else curIndex
+
+                val nextIndex: Int
+                val nextQuoteIndex: Int
+
+                if (isDevMode) {
+                    // 🛠️ 개발자 모드: 대사를 다 보면 다음 단계로 넘어가며 9단계 전체 회전
+                    val isLastQuote = currentQuoteIndex >= currentStage.second.lastIndex
+                    nextIndex = if (isLastQuote) (curIndex + 1) % mascotStages.size else curIndex
+                    nextQuoteIndex = if (isLastQuote) 0 else currentQuoteIndex + 1
+                } else {
+                    // ☀️ 일반 모드: 단계는 현재 출석 단계에 고정, 대사만 순환 전환
+                    nextIndex = curIndex
+                    nextQuoteIndex = (currentQuoteIndex + 1) % currentStage.second.size
+                }
+
                 val nextStage = mascotStages[nextIndex]
-                val nextQuoteIndex = if (isLastQuote) 0 else currentQuoteIndex + 1
 
                 editor.putString("mascot_badge", nextStage.first)
                 editor.putString("mascot_quote", nextStage.second[nextQuoteIndex])
                 editor.putInt("mascot_quote_index", nextQuoteIndex)
                 editor.putInt("mascot_stage_index", nextIndex)
-                editor.putString("mascot_sub", nextStage.third.first)
-                editor.putString("mascot_image", nextStage.third.second)
+                editor.putString("mascot_sub", "")
+                editor.putString("mascot_image", nextStage.third)
                 editor.apply()
 
                 val ids = appWidgetManager.getAppWidgetIds(
