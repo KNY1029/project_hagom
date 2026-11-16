@@ -165,31 +165,75 @@ class AppStateManager extends ChangeNotifier {
   bool tasksNotificationEnabled = true; // 일정/할일 알림
   bool mascotNotificationEnabled = true; // 하곰이 응원/넛지 알림
   bool completionFeedbackEnabled = true; // 완료 기록 안내 토스트 팝업 표시 여부
-  String notificationFrequency =
-      '기본'; // '최소' (정시 1회), '기본' (정시+30분), '적극적' (15분 간격 3회)
+
+  /// 알림 발송 빈도: '최소', '중간', '최대'
+  /// - 최소: 직접 계획한 실천사항을 시간에 맞춰 안내
+  /// - 중간: 실천 알림 + 3일 결석 안내 + 하루 1~2회 랜덤 토크
+  /// - 최대: 실천 알림 + 3일 결석 안내(스파르타) + 하루 3~5회 밀착 케어
+  String notificationRate = '중간';
+
+  /// 랜덤 푸시 발송 시간대 (기본값: 오전 9시 ~ 오후 9시)
+  int randomPushStartHour = 9; // 0~23 (기본 9)
+  int randomPushEndHour = 21; // 0~23 (기본 21)
+
+  // 하위 호환 게터/세터
+  String get notificationFrequency => notificationRate;
+  set notificationFrequency(String value) => setNotificationRate(value);
+
+  void setNotificationRate(String rate) {
+    if (rate == '기본') {
+      notificationRate = '중간';
+    } else if (rate == '적극적') {
+      notificationRate = '최대';
+    } else {
+      notificationRate = rate;
+    }
+    _prefs?.setString('hagom_notification_rate', notificationRate);
+    _prefs?.setString('hagom_noti_freq', notificationRate);
+    HagomAlarmManager.syncScheduledAlarms(this);
+    notifyListeners();
+  }
+
+  void setRandomPushHours(int startHour, int endHour) {
+    randomPushStartHour = startHour.clamp(0, 23);
+    randomPushEndHour = endHour.clamp(0, 23);
+    _prefs?.setInt('hagom_push_start_hour', randomPushStartHour);
+    _prefs?.setInt('hagom_push_end_hour', randomPushEndHour);
+    HagomAlarmManager.syncScheduledAlarms(this);
+    notifyListeners();
+  }
+
   void setMedsNotification(bool value) {
     medsNotificationEnabled = value;
+    HagomAlarmManager.syncScheduledAlarms(this);
     notifyListeners();
   }
 
   void setHabitNotification(bool value) {
     habitNotificationEnabled = value;
+    HagomAlarmManager.syncScheduledAlarms(this);
     notifyListeners();
   }
 
   void setTasksNotification(bool value) {
     tasksNotificationEnabled = value;
+    HagomAlarmManager.syncScheduledAlarms(this);
     notifyListeners();
   }
 
   void setMascotNotification(bool value) {
     mascotNotificationEnabled = value;
+    HagomAlarmManager.syncScheduledAlarms(this);
     notifyListeners();
+  }
+
+  void setNotificationFrequency(String freq) {
+    setNotificationRate(freq);
   }
 
   // --- 🐻 하곰이 응원/상태 위젯 단계 (1~9단계) ---
   int mascotStageIndex = 0; // 0: 기대, 1: 기다림, ..., 8: 붕괴
-  int mascotQuoteIndex = 0; // 0~3: 현재 단계의 대사 인덱스
+  int mascotQuoteIndex = 0; // 0~1: 현재 단계의 대사 인덱스
 
   void nextMascotStage() {
     if (mascotQuoteIndex < 1) {
@@ -214,11 +258,6 @@ class AppStateManager extends ChangeNotifier {
   void setCompletionFeedbackEnabled(bool value) {
     completionFeedbackEnabled = value;
     _prefs?.setBool('hagom_completion_feedback', value);
-    notifyListeners();
-  }
-
-  void setNotificationFrequency(String freq) {
-    notificationFrequency = freq;
     notifyListeners();
   }
 
@@ -287,6 +326,8 @@ class AppStateManager extends ChangeNotifier {
     if (_prefs != null) {
       await _prefs!.setString('hagom_access_days', jsonEncode(sorted));
     }
+    // 🌟 접속 시 3일 미접속 알람(데드맨 스위치)을 항상 3일 뒤로 연장 갱신!
+    HagomAlarmManager.syncScheduledAlarms(this);
     notifyListeners();
   }
 
@@ -1469,7 +1510,10 @@ class AppStateManager extends ChangeNotifier {
         'hagom_completion_feedback',
         completionFeedbackEnabled,
       );
-      await _prefs!.setString('hagom_noti_freq', notificationFrequency);
+      await _prefs!.setString('hagom_notification_rate', notificationRate);
+      await _prefs!.setString('hagom_noti_freq', notificationRate);
+      await _prefs!.setInt('hagom_push_start_hour', randomPushStartHour);
+      await _prefs!.setInt('hagom_push_end_hour', randomPushEndHour);
       await _prefs!.setInt('hagom_daily_reset_hour', dailyResetHour);
       await _prefs!.setInt('hagom_daily_reset_minute', dailyResetMinute);
       if (_lastGreetingDayKey != null) {
@@ -1767,7 +1811,19 @@ class AppStateManager extends ChangeNotifier {
       mascotQuoteIndex = _prefs!.getInt('hagom_mascot_quote_index') ?? 0;
       completionFeedbackEnabled =
           _prefs!.getBool('hagom_completion_feedback') ?? true;
-      notificationFrequency = _prefs!.getString('hagom_noti_freq') ?? '기본';
+      final savedRate = _prefs!.getString('hagom_notification_rate') ??
+          _prefs!.getString('hagom_noti_freq');
+      if (savedRate == '기본') {
+        notificationRate = '중간';
+      } else if (savedRate == '적극적') {
+        notificationRate = '최대';
+      } else if (savedRate != null) {
+        notificationRate = savedRate;
+      } else {
+        notificationRate = '중간';
+      }
+      randomPushStartHour = _prefs!.getInt('hagom_push_start_hour') ?? 9;
+      randomPushEndHour = _prefs!.getInt('hagom_push_end_hour') ?? 21;
       dailyResetHour = _prefs!.getInt('hagom_daily_reset_hour') ?? 8;
       dailyResetMinute = _prefs!.getInt('hagom_daily_reset_minute') ?? 0;
       _lastGreetingDayKey = _prefs!.getString('hagom_last_greeting_day');

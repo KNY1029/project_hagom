@@ -426,6 +426,158 @@ class _SettingsScreenState extends State<SettingsScreen> {
     }
   }
 
+  String _formatHourString(int hour) {
+    final period = hour < 12 ? '오전' : '오후';
+    final h12 = hour == 0 ? 12 : (hour > 12 ? hour - 12 : hour);
+    return '$period $h12시';
+  }
+
+  /// ⏰ 랜덤 푸시 발송 시간대 설정 다이얼로그 (기본: 09:00 ~ 21:00)
+  void _showPushHoursDialog() {
+    int tempStart = _state.randomPushStartHour;
+    int tempEnd = _state.randomPushEndHour;
+
+    showDialog(
+      context: context,
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setDlgState) => AlertDialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          title: Row(
+            children: [
+              Icon(Icons.schedule_rounded, color: AppColors.primaryPurple, size: 24),
+              const SizedBox(width: 8),
+              Text(
+                '랜덤 푸시 시간대 설정',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.textPrimary,
+                ),
+              ),
+            ],
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                '하곰이가 일상 응원이나 안부 말을 걸어오는 시간 범위를 지정해요. (기본값: 오전 9시 ~ 오후 9시)',
+                style: TextStyle(
+                  fontSize: 12.5,
+                  color: AppColors.textSecondary,
+                  height: 1.4,
+                ),
+              ),
+              const SizedBox(height: 18),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    '시작 시간',
+                    style: TextStyle(
+                      fontSize: 13.5,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.textPrimary,
+                    ),
+                  ),
+                  DropdownButton<int>(
+                    value: tempStart,
+                    dropdownColor: AppColors.cardSurface,
+                    items: List.generate(24, (i) => DropdownMenuItem(
+                      value: i,
+                      child: Text(
+                        _formatHourString(i),
+                        style: TextStyle(fontSize: 13, color: AppColors.textPrimary),
+                      ),
+                    )),
+                    onChanged: (val) {
+                      if (val != null) {
+                        setDlgState(() {
+                          tempStart = val;
+                          if (tempEnd <= tempStart) {
+                            tempEnd = (tempStart + 1).clamp(0, 23);
+                          }
+                        });
+                      }
+                    },
+                  ),
+                ],
+              ),
+              const SizedBox(height: 10),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    '종료 시간',
+                    style: TextStyle(
+                      fontSize: 13.5,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.textPrimary,
+                    ),
+                  ),
+                  DropdownButton<int>(
+                    value: tempEnd,
+                    dropdownColor: AppColors.cardSurface,
+                    items: List.generate(24, (i) => DropdownMenuItem(
+                      value: i,
+                      child: Text(
+                        _formatHourString(i),
+                        style: TextStyle(fontSize: 13, color: AppColors.textPrimary),
+                      ),
+                    )),
+                    onChanged: (val) {
+                      if (val != null) {
+                        setDlgState(() {
+                          tempEnd = val;
+                          if (tempEnd <= tempStart) {
+                            tempStart = (tempEnd - 1).clamp(0, 23);
+                          }
+                        });
+                      }
+                    },
+                  ),
+                ],
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                setDlgState(() {
+                  tempStart = 9;
+                  tempEnd = 21;
+                });
+              },
+              child: const Text(
+                '기본값 (09:00~21:00)',
+                style: TextStyle(fontSize: 12, color: AppColors.textMuted),
+              ),
+            ),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.primaryPurple,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+              ),
+              onPressed: () {
+                _state.setRandomPushHours(tempStart, tempEnd);
+                Navigator.pop(ctx);
+                CelebrationToast.show(
+                  context,
+                  title: '시간대 저장 완료',
+                  message: '${_formatHourString(tempStart)}부터 ${_formatHourString(tempEnd)} 사이에 푸시가 발송돼요.',
+                );
+              },
+              child: const Text(
+                '저장',
+                style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   // 📜 개인정보 처리방침 모달 (인앱 뷰어 + 외부 링크 열기)
   void _showPrivacyPolicyModal() {
     showModalBottomSheet(
@@ -1700,7 +1852,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       ),
                       SizedBox(height: 3),
                       Text(
-                        '정신약학 맞춤 복약 솔루션 · v0.143.393',
+                        '정신약학 맞춤 복약 솔루션 · v0.143.394',
                         style: TextStyle(
                           fontSize: 12,
                           color: AppColors.textSecondary,
@@ -1777,32 +1929,40 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                 color: AppColors.textPrimary,
                               ),
                             ),
-                            Text(
-                              _state.notificationFrequency,
-                              style: TextStyle(
-                                fontSize: 12.5,
-                                fontWeight: FontWeight.bold,
-                                color: AppColors.primaryPurple,
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                              decoration: BoxDecoration(
+                                color: AppColors.primaryPurple.withValues(alpha: 0.12),
+                                borderRadius: BorderRadius.circular(6),
+                              ),
+                              child: Text(
+                                _state.notificationRate,
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.bold,
+                                  color: AppColors.primaryPurple,
+                                ),
                               ),
                             ),
                           ],
                         ),
                         const SizedBox(height: 6),
                         Text(
-                          _state.notificationFrequency == '최소'
-                              ? '직접 계획한 실천사항을 시간에 맞춰 안내해요!'
-                              : (_state.notificationFrequency == '기본'
+                          _state.notificationRate == '최소'
+                              ? '유저님이 직접 계획한 실천사항을 시간에 맞춰 안내해요!'
+                              : (_state.notificationRate == '중간'
                                     ? '실천 알림에 더해, 하곰이가 종종 말을 걸어와요!'
                                     : '하곰이의 밀착 케어! 스파르타식 관리를 받아요!'),
                           style: const TextStyle(
                             fontSize: 11.5,
                             color: AppColors.textMuted,
+                            height: 1.35,
                           ),
                         ),
                         const SizedBox(height: 10),
                         Row(
-                          children: ['최소', '기본', '적극적'].map((freq) {
-                            final isSel = _state.notificationFrequency == freq;
+                          children: ['최소', '중간', '최대'].map((freq) {
+                            final isSel = _state.notificationRate == freq;
                             return Expanded(
                               child: Padding(
                                 padding: const EdgeInsets.symmetric(
@@ -1831,13 +1991,80 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                     ),
                                   ),
                                   onSelected: (val) {
-                                    if (val)
-                                      _state.setNotificationFrequency(freq);
+                                    if (val) {
+                                      _state.setNotificationRate(freq);
+                                    }
                                   },
                                 ),
                               ),
                             );
                           }).toList(),
+                        ),
+                        const SizedBox(height: 12),
+                        // ⏰ 랜덤 푸시 발송 시간대 설정 버튼
+                        InkWell(
+                          borderRadius: BorderRadius.circular(10),
+                          onTap: _showPushHoursDialog,
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                            decoration: BoxDecoration(
+                              color: _state.notificationRate == '최소'
+                                  ? AppColors.inputSurface.withValues(alpha: 0.5)
+                                  : AppColors.primaryPurple.withValues(alpha: 0.08),
+                              borderRadius: BorderRadius.circular(10),
+                              border: Border.all(
+                                color: _state.notificationRate == '최소'
+                                    ? AppColors.divider
+                                    : AppColors.primaryPurple.withValues(alpha: 0.3),
+                              ),
+                            ),
+                            child: Row(
+                              children: [
+                                Icon(
+                                  Icons.schedule_rounded,
+                                  size: 20,
+                                  color: _state.notificationRate == '최소'
+                                      ? AppColors.textMuted
+                                      : AppColors.primaryPurple,
+                                ),
+                                const SizedBox(width: 10),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        '랜덤 푸시 발송 시간대 설정',
+                                        style: TextStyle(
+                                          fontSize: 12.5,
+                                          fontWeight: FontWeight.bold,
+                                          color: _state.notificationRate == '최소'
+                                              ? AppColors.textMuted
+                                              : AppColors.textPrimary,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 2),
+                                      Text(
+                                        _state.notificationRate == '최소'
+                                            ? '최소 모드에서는 랜덤 푸시가 발송되지 않아요'
+                                            : '${_formatHourString(_state.randomPushStartHour)} ~ ${_formatHourString(_state.randomPushEndHour)} (기본 09:00~21:00)',
+                                        style: const TextStyle(
+                                          fontSize: 11,
+                                          color: AppColors.textMuted,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                Icon(
+                                  Icons.chevron_right_rounded,
+                                  size: 20,
+                                  color: _state.notificationRate == '최소'
+                                      ? AppColors.textMuted
+                                      : AppColors.primaryPurple,
+                                ),
+                              ],
+                            ),
+                          ),
                         ),
                       ],
                     ),

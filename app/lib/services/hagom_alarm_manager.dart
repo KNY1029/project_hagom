@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:math';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
@@ -10,6 +11,44 @@ class HagomAlarmManager {
   static const MethodChannel _channel = MethodChannel(
     'com.healthpharma.hagom_app/export',
   );
+
+  /// 구간 내 알림 간 최소 간격을 보장하면서 랜덤 시각 목록을 생성
+  static List<Map<String, int>> _generateRandomPushTimes({
+    required int startHour,
+    required int endHour,
+    required int count,
+  }) {
+    final rng = Random();
+    final validStart = startHour.clamp(0, 23);
+    var validEnd = endHour.clamp(0, 23);
+    if (validEnd <= validStart) {
+      validEnd = (validStart + 12).clamp(validStart + 1, 23);
+    }
+
+    final totalMinutes = (validEnd - validStart) * 60;
+    if (totalMinutes <= 0 || count <= 0) return [];
+
+    final stepMinutes = totalMinutes ~/ count;
+    final List<Map<String, int>> times = [];
+
+    for (int i = 0; i < count; i++) {
+      final slotStart = i * stepMinutes;
+      final slotEnd = (i + 1) * stepMinutes;
+      final minOffset = slotStart + (stepMinutes > 30 ? 15 : 0);
+      final maxOffset = slotEnd - (stepMinutes > 30 ? 15 : 0);
+      final chosenOffset = minOffset >= maxOffset
+          ? (slotStart + slotEnd) ~/ 2
+          : minOffset + rng.nextInt(maxOffset - minOffset);
+
+      final totalMin = validStart * 60 + chosenOffset;
+      times.add({
+        'hour': (totalMin ~/ 60) % 24,
+        'minute': totalMin % 60,
+      });
+    }
+
+    return times;
+  }
 
   /// 현재 등록된 복약, 습관, 할일 및 모드별 토크 알림을 안드로이드 AlarmManager로 전송
   static Future<void> syncScheduledAlarms(AppStateManager state) async {
@@ -65,8 +104,8 @@ class HagomAlarmManager {
             schedules.add(schedule);
           }
 
-          // 적극적 모드: 30분 뒤 재알림 추가 등록!
-          if (state.notificationFrequency == '적극적' && interval == null) {
+          // 최대 모드: 30분 뒤 재알림 추가 등록!
+          if (state.notificationRate == '최대' && interval == null) {
             final repeatMinute = (time['minute']! + 30) % 60;
             final repeatHour = time['hour']! + ((time['minute']! + 30) ~/ 60);
             schedules.add({
@@ -198,42 +237,48 @@ class HagomAlarmManager {
       }
     }
 
-    // 4. 토크 알림 (기본: 1회, 적극적: 3회)
-    if (state.mascotNotificationEnabled) {
-      if (state.notificationFrequency == '기본') {
-        // 오후 2:30 일상 토크 1회
+    // 4. 하곰이 추가 알림 (중간: 3일 결석 + 하루 1~2회 랜덤, 최대: 3일 결석 + 하루 3~5회 밀착)
+    if (state.mascotNotificationEnabled && state.notificationRate != '최소') {
+      final now = DateTime.now();
+      final rng = Random();
+
+      // (1) 🌟 3일 미접속 데드맨 스위치 알람 등록!
+      // 유저가 설정한 활동 시간대의 중간 시각에 3일 뒤 울리도록 예약
+      final midHour = ((state.randomPushStartHour + state.randomPushEndHour) ~/ 2).clamp(0, 23);
+      final deadmanDate = DateTime(
+        now.year,
+        now.month,
+        now.day + 3,
+        midHour,
+        0,
+      );
+
+      schedules.add({
+        'id': 8888, // 고정 ID: 접속 시마다 3일 뒤로 덮어쓰기 갱신
+        'triggerAtMillis': deadmanDate.millisecondsSinceEpoch,
+        'title': state.notificationRate == '최대' ? '하곰이의 긴급 안부' : '하곰이의 안부',
+        'message': HagomDialogue.getInactiveAttendanceQuote(state.notificationRate),
+        'isEssential': false,
+      });
+
+      // (2) 🌟 설정된 시간대(기본 9시~21시) 내 랜덤 푸시 알림 등록
+      final int pushCount = state.notificationRate == '최대'
+          ? (3 + rng.nextInt(3)) // 최대: 하루 3~5회
+          : (1 + rng.nextInt(2)); // 중간: 하루 1~2회
+
+      final randomTimes = _generateRandomPushTimes(
+        startHour: state.randomPushStartHour,
+        endHour: state.randomPushEndHour,
+        count: pushCount,
+      );
+
+      for (final t in randomTimes) {
         schedules.add({
           'id': nextId++,
-          'hour': 14,
-          'minute': 30,
-          'title': '하곰이의 따뜻한 한마디',
-          'message': HagomDialogue.getTalkQuoteByFrequency('기본'),
-          'isEssential': false,
-        });
-      } else if (state.notificationFrequency == '적극적') {
-        // 오전 11:30, 오후 3:30, 저녁 8:30 스파르타/일상 토크 3회
-        schedules.add({
-          'id': nextId++,
-          'hour': 11,
-          'minute': 30,
-          'title': '하곰이의 한마디',
-          'message': HagomDialogue.getTalkQuoteByFrequency('적극적'),
-          'isEssential': false,
-        });
-        schedules.add({
-          'id': nextId++,
-          'hour': 15,
-          'minute': 30,
-          'title': '하곰이의 밀착 케어',
-          'message': HagomDialogue.getTalkQuoteByFrequency('적극적'),
-          'isEssential': false,
-        });
-        schedules.add({
-          'id': nextId++,
-          'hour': 20,
-          'minute': 30,
-          'title': '하곰이의 스파르타 체크',
-          'message': HagomDialogue.getTalkQuoteByFrequency('적극적'),
+          'hour': t['hour'],
+          'minute': t['minute'],
+          'title': state.notificationRate == '최대' ? '하곰이의 밀착 케어' : '하곰이의 따뜻한 한마디',
+          'message': HagomDialogue.getRandomPushQuote(state.notificationRate),
           'isEssential': false,
         });
       }
