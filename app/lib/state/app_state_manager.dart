@@ -172,9 +172,9 @@ class AppStateManager extends ChangeNotifier {
   /// - 최대: 실천 알림 + 3일 결석 안내(스파르타) + 하루 3~5회 밀착 케어
   String notificationRate = '중간';
 
-  /// 랜덤 푸시 발송 시간대 (기본값: 오전 9시 ~ 오후 9시)
-  int randomPushStartHour = 9; // 0~23 (기본 9)
-  int randomPushEndHour = 21; // 0~23 (기본 21)
+  /// 랜덤 푸시 발송 시간대 (기본값: 0시 ~ 24시, 24시간 내내)
+  int randomPushStartHour = 0; // 0~23 (기본 0)
+  int randomPushEndHour = 24; // 1~24 (기본 24)
 
   // 하위 호환 게터/세터
   String get notificationFrequency => notificationRate;
@@ -196,7 +196,7 @@ class AppStateManager extends ChangeNotifier {
 
   void setRandomPushHours(int startHour, int endHour) {
     randomPushStartHour = startHour.clamp(0, 23);
-    randomPushEndHour = endHour.clamp(0, 23);
+    randomPushEndHour = endHour.clamp(1, 24);
     _prefs?.setInt('hagom_push_start_hour', randomPushStartHour);
     _prefs?.setInt('hagom_push_end_hour', randomPushEndHour);
     HagomAlarmManager.syncScheduledAlarms(this);
@@ -1822,8 +1822,8 @@ class AppStateManager extends ChangeNotifier {
       } else {
         notificationRate = '중간';
       }
-      randomPushStartHour = _prefs!.getInt('hagom_push_start_hour') ?? 9;
-      randomPushEndHour = _prefs!.getInt('hagom_push_end_hour') ?? 21;
+      randomPushStartHour = _prefs!.getInt('hagom_push_start_hour') ?? 0;
+      randomPushEndHour = _prefs!.getInt('hagom_push_end_hour') ?? 24;
       dailyResetHour = _prefs!.getInt('hagom_daily_reset_hour') ?? 8;
       dailyResetMinute = _prefs!.getInt('hagom_daily_reset_minute') ?? 0;
       _lastGreetingDayKey = _prefs!.getString('hagom_last_greeting_day');

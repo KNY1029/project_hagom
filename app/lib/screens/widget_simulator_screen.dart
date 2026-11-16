@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 
 import '../constants/app_colors.dart';
 import '../state/app_state_manager.dart';
-import '../widgets/celebration_toast.dart';
 import '../widgets/responsive_content.dart';
 
 /// 📱 스마트폰 홈 위젯 쇼룸
@@ -39,7 +38,6 @@ class _WidgetSimulatorScreenState extends State<WidgetSimulatorScreen> {
   static const Color _tagGreenText = Color(0xFF044E36);
 
   static const Color _btnPurple = Color(0xFF7B61A8);
-  static const Color _btnGreen = Color(0xFF10B981);
 
   static const Color _textMain = Color(0xFF1F2937);
   static const Color _textSub = Color(0xFF6B7280);
@@ -138,18 +136,11 @@ class _WidgetSimulatorScreenState extends State<WidgetSimulatorScreen> {
     },
   ];
 
-  int _currentQuoteIndex = 0;
-
-  // 4x4 달력 대시보드 상태
-  late DateTime _calendarMonth;
-  late DateTime _selectedDate;
+  static const int _currentQuoteIndex = 0;
 
   @override
   void initState() {
     super.initState();
-    final now = DateTime.now();
-    _calendarMonth = DateTime(now.year, now.month, 1);
-    _selectedDate = DateTime(now.year, now.month, now.day);
     _state.addListener(_onStateChanged);
   }
 
@@ -165,17 +156,6 @@ class _WidgetSimulatorScreenState extends State<WidgetSimulatorScreen> {
 
   int get _activeStageIndex {
     return _state.attendanceMascotStageIndex.clamp(0, _mascotStages.length - 1);
-  }
-
-  void _nextMascotQuote() {
-    setState(() {
-      _currentQuoteIndex = (_currentQuoteIndex + 1) % 2;
-    });
-    CelebrationToast.show(
-      context,
-      title: '위젯 탭 동작',
-      message: '위젯을 터치하여 다음 대사로 순환했어요!',
-    );
   }
 
   // 실제 위젯 카드 기본 데코레이션 (@drawable/hagom_widget_bg)
@@ -283,7 +263,7 @@ class _WidgetSimulatorScreenState extends State<WidgetSimulatorScreen> {
             // -------------------------------------------------------------
             _buildSectionHeader(
               title: '1. 하곰이 출석 응원 위젯 (2×1 규격)',
-              subtitle: '홈 화면에서 따뜻한 응원을 전하는 마스코트 위젯 (탭 시 대사 순환)',
+              subtitle: '홈 화면에서 따뜻한 응원을 전하는 마스코트 위젯',
             ),
             const SizedBox(height: 10),
 
@@ -376,80 +356,76 @@ class _WidgetSimulatorScreenState extends State<WidgetSimulatorScreen> {
     final badgeText = stage['badge'] as String? ?? '하곰이의 응원';
     final subText = stage['sub'] as String? ?? '';
 
-    return InkWell(
-      borderRadius: BorderRadius.circular(18),
-      onTap: _nextMascotQuote,
-      child: Container(
-        width: double.infinity,
-        padding: const EdgeInsets.all(14),
-        decoration: _widgetBoxDecoration(),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            // 좌측 하곰이 캐릭터 (72dp × 72dp)
-            Image.asset(
-              imageAsset,
-              width: 72,
-              height: 72,
-              fit: BoxFit.contain,
-              errorBuilder: (context, error, stackTrace) => const Icon(
-                Icons.pets_rounded,
-                color: _btnPurple,
-                size: 40,
-              ),
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(14),
+      decoration: _widgetBoxDecoration(),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          // 좌측 하곰이 캐릭터 (72dp × 72dp)
+          Image.asset(
+            imageAsset,
+            width: 72,
+            height: 72,
+            fit: BoxFit.contain,
+            errorBuilder: (context, error, stackTrace) => const Icon(
+              Icons.pets_rounded,
+              color: _btnPurple,
+              size: 40,
             ),
-            const SizedBox(width: 14),
+          ),
+          const SizedBox(width: 14),
 
-            // 우측 따뜻한 텍스트 영역 (실제 hagom_mascot_widget.xml 규격과 100% 동일)
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  // 뱃지 (widget_mascot_badge: paddingHorizontal 7dp, vertical 2dp, 10.5sp bold)
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
-                    decoration: BoxDecoration(
-                      color: _isDark ? const Color(0xFF382B4A) : _tagPurpleBg,
-                      borderRadius: BorderRadius.circular(6),
-                    ),
-                    child: Text(
-                      badgeText,
-                      style: const TextStyle(
-                        fontSize: 10.5,
-                        fontWeight: FontWeight.bold,
-                        color: _tagPurpleText,
-                      ),
-                    ),
+          // 우측 따뜻한 텍스트 영역 (실제 hagom_mascot_widget.xml 규격과 100% 동일)
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // 뱃지 (widget_mascot_badge: paddingHorizontal 7dp, vertical 2dp, 10.5sp bold)
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+                  decoration: BoxDecoration(
+                    color: _isDark ? const Color(0xFF382B4A) : _tagPurpleBg,
+                    borderRadius: BorderRadius.circular(6),
                   ),
-                  const SizedBox(height: 5),
-
-                  // 메인 대사 (widget_mascot_quote: 12.5sp bold, marginTop 5dp)
-                  Text(
-                    quoteText,
-                    style: TextStyle(
-                      fontSize: 12.5,
+                  child: Text(
+                    badgeText,
+                    style: const TextStyle(
+                      fontSize: 10.5,
                       fontWeight: FontWeight.bold,
-                      color: _isDark ? Colors.white : _textMain,
-                      height: 1.35,
+                      color: _tagPurpleText,
                     ),
                   ),
-                  if (subText.isNotEmpty) ...[
-                    const SizedBox(height: 3),
-                    // 서브 멘트 (widget_mascot_sub: 11sp, marginTop 3dp)
-                    Text(
-                      subText,
-                      style: TextStyle(
-                        fontSize: 11,
-                        color: _isDark ? Colors.white70 : _textSub,
-                      ),
+                ),
+                const SizedBox(height: 5),
+
+                // 메인 대사 (widget_mascot_quote: 12.5sp bold, marginTop 5dp)
+                Text(
+                  quoteText,
+                  style: TextStyle(
+                    fontSize: 12.5,
+                    fontWeight: FontWeight.bold,
+                    color: _isDark ? Colors.white : _textMain,
+                    height: 1.35,
+                  ),
+                ),
+                if (subText.isNotEmpty) ...[
+                  const SizedBox(height: 3),
+                  // 서브 멘트 (widget_mascot_sub: 11sp, marginTop 3dp)
+                  Text(
+                    subText,
+                    style: TextStyle(
+                      fontSize: 11,
+                      color: _isDark ? Colors.white70 : _textSub,
                     ),
-                  ],
+                  ),
                 ],
-              ),
+              ],
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
@@ -461,7 +437,6 @@ class _WidgetSimulatorScreenState extends State<WidgetSimulatorScreen> {
     String medName = '복약 없음';
     String medDetail = '등록된 약이 없거나 오늘 약이 아닙니다';
     String medId = '';
-    int slotIndex = 0;
 
     for (final med in _state.medications) {
       if (!med.isDueToday) continue;
@@ -472,7 +447,6 @@ class _WidgetSimulatorScreenState extends State<WidgetSimulatorScreen> {
           final sTime = slot.scheduledTime ?? '예정 시간';
           medDetail = '$sTime · 식후 복용';
           medId = med.id;
-          slotIndex = i;
           break;
         }
       }
@@ -596,33 +570,21 @@ class _WidgetSimulatorScreenState extends State<WidgetSimulatorScreen> {
                 ),
                 const SizedBox(width: 8),
 
-                // 우측 네이티브 규격 1-Tap 버튼 (64dp × 42dp / hagom_meds_widget.xml 규격)
-                InkWell(
-                  borderRadius: BorderRadius.circular(14),
-                  onTap: () {
-                    if (medId.isEmpty) return;
-                    _state.completeSlot(medId, slotIndex);
-                    CelebrationToast.show(
-                      context,
-                      title: '복용 완료',
-                      message: '홈 위젯 1-Tap으로 복용을 완료했어요!',
-                    );
-                  },
-                  child: Container(
-                    width: 64,
-                    height: 42,
-                    decoration: BoxDecoration(
-                      color: _btnPurple,
-                      borderRadius: BorderRadius.circular(14),
-                    ),
-                    child: const Center(
-                      child: Text(
-                        '복용',
-                        style: TextStyle(
-                          fontSize: 13.5,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white,
-                        ),
+                // 우측 네이티브 규격 1-Tap 버튼 (64dp × 42dp / 쇼룸 순수 뷰)
+                Container(
+                  width: 64,
+                  height: 42,
+                  decoration: BoxDecoration(
+                    color: _btnPurple,
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                  child: const Center(
+                    child: Text(
+                      '복용',
+                      style: TextStyle(
+                        fontSize: 13.5,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
                       ),
                     ),
                   ),
@@ -776,34 +738,22 @@ class _WidgetSimulatorScreenState extends State<WidgetSimulatorScreen> {
                 ),
                 const SizedBox(width: 8),
 
-                // 우측 네이티브 규격 1-Tap 버튼 (64dp × 42dp / hagom_habits_widget.xml 규격)
-                InkWell(
-                  borderRadius: BorderRadius.circular(14),
-                  onTap: () {
-                    if (habit == null) return;
-                    _state.advanceHabitProgress(habit.id);
-                    CelebrationToast.show(
-                      context,
-                      title: '습관 실천',
-                      message: '홈 위젯 1-Tap으로 실천을 기록했어요!',
-                    );
-                  },
-                  child: Container(
-                    width: 64,
-                    height: 42,
-                    decoration: BoxDecoration(
-                      color: habitBtnBg,
-                      borderRadius: BorderRadius.circular(14),
-                      border: Border.all(color: habitBtnBorder, width: 1),
-                    ),
-                    child: Center(
-                      child: Text(
-                        habitBtnText,
-                        style: TextStyle(
-                          fontSize: 13.5,
-                          fontWeight: FontWeight.bold,
-                          color: habitBtnTextColor,
-                        ),
+                // 우측 네이티브 규격 1-Tap 버튼 (64dp × 42dp / 쇼룸 순수 뷰)
+                Container(
+                  width: 64,
+                  height: 42,
+                  decoration: BoxDecoration(
+                    color: habitBtnBg,
+                    borderRadius: BorderRadius.circular(14),
+                    border: Border.all(color: habitBtnBorder, width: 1),
+                  ),
+                  child: Center(
+                    child: Text(
+                      habitBtnText,
+                      style: TextStyle(
+                        fontSize: 13.5,
+                        fontWeight: FontWeight.bold,
+                        color: habitBtnTextColor,
                       ),
                     ),
                   ),
@@ -945,33 +895,21 @@ class _WidgetSimulatorScreenState extends State<WidgetSimulatorScreen> {
                 ),
                 const SizedBox(width: 8),
 
-                // 우측 네이티브 규격 1-Tap 버튼 (64dp × 42dp / hagom_calendar_widget.xml 규격)
-                InkWell(
-                  borderRadius: BorderRadius.circular(14),
-                  onTap: () {
-                    if (task == null) return;
-                    _state.toggleTaskCompleted(task.id);
-                    CelebrationToast.show(
-                      context,
-                      title: '할일 체크',
-                      message: '홈 위젯 1-Tap으로 할일을 체크했어요!',
-                    );
-                  },
-                  child: Container(
-                    width: 64,
-                    height: 42,
-                    decoration: BoxDecoration(
-                      color: _btnPurple,
-                      borderRadius: BorderRadius.circular(14),
-                    ),
-                    child: const Center(
-                      child: Text(
-                        '체크',
-                        style: TextStyle(
-                          fontSize: 13.5,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white,
-                        ),
+                // 우측 네이티브 규격 1-Tap 버튼 (64dp × 42dp / 쇼룸 순수 뷰)
+                Container(
+                  width: 64,
+                  height: 42,
+                  decoration: BoxDecoration(
+                    color: _btnPurple,
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                  child: const Center(
+                    child: Text(
+                      '체크',
+                      style: TextStyle(
+                        fontSize: 13.5,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
                       ),
                     ),
                   ),
@@ -985,18 +923,14 @@ class _WidgetSimulatorScreenState extends State<WidgetSimulatorScreen> {
   // [위젯 3: 4×4 한 달 기록 달력 대시보드 위젯 (hagom_month_calendar_widget.xml과 100% 동일)]
   // ---------------------------------------------------------------------------
   Widget _buildMonthCalendar4x4WidgetCard() {
-    final year = _calendarMonth.year;
-    final month = _calendarMonth.month;
+    final now = DateTime.now();
+    final year = now.year;
+    final month = now.month;
     final firstDayOfWeek = DateTime(year, month, 1).weekday % 7; // 0=일요일
     final daysInMonth = DateUtils.getDaysInMonth(year, month);
     final totalCells = ((firstDayOfWeek + daysInMonth + 6) ~/ 7) * 7;
-    final now = DateTime.now();
 
-    final selectedTasks = _state.getTasksForDay(_selectedDate);
-    final isSelectedDateToday = _selectedDate.year == now.year &&
-        _selectedDate.month == now.month &&
-        _selectedDate.day == now.day;
-
+    final todayTasks = _state.getTasksForDay(now);
     final todayHabits = _state.habits.where((h) => h.isDueToday).toList();
     final hTotal = todayHabits.length;
     final hDone = todayHabits.where((h) => h.score >= 1.0).length;
@@ -1014,27 +948,25 @@ class _WidgetSimulatorScreenState extends State<WidgetSimulatorScreen> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              IconButton(
-                visualDensity: VisualDensity.compact,
-                icon: const Text(
-                  '◀',
-                  style: TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.bold,
-                    color: _btnPurple,
+              SizedBox(
+                width: 32,
+                height: 32,
+                child: Center(
+                  child: Text(
+                    '◀',
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                      color: _btnPurple,
+                    ),
                   ),
                 ),
-                onPressed: () {
-                  setState(() {
-                    _calendarMonth = DateTime(year, month - 1, 1);
-                  });
-                },
               ),
               Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Text(
-                    '$year년 ${month.toString().padLeft(2, '0')}월 기록 달력',
+                    '$year년 $month월 기록 달력',
                     style: TextStyle(
                       fontSize: 13.5,
                       fontWeight: FontWeight.bold,
@@ -1050,21 +982,19 @@ class _WidgetSimulatorScreenState extends State<WidgetSimulatorScreen> {
                   ),
                 ],
               ),
-              IconButton(
-                visualDensity: VisualDensity.compact,
-                icon: const Text(
-                  '▶',
-                  style: TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.bold,
-                    color: _btnPurple,
+              SizedBox(
+                width: 32,
+                height: 32,
+                child: Center(
+                  child: Text(
+                    '▶',
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                      color: _btnPurple,
+                    ),
                   ),
                 ),
-                onPressed: () {
-                  setState(() {
-                    _calendarMonth = DateTime(year, month + 1, 1);
-                  });
-                },
               ),
             ],
           ),
@@ -1086,7 +1016,7 @@ class _WidgetSimulatorScreenState extends State<WidgetSimulatorScreen> {
           Divider(height: 1, color: _isDark ? _widgetDarkBorder : const Color(0xFFE5E7EB)),
           const SizedBox(height: 4),
 
-          // 3) 달력 그리드 (42칸 실천 상태 그래픽 100% 동일 매핑)
+          // 3) 달력 그리드 (실제 네이티브 레이어-리스트 XML과 1:1 일치: 4.5dp 원형 닷 & 하단 2.5dp 복약 바)
           GridView.builder(
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
@@ -1107,9 +1037,6 @@ class _WidgetSimulatorScreenState extends State<WidgetSimulatorScreen> {
               final isToday = cellDate.year == now.year &&
                   cellDate.month == now.month &&
                   cellDate.day == now.day;
-              final isSelected = cellDate.year == _selectedDate.year &&
-                  cellDate.month == _selectedDate.month &&
-                  cellDate.day == _selectedDate.day;
               final isSunday = (i % 7) == 0;
 
               // 실제 네이티브 위젯 실천 데이터 연동
@@ -1121,87 +1048,160 @@ class _WidgetSimulatorScreenState extends State<WidgetSimulatorScreen> {
               final dayTasks = _state.getTasksForDay(cellDate);
               final hasTasks = dayTasks.isNotEmpty;
 
-              return InkWell(
-                borderRadius: BorderRadius.circular(6),
-                onTap: () {
-                  setState(() => _selectedDate = cellDate);
-                },
-                child: Container(
-                  decoration: BoxDecoration(
-                    color: isHabitDone
-                        ? (_isDark ? const Color(0xFF1E382A) : const Color(0xFFEAF8F1))
-                        : (isSelected
-                            ? _btnPurple.withValues(alpha: 0.12)
-                            : Colors.transparent),
-                    borderRadius: BorderRadius.circular(6),
-                    border: isToday
-                        ? Border.all(color: _btnPurple, width: 1.5)
-                        : (isSelected
-                            ? Border.all(color: _btnPurple.withValues(alpha: 0.7), width: 1.0)
-                            : null),
-                  ),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Text(
-                            '$dayNumber',
-                            style: TextStyle(
-                              fontSize: 11,
-                              fontWeight: (isToday || isSelected)
-                                  ? FontWeight.bold
-                                  : FontWeight.normal,
-                              color: isSunday
-                                  ? AppColors.missedRed
-                                  : (isToday
-                                      ? _btnPurple
-                                      : (_isDark ? Colors.white : _textMain)),
-                            ),
-                          ),
-                          if (hasTasks) ...[
-                            const SizedBox(width: 1.5),
-                            const Icon(
-                              Icons.push_pin_rounded,
-                              size: 8,
-                              color: _btnPurple,
-                            ),
-                          ],
-                        ],
+              return Container(
+                decoration: BoxDecoration(
+                  color: isHabitDone
+                      ? (_isDark ? const Color(0xFF1E382A) : const Color(0xFFE6F8F0))
+                      : (isToday
+                          ? (_isDark ? const Color(0xFF2D2638) : Colors.white)
+                          : Colors.transparent),
+                  borderRadius: BorderRadius.circular(5),
+                  border: isToday
+                      ? Border.all(color: _btnPurple.withValues(alpha: 0.5), width: 1.2)
+                      : null,
+                ),
+                child: Stack(
+                  children: [
+                    // 중앙 날짜 텍스트
+                    Center(
+                      child: Text(
+                        '$dayNumber',
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: isToday ? FontWeight.bold : FontWeight.normal,
+                          color: isSunday
+                              ? const Color(0xFFEF4444)
+                              : (_isDark ? const Color(0xFFF3F0F7) : const Color(0xFF1F2937)),
+                        ),
                       ),
-                      const SizedBox(height: 2),
+                    ),
 
-                      // 복약 상태 인디케이터 바 (초록 완료 / 빨강 누락)
-                      if (isMedDone)
-                        Container(
-                          width: 12,
-                          height: 2.2,
+                    // 우측 상단 네이티브 규격 4.5dp 원형 닷 (task_dot)
+                    if (hasTasks)
+                      Positioned(
+                        top: 2.5,
+                        right: 2.5,
+                        child: Container(
+                          width: 4.5,
+                          height: 4.5,
                           decoration: BoxDecoration(
-                            color: _btnGreen,
-                            borderRadius: BorderRadius.circular(1),
+                            shape: BoxShape.circle,
+                            color: isHabitDone
+                                ? const Color(0xFF059669)
+                                : const Color(0xFF7B61A8),
                           ),
-                        )
-                      else if (isMissedP)
-                        Container(
-                          width: 12,
-                          height: 2.2,
+                        ),
+                      ),
+
+                    // 하단 밀착 2.5dp 가로 복약 바 (bar_bottom)
+                    if (isMedDone)
+                      Positioned(
+                        bottom: 2,
+                        left: 3,
+                        right: 3,
+                        child: Container(
+                          height: 2.5,
                           decoration: BoxDecoration(
-                            color: AppColors.missedRed,
-                            borderRadius: BorderRadius.circular(1),
+                            color: const Color(0xFF059669),
+                            borderRadius: BorderRadius.circular(1.5),
                           ),
-                        )
-                      else
-                        const SizedBox(height: 2.2),
-                    ],
-                  ),
+                        ),
+                      )
+                    else if (isMissedP)
+                      Positioned(
+                        bottom: 2,
+                        left: 3,
+                        right: 3,
+                        child: Container(
+                          height: 2.5,
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFEF4444),
+                            borderRadius: BorderRadius.circular(1.5),
+                          ),
+                        ),
+                      ),
+                  ],
                 ),
               );
             },
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 6),
 
-          // 4) 선택 날짜의 할일 요약 헤더 (widget_month_tasks_header)
+          // 4) 실제 네이티브 4x4에 존재하는 상세 할일 목록 카드 (widget_month_tasks_list / 2열 분할)
+          if (todayTasks.isNotEmpty) ...[
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+              decoration: BoxDecoration(
+                color: _isDark ? const Color(0xFF382B4A) : _tagPurpleBg,
+                borderRadius: BorderRadius.circular(6),
+              ),
+              child: Builder(
+                builder: (context) {
+                  final activeTasks = todayTasks.take(6).toList();
+                  final isTwoCol = activeTasks.length > 3;
+                  final leftTasks = <String>[];
+                  final rightTasks = <String>[];
+
+                  if (isTwoCol) {
+                    if (activeTasks.length == 4) {
+                      leftTasks.add(activeTasks[0].title);
+                      leftTasks.add(activeTasks[1].title);
+                      rightTasks.add(activeTasks[2].title);
+                      rightTasks.add(activeTasks[3].title);
+                    } else {
+                      for (int i = 0; i < 3; i++) {
+                        leftTasks.add(activeTasks[i].title);
+                      }
+                      for (int i = 3; i < activeTasks.length; i++) {
+                        rightTasks.add(activeTasks[i].title);
+                      }
+                    }
+                  } else {
+                    for (final t in activeTasks) {
+                      leftTasks.add(t.title);
+                    }
+                  }
+
+                  Widget buildCol(List<String> items) {
+                    return Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: items.map((title) {
+                          return Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 1.5, horizontal: 2),
+                            child: Text(
+                              '• $title',
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(
+                                fontSize: 9.5,
+                                color: _isDark ? const Color(0xFFE8E1F0) : const Color(0xFF374151),
+                              ),
+                            ),
+                          );
+                        }).toList(),
+                      ),
+                    );
+                  }
+
+                  return Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      buildCol(leftTasks),
+                      if (isTwoCol) ...[
+                        const SizedBox(width: 4),
+                        buildCol(rightTasks),
+                      ],
+                    ],
+                  );
+                },
+              ),
+            ),
+            const SizedBox(height: 4),
+          ],
+
+          // 5) 선택 날짜(오늘) 할일 요약 헤더 (widget_month_tasks_header)
           Container(
             width: double.infinity,
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
@@ -1211,32 +1211,23 @@ class _WidgetSimulatorScreenState extends State<WidgetSimulatorScreen> {
             ),
             child: Row(
               children: [
-                Text(
-                  isSelectedDateToday
-                      ? '오늘의 할일'
-                      : '${_selectedDate.month}월 ${_selectedDate.day}일 할일',
-                  style: const TextStyle(
+                const Text(
+                  '오늘의 할일',
+                  style: TextStyle(
                     fontSize: 11,
                     fontWeight: FontWeight.bold,
                     color: _tagPurpleText,
                   ),
                 ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: Text(
-                    selectedTasks.isEmpty
-                        ? '등록된 할 일 없음'
-                        : (selectedTasks.length == 1
-                            ? selectedTasks.first.title
-                            : '${selectedTasks.first.title} 외 ${selectedTasks.length - 1}건'),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    textAlign: TextAlign.end,
-                    style: const TextStyle(
-                      fontSize: 10.5,
-                      fontWeight: FontWeight.bold,
-                      color: _tagPurpleText,
-                    ),
+                const Spacer(),
+                Text(
+                  todayTasks.isEmpty
+                      ? '0개'
+                      : '${todayTasks.where((t) => t.isCompleted).length}/${todayTasks.length} 완료',
+                  style: const TextStyle(
+                    fontSize: 10.5,
+                    fontWeight: FontWeight.bold,
+                    color: _tagPurpleText,
                   ),
                 ),
               ],
@@ -1244,7 +1235,7 @@ class _WidgetSimulatorScreenState extends State<WidgetSimulatorScreen> {
           ),
           const SizedBox(height: 4),
 
-          // 5) 최하단 2분할 상태 바 (month_bottom_panel: 습관 박스 & 복약 박스)
+          // 6) 최하단 2분할 상태 바 (month_bottom_panel: 습관 박스 & 복약 박스)
           Row(
             children: [
               // 좌측 습관 박스 (widget_month_habits_box)
@@ -1257,7 +1248,7 @@ class _WidgetSimulatorScreenState extends State<WidgetSimulatorScreen> {
                   ),
                   child: Center(
                     child: Text(
-                      '🌱 습관 $hDone/$hTotal 달성',
+                      todayHabits.isEmpty ? '습관 없음' : '습관 $hDone/$hTotal 완료',
                       style: const TextStyle(
                         fontSize: 11,
                         fontWeight: FontWeight.bold,
@@ -1279,7 +1270,7 @@ class _WidgetSimulatorScreenState extends State<WidgetSimulatorScreen> {
                   ),
                   child: Center(
                     child: Text(
-                      '💊 복약 $mDone/$mTotal 완료',
+                      mTotal == 0 ? '복약 없음' : '복약 $mDone/$mTotal 완료',
                       style: const TextStyle(
                         fontSize: 11,
                         fontWeight: FontWeight.bold,

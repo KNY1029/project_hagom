@@ -427,12 +427,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   String _formatHourString(int hour) {
+    if (hour <= 0) return '오전 12시';
+    if (hour >= 24) return '밤 12시';
     final period = hour < 12 ? '오전' : '오후';
-    final h12 = hour == 0 ? 12 : (hour > 12 ? hour - 12 : hour);
+    final h12 = hour > 12 ? hour - 12 : hour;
     return '$period $h12시';
   }
 
-  /// ⏰ 알림 수신 시간대 설정 다이얼로그 (기본: 09:00 ~ 21:00)
+  /// ⏰ 하곰이 대화 시간대 설정 다이얼로그 (기본: 24시간 내내)
   void _showPushHoursDialog() {
     int tempStart = _state.randomPushStartHour;
     int tempEnd = _state.randomPushEndHour;
@@ -447,7 +449,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               Icon(Icons.schedule_rounded, color: AppColors.primaryPurple, size: 24),
               const SizedBox(width: 8),
               Text(
-                '알림 수신 시간대 설정',
+                '하곰이 대화 시간대 설정',
                 style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
@@ -461,7 +463,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                '하곰이가 말을 걸어오거나 일상 응원을 보낼 시간 범위를 설정해요. (필수 복약/할 일은 설정한 시각에 맞춰 정확히 울려요)',
+                '하곰이가 일상 응원이나 대화를 건네는 시간대를 설정해요. 복약과 할일 알림은 정해진 시각에 항상 울려요.',
                 style: TextStyle(
                   fontSize: 12.5,
                   color: AppColors.textSecondary,
@@ -475,14 +477,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 onTap: () async {
                   final picked = await AppTimePicker.show(
                     context,
-                    initialTime: TimeOfDay(hour: tempStart, minute: 0),
-                    title: '알림 수신 시작 시간',
+                    initialTime: TimeOfDay(hour: tempStart.clamp(0, 23), minute: 0),
+                    title: '시작 시간',
                   );
                   if (picked != null) {
                     setDlgState(() {
                       tempStart = picked.hour;
                       if (tempEnd <= tempStart) {
-                        tempEnd = (tempStart + 1).clamp(0, 23);
+                        tempEnd = (tempStart + 1).clamp(1, 24);
                       }
                     });
                   }
@@ -537,12 +539,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 onTap: () async {
                   final picked = await AppTimePicker.show(
                     context,
-                    initialTime: TimeOfDay(hour: tempEnd, minute: 0),
-                    title: '알림 수신 종료 시간',
+                    initialTime: TimeOfDay(hour: (tempEnd >= 24 ? 0 : tempEnd), minute: 0),
+                    title: '종료 시간',
                   );
                   if (picked != null) {
                     setDlgState(() {
-                      tempEnd = picked.hour;
+                      // 자정 선택 시 24로 처리
+                      tempEnd = picked.hour == 0 ? 24 : picked.hour;
                       if (tempEnd <= tempStart) {
                         tempStart = (tempEnd - 1).clamp(0, 23);
                       }
@@ -597,12 +600,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
             TextButton(
               onPressed: () {
                 setDlgState(() {
-                  tempStart = 9;
-                  tempEnd = 21;
+                  tempStart = 0;
+                  tempEnd = 24;
                 });
               },
               child: const Text(
-                '기본값 (09:00~21:00)',
+                '24시간 내내로 초기화',
                 style: TextStyle(fontSize: 12, color: AppColors.textMuted),
               ),
             ),
@@ -617,7 +620,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 CelebrationToast.show(
                   context,
                   title: '시간대 저장 완료',
-                  message: '${_formatHourString(tempStart)}부터 ${_formatHourString(tempEnd)} 사이에 푸시가 발송돼요.',
+                  message: tempStart == 0 && tempEnd >= 24
+                      ? '하루 24시간 내내 하곰이가 응원을 전해요.'
+                      : '${_formatHourString(tempStart)}부터 ${_formatHourString(tempEnd)}까지 하곰이가 응원을 전해요.',
                 );
               },
               child: const Text(
@@ -1905,7 +1910,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       ),
                       SizedBox(height: 3),
                       Text(
-                        '정신약학 맞춤 복약 솔루션 · v0.143.398',
+                        '정신약학 맞춤 복약 솔루션 · v0.143.399',
                         style: TextStyle(
                           fontSize: 12,
                           color: AppColors.textSecondary,
@@ -2086,7 +2091,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                     crossAxisAlignment: CrossAxisAlignment.start,
                                     children: [
                                       Text(
-                                        '알림 수신 시간대 설정',
+                                        '하곰이 대화 시간대 설정',
                                         style: TextStyle(
                                           fontSize: 12.5,
                                           fontWeight: FontWeight.bold,
@@ -2098,8 +2103,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                       const SizedBox(height: 2),
                                       Text(
                                         _state.notificationRate == '최소'
-                                            ? '최소 모드에서는 정해진 실천 시간에만 알림을 보내요'
-                                            : '${_formatHourString(_state.randomPushStartHour)} ~ ${_formatHourString(_state.randomPushEndHour)} (하곰이가 말을 걸어오는 시간대예요)',
+                                            ? '최소 모드에서는 필수 실천 알림만 울려요'
+                                            : (_state.randomPushStartHour == 0 && _state.randomPushEndHour >= 24
+                                                ? '24시간 내내'
+                                                : '${_formatHourString(_state.randomPushStartHour)}부터 ${_formatHourString(_state.randomPushEndHour)}까지'),
                                         style: const TextStyle(
                                           fontSize: 11,
                                           color: AppColors.textMuted,
