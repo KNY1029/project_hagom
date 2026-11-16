@@ -38,12 +38,8 @@ class _WidgetSimulatorScreenState extends State<WidgetSimulatorScreen> {
   static const Color _tagGreenBg = Color(0xFFE6F8F0);
   static const Color _tagGreenText = Color(0xFF044E36);
 
-  static const Color _tagAmberBg = Color(0xFFFEF3C7);
-  static const Color _tagAmberText = Color(0xFFB45309);
-
   static const Color _btnPurple = Color(0xFF7B61A8);
   static const Color _btnGreen = Color(0xFF10B981);
-  static const Color _btnAmber = Color(0xFFD97706);
 
   static const Color _textMain = Color(0xFF1F2937);
   static const Color _textSub = Color(0xFF6B7280);
@@ -299,7 +295,7 @@ class _WidgetSimulatorScreenState extends State<WidgetSimulatorScreen> {
             // -------------------------------------------------------------
             _buildSectionHeader(
               title: '2. 인체공학적 1-Tap 즉시 체크 위젯 (2×1 규격)',
-              subtitle: '우측 58×38dp 버튼으로 즉시 실천 · 100% 완료 시 축하 화면 전환',
+              subtitle: '우측 64×42dp 버튼으로 즉시 실천 · 100% 완료 시 축하 화면 전환',
             ),
             const SizedBox(height: 10),
 
@@ -377,6 +373,8 @@ class _WidgetSimulatorScreenState extends State<WidgetSimulatorScreen> {
     final quotes = stage['quotes'] as List<String>;
     final imageAsset = stage['asset'] as String;
     final quoteText = quotes[_currentQuoteIndex % quotes.length];
+    final badgeText = stage['badge'] as String? ?? '하곰이의 응원';
+    final subText = stage['sub'] as String? ?? '';
 
     return InkWell(
       borderRadius: BorderRadius.circular(18),
@@ -402,16 +400,52 @@ class _WidgetSimulatorScreenState extends State<WidgetSimulatorScreen> {
             ),
             const SizedBox(width: 14),
 
-            // 우측 따뜻한 텍스트 영역 (실제 위젯과 100% 동일하게 순수 대사만 세로 중앙 정렬)
+            // 우측 따뜻한 텍스트 영역 (실제 hagom_mascot_widget.xml 규격과 100% 동일)
             Expanded(
-              child: Text(
-                quoteText,
-                style: TextStyle(
-                  fontSize: 13,
-                  fontWeight: FontWeight.bold,
-                  color: _isDark ? Colors.white : _textMain,
-                  height: 1.4,
-                ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  // 뱃지 (widget_mascot_badge: paddingHorizontal 7dp, vertical 2dp, 10.5sp bold)
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+                    decoration: BoxDecoration(
+                      color: _isDark ? const Color(0xFF382B4A) : _tagPurpleBg,
+                      borderRadius: BorderRadius.circular(6),
+                    ),
+                    child: Text(
+                      badgeText,
+                      style: const TextStyle(
+                        fontSize: 10.5,
+                        fontWeight: FontWeight.bold,
+                        color: _tagPurpleText,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 5),
+
+                  // 메인 대사 (widget_mascot_quote: 12.5sp bold, marginTop 5dp)
+                  Text(
+                    quoteText,
+                    style: TextStyle(
+                      fontSize: 12.5,
+                      fontWeight: FontWeight.bold,
+                      color: _isDark ? Colors.white : _textMain,
+                      height: 1.35,
+                    ),
+                  ),
+                  if (subText.isNotEmpty) ...[
+                    const SizedBox(height: 3),
+                    // 서브 멘트 (widget_mascot_sub: 11sp, marginTop 3dp)
+                    Text(
+                      subText,
+                      style: TextStyle(
+                        fontSize: 11,
+                        color: _isDark ? Colors.white70 : _textSub,
+                      ),
+                    ),
+                  ],
+                ],
               ),
             ),
           ],
@@ -451,7 +485,7 @@ class _WidgetSimulatorScreenState extends State<WidgetSimulatorScreen> {
 
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 10),
+      padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 9),
       decoration: _widgetBoxDecoration(),
       child: allDone
           // 🎉 100% 완료 시 전환되는 하곰이 축하 화면 (meds_celebration_view)
@@ -476,7 +510,7 @@ class _WidgetSimulatorScreenState extends State<WidgetSimulatorScreen> {
                           borderRadius: BorderRadius.circular(5),
                         ),
                         child: Text(
-                          '오늘 복약 모두 완료 ($comp/$total)',
+                          '오늘 복약 완료 ($comp/$total 완료)',
                           style: const TextStyle(
                             fontSize: 10,
                             fontWeight: FontWeight.bold,
@@ -528,7 +562,7 @@ class _WidgetSimulatorScreenState extends State<WidgetSimulatorScreen> {
                           ),
                           const SizedBox(width: 6),
                           Text(
-                            '($comp/$total)',
+                            '$comp/$total 완료',
                             style: TextStyle(
                               fontSize: 10.5,
                               color: _isDark ? Colors.white70 : _textSub,
@@ -542,7 +576,7 @@ class _WidgetSimulatorScreenState extends State<WidgetSimulatorScreen> {
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: TextStyle(
-                          fontSize: 13,
+                          fontSize: 13.5,
                           fontWeight: FontWeight.bold,
                           color: _isDark ? Colors.white : _textMain,
                         ),
@@ -562,7 +596,7 @@ class _WidgetSimulatorScreenState extends State<WidgetSimulatorScreen> {
                 ),
                 const SizedBox(width: 8),
 
-                // 우측 아담한 1-Tap 버튼 (58dp × 38dp)
+                // 우측 네이티브 규격 1-Tap 버튼 (64dp × 42dp / hagom_meds_widget.xml 규격)
                 InkWell(
                   borderRadius: BorderRadius.circular(14),
                   onTap: () {
@@ -575,26 +609,21 @@ class _WidgetSimulatorScreenState extends State<WidgetSimulatorScreen> {
                     );
                   },
                   child: Container(
-                    width: 58,
-                    height: 38,
+                    width: 64,
+                    height: 42,
                     decoration: BoxDecoration(
                       color: _btnPurple,
                       borderRadius: BorderRadius.circular(14),
                     ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: const [
-                        Icon(Icons.medication_rounded, size: 14, color: Colors.white),
-                        SizedBox(width: 3),
-                        Text(
-                          '복용',
-                          style: TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white,
-                          ),
+                    child: const Center(
+                      child: Text(
+                        '복용',
+                        style: TextStyle(
+                          fontSize: 13.5,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
                         ),
-                      ],
+                      ),
                     ),
                   ),
                 ),
@@ -619,9 +648,24 @@ class _WidgetSimulatorScreenState extends State<WidgetSimulatorScreen> {
     final comp = todayHabits.where((h) => h.score >= 1.0).length;
     final bool allDone = (total > 0 && comp >= total);
 
+    final isHabitDone = habit != null && habit.score >= 1.0;
+    final isHabitPartial = habit != null && habit.score > 0 && habit.score < 1.0;
+    final String habitBtnText = isHabitDone
+        ? '완료'
+        : (isHabitPartial ? '${habit.currentCount}/${habit.targetPerDay}' : '실천');
+    final Color habitBtnBg = isHabitDone
+        ? const Color(0xFFEAF8F1)
+        : (isHabitPartial ? const Color(0xFFF7F3EE) : const Color(0xFFF3F4F6));
+    final Color habitBtnBorder = isHabitDone
+        ? const Color(0xFFA3DBC0)
+        : (isHabitPartial ? const Color(0xFFE5DDD0) : const Color(0xFFE5E7EB));
+    final Color habitBtnTextColor = isHabitDone
+        ? const Color(0xFF1B6B46)
+        : (isHabitPartial ? const Color(0xFF8B5E3C) : const Color(0xFF6B7280));
+
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 10),
+      padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 9),
       decoration: _widgetBoxDecoration(),
       child: allDone
           // 🎉 100% 완료 시 전환되는 하곰이 축하 화면 (habits_celebration_view)
@@ -646,7 +690,7 @@ class _WidgetSimulatorScreenState extends State<WidgetSimulatorScreen> {
                           borderRadius: BorderRadius.circular(5),
                         ),
                         child: Text(
-                          '오늘 습관 모두 완료 ($comp/$total)',
+                          '오늘 습관 달성 ($comp/$total 완료)',
                           style: const TextStyle(
                             fontSize: 10,
                             fontWeight: FontWeight.bold,
@@ -684,7 +728,7 @@ class _WidgetSimulatorScreenState extends State<WidgetSimulatorScreen> {
                           Container(
                             padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1.5),
                             decoration: BoxDecoration(
-                              color: _isDark ? const Color(0xFF1E382A) : _tagGreenBg,
+                              color: _isDark ? const Color(0xFF382B4A) : _tagPurpleBg,
                               borderRadius: BorderRadius.circular(6),
                             ),
                             child: const Text(
@@ -692,13 +736,13 @@ class _WidgetSimulatorScreenState extends State<WidgetSimulatorScreen> {
                               style: TextStyle(
                                 fontSize: 10,
                                 fontWeight: FontWeight.bold,
-                                color: _tagGreenText,
+                                color: _tagPurpleText,
                               ),
                             ),
                           ),
                           const SizedBox(width: 6),
                           Text(
-                            '($comp/$total)',
+                            '$comp/$total 완료',
                             style: TextStyle(
                               fontSize: 10.5,
                               color: _isDark ? Colors.white70 : _textSub,
@@ -712,7 +756,7 @@ class _WidgetSimulatorScreenState extends State<WidgetSimulatorScreen> {
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: TextStyle(
-                          fontSize: 13,
+                          fontSize: 13.5,
                           fontWeight: FontWeight.bold,
                           color: _isDark ? Colors.white : _textMain,
                         ),
@@ -732,7 +776,7 @@ class _WidgetSimulatorScreenState extends State<WidgetSimulatorScreen> {
                 ),
                 const SizedBox(width: 8),
 
-                // 우측 아담한 1-Tap 버튼 (58dp × 38dp)
+                // 우측 네이티브 규격 1-Tap 버튼 (64dp × 42dp / hagom_habits_widget.xml 규격)
                 InkWell(
                   borderRadius: BorderRadius.circular(14),
                   onTap: () {
@@ -745,26 +789,22 @@ class _WidgetSimulatorScreenState extends State<WidgetSimulatorScreen> {
                     );
                   },
                   child: Container(
-                    width: 58,
-                    height: 38,
+                    width: 64,
+                    height: 42,
                     decoration: BoxDecoration(
-                      color: _btnGreen,
+                      color: habitBtnBg,
                       borderRadius: BorderRadius.circular(14),
+                      border: Border.all(color: habitBtnBorder, width: 1),
                     ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: const [
-                        Icon(Icons.eco_rounded, size: 14, color: Colors.white),
-                        SizedBox(width: 3),
-                        Text(
-                          '실천',
-                          style: TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white,
-                          ),
+                    child: Center(
+                      child: Text(
+                        habitBtnText,
+                        style: TextStyle(
+                          fontSize: 13.5,
+                          fontWeight: FontWeight.bold,
+                          color: habitBtnTextColor,
                         ),
-                      ],
+                      ),
                     ),
                   ),
                 ),
@@ -794,7 +834,7 @@ class _WidgetSimulatorScreenState extends State<WidgetSimulatorScreen> {
 
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 10),
+      padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 9),
       decoration: _widgetBoxDecoration(),
       child: allDone
           // 🎉 100% 완료 시 전환되는 하곰이 축하 화면 (calendar_celebration_view)
@@ -819,7 +859,7 @@ class _WidgetSimulatorScreenState extends State<WidgetSimulatorScreen> {
                           borderRadius: BorderRadius.circular(5),
                         ),
                         child: Text(
-                          '오늘 할일 모두 완료 ($comp/$total)',
+                          '오늘 할일 모두 완료 ($comp/$total 완료)',
                           style: const TextStyle(
                             fontSize: 10,
                             fontWeight: FontWeight.bold,
@@ -857,7 +897,7 @@ class _WidgetSimulatorScreenState extends State<WidgetSimulatorScreen> {
                           Container(
                             padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1.5),
                             decoration: BoxDecoration(
-                              color: _isDark ? const Color(0xFF4A3820) : _tagAmberBg,
+                              color: _isDark ? const Color(0xFF382B4A) : _tagPurpleBg,
                               borderRadius: BorderRadius.circular(6),
                             ),
                             child: const Text(
@@ -865,13 +905,13 @@ class _WidgetSimulatorScreenState extends State<WidgetSimulatorScreen> {
                               style: TextStyle(
                                 fontSize: 10,
                                 fontWeight: FontWeight.bold,
-                                color: _tagAmberText,
+                                color: _tagPurpleText,
                               ),
                             ),
                           ),
                           const SizedBox(width: 6),
                           Text(
-                            '($comp/$total)',
+                            '$comp/$total 완료',
                             style: TextStyle(
                               fontSize: 10.5,
                               color: _isDark ? Colors.white70 : _textSub,
@@ -885,7 +925,7 @@ class _WidgetSimulatorScreenState extends State<WidgetSimulatorScreen> {
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: TextStyle(
-                          fontSize: 13,
+                          fontSize: 13.5,
                           fontWeight: FontWeight.bold,
                           color: _isDark ? Colors.white : _textMain,
                         ),
@@ -905,7 +945,7 @@ class _WidgetSimulatorScreenState extends State<WidgetSimulatorScreen> {
                 ),
                 const SizedBox(width: 8),
 
-                // 우측 아담한 1-Tap 버튼 (58dp × 38dp)
+                // 우측 네이티브 규격 1-Tap 버튼 (64dp × 42dp / hagom_calendar_widget.xml 규격)
                 InkWell(
                   borderRadius: BorderRadius.circular(14),
                   onTap: () {
@@ -918,26 +958,21 @@ class _WidgetSimulatorScreenState extends State<WidgetSimulatorScreen> {
                     );
                   },
                   child: Container(
-                    width: 58,
-                    height: 38,
+                    width: 64,
+                    height: 42,
                     decoration: BoxDecoration(
-                      color: _btnAmber,
+                      color: _btnPurple,
                       borderRadius: BorderRadius.circular(14),
                     ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: const [
-                        Icon(Icons.check_rounded, size: 14, color: Colors.white),
-                        SizedBox(width: 3),
-                        Text(
-                          '체크',
-                          style: TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white,
-                          ),
+                    child: const Center(
+                      child: Text(
+                        '체크',
+                        style: TextStyle(
+                          fontSize: 13.5,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
                         ),
-                      ],
+                      ),
                     ),
                   ),
                 ),
@@ -1311,10 +1346,10 @@ class _WidgetSimulatorScreenState extends State<WidgetSimulatorScreen> {
               ),
               const SizedBox(height: 3),
               Text(
-                '$mComp/$mTotal',
+                '$mComp/$mTotal 완료',
                 textAlign: TextAlign.center,
                 style: TextStyle(
-                  fontSize: 19,
+                  fontSize: 13.5,
                   fontWeight: FontWeight.bold,
                   color: _isDark ? Colors.white : _textMain,
                 ),
@@ -1344,15 +1379,15 @@ class _WidgetSimulatorScreenState extends State<WidgetSimulatorScreen> {
                 style: TextStyle(
                   fontSize: 11.5,
                   fontWeight: FontWeight.bold,
-                  color: _tagGreenText,
+                  color: _tagPurpleText,
                 ),
               ),
               const SizedBox(height: 3),
               Text(
-                '$hComp/$hTotal',
+                '$hComp/$hTotal 완료',
                 textAlign: TextAlign.center,
                 style: TextStyle(
-                  fontSize: 19,
+                  fontSize: 13.5,
                   fontWeight: FontWeight.bold,
                   color: _isDark ? Colors.white : _textMain,
                 ),
@@ -1387,10 +1422,10 @@ class _WidgetSimulatorScreenState extends State<WidgetSimulatorScreen> {
               ),
               const SizedBox(height: 3),
               Text(
-                '$tComp/$tTotal',
+                '$tComp/$tTotal 완료',
                 textAlign: TextAlign.center,
                 style: TextStyle(
-                  fontSize: 19,
+                  fontSize: 13.5,
                   fontWeight: FontWeight.bold,
                   color: _isDark ? Colors.white : _textMain,
                 ),

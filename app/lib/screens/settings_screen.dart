@@ -1905,7 +1905,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       ),
                       SizedBox(height: 3),
                       Text(
-                        '정신약학 맞춤 복약 솔루션 · v0.143.397',
+                        '정신약학 맞춤 복약 솔루션 · v0.143.398',
                         style: TextStyle(
                           fontSize: 12,
                           color: AppColors.textSecondary,
@@ -2598,7 +2598,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       color: AppColors.primaryPurple,
                     ),
                     title: Text(
-                      '흑백 모드 (전색맹 보조)',
+                      '흑백 모드',
                       style: TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.w600,
