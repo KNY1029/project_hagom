@@ -432,7 +432,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     return '$period $h12시';
   }
 
-  /// ⏰ 랜덤 푸시 발송 시간대 설정 다이얼로그 (기본: 09:00 ~ 21:00)
+  /// ⏰ 알림 수신 시간대 설정 다이얼로그 (기본: 09:00 ~ 21:00)
   void _showPushHoursDialog() {
     int tempStart = _state.randomPushStartHour;
     int tempEnd = _state.randomPushEndHour;
@@ -447,7 +447,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               Icon(Icons.schedule_rounded, color: AppColors.primaryPurple, size: 24),
               const SizedBox(width: 8),
               Text(
-                '랜덤 푸시 시간대 설정',
+                '알림 수신 시간대 설정',
                 style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
@@ -461,7 +461,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                '하곰이가 일상 응원이나 안부 말을 걸어오는 시간 범위를 지정해요. (기본값: 오전 9시 ~ 오후 9시)',
+                '하곰이가 말을 걸어오거나 일상 응원을 보낼 시간 범위를 설정해요. (필수 복약/할 일은 설정한 시각에 맞춰 정확히 울려요)',
                 style: TextStyle(
                   fontSize: 12.5,
                   color: AppColors.textSecondary,
@@ -1852,7 +1852,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       ),
                       SizedBox(height: 3),
                       Text(
-                        '정신약학 맞춤 복약 솔루션 · v0.143.395',
+                        '정신약학 맞춤 복약 솔루션 · v0.143.396',
                         style: TextStyle(
                           fontSize: 12,
                           color: AppColors.textSecondary,
@@ -2033,7 +2033,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                     crossAxisAlignment: CrossAxisAlignment.start,
                                     children: [
                                       Text(
-                                        '랜덤 푸시 발송 시간대 설정',
+                                        '알림 수신 시간대 설정',
                                         style: TextStyle(
                                           fontSize: 12.5,
                                           fontWeight: FontWeight.bold,
@@ -2045,8 +2045,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                       const SizedBox(height: 2),
                                       Text(
                                         _state.notificationRate == '최소'
-                                            ? '최소 모드에서는 랜덤 푸시가 발송되지 않아요'
-                                            : '${_formatHourString(_state.randomPushStartHour)} ~ ${_formatHourString(_state.randomPushEndHour)} (기본 09:00~21:00)',
+                                            ? '최소 모드에서는 정해진 실천 시간에만 알림을 보내요'
+                                            : '${_formatHourString(_state.randomPushStartHour)} ~ ${_formatHourString(_state.randomPushEndHour)} (하곰이가 말을 걸어오는 시간대예요)',
                                         style: const TextStyle(
                                           fontSize: 11,
                                           color: AppColors.textMuted,
@@ -2474,6 +2474,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       horizontal: 16,
                       vertical: 4,
                     ),
+                    activeThumbColor: AppColors.primaryPurple,
+                    activeTrackColor: AppColors.primaryPurple.withValues(alpha: 0.4),
                     secondary: Icon(
                       _state.currentThemeKey == AppColors.themeDark
                           ? Icons.dark_mode_outlined
@@ -2514,7 +2516,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       color: AppColors.primaryPurple,
                     ),
                     title: Text(
-                      '적록색맹 보조 색상 모드',
+                      '적록색맹 보조 모드',
                       style: TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.w600,
@@ -2543,7 +2545,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       color: AppColors.primaryPurple,
                     ),
                     title: Text(
-                      '전색맹 보조 모드',
+                      '흑백 모드 (전색맹 보조)',
                       style: TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.w600,
@@ -2551,7 +2553,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       ),
                     ),
                     subtitle: Text(
-                      '색 대신 명도와 테두리 대비로 상태를 구분해요',
+                      '색 대신 명도와 대비로 표시해요 (눈의 피로 완화 및 디지털 디톡스)',
                       style: TextStyle(
                         fontSize: 11.5,
                         color: AppColors.textSecondary,

@@ -5,15 +5,15 @@ import '../state/app_state_manager.dart';
 import '../widgets/celebration_toast.dart';
 import '../widgets/responsive_content.dart';
 
-/// 📱 스마트폰 홈 위젯 시뮬레이터 & 쇼룸 화면
+/// 📱 스마트폰 홈 위젯 쇼룸
 ///
 /// 실제 안드로이드 공식 네이티브 위젯(XML 규격)과 1:1 픽셀 단위로 일치시킨 실시간 쇼룸:
-/// 1) 🐻 하곰이 출석 응원 위젯 (2×1 규격 / 9단계 표정 및 대사 / 탭 순환)
+/// 1) 🐻 하곰이 출석 응원 위젯 (2×1 규격 / 탭 시 대사 순환)
 /// 2) 💊 복약 1-Tap 즉시 체크 위젯 (2×1 규격 / 100% 완료 시 하곰이 축하 화면 자동 전환)
 /// 3) 🌱 습관 1-Tap 즉시 실천 위젯 (2×1 규격 / 100% 완료 시 하곰이 축하 화면 자동 전환)
 /// 4) 🗓️ 할일 1-Tap 즉시 완료 위젯 (2×1 규격 / 100% 완료 시 하곰이 축하 화면 자동 전환)
 /// 5) 📅 한 달 기록 달력 대시보드 위젯 (4×4 규격 / 42칸 실천 그래픽 / 상단 대칭 헤더 / 최하단 2분할 상태 바)
-/// 6) 🔲 1×1 리사이즈 모드 (마스코트, 복약, 습관, 할일)
+/// 6) 🔲 원하는 크기로 자유롭게 조절 (마스코트, 복약, 습관, 할일)
 class WidgetSimulatorScreen extends StatefulWidget {
   const WidgetSimulatorScreen({super.key});
 
@@ -142,8 +142,6 @@ class _WidgetSimulatorScreenState extends State<WidgetSimulatorScreen> {
     },
   ];
 
-  // 마스코트 테스트 모드: -1 = 실제 앱 출석 데이터 자동 연동, 0~8 = 단계 강제 지정
-  int _manualStageIndex = -1;
   int _currentQuoteIndex = 0;
 
   // 4x4 달력 대시보드 상태
@@ -170,9 +168,6 @@ class _WidgetSimulatorScreenState extends State<WidgetSimulatorScreen> {
   }
 
   int get _activeStageIndex {
-    if (_manualStageIndex >= 0 && _manualStageIndex < _mascotStages.length) {
-      return _manualStageIndex;
-    }
     return _state.attendanceMascotStageIndex.clamp(0, _mascotStages.length - 1);
   }
 
@@ -220,7 +215,7 @@ class _WidgetSimulatorScreenState extends State<WidgetSimulatorScreen> {
           onPressed: () => Navigator.of(context).pop(),
         ),
         title: Text(
-          '홈 위젯 쇼룸 & 시뮬레이터',
+          '홈 위젯 쇼룸',
           style: TextStyle(
             color: AppColors.textPrimary,
             fontWeight: FontWeight.bold,
@@ -263,7 +258,7 @@ class _WidgetSimulatorScreenState extends State<WidgetSimulatorScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          '안드로이드 홈 위젯 실시간 쇼룸',
+                          '스마트폰 홈 위젯 쇼룸',
                           style: TextStyle(
                             fontSize: 14,
                             fontWeight: FontWeight.bold,
@@ -272,7 +267,7 @@ class _WidgetSimulatorScreenState extends State<WidgetSimulatorScreen> {
                         ),
                         const SizedBox(height: 3),
                         Text(
-                          '실제 스마트폰 홈 화면의 4대 공식 위젯과 100% 동일한 비주얼, 여백, 폰트 및 1-Tap 터치 상호작용을 체험할 수 있습니다.',
+                          '실제 스마트폰 홈 화면의 공식 위젯과 100% 동일한 비주얼과 여백으로 미리 볼 수 있습니다.',
                           style: TextStyle(
                             fontSize: 12,
                             color: AppColors.textSecondary,
@@ -292,24 +287,11 @@ class _WidgetSimulatorScreenState extends State<WidgetSimulatorScreen> {
             // -------------------------------------------------------------
             _buildSectionHeader(
               title: '1. 하곰이 출석 응원 위젯 (2×1 규격)',
-              subtitle: '출석 상태에 따른 9단계 표정 자동 적용 · 카드 탭 시 다음 대사 순환',
-            ),
-            const SizedBox(height: 8),
-
-            // 단계 선택 칩
-            SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              child: Row(
-                children: [
-                  _buildStageChip(-1, '✨ 출석 자동 연동'),
-                  for (int i = 0; i < _mascotStages.length; i++)
-                    _buildStageChip(i, _mascotStages[i]['badge'] as String),
-                ],
-              ),
+              subtitle: '홈 화면에서 따뜻한 응원을 전하는 마스코트 위젯 (탭 시 대사 순환)',
             ),
             const SizedBox(height: 10),
 
-            _buildMascot3x1WidgetCard(),
+            _buildMascotWidgetCard(),
             const SizedBox(height: 26),
 
             // -------------------------------------------------------------
@@ -317,7 +299,7 @@ class _WidgetSimulatorScreenState extends State<WidgetSimulatorScreen> {
             // -------------------------------------------------------------
             _buildSectionHeader(
               title: '2. 인체공학적 1-Tap 즉시 체크 위젯 (2×1 규격)',
-              subtitle: '우측 58×38dp 버튼 터치 실천 · 100% 완료 시 축하 화면 전환',
+              subtitle: '우측 58×38dp 버튼으로 즉시 실천 · 100% 완료 시 축하 화면 전환',
             ),
             const SizedBox(height: 10),
 
@@ -338,7 +320,7 @@ class _WidgetSimulatorScreenState extends State<WidgetSimulatorScreen> {
             // -------------------------------------------------------------
             _buildSectionHeader(
               title: '3. 한 달 기록 달력 대시보드 위젯 (4×4 규격)',
-              subtitle: '상단 헤더 · 42칸 실천 그래픽 · 하단 할일 요약 바 & 습관/복약 2분할 상태 카드',
+              subtitle: '상단 헤더 · 42칸 실천 그래픽 · 하단 할일 바 & 습관/복약 2분할 상태 카드',
             ),
             const SizedBox(height: 10),
 
@@ -346,11 +328,11 @@ class _WidgetSimulatorScreenState extends State<WidgetSimulatorScreen> {
             const SizedBox(height: 26),
 
             // -------------------------------------------------------------
-            // [위젯 4: 1×1 리사이즈 모드]
+            // [위젯 4: 원하는 크기로 자유롭게 조절]
             // -------------------------------------------------------------
             _buildSectionHeader(
-              title: '4. 1×1 리사이즈 모드',
-              subtitle: '홈 화면에서 위젯 크기를 줄여 미니멀하게 배치할 수 있어요',
+              title: '4. 원하는 크기로 자유롭게 조절',
+              subtitle: '홈 화면에서 위젯을 길게 눌러 원하는 크기로 늘리거나 줄일 수 있어요',
             ),
             const SizedBox(height: 10),
 
@@ -386,50 +368,14 @@ class _WidgetSimulatorScreenState extends State<WidgetSimulatorScreen> {
     );
   }
 
-  Widget _buildStageChip(int index, String label) {
-    final isSelected = _manualStageIndex == index;
-    return Padding(
-      padding: const EdgeInsets.only(right: 6),
-      child: ChoiceChip(
-        label: Text(label),
-        selected: isSelected,
-        showCheckmark: false,
-        selectedColor: _btnPurple.withValues(alpha: 0.15),
-        backgroundColor: _isDark ? AppColors.cardSurface : Colors.white,
-        labelStyle: TextStyle(
-          fontSize: 11.5,
-          fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
-          color: isSelected ? _btnPurple : AppColors.textSecondary,
-        ),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(8),
-          side: BorderSide(
-            color: isSelected ? _btnPurple : AppColors.divider,
-            width: isSelected ? 1.5 : 1.0,
-          ),
-        ),
-        onSelected: (val) {
-          if (val) {
-            setState(() {
-              _manualStageIndex = index;
-              _currentQuoteIndex = 0;
-            });
-          }
-        },
-      ),
-    );
-  }
-
-  // ---------------------------------------------------------------------------
-  // [위젯 1: 3×1 하곰이 마스코트 위젯 (hagom_mascot_widget.xml과 100% 동일)]
-  // ---------------------------------------------------------------------------
-  Widget _buildMascot3x1WidgetCard() {
+  // -------------------------------------------------------------
+  // [위젯 1: 2×1 하곰이 마스코트 위젯 (hagom_mascot_widget.xml과 100% 동일)]
+  // -------------------------------------------------------------
+  Widget _buildMascotWidgetCard() {
     final stageIdx = _activeStageIndex;
     final stage = _mascotStages[stageIdx];
-    final badge = stage['badge'] as String;
     final quotes = stage['quotes'] as List<String>;
     final imageAsset = stage['asset'] as String;
-    final subText = stage['sub'] as String;
     final quoteText = quotes[_currentQuoteIndex % quotes.length];
 
     return InkWell(
@@ -456,53 +402,16 @@ class _WidgetSimulatorScreenState extends State<WidgetSimulatorScreen> {
             ),
             const SizedBox(width: 14),
 
-            // 우측 따뜻한 텍스트 영역
+            // 우측 따뜻한 텍스트 영역 (실제 위젯과 100% 동일하게 순수 대사만 세로 중앙 정렬)
             Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  // 상단 뱃지 (@drawable/hagom_widget_tag_bg)
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
-                    decoration: BoxDecoration(
-                      color: _isDark ? const Color(0xFF382B4A) : _tagPurpleBg,
-                      borderRadius: BorderRadius.circular(6),
-                    ),
-                    child: Text(
-                      badge,
-                      style: const TextStyle(
-                        fontSize: 10.5,
-                        fontWeight: FontWeight.bold,
-                        color: _tagPurpleText,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 5),
-
-                  // 메인 대사
-                  Text(
-                    quoteText,
-                    style: TextStyle(
-                      fontSize: 12.5,
-                      fontWeight: FontWeight.bold,
-                      color: _isDark ? Colors.white : _textMain,
-                      height: 1.35,
-                    ),
-                  ),
-
-                  // 서브 멘트
-                  if (subText.isNotEmpty) ...[
-                    const SizedBox(height: 3),
-                    Text(
-                      subText,
-                      style: TextStyle(
-                        fontSize: 11,
-                        color: _isDark ? Colors.white70 : _textSub,
-                      ),
-                    ),
-                  ],
-                ],
+              child: Text(
+                quoteText,
+                style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.bold,
+                  color: _isDark ? Colors.white : _textMain,
+                  height: 1.4,
+                ),
               ),
             ),
           ],
@@ -1352,9 +1261,9 @@ class _WidgetSimulatorScreenState extends State<WidgetSimulatorScreen> {
     );
   }
 
-  // ---------------------------------------------------------------------------
-  // [위젯 4: 1×1 초소형 아이콘 위젯 모드 (hagom_*_widget_1x1.xml과 100% 동일)]
-  // ---------------------------------------------------------------------------
+  // -------------------------------------------------------------
+  // [위젯 4: 원하는 크기로 자유롭게 조절 (1×1 최소 크기 모드)]
+  // -------------------------------------------------------------
   Widget _buildMini1x1WidgetsRow() {
     final mComp = _state.completedDoseSlots;
     final mTotal = _state.totalDoseSlots;
@@ -1389,29 +1298,33 @@ class _WidgetSimulatorScreenState extends State<WidgetSimulatorScreen> {
         _build1x1Card(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               const Text(
                 '복약',
+                textAlign: TextAlign.center,
                 style: TextStyle(
-                  fontSize: 11,
+                  fontSize: 11.5,
                   fontWeight: FontWeight.bold,
                   color: _tagPurpleText,
                 ),
               ),
-              const SizedBox(height: 2),
+              const SizedBox(height: 3),
               Text(
                 '$mComp/$mTotal',
+                textAlign: TextAlign.center,
                 style: TextStyle(
-                  fontSize: 18,
+                  fontSize: 19,
                   fontWeight: FontWeight.bold,
                   color: _isDark ? Colors.white : _textMain,
                 ),
               ),
-              const SizedBox(height: 1),
+              const SizedBox(height: 2),
               Text(
                 isMedsDone ? '완료' : '복용 중',
+                textAlign: TextAlign.center,
                 style: TextStyle(
-                  fontSize: 10,
+                  fontSize: 10.5,
                   color: _isDark ? Colors.white70 : _textSub,
                 ),
               ),
@@ -1423,29 +1336,33 @@ class _WidgetSimulatorScreenState extends State<WidgetSimulatorScreen> {
         _build1x1Card(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               const Text(
                 '습관',
+                textAlign: TextAlign.center,
                 style: TextStyle(
-                  fontSize: 11,
+                  fontSize: 11.5,
                   fontWeight: FontWeight.bold,
                   color: _tagGreenText,
                 ),
               ),
-              const SizedBox(height: 2),
+              const SizedBox(height: 3),
               Text(
                 '$hComp/$hTotal',
+                textAlign: TextAlign.center,
                 style: TextStyle(
-                  fontSize: 18,
+                  fontSize: 19,
                   fontWeight: FontWeight.bold,
                   color: _isDark ? Colors.white : _textMain,
                 ),
               ),
-              const SizedBox(height: 1),
+              const SizedBox(height: 2),
               Text(
                 isHabitsDone ? '완료' : '실천 중',
+                textAlign: TextAlign.center,
                 style: TextStyle(
-                  fontSize: 10,
+                  fontSize: 10.5,
                   color: _isDark ? Colors.white70 : _textSub,
                 ),
               ),
@@ -1457,29 +1374,33 @@ class _WidgetSimulatorScreenState extends State<WidgetSimulatorScreen> {
         _build1x1Card(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               const Text(
                 '할일',
+                textAlign: TextAlign.center,
                 style: TextStyle(
-                  fontSize: 11,
+                  fontSize: 11.5,
                   fontWeight: FontWeight.bold,
                   color: _tagPurpleText,
                 ),
               ),
-              const SizedBox(height: 2),
+              const SizedBox(height: 3),
               Text(
                 '$tComp/$tTotal',
+                textAlign: TextAlign.center,
                 style: TextStyle(
-                  fontSize: 18,
+                  fontSize: 19,
                   fontWeight: FontWeight.bold,
                   color: _isDark ? Colors.white : _textMain,
                 ),
               ),
-              const SizedBox(height: 1),
+              const SizedBox(height: 2),
               Text(
                 isTasksDone ? '완료' : '진행 중',
+                textAlign: TextAlign.center,
                 style: TextStyle(
-                  fontSize: 10,
+                  fontSize: 10.5,
                   color: _isDark ? Colors.white70 : _textSub,
                 ),
               ),

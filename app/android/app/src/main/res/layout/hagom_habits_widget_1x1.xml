@@ -11,8 +11,10 @@
     <!-- 상단 라벨 -->
     <TextView
         android:id="@+id/widget_habits_tag"
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:gravity="center"
+        android:textAlignment="center"
         android:text="습관"
         android:textColor="#044E36"
         android:textSize="11.5sp"
@@ -21,9 +23,11 @@
     <!-- 중앙 대형 달성 현황 수치 (예: 3/4) -->
     <TextView
         android:id="@+id/widget_habits_progress"
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="4dp"
+        android:gravity="center"
+        android:textAlignment="center"
         android:text="3/4"
         android:textColor="#1F2937"
         android:textSize="22sp"
@@ -32,9 +36,11 @@
     <!-- 하단 상태 라벨 (실천 중 / 완료) -->
     <TextView
         android:id="@+id/widget_habits_status"
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="2dp"
+        android:gravity="center"
+        android:textAlignment="center"
         android:text="실천 중"
         android:textColor="#6B7280"
         android:textSize="10.5sp" />
