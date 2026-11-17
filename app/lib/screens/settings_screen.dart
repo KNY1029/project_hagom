@@ -383,10 +383,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
               style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
             ),
             content: Text(
-              '스마트폰의 [다운로드] 폴더에 하나의 엑셀 파일로 성공적으로 저장되었어요!\n\n'
-              '📄 저장된 파일명:\n• $fileName\n\n'
-              '📅 조회 기간: ${startDate.year}.${startDate.month.toString().padLeft(2, '0')}.${startDate.day.toString().padLeft(2, '0')} ~ ${endDate.year}.${endDate.month.toString().padLeft(2, '0')}.${endDate.day.toString().padLeft(2, '0')}\n\n'
-              '📑 파일 내부 분리된 시트(Sheet) 목록:\n'
+              '[다운로드] 폴더에 성공적으로 저장되었습니다.\n\n'
+              '저장된 파일명:\n• $fileName\n\n'
+              '조회 기간: ${startDate.year}.${startDate.month.toString().padLeft(2, '0')}.${startDate.day.toString().padLeft(2, '0')} ~ ${endDate.year}.${endDate.month.toString().padLeft(2, '0')}.${endDate.day.toString().padLeft(2, '0')}\n\n'
+              '파일 내부 분리된 시트(Sheet) 목록:\n'
               '• 1. 처방약 관리\n'
               '• 2. 일반약 및 영양제\n'
               '• 3. 작은 습관\n'
@@ -444,19 +444,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
       builder: (ctx) => StatefulBuilder(
         builder: (ctx, setDlgState) => AlertDialog(
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-          title: Row(
-            children: [
-              Icon(Icons.schedule_rounded, color: AppColors.primaryPurple, size: 24),
-              const SizedBox(width: 8),
-              Text(
-                '하곰이 대화 시간대 설정',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                  color: AppColors.textPrimary,
-                ),
-              ),
-            ],
+          title: Text(
+            '하곰이 대화 시간대 설정',
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+              color: AppColors.textPrimary,
+            ),
           ),
           content: Column(
             mainAxisSize: MainAxisSize.min,
@@ -499,19 +493,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Row(
-                        children: [
-                          Icon(Icons.wb_sunny_outlined, size: 18, color: AppColors.primaryPurple),
-                          const SizedBox(width: 8),
-                          Text(
-                            '시작 시간',
-                            style: TextStyle(
-                              fontSize: 13.5,
-                              fontWeight: FontWeight.w600,
-                              color: AppColors.textPrimary,
-                            ),
-                          ),
-                        ],
+                      Text(
+                        '시작 시간',
+                        style: TextStyle(
+                          fontSize: 13.5,
+                          fontWeight: FontWeight.w600,
+                          color: AppColors.textPrimary,
+                        ),
                       ),
                       Row(
                         children: [
@@ -562,19 +550,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Row(
-                        children: [
-                          Icon(Icons.nights_stay_outlined, size: 18, color: AppColors.primaryPurple),
-                          const SizedBox(width: 8),
-                          Text(
-                            '종료 시간',
-                            style: TextStyle(
-                              fontSize: 13.5,
-                              fontWeight: FontWeight.w600,
-                              color: AppColors.textPrimary,
-                            ),
-                          ),
-                        ],
+                      Text(
+                        '종료 시간',
+                        style: TextStyle(
+                          fontSize: 13.5,
+                          fontWeight: FontWeight.w600,
+                          color: AppColors.textPrimary,
+                        ),
                       ),
                       Row(
                         children: [
@@ -2078,14 +2060,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
                             ),
                             child: Row(
                               children: [
-                                Icon(
-                                  Icons.schedule_rounded,
-                                  size: 20,
-                                  color: _state.notificationRate == '최소'
-                                      ? AppColors.textMuted
-                                      : AppColors.primaryPurple,
-                                ),
-                                const SizedBox(width: 10),
                                 Expanded(
                                   child: Column(
                                     crossAxisAlignment: CrossAxisAlignment.start,
