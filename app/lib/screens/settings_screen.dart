@@ -2597,7 +2597,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       ),
                     ),
                     subtitle: Text(
-                      '색 대신 명도와 대비로 표시해요 (눈의 피로 완화 및 디지털 디톡스)',
+                      '색 대신 명도와 대비로 표시해요',
                       style: TextStyle(
                         fontSize: 11.5,
                         color: AppColors.textSecondary,

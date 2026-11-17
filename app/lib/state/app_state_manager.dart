@@ -3031,12 +3031,48 @@ class AppStateManager extends ChangeNotifier {
     _pastHabitCompletionTimes.clear();
     _pastSlotTimes.clear();
     _retroactiveSlots.clear();
-    customTimeSlots.clear(); // 커스텀 시간대도 깨끗하게 초기화!
+    customTimeSlots.clear(); // 커스텀 시간대 깨끗하게 초기화
+    configuredRoutineTimeLabels.clear(); // 🌟 복약 시간대 설정 칩 시간 기억 완전 초기화!
+    routineTimes.clear(); // 🌟 복약 루틴 기본 시간대로 완전 초기화!
+    routineTimes.addAll({
+      '아침': '오전 8:00',
+      '아침 식전': '오전 7:30',
+      '아침 식후': '오전 8:30',
+      '점심': '오후 12:30',
+      '점심 식전': '오후 12:00',
+      '점심 식후': '오후 1:00',
+      '저녁': '오후 7:00',
+      '저녁 식전': '오후 6:30',
+      '저녁 식후': '오후 7:30',
+      '취침 전': '오후 10:30',
+      '식간': '오후 3:30',
+    });
+    _accessDayKeys.clear();
+    _lastGreetingDayKey = null;
+    _lastDailyStateDateKey = null;
+    _hiddenMockTaskIds.clear();
+    _completedMockTaskIds.clear();
     gentleAttempts = 0;
     returnedCount = 0;
     isInitialModeSelected = false;
     isDevSimulationMode = false;
     isTutorialDemoMode = false;
+    randomPushStartHour = 0;
+    randomPushEndHour = 24;
+    dailyResetHour = 8;
+    dailyResetMinute = 0;
+    notificationRate = '중간';
+    medsNotificationEnabled = true;
+    habitNotificationEnabled = true;
+    tasksNotificationEnabled = true;
+    mascotNotificationEnabled = true;
+    completionFeedbackEnabled = true;
+    colorVisionModeEnabled = false;
+    achromatopsiaModeEnabled = false;
+    currentThemeKey = AppColors.themeDefault;
+    customThemes.clear();
+    widgetMonthOffset = 0;
+    widgetSelectedDate = null;
     final now = DateTime.now();
     _trackingStartDate = DateTime(now.year, now.month, now.day);
 
@@ -3048,6 +3084,8 @@ class AppStateManager extends ChangeNotifier {
       await _prefs!.clear();
     }
     await _saveDataToDisk();
+    await HagomNativeWidgetSync.updateNativeWidget(this);
+    await HagomAlarmManager.syncScheduledAlarms(this);
     notifyListeners();
   }
 
@@ -3062,12 +3100,15 @@ class AppStateManager extends ChangeNotifier {
     _pastSlotTimes.clear();
     _retroactiveSlots.clear();
     customTimeSlots.clear();
+    configuredRoutineTimeLabels.clear();
     isTutorialDemoMode = false;
     isDevSimulationMode = false;
     final now = DateTime.now();
     _trackingStartDate = DateTime(now.year, now.month, now.day);
 
     await _saveDataToDisk();
+    await HagomNativeWidgetSync.updateNativeWidget(this);
+    await HagomAlarmManager.syncScheduledAlarms(this);
     notifyListeners();
   }
 
