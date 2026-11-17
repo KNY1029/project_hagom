@@ -1024,7 +1024,7 @@ class _CalendarTabViewState extends State<CalendarTabView> {
             child: Text(
               '미복용으로 기록',
               style: TextStyle(
-                color: AppColors.missedRed,
+                color: AppColors.primaryPurple,
                 fontWeight: FontWeight.bold,
               ),
             ),
@@ -2331,51 +2331,6 @@ class _CalendarTabViewState extends State<CalendarTabView> {
               ),
               // 펼쳤을 때만 나오는 상세 약별 / 회차별 핀셋 수정 카드
               if (_isMedDetailsExpanded) ...[
-                if (isSelectedDatePast) ...[
-                  const SizedBox(height: 4),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    children: [
-                      InkWell(
-                        borderRadius: BorderRadius.circular(6),
-                        onTap: () {
-                          _state.setPastMedAllSlotsMissed(_selectedDate);
-                          CelebrationToast.show(
-                            context,
-                            title: '미복용 일괄 기록',
-                            message: '${_selectedDate.month}월 ${_selectedDate.day}일 복약을 모두 미복용으로 기록했어요.',
-                          );
-                        },
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                          decoration: BoxDecoration(
-                            color: AppColors.missedRed.withValues(alpha: 0.08),
-                            borderRadius: BorderRadius.circular(6),
-                            border: Border.all(
-                              color: AppColors.missedRed.withValues(alpha: 0.25),
-                              width: 1.0,
-                            ),
-                          ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Icon(Icons.remove_circle_outline, size: 12.5, color: AppColors.missedRed),
-                              const SizedBox(width: 4),
-                              Text(
-                                '전체 미복용으로 표시',
-                                style: TextStyle(
-                                  fontSize: 11,
-                                  fontWeight: FontWeight.bold,
-                                  color: AppColors.missedRed,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
                 const SizedBox(height: 10),
                 Column(
                   children: _state.allMedications
@@ -2399,49 +2354,21 @@ class _CalendarTabViewState extends State<CalendarTabView> {
                                 mainAxisAlignment:
                                     MainAxisAlignment.spaceBetween,
                                 children: [
-                                  Row(
-                                    children: [
-                                      Text(
-                                        med.name,
-                                        style: TextStyle(
-                                          fontSize: 13,
-                                          fontWeight: FontWeight.bold,
-                                          color: AppColors.textPrimary,
-                                        ),
-                                      ),
-                                      const SizedBox(width: 6),
-                                      Text(
-                                        med.dosage,
-                                        style: TextStyle(
-                                          fontSize: 11,
-                                          color: AppColors.textSecondary,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                  if (isSelectedDatePast)
-                                    InkWell(
-                                      borderRadius: BorderRadius.circular(4),
-                                      onTap: () {
-                                        _state.setPastMedAllSlotsMissed(_selectedDate, medId: med.id);
-                                        CelebrationToast.show(
-                                          context,
-                                          title: '미복용 기록 완료',
-                                          message: '${med.name}을(를) 미복용으로 기록했어요.',
-                                        );
-                                      },
-                                      child: Padding(
-                                        padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
-                                        child: Text(
-                                          '이 약 미복용',
-                                          style: TextStyle(
-                                            fontSize: 10.5,
-                                            color: AppColors.missedRed,
-                                            fontWeight: FontWeight.w600,
-                                          ),
-                                        ),
-                                      ),
+                                  Text(
+                                    med.name,
+                                    style: TextStyle(
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.bold,
+                                      color: AppColors.textPrimary,
                                     ),
+                                  ),
+                                  Text(
+                                    med.dosage,
+                                    style: TextStyle(
+                                      fontSize: 11,
+                                      color: AppColors.textSecondary,
+                                    ),
+                                  ),
                                 ],
                               ),
                               const SizedBox(height: 8),
@@ -2738,7 +2665,6 @@ class _CalendarTabViewState extends State<CalendarTabView> {
                           Padding(
                             padding: const EdgeInsets.only(left: 2, bottom: 6),
                             child: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
                                 Text(
                                   '일일 습관',
@@ -2748,29 +2674,6 @@ class _CalendarTabViewState extends State<CalendarTabView> {
                                     color: AppColors.textSecondary,
                                   ),
                                 ),
-                                if (isSelectedDatePast)
-                                  InkWell(
-                                    borderRadius: BorderRadius.circular(4),
-                                    onTap: () {
-                                      _state.setPastHabitsAllMissed(_selectedDate);
-                                      CelebrationToast.show(
-                                        context,
-                                        title: '미완료 일괄 기록',
-                                        message: '${_selectedDate.month}월 ${_selectedDate.day}일 일일 습관을 모두 미완료로 기록했어요.',
-                                      );
-                                    },
-                                    child: Padding(
-                                      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
-                                      child: Text(
-                                        '전체 미완료로 표시',
-                                        style: TextStyle(
-                                          fontSize: 10.5,
-                                          color: AppColors.textSecondary,
-                                          fontWeight: FontWeight.w600,
-                                        ),
-                                      ),
-                                    ),
-                                  ),
                               ],
                             ),
                           ),
