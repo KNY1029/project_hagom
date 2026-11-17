@@ -992,7 +992,7 @@ class _CalendarTabViewState extends State<CalendarTabView> {
       context: context,
       builder: (dCtx) => AlertDialog(
         title: Text(
-          '${med.name} ${slot.label} 복용 시간',
+          '${med.name} ${slot.label} 복약 기록',
           style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
         ),
         content: Column(
@@ -1000,21 +1000,40 @@ class _CalendarTabViewState extends State<CalendarTabView> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              '${_selectedDate.month}월 ${_selectedDate.day}일에 이 약을 언제 복용하셨나요?',
+              '${_selectedDate.month}월 ${_selectedDate.day}일에 이 약을 어떻게 하셨나요?',
             ),
             const SizedBox(height: 8),
             Text(
-              '정확한 시간이 기억나지 않아도 괜찮아요.\n알고 계신 만큼만 기록해도 충분해요.',
+              '복용하지 않으셨다면 [미복용으로 기록]을, 복용하셨다면 복용 시각을 선택해 주세요.',
               style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
             ),
           ],
         ),
         actions: [
-          // 1) 기억 안 남 버튼
+          // 1) 🌟 미복용으로 기록 버튼 (완료했다가 취소할 필요 없이 원클릭 미복용 처리!)
           TextButton(
             onPressed: () {
               Navigator.of(dCtx).pop();
-              _state.togglePastSlotCompleted(_selectedDate, med.id, slotIdx);
+              _state.setPastSlotCompleted(_selectedDate, med.id, slotIdx, false);
+              CelebrationToast.show(
+                context,
+                title: '미복용 기록 완료',
+                message: '${med.name} ${slot.label} 미복용으로 기록했어요.',
+              );
+            },
+            child: Text(
+              '미복용으로 기록',
+              style: TextStyle(
+                color: AppColors.missedRed,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
+          // 2) 기억 안 남 버튼
+          TextButton(
+            onPressed: () {
+              Navigator.of(dCtx).pop();
+              _state.setPastSlotCompleted(_selectedDate, med.id, slotIdx, true);
               CelebrationToast.show(
                 context,
                 title: '소중한 기록 완료',
@@ -1026,11 +1045,17 @@ class _CalendarTabViewState extends State<CalendarTabView> {
               style: TextStyle(color: AppColors.textSecondary),
             ),
           ),
-          // 2) 예정 시각 그대로 복용 버튼
+          // 3) 예정 시각 그대로 복용 버튼
           TextButton(
             onPressed: () {
               Navigator.of(dCtx).pop();
-              _state.togglePastSlotCompleted(_selectedDate, med.id, slotIdx);
+              _state.setPastSlotCompleted(
+                _selectedDate,
+                med.id,
+                slotIdx,
+                true,
+                takenTime: slot.scheduledTime,
+              );
               CelebrationToast.show(
                 context,
                 title: '소중한 기록 완료',
@@ -1045,7 +1070,7 @@ class _CalendarTabViewState extends State<CalendarTabView> {
               ),
             ),
           ),
-          // 3) 직접 시간 선택 버튼
+          // 4) 직접 시간 선택 버튼
           ElevatedButton(
             style: ElevatedButton.styleFrom(
               backgroundColor: AppColors.primaryPurple,
@@ -1060,10 +1085,16 @@ class _CalendarTabViewState extends State<CalendarTabView> {
                 initialTime: null,
                 title: '${med.name} 복용 시각',
               );
-              _state.togglePastSlotCompleted(_selectedDate, med.id, slotIdx);
               final timeStr = t != null
                   ? '${t.period == DayPeriod.am ? '오전' : '오후'} ${t.hourOfPeriod == 0 ? 12 : t.hourOfPeriod}:${t.minute.toString().padLeft(2, '0')}'
                   : '복용 완료';
+              _state.setPastSlotCompleted(
+                _selectedDate,
+                med.id,
+                slotIdx,
+                true,
+                takenTime: timeStr,
+              );
               CelebrationToast.show(
                 context,
                 title: '소중한 기록 완료',
@@ -1097,7 +1128,7 @@ class _CalendarTabViewState extends State<CalendarTabView> {
           style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
         ),
         content: Text(
-          '${_selectedDate.month}월 ${_selectedDate.day}일 \'${med.name} ${slot.label}\' 복약 완료 기록을 미완료(대기)로 되돌릴까요?',
+          '${_selectedDate.month}월 ${_selectedDate.day}일 \'${med.name} ${slot.label}\' 복약 완료 기록을 미복용(미완료)으로 되돌릴까요?',
         ),
         actions: [
           TextButton(
@@ -1113,11 +1144,11 @@ class _CalendarTabViewState extends State<CalendarTabView> {
             ),
             onPressed: () {
               Navigator.of(dCtx).pop();
-              _state.togglePastSlotCompleted(_selectedDate, med.id, slotIdx);
+              _state.setPastSlotCompleted(_selectedDate, med.id, slotIdx, false);
               CelebrationToast.show(
                 context,
                 title: '되돌리기 완료',
-                message: '${med.name} ${slot.label} 상태를 미완료로 되돌렸어요.',
+                message: '${med.name} ${slot.label} 상태를 미복용으로 되돌렸어요.',
               );
             },
             child: Text(
@@ -2300,6 +2331,51 @@ class _CalendarTabViewState extends State<CalendarTabView> {
               ),
               // 펼쳤을 때만 나오는 상세 약별 / 회차별 핀셋 수정 카드
               if (_isMedDetailsExpanded) ...[
+                if (isSelectedDatePast) ...[
+                  const SizedBox(height: 4),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      InkWell(
+                        borderRadius: BorderRadius.circular(6),
+                        onTap: () {
+                          _state.setPastMedAllSlotsMissed(_selectedDate);
+                          CelebrationToast.show(
+                            context,
+                            title: '미복용 일괄 기록',
+                            message: '${_selectedDate.month}월 ${_selectedDate.day}일 복약을 모두 미복용으로 기록했어요.',
+                          );
+                        },
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: AppColors.missedRed.withValues(alpha: 0.08),
+                            borderRadius: BorderRadius.circular(6),
+                            border: Border.all(
+                              color: AppColors.missedRed.withValues(alpha: 0.25),
+                              width: 1.0,
+                            ),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(Icons.remove_circle_outline, size: 12.5, color: AppColors.missedRed),
+                              const SizedBox(width: 4),
+                              Text(
+                                '전체 미복용으로 표시',
+                                style: TextStyle(
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.bold,
+                                  color: AppColors.missedRed,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
                 const SizedBox(height: 10),
                 Column(
                   children: _state.allMedications
@@ -2323,21 +2399,49 @@ class _CalendarTabViewState extends State<CalendarTabView> {
                                 mainAxisAlignment:
                                     MainAxisAlignment.spaceBetween,
                                 children: [
-                                  Text(
-                                    med.name,
-                                    style: TextStyle(
-                                      fontSize: 13,
-                                      fontWeight: FontWeight.bold,
-                                      color: AppColors.textPrimary,
-                                    ),
+                                  Row(
+                                    children: [
+                                      Text(
+                                        med.name,
+                                        style: TextStyle(
+                                          fontSize: 13,
+                                          fontWeight: FontWeight.bold,
+                                          color: AppColors.textPrimary,
+                                        ),
+                                      ),
+                                      const SizedBox(width: 6),
+                                      Text(
+                                        med.dosage,
+                                        style: TextStyle(
+                                          fontSize: 11,
+                                          color: AppColors.textSecondary,
+                                        ),
+                                      ),
+                                    ],
                                   ),
-                                  Text(
-                                    med.dosage,
-                                    style: TextStyle(
-                                      fontSize: 11,
-                                      color: AppColors.textSecondary,
+                                  if (isSelectedDatePast)
+                                    InkWell(
+                                      borderRadius: BorderRadius.circular(4),
+                                      onTap: () {
+                                        _state.setPastMedAllSlotsMissed(_selectedDate, medId: med.id);
+                                        CelebrationToast.show(
+                                          context,
+                                          title: '미복용 기록 완료',
+                                          message: '${med.name}을(를) 미복용으로 기록했어요.',
+                                        );
+                                      },
+                                      child: Padding(
+                                        padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+                                        child: Text(
+                                          '이 약 미복용',
+                                          style: TextStyle(
+                                            fontSize: 10.5,
+                                            color: AppColors.missedRed,
+                                            fontWeight: FontWeight.w600,
+                                          ),
+                                        ),
+                                      ),
                                     ),
-                                  ),
                                 ],
                               ),
                               const SizedBox(height: 8),
@@ -2634,6 +2738,7 @@ class _CalendarTabViewState extends State<CalendarTabView> {
                           Padding(
                             padding: const EdgeInsets.only(left: 2, bottom: 6),
                             child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
                                 Text(
                                   '일일 습관',
@@ -2643,6 +2748,29 @@ class _CalendarTabViewState extends State<CalendarTabView> {
                                     color: AppColors.textSecondary,
                                   ),
                                 ),
+                                if (isSelectedDatePast)
+                                  InkWell(
+                                    borderRadius: BorderRadius.circular(4),
+                                    onTap: () {
+                                      _state.setPastHabitsAllMissed(_selectedDate);
+                                      CelebrationToast.show(
+                                        context,
+                                        title: '미완료 일괄 기록',
+                                        message: '${_selectedDate.month}월 ${_selectedDate.day}일 일일 습관을 모두 미완료로 기록했어요.',
+                                      );
+                                    },
+                                    child: Padding(
+                                      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+                                      child: Text(
+                                        '전체 미완료로 표시',
+                                        style: TextStyle(
+                                          fontSize: 10.5,
+                                          color: AppColors.textSecondary,
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
                               ],
                             ),
                           ),

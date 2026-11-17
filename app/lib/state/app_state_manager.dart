@@ -986,6 +986,72 @@ class AppStateManager extends ChangeNotifier {
     return nextVal;
   }
 
+  /// 과거 특정 날짜의 복약 슬롯 상태를 명시적으로 설정 (완료 또는 미복용)
+  void setPastSlotCompleted(
+    DateTime day,
+    String medId,
+    int slotIdx,
+    bool isCompleted, {
+    String? takenTime,
+  }) {
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final target = DateTime(day.year, day.month, day.day);
+
+    if (target.isAtSameMomentAs(today)) {
+      if (isCompleted) {
+        completeSlot(medId, slotIdx);
+      } else {
+        cancelSpecificSlot(medId, slotIdx);
+      }
+      return;
+    }
+
+    final key = _dateKey(day);
+    final slotKey = '${medId}_$slotIdx';
+
+    _pastSlotRecords.putIfAbsent(key, () => {})[slotKey] = isCompleted;
+    if (isCompleted) {
+      if (takenTime != null && takenTime.isNotEmpty) {
+        _pastSlotTimes.putIfAbsent(key, () => {})[slotKey] = takenTime;
+      }
+    } else {
+      _pastSlotTimes[key]?.remove(slotKey);
+    }
+    _retroactiveSlots.add('${key}_$slotKey');
+    gentleAttempts++;
+    notifyListeners();
+  }
+
+  /// 과거 특정 날짜의 해당 약(또는 전체 약)을 일괄 미복용으로 설정
+  void setPastMedAllSlotsMissed(DateTime day, {String? medId}) {
+    final key = _dateKey(day);
+    final dueMeds = medications.where((m) => !m.isArchived && m.isDueOn(day));
+    for (final med in dueMeds) {
+      if (medId != null && med.id != medId) continue;
+      for (var sIdx = 0; sIdx < med.doseSlots.length; sIdx++) {
+        final slotKey = '${med.id}_$sIdx';
+        _pastSlotRecords.putIfAbsent(key, () => {})[slotKey] = false;
+        _pastSlotTimes[key]?.remove(slotKey);
+        _retroactiveSlots.add('${key}_$slotKey');
+      }
+    }
+    gentleAttempts++;
+    notifyListeners();
+  }
+
+  /// 과거 특정 날짜의 일일 습관들을 일괄 미완료로 설정
+  void setPastHabitsAllMissed(DateTime day) {
+    final key = _dateKey(day);
+    final daily = _habits.where((h) => !h.isWeeklyFrequencyHabit && h.isDueOn(day));
+    for (final habit in daily) {
+      _pastHabitRecords.putIfAbsent(key, () => {})[habit.id] = 0.0;
+      _pastHabitCompletionTimes[key]?.remove(habit.id);
+    }
+    gentleAttempts++;
+    notifyListeners();
+  }
+
   // 날짜별 상태 반환: 1.0(완전달성-연초록), 0.1~0.99(부분달성-오렌지바), 0.0(미복용/그레이바), null(미래)
   double? getMedRateForDay(DateTime day) {
     final now = DateTime.now();
@@ -1369,28 +1435,45 @@ class AppStateManager extends ChangeNotifier {
     final today = DateTime(now.year, now.month, now.day);
     final monday = today.subtract(Duration(days: today.weekday - 1));
 
-    // 1. habit_5 (침구 정리 및 환기하기): 이번 주 화요일(11/10) 1회만 남기고 나머지 요일 완전 삭제
-    final thisTuesday = DateTime(now.year, 11, 10);
-    final tuesdayKey = _dateKey(thisTuesday);
-    for (var i = 0; i < 7; i++) {
-      final d = monday.add(Duration(days: i));
-      final dKey = _dateKey(d);
-      if (dKey != tuesdayKey) {
-        _pastHabitRecords[dKey]?.remove('habit_5');
-        _pastHabitCompletionTimes[dKey]?.remove('habit_5');
+    // 1. habit_5 (침구 정리 및 환기하기): 개발 시뮬레이션 모드에서만 11/10 1회 예시 기록 유지
+    if (isDevSimulationMode) {
+      final thisTuesday = DateTime(now.year, 11, 10);
+      final tuesdayKey = _dateKey(thisTuesday);
+      for (var i = 0; i < 7; i++) {
+        final d = monday.add(Duration(days: i));
+        final dKey = _dateKey(d);
+        if (dKey != tuesdayKey) {
+          _pastHabitRecords[dKey]?.remove('habit_5');
+          _pastHabitCompletionTimes[dKey]?.remove('habit_5');
+        }
       }
-    }
-    _pastHabitRecords.putIfAbsent(tuesdayKey, () => {})['habit_5'] = 1.0;
-    _pastHabitCompletionTimes.putIfAbsent(tuesdayKey, () => {})['habit_5'] = ['오전 10:30'];
+      _pastHabitRecords.putIfAbsent(tuesdayKey, () => {})['habit_5'] = 1.0;
+      _pastHabitCompletionTimes.putIfAbsent(tuesdayKey, () => {})['habit_5'] = ['오전 10:30'];
 
-    final h5 = _habits.where((h) => h.id == 'habit_5').firstOrNull;
-    if (h5 != null) {
-      h5.currentCount = 0;
-      h5.weeklyCompletedCount = 1;
+      final h5 = _habits.where((h) => h.id == 'habit_5').firstOrNull;
+      if (h5 != null) {
+        h5.currentCount = 0;
+        h5.weeklyCompletedCount = 1;
+      }
+    } else {
+      // 일반 모드: 예전에 주입되었던 11/10 더미 완료 기록을 완전히 제거하여 '기록 전' 상태 복원
+      final legacyTuesdayKey = _dateKey(DateTime(now.year, 11, 10));
+      if (_pastHabitRecords.containsKey(legacyTuesdayKey)) {
+        _pastHabitRecords[legacyTuesdayKey]?.remove('habit_5');
+        if (_pastHabitRecords[legacyTuesdayKey]?.isEmpty ?? false) {
+          _pastHabitRecords.remove(legacyTuesdayKey);
+        }
+      }
+      if (_pastHabitCompletionTimes.containsKey(legacyTuesdayKey)) {
+        _pastHabitCompletionTimes[legacyTuesdayKey]?.remove('habit_5');
+        if (_pastHabitCompletionTimes[legacyTuesdayKey]?.isEmpty ?? false) {
+          _pastHabitCompletionTimes.remove(legacyTuesdayKey);
+        }
+      }
     }
 
     // 2. 다른 주간 횟수 습관들도 목표 횟수를 초과한 날짜가 있으면 정리
-    for (final habit in _habits.where((h) => h.isWeeklyFrequencyHabit && h.id != 'habit_5')) {
+    for (final habit in _habits.where((h) => h.isWeeklyFrequencyHabit && (isDevSimulationMode ? h.id != 'habit_5' : true))) {
       final match = RegExp(r'주\s*(\d+)회').firstMatch(habit.recurrenceSummary);
       final targetPerWeek = int.tryParse(match?.group(1) ?? '1') ?? 1;
 
@@ -1421,6 +1504,10 @@ class AppStateManager extends ChangeNotifier {
       _prefs!.setString(
         'hagom_past_habit_records',
         jsonEncode(_pastHabitRecords),
+      );
+      _prefs!.setString(
+        'hagom_past_habit_completion_times',
+        jsonEncode(_pastHabitCompletionTimes),
       );
     }
   }
@@ -1989,7 +2076,7 @@ class AppStateManager extends ChangeNotifier {
         recurrenceSummary: '주 1회',
         targetPerDay: 1,
         currentCount: 0,
-        weeklyCompletedCount: 1,
+        weeklyCompletedCount: isDevSimulationMode ? 1 : 0,
         weeklyPeriodStart: DateTime(DateTime.now().year, 11, 9), // 이번 주 월요일
         startDate: exampleHabitStartDate,
       ),
@@ -2000,16 +2087,18 @@ class AppStateManager extends ChangeNotifier {
         subtitle: '주 1회',
         recurrenceSummary: '주 1회',
         targetPerDay: 1,
-        currentCount: 2, // 완료 상태
-        weeklyCompletedCount: 1,
+        currentCount: isDevSimulationMode ? 2 : 0,
+        weeklyCompletedCount: isDevSimulationMode ? 1 : 0,
         weeklyPeriodStart: DateTime(DateTime.now().year, 11, 9), // 이번 주 월요일
         startDate: exampleHabitStartDate,
       ),
     ]);
-    // 🌟 habit_5: 이번 주 화요일(11/10)에 완료했다는 과거 기록 세팅
-    final tuesdayKey = _dateKey(DateTime(DateTime.now().year, 11, 10));
-    _pastHabitRecords.putIfAbsent(tuesdayKey, () => {})['habit_5'] = 1.0;
-    _pastHabitCompletionTimes.putIfAbsent(tuesdayKey, () => {})['habit_5'] = ['오전 10:30'];
+    // 🌟 habit_5: 이번 주 화요일(11/10)에 완료했다는 과거 기록 세팅 (개발 시뮬레이션 모드에서만)
+    if (isDevSimulationMode) {
+      final tuesdayKey = _dateKey(DateTime(DateTime.now().year, 11, 10));
+      _pastHabitRecords.putIfAbsent(tuesdayKey, () => {})['habit_5'] = 1.0;
+      _pastHabitCompletionTimes.putIfAbsent(tuesdayKey, () => {})['habit_5'] = ['오전 10:30'];
+    }
     // 기본 예시 일정 (PRD 5.3절 명세: 보고서 작성, 병원 진료 등)
     // 🌟 [할일 검증용]: 11월 1일(1개), 2일(2개), 3일(3개), 4일(4개), 5일(5개), 6일(6개)
     final now = DateTime.now();
