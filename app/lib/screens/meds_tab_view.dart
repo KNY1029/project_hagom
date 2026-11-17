@@ -307,7 +307,7 @@ class _MedsTabViewState extends State<MedsTabView> {
                           keyboardType: TextInputType.number,
                           decoration: InputDecoration(
                             isDense: true,
-                            labelText: '처음 받은 알약 수',
+                            labelText: '처음 받은 약 수',
                             border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(10),
                             ),
