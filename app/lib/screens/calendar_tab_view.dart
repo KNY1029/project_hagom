@@ -2374,7 +2374,8 @@ class _CalendarTabViewState extends State<CalendarTabView> {
                                       ),
                                     ],
                                   ),
-                                  if (isSelectedDatePast)
+                                  // 🌟 기록 전으로 처리된 과거 날짜에만 '이 약 미복용' 버튼 노출!
+                                  if (isSelectedDatePast && isSelectedDateBeforeTracking)
                                     InkWell(
                                       borderRadius: BorderRadius.circular(4),
                                       onTap: () {
