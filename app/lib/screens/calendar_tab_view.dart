@@ -2354,21 +2354,49 @@ class _CalendarTabViewState extends State<CalendarTabView> {
                                 mainAxisAlignment:
                                     MainAxisAlignment.spaceBetween,
                                 children: [
-                                  Text(
-                                    med.name,
-                                    style: TextStyle(
-                                      fontSize: 13,
-                                      fontWeight: FontWeight.bold,
-                                      color: AppColors.textPrimary,
-                                    ),
+                                  Row(
+                                    children: [
+                                      Text(
+                                        med.name,
+                                        style: TextStyle(
+                                          fontSize: 13,
+                                          fontWeight: FontWeight.bold,
+                                          color: AppColors.textPrimary,
+                                        ),
+                                      ),
+                                      const SizedBox(width: 6),
+                                      Text(
+                                        med.dosage,
+                                        style: TextStyle(
+                                          fontSize: 11,
+                                          color: AppColors.textSecondary,
+                                        ),
+                                      ),
+                                    ],
                                   ),
-                                  Text(
-                                    med.dosage,
-                                    style: TextStyle(
-                                      fontSize: 11,
-                                      color: AppColors.textSecondary,
+                                  if (isSelectedDatePast)
+                                    InkWell(
+                                      borderRadius: BorderRadius.circular(4),
+                                      onTap: () {
+                                        _state.setPastMedAllSlotsMissed(_selectedDate, medId: med.id);
+                                        CelebrationToast.show(
+                                          context,
+                                          title: '미복용 기록 완료',
+                                          message: '${med.name}을(를) 미복용으로 기록했어요.',
+                                        );
+                                      },
+                                      child: Padding(
+                                        padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+                                        child: Text(
+                                          '이 약 미복용',
+                                          style: TextStyle(
+                                            fontSize: 11,
+                                            color: AppColors.primaryPurple,
+                                            fontWeight: FontWeight.w600,
+                                          ),
+                                        ),
+                                      ),
                                     ),
-                                  ),
                                 ],
                               ),
                               const SizedBox(height: 8),
