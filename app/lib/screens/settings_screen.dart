@@ -2589,7 +2589,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       color: AppColors.primaryPurple,
                     ),
                     title: Text(
-                      '흑백 모드',
+                      '전색맹 보조 모드',
                       style: TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.w600,
