@@ -148,6 +148,7 @@ class WidgetActionReceiver : BroadcastReceiver() {
                     nextQuoteIndex = (currentQuoteIndex + 1) % currentStage.second.size
                 }
 
+                val nextStage = mascotStages[nextIndex]
                 val rawQuote = nextStage.second[nextQuoteIndex]
                 val formattedQuote = rawQuote
                     .replace("유저니이이임", "${userNickname}니이이임")
