@@ -72,7 +72,7 @@ class HagomNativeWidgetSync {
       // -------------------------------------------------------------
       // 1) 마스코트 응원 위젯 (9단계 상태 지원)
       // -------------------------------------------------------------
-      const List<Map<String, dynamic>> mascotStages = [
+      final List<Map<String, dynamic>> mascotStages = [
         {
           'badge': '1. 기대',
           'quotes': [

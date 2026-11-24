@@ -1799,7 +1799,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
+            Text(
               '하곰이가 나를 부를 때 사용할 이름을 입력해 주세요.\n비워두면 기본값인 "유저"로 설정됩니다.',
               style: TextStyle(fontSize: 13, color: AppColors.textSecondary, height: 1.4),
             ),
