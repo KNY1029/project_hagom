@@ -87,6 +87,7 @@ class HagomAlarmManager {
             'title': '하곰이 복약 알림',
             'message': HagomDialogue.getRequiredReminder(
               '${med.name} (${slot.label})',
+              userName: state.userNickname,
             ),
             'isEssential': true,
             'actionUri':
@@ -142,7 +143,7 @@ class HagomAlarmManager {
               'hour': time['hour'],
               'minute': time['minute'],
               'title': '하곰이 습관 알림',
-              'message': HagomDialogue.getRequiredReminder(habit.title),
+              'message': HagomDialogue.getRequiredReminder(habit.title, userName: state.userNickname),
               'isEssential': true,
               'actionUri':
                   'hagomwidget://checkhabit?id=${Uri.encodeComponent(habit.id)}&cur=${habit.currentCount}&target=${habit.targetPerDay}',
@@ -159,7 +160,7 @@ class HagomAlarmManager {
                 'hour': repeatHour,
                 'minute': repeatMinute,
                 'title': '하곰이 습관 재알림',
-                'message': '유저님, 아직 ${habit.title} 실천 전인가요? 지금 해봐요!',
+                'message': '${state.userDisplayName}, 아직 ${habit.title} 실천 전인가요? 지금 해봐요!',
                 'isEssential': true,
                 'actionUri':
                     'hagomwidget://checkhabit?id=${Uri.encodeComponent(habit.id)}&cur=${habit.currentCount}&target=${habit.targetPerDay}',
@@ -226,7 +227,7 @@ class HagomAlarmManager {
               'hour': alarmHour,
               'minute': alarmMinute,
               'title': '하곰이 할 일 알림',
-              'message': HagomDialogue.getRequiredReminder(task.title),
+              'message': HagomDialogue.getRequiredReminder(task.title, userName: state.userNickname),
               'isEssential': true,
               'actionUri':
                   'hagomwidget://checktask?id=${Uri.encodeComponent(task.id)}',
@@ -265,7 +266,7 @@ class HagomAlarmManager {
               'id': nextId++,
               'triggerAtMillis': scheduledAlarmDate.millisecondsSinceEpoch,
               'title': '하곰이 할 일 알림',
-              'message': HagomDialogue.getRequiredReminder(task.title),
+              'message': HagomDialogue.getRequiredReminder(task.title, userName: state.userNickname),
               'isEssential': true,
               'actionUri':
                   'hagomwidget://checktask?id=${Uri.encodeComponent(task.id)}',
@@ -313,7 +314,7 @@ class HagomAlarmManager {
         'id': 8888, // 고정 ID: 접속 시마다 3일 뒤로 덮어쓰기 갱신
         'triggerAtMillis': deadmanDate.millisecondsSinceEpoch,
         'title': state.notificationRate == '최대' ? '하곰이의 긴급 안부' : '하곰이의 안부',
-        'message': HagomDialogue.getInactiveAttendanceQuote(state.notificationRate),
+        'message': HagomDialogue.getInactiveAttendanceQuote(state.notificationRate, userName: state.userNickname),
         'isEssential': false,
       });
 
@@ -334,7 +335,7 @@ class HagomAlarmManager {
           'hour': t['hour'],
           'minute': t['minute'],
           'title': state.notificationRate == '최대' ? '하곰이의 밀착 케어' : '하곰이의 따뜻한 한마디',
-          'message': HagomDialogue.getRandomPushQuote(state.notificationRate),
+          'message': HagomDialogue.getRandomPushQuote(state.notificationRate, userName: state.userNickname),
           'isEssential': false,
         });
       }

@@ -33,6 +33,7 @@ class _SplashScreenState extends State<SplashScreen> {
   final Set<int> _developerGesturePointers = <int>{};
   Timer? _developerGestureTimer;
   int _suppressModeActions = 0;
+  late final TextEditingController _initialNicknameController;
 
   void _onDeveloperGesturePointerDown(BuildContext dialogContext, int pointer) {
     _developerGesturePointers.add(pointer);
@@ -62,6 +63,7 @@ class _SplashScreenState extends State<SplashScreen> {
 
   @override
   void dispose() {
+    _initialNicknameController.dispose();
     _developerGestureTimer?.cancel();
     super.dispose();
   }
@@ -69,6 +71,7 @@ class _SplashScreenState extends State<SplashScreen> {
   @override
   void initState() {
     super.initState();
+    _initialNicknameController = TextEditingController();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _initStartFlow();
     });
@@ -104,20 +107,43 @@ class _SplashScreenState extends State<SplashScreen> {
       barrierDismissible: false,
       builder: (dCtx) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              '하곰이 앱을 어떻게 시작할까요?',
-              style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
-            ),
-            SizedBox(height: 8),
-            Text(
-              '• 바로 시작: 가이드 없이 내 일과로 바로 진입해요.\n• 가이드: 핵심 기능(복약·습관·달력·방)을 직접 누르며 체험해요.',
-              style: TextStyle(fontSize: 12.5, height: 1.5, color: AppColors.textSecondary),
-            ),
-          ],
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                '하곰이 앱을 어떻게 시작할까요?',
+                style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                '• 바로 시작: 가이드 없이 내 일과로 바로 진입해요.\n• 가이드: 핵심 기능(복약·습관·달력·방)을 직접 누르며 체험해요.',
+                style: TextStyle(fontSize: 12.5, height: 1.5, color: AppColors.textSecondary),
+              ),
+              const SizedBox(height: 16),
+              Text(
+                '하곰이가 부를 호칭 (선택)',
+                style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
+              ),
+              const SizedBox(height: 6),
+              TextField(
+                controller: _initialNicknameController,
+                maxLength: 10,
+                decoration: InputDecoration(
+                  hintText: '유저 (기본값)',
+                  hintStyle: TextStyle(fontSize: 12.5, color: AppColors.textMuted),
+                  suffixText: '님',
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide(color: AppColors.divider)),
+                  enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide(color: AppColors.divider)),
+                  focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide(color: AppColors.primaryPurple, width: 1.5)),
+                  counterText: '',
+                ),
+                style: TextStyle(fontSize: 13, color: AppColors.textPrimary),
+              ),
+            ],
+          ),
         ),
         actionsPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         actions: [
@@ -137,6 +163,8 @@ class _SplashScreenState extends State<SplashScreen> {
               ),
               onPressed: () async {
                 if (_consumeSuppressedModeAction()) return;
+                final nick = _initialNicknameController.text.trim();
+                await _state.setUserNickname(nick.isEmpty ? '유저' : nick);
                 Navigator.of(dCtx).pop();
                 await _state.markInitialModeSelected();
                 await _state.finishTutorialCleanSlate(); // 예시 데이터 일체 없는 완전 백지 클린 상태로 시작!
@@ -165,6 +193,8 @@ class _SplashScreenState extends State<SplashScreen> {
               ),
               onPressed: () async {
                 if (_consumeSuppressedModeAction()) return;
+                final nick = _initialNicknameController.text.trim();
+                await _state.setUserNickname(nick.isEmpty ? '유저' : nick);
                 Navigator.of(dCtx).pop();
                 await _state.markInitialModeSelected();
                 await _state.setupTutorialDemoData();
@@ -221,6 +251,8 @@ class _SplashScreenState extends State<SplashScreen> {
     );
     codeController.dispose();
     if (unlocked != true || !mounted) return;
+    final nick = _initialNicknameController.text.trim();
+    await _state.setUserNickname(nick.isEmpty ? '유저' : nick);
     Navigator.of(modeDialogContext).pop();
     await _state.markInitialModeSelected();
     await _state.restoreDevFullSimulationData();

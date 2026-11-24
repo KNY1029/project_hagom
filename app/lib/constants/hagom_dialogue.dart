@@ -107,9 +107,16 @@ class HagomDialogue {
   // 🔔 [푸시 알림 전용 멘트 풀: 조원 기획안 100% 반영]
   // ---------------------------------------------------------------------------
 
+  /// 사용자 이름 기반 호칭 치환 헬퍼
+  static String formatWithUserName(String text, {String userName = '유저'}) {
+    final name = userName.trim().isEmpty ? '유저' : userName.trim();
+    return text.replaceAll('유저님', '${name}님').replaceAll('유저', name);
+  }
+
   /// 4. 필수 실천 알림 멘트 (최소/중간/최대 공통)
-  static String getRequiredReminder(String planName) {
-    return '유저님~ 계획한 $planName, 실천할 시간이에요!';
+  static String getRequiredReminder(String planName, {String userName = '유저'}) {
+    final name = userName.trim().isEmpty ? '유저' : userName.trim();
+    return '$name님~ 계획한 $planName, 실천할 시간이에요!';
   }
 
   /// 5. 3일 이상 미접속 시 복귀 푸시 (중간: 4개)
@@ -205,15 +212,15 @@ class HagomDialogue {
   static int _roomSeqIndex = 0;
 
   /// 3일 결석 시 안내 문구 반환 (중간/최대 분기)
-  static String getInactiveAttendanceQuote(String rate) {
+  static String getInactiveAttendanceQuote(String rate, {String userName = '유저'}) {
     final list = (rate == '최대') ? inactiveMaxQuotes : inactiveMidQuotes;
-    return list[_rng.nextInt(list.length)];
+    return formatWithUserName(list[_rng.nextInt(list.length)], userName: userName);
   }
 
   /// 빈도별 랜덤 푸시 문구 반환 (중간: 25개 풀 / 최대: 35개 풀)
-  static String getRandomPushQuote(String rate) {
+  static String getRandomPushQuote(String rate, {String userName = '유저'}) {
     final list = (rate == '최대') ? maxRandomQuotes : midRandomQuotes;
-    return list[_rng.nextInt(list.length)];
+    return formatWithUserName(list[_rng.nextInt(list.length)], userName: userName);
   }
 
   /// 복약 완료 토스트 반환.
@@ -251,25 +258,25 @@ class HagomDialogue {
   }
 
   /// 순차적 헤더 말풍선 반환
-  static String getRandomHeaderQuote() {
+  static String getRandomHeaderQuote({String userName = '유저'}) {
     final q = headerBubbleQuotes[_headerSeqIndex % headerBubbleQuotes.length];
     _headerSeqIndex++;
-    return q;
+    return formatWithUserName(q, userName: userName);
   }
 
   /// 순차적 룸 대사 반환
-  static String getRandomRoomQuote(String? previousQuote) {
+  static String getRandomRoomQuote(String? previousQuote, {String userName = '유저'}) {
     final q = roomQuotes[_roomSeqIndex % roomQuotes.length];
     _roomSeqIndex++;
-    return q;
+    return formatWithUserName(q, userName: userName);
   }
 
   /// 모드별 랜덤 토크 반환 (테스트 및 실제 발송용)
-  static String getTalkQuoteByFrequency(String frequency) {
+  static String getTalkQuoteByFrequency(String frequency, {String userName = '유저'}) {
     if (frequency == '최대' || frequency == '적극적') {
-      return getRandomPushQuote('최대');
+      return getRandomPushQuote('최대', userName: userName);
     } else {
-      return getRandomPushQuote('중간');
+      return getRandomPushQuote('중간', userName: userName);
     }
   }
 }

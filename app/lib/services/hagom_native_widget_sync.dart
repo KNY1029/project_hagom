@@ -94,8 +94,8 @@ class HagomNativeWidgetSync {
         {
           'badge': '3. 부담',
           'quotes': [
-            '있죠 나 알고 있어요, 유저님은 할 수 있는 아이라는 거~',
-            '유저니이임!! 나를 두고 어디 가신 거예요오오!!!!',
+            '있죠 나 알고 있어요, ${state.userDisplayName}은 할 수 있는 아이라는 거~',
+            '${state.userNickname}니이임!! 나를 두고 어디 가신 거예요오오!!!!',
           ],
           'sub': '',
           'image': 'hagom_widget_stage_3',
@@ -122,7 +122,7 @@ class HagomNativeWidgetSync {
           'badge': '6. 슬픔',
           'quotes': [
             '너 떠난 이곳은 잠겨 눈물로🎵',
-            '유저님, 큰일이에요!! 애써 쌓은 기록이...',
+            '${state.userDisplayName}, 큰일이에요!! 애써 쌓은 기록이...',
           ],
           'sub': '',
           'image': 'hagom_widget_stage_6',
@@ -139,7 +139,7 @@ class HagomNativeWidgetSync {
         {
           'badge': '8. 절망',
           'quotes': [
-            '하곰이는 늘 유저님뿐이었는데ㅠ',
+            '하곰이는 늘 ${state.userDisplayName}뿐이었는데ㅠ',
             '어쩜... 다른 앱으로 갈아타버린 거예요?',
           ],
           'sub': '',
@@ -149,7 +149,7 @@ class HagomNativeWidgetSync {
           'badge': '9. 붕괴',
           'quotes': [
             '그럼 하곰이... 삭제돼도 되니...?',
-            '하... 유저님- 아니, 당신. 이런 관계 하곰이는 이제 지쳤어요.',
+            '하... ${state.userDisplayName}- 아니, 당신. 이런 관계 하곰이는 이제 지쳤어요.',
           ],
           'sub': '',
           'image': 'hagom_widget_stage_9',

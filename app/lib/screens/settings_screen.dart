@@ -690,9 +690,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       _buildPolicySection(
                         title: '1. 수집 항목',
                         content:
-                            '하곰이 앱은 유저님의 개인정보(이름, 주민번호, 연락처 등)를 절대 요구하지 않아요!\n'
-                            '입력하시는 복약 정보와 생활 습관, 알림 설정 등은 오직 유저님의 스마트폰 내부(로컬)에만 안전하게 보관되며, '
-                            '외부 서버로 전송되지 않습니다. 복약 데이터는 유저님이 직접 엑셀 파일로 추출하여 담당 의료진에게 자유롭게 전달하고 공유하는 안전한 시스템입니다.',
+                            '하곰이 앱은 ${_state.userDisplayName}의 개인정보(이름, 주민번호, 연락처 등)를 절대 요구하지 않아요!\n'
+                            '입력하시는 복약 정보와 생활 습관, 알림 설정 등은 오직 ${_state.userDisplayName}의 스마트폰 내부(로컬)에만 안전하게 보관되며, '
+                            '외부 서버로 전송되지 않습니다. 복약 데이터는 ${_state.userDisplayName}이 직접 엑셀 파일로 추출하여 담당 의료진에게 자유롭게 전달하고 공유하는 안전한 시스템입니다.',
                         icon: Icons.shield_outlined,
                       ),
                       const SizedBox(height: 16),
@@ -700,7 +700,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         title: '2. 보관 기간',
                         content:
                             '저희는 외부 서버에 개인정보를 보관하지 않습니다. '
-                            '유저님이 스마트폰에서 직접 삭제하기 전까지 데이터는 앱 내부 로컬 저장소에 남아 있어요!\n'
+                            '${_state.userDisplayName}이 스마트폰에서 직접 삭제하기 전까지 데이터는 앱 내부 로컬 저장소에 남아 있어요!\n'
                             '설정의 [기록 및 데이터 관리]에서 지우고 싶은 기간이나 특정 항목만 골라서 안전하게 지울 수도 있답니다.',
                         icon: Icons.history_toggle_off,
                       ),
@@ -708,8 +708,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       _buildPolicySection(
                         title: '3. 활용 목적',
                         content:
-                            '저희가 유저님의 데이터를 수집한다 해도, 그걸 대체 어디에 활용할지 모르겠네요.\n'
-                            '하곰이 앱은 유저님 개인의 편리한 복약과 자기 돌봄을 위한 순수한 건강 관리 서비스일 뿐입니다!',
+                            '저희가 ${_state.userDisplayName}의 데이터를 수집한다 해도, 그걸 대체 어디에 활용할지 모르겠네요.\n'
+                            '하곰이 앱은 ${_state.userDisplayName} 개인의 편리한 복약과 자기 돌봄을 위한 순수한 건강 관리 서비스일 뿐입니다!',
                         icon: Icons.volunteer_activism_outlined,
                       ),
                       const SizedBox(height: 16),
@@ -1783,6 +1783,73 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
+  Future<void> _showUserNicknameDialog() async {
+    final controller = TextEditingController(
+      text: _state.userNickname == '유저' ? '' : _state.userNickname,
+    );
+    await showDialog<void>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: const Text(
+          '하곰이가 부를 호칭 설정',
+          style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              '하곰이가 나를 부를 때 사용할 이름을 입력해 주세요.\n비워두면 기본값인 "유저"로 설정됩니다.',
+              style: TextStyle(fontSize: 13, color: AppColors.textSecondary, height: 1.4),
+            ),
+            const SizedBox(height: 14),
+            TextField(
+              controller: controller,
+              maxLength: 10,
+              autofocus: true,
+              decoration: InputDecoration(
+                hintText: '유저 (기본값)',
+                hintStyle: TextStyle(fontSize: 13, color: AppColors.textMuted),
+                suffixText: '님',
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+                contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                counterText: '',
+              ),
+              style: TextStyle(fontSize: 14, color: AppColors.textPrimary),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(),
+            child: const Text('취소'),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.primaryPurple,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+            ),
+            onPressed: () async {
+              final text = controller.text.trim();
+              await _state.setUserNickname(text.isEmpty ? '유저' : text);
+              if (mounted) {
+                Navigator.of(dialogContext).pop();
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text('하곰이가 이제 "${_state.userDisplayName}"으로 불러요!'),
+                    duration: const Duration(seconds: 2),
+                  ),
+                );
+              }
+            },
+            child: Text('저장', style: TextStyle(color: AppColors.onPrimary)),
+          ),
+        ],
+      ),
+    );
+  }
+
   Future<void> _showPillCountDialog() async {
     final tracked = _state.medications.where((m) => m.usePillCount).toList();
     await showDialog<void>(
@@ -1890,9 +1957,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                           color: AppColors.textPrimary,
                         ),
                       ),
-                      SizedBox(height: 3),
+                      const SizedBox(height: 3),
                       Text(
-                        '정신약학 맞춤 복약 솔루션 · v0.143.403',
+                        '정신약학 맞춤 복약 솔루션 · v0.143.412',
                         style: TextStyle(
                           fontSize: 12,
                           color: AppColors.textSecondary,
@@ -1903,7 +1970,40 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 ],
               ),
             ),
-            const SizedBox(height: 18),
+            const SizedBox(height: 12),
+
+            // 🏷️ 하곰이가 부를 호칭 설정 카드
+            Container(
+              decoration: BoxDecoration(
+                color: AppColors.cardSurface,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: AppColors.divider.withValues(alpha: 0.5)),
+              ),
+              child: ListTile(
+                leading: Icon(Icons.badge_outlined, color: AppColors.primaryPurple),
+                title: Text(
+                  '하곰이가 부를 호칭',
+                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: AppColors.textPrimary),
+                ),
+                subtitle: Text(
+                  '하곰이가 나를 "${_state.userDisplayName}"으로 불러요',
+                  style: TextStyle(fontSize: 11.5, color: AppColors.textSecondary),
+                ),
+                trailing: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      _state.userDisplayName,
+                      style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: AppColors.primaryPurple),
+                    ),
+                    const SizedBox(width: 4),
+                    Icon(Icons.edit_outlined, size: 16, color: AppColors.primaryPurple),
+                  ],
+                ),
+                onTap: _showUserNicknameDialog,
+              ),
+            ),
+            const SizedBox(height: 12),
 
             Container(
               decoration: BoxDecoration(
@@ -1989,7 +2089,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         const SizedBox(height: 6),
                         Text(
                           _state.notificationRate == '최소'
-                              ? '유저님이 직접 계획한 실천사항을 시간에 맞춰 안내해요!'
+                              ? '${_state.userDisplayName}이 직접 계획한 실천사항을 시간에 맞춰 안내해요!'
                               : (_state.notificationRate == '중간'
                                     ? '실천 알림에 더해, 하곰이가 종종 말을 걸어와요!'
                                     : '하곰이의 밀착 케어! 스파르타식 관리를 받아요!'),

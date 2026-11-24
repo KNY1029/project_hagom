@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../constants/app_colors.dart';
+import '../constants/hagom_dialogue.dart';
 import '../state/app_state_manager.dart';
 import '../widgets/responsive_content.dart';
 
@@ -352,9 +353,15 @@ class _WidgetSimulatorScreenState extends State<WidgetSimulatorScreen> {
     final stage = _mascotStages[stageIdx];
     final quotes = stage['quotes'] as List<String>;
     final imageAsset = stage['asset'] as String;
-    final quoteText = quotes[_currentQuoteIndex % quotes.length];
+    final quoteText = HagomDialogue.formatWithUserName(
+      quotes[_currentQuoteIndex % quotes.length],
+      userName: _state.userNickname,
+    );
     final badgeText = stage['badge'] as String? ?? '하곰이의 응원';
-    final subText = stage['sub'] as String? ?? '';
+    final subText = HagomDialogue.formatWithUserName(
+      stage['sub'] as String? ?? '',
+      userName: _state.userNickname,
+    );
 
     return Container(
       width: double.infinity,

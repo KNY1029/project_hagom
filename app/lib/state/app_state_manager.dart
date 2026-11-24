@@ -455,6 +455,20 @@ class AppStateManager extends ChangeNotifier {
   bool isTutorialDemoMode = false; // 저장하지 않는 온보딩 체험 데이터 상태
   bool colorVisionModeEnabled = false; // 적록색맹 보조 색상 모드
   bool achromatopsiaModeEnabled = false; // 전색맹 보조 모드
+
+  // 🐻 사용자 호칭 (기본값: '유저')
+  String _userNickname = '유저';
+  String get userNickname => _userNickname.trim().isEmpty ? '유저' : _userNickname.trim();
+  String get userDisplayName => '$userNickname님';
+
+  Future<void> setUserNickname(String name) async {
+    final trimmed = name.trim();
+    _userNickname = trimmed.isEmpty ? '유저' : trimmed;
+    if (_prefs != null) {
+      await _prefs!.setString('hagom_user_nickname', _userNickname);
+    }
+    notifyListeners();
+  }
   // 🎨 테마 관리 (기본 제공 프리셋 + 사용자가 추가한 커스텀 테마)
   String currentThemeKey = AppColors.themeDefault;
   final List<ThemePreset> customThemes = [];
@@ -1618,6 +1632,7 @@ class AppStateManager extends ChangeNotifier {
       await _prefs!.setBool('hagom_dev_simulation_mode', isDevSimulationMode);
       await _prefs!.setBool('hagom_color_vision_mode', colorVisionModeEnabled);
       await _prefs!.setBool('hagom_achromatopsia_mode', achromatopsiaModeEnabled);
+      await _prefs!.setString('hagom_user_nickname', _userNickname);
       if (_trackingStartDate != null) {
         await _prefs!.setString(
           'hagom_tracking_start_date',
@@ -1679,6 +1694,7 @@ class AppStateManager extends ChangeNotifier {
           _prefs!.getBool('hagom_color_vision_mode') ?? false;
       achromatopsiaModeEnabled =
           _prefs!.getBool('hagom_achromatopsia_mode') ?? false;
+      _userNickname = _prefs!.getString('hagom_user_nickname') ?? '유저';
       AppColors.achromatopsiaModeEnabled = achromatopsiaModeEnabled;
       AppColors.setColorVisionMode(colorVisionModeEnabled);
       final medsRaw = _prefs!.getString('hagom_medications');
@@ -3069,6 +3085,7 @@ class AppStateManager extends ChangeNotifier {
     completionFeedbackEnabled = true;
     colorVisionModeEnabled = false;
     achromatopsiaModeEnabled = false;
+    _userNickname = '유저';
     currentThemeKey = AppColors.themeDefault;
     customThemes.clear();
     widgetMonthOffset = 0;
