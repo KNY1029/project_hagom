@@ -136,7 +136,7 @@ class _MainNavigationShellState extends State<MainNavigationShell> {
   // 하곰이 클릭 시 지연 시간 없이 '즉시' 반응하도록 처리 (랜덤 대사 출력!)
   void _triggerCompanionBubble() {
     setState(() {
-      _currentBubbleMessage = HagomDialogue.getRandomHeaderQuote(userName: _state.userNickname);
+      _currentBubbleMessage = HagomDialogue.getRandomHeaderQuote();
       _isBubbleVisible = true;
     });
 
