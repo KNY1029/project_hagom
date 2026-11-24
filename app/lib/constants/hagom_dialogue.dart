@@ -107,15 +107,24 @@ class HagomDialogue {
   // 🔔 [푸시 알림 전용 멘트 풀: 조원 기획안 100% 반영]
   // ---------------------------------------------------------------------------
 
-  /// 사용자 이름 기반 호칭 치환 헬퍼
-  static String formatWithUserName(String text, {String userName = '유저'}) {
-    final name = userName.trim().isEmpty ? '유저' : userName.trim();
-    return text.replaceAll('유저님', '${name}님').replaceAll('유저', name);
+  /// 앱 상태에서 현재 닉네임을 가져오는 전역 훅 (미전달 시 자동 적용)
+  static String Function()? currentUserNameGetter;
+
+  /// 사용자 이름 기반 호칭 치환 헬퍼 (유저님, 유저니이이임, 유저니이임, 유저 등 포괄 치환)
+  static String formatWithUserName(String text, {String? userName}) {
+    final rawName = userName ?? currentUserNameGetter?.call() ?? '유저';
+    final name = rawName.trim().isEmpty ? '유저' : rawName.trim();
+    return text
+        .replaceAll('유저니이이임', '${name}니이이임')
+        .replaceAll('유저니이임', '${name}니이임')
+        .replaceAll('유저님', '${name}님')
+        .replaceAll('유저', name);
   }
 
   /// 4. 필수 실천 알림 멘트 (최소/중간/최대 공통)
-  static String getRequiredReminder(String planName, {String userName = '유저'}) {
-    final name = userName.trim().isEmpty ? '유저' : userName.trim();
+  static String getRequiredReminder(String planName, {String? userName}) {
+    final rawName = userName ?? currentUserNameGetter?.call() ?? '유저';
+    final name = rawName.trim().isEmpty ? '유저' : rawName.trim();
     return '$name님~ 계획한 $planName, 실천할 시간이에요!';
   }
 
@@ -212,13 +221,13 @@ class HagomDialogue {
   static int _roomSeqIndex = 0;
 
   /// 3일 결석 시 안내 문구 반환 (중간/최대 분기)
-  static String getInactiveAttendanceQuote(String rate, {String userName = '유저'}) {
+  static String getInactiveAttendanceQuote(String rate, {String? userName}) {
     final list = (rate == '최대') ? inactiveMaxQuotes : inactiveMidQuotes;
     return formatWithUserName(list[_rng.nextInt(list.length)], userName: userName);
   }
 
   /// 빈도별 랜덤 푸시 문구 반환 (중간: 25개 풀 / 최대: 35개 풀)
-  static String getRandomPushQuote(String rate, {String userName = '유저'}) {
+  static String getRandomPushQuote(String rate, {String? userName}) {
     final list = (rate == '최대') ? maxRandomQuotes : midRandomQuotes;
     return formatWithUserName(list[_rng.nextInt(list.length)], userName: userName);
   }
@@ -258,21 +267,21 @@ class HagomDialogue {
   }
 
   /// 순차적 헤더 말풍선 반환
-  static String getRandomHeaderQuote({String userName = '유저'}) {
+  static String getRandomHeaderQuote({String? userName}) {
     final q = headerBubbleQuotes[_headerSeqIndex % headerBubbleQuotes.length];
     _headerSeqIndex++;
     return formatWithUserName(q, userName: userName);
   }
 
   /// 순차적 룸 대사 반환
-  static String getRandomRoomQuote(String? previousQuote, {String userName = '유저'}) {
+  static String getRandomRoomQuote(String? previousQuote, {String? userName}) {
     final q = roomQuotes[_roomSeqIndex % roomQuotes.length];
     _roomSeqIndex++;
     return formatWithUserName(q, userName: userName);
   }
 
   /// 모드별 랜덤 토크 반환 (테스트 및 실제 발송용)
-  static String getTalkQuoteByFrequency(String frequency, {String userName = '유저'}) {
+  static String getTalkQuoteByFrequency(String frequency, {String? userName}) {
     if (frequency == '최대' || frequency == '적극적') {
       return getRandomPushQuote('최대', userName: userName);
     } else {

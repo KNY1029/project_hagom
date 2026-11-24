@@ -215,6 +215,10 @@ class HagomNativeWidgetSync {
         isDevMode ? 'true' : 'false',
       );
       await HomeWidget.saveWidgetData<String>(
+        'user_nickname',
+        state.userNickname,
+      );
+      await HomeWidget.saveWidgetData<String>(
         'is_developer_mode',
         isDevMode ? 'true' : 'false',
       );

@@ -11,6 +11,7 @@ import '../services/hagom_native_widget_sync.dart';
 import '../services/hagom_alarm_manager.dart';
 import '../models/task_item.dart';
 import '../constants/app_colors.dart';
+import '../constants/hagom_dialogue.dart';
 
 /// 앱 전체의 복약 및 습관 데이터를 로컬 DB에 영구 보존하고 실시간 알림을 보내는 상태 관리자
 class AppStateManager extends ChangeNotifier {
@@ -22,6 +23,7 @@ class AppStateManager extends ChangeNotifier {
   static final AppStateManager _instance = AppStateManager._internal();
   factory AppStateManager() => _instance;
   AppStateManager._internal() {
+    HagomDialogue.currentUserNameGetter = () => userNickname;
     ensureInitialized();
   }
   Completer<void>? _initCompleter;

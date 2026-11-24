@@ -19,11 +19,12 @@ class CompanionRoomScreen extends StatefulWidget {
 class _CompanionRoomScreenState extends State<CompanionRoomScreen> {
   final AppStateManager _state = AppStateManager();
 
-  String _currentQuote = HagomDialogue.roomQuotes.first;
+  String _currentQuote = '';
 
   @override
   void initState() {
     super.initState();
+    _currentQuote = HagomDialogue.getRandomRoomQuote(null, userName: _state.userNickname);
     _state.addListener(_onStateChanged);
   }
 
@@ -34,12 +35,16 @@ class _CompanionRoomScreenState extends State<CompanionRoomScreen> {
   }
 
   void _onStateChanged() {
-    if (mounted) setState(() {});
+    if (mounted) {
+      setState(() {
+        _currentQuote = HagomDialogue.formatWithUserName(_currentQuote, userName: _state.userNickname);
+      });
+    }
   }
 
   void _nextQuote() {
     setState(() {
-      _currentQuote = HagomDialogue.getRandomRoomQuote(_currentQuote);
+      _currentQuote = HagomDialogue.getRandomRoomQuote(_currentQuote, userName: _state.userNickname);
     });
   }
 

@@ -1792,7 +1792,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       builder: (dialogContext) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         title: const Text(
-          '하곰이가 부를 호칭 설정',
+          '닉네임 설정',
           style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
         ),
         content: Column(
@@ -1800,7 +1800,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              '하곰이가 나를 부를 때 사용할 이름을 입력해 주세요.\n비워두면 기본값인 "유저"로 설정됩니다.',
+              '하곰이가 나를 부를 때 사용할 닉네임을 입력해 주세요.\n비워두면 "유저"로 설정됩니다.',
               style: TextStyle(fontSize: 13, color: AppColors.textSecondary, height: 1.4),
             ),
             const SizedBox(height: 14),
@@ -1809,7 +1809,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               maxLength: 10,
               autofocus: true,
               decoration: InputDecoration(
-                hintText: '유저 (기본값)',
+                hintText: '유저',
                 hintStyle: TextStyle(fontSize: 13, color: AppColors.textMuted),
                 suffixText: '님',
                 border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
@@ -1959,7 +1959,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       ),
                       const SizedBox(height: 3),
                       Text(
-                        '정신약학 맞춤 복약 솔루션 · v0.143.412',
+                        '정신약학 맞춤 복약 솔루션 · v0.143.413',
                         style: TextStyle(
                           fontSize: 12,
                           color: AppColors.textSecondary,
@@ -1972,7 +1972,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             ),
             const SizedBox(height: 12),
 
-            // 🏷️ 하곰이가 부를 호칭 설정 카드
+            // 🏷️ 닉네임 설정 카드
             Container(
               decoration: BoxDecoration(
                 color: AppColors.cardSurface,
@@ -1982,7 +1982,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               child: ListTile(
                 leading: Icon(Icons.badge_outlined, color: AppColors.primaryPurple),
                 title: Text(
-                  '하곰이가 부를 호칭',
+                  '닉네임',
                   style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: AppColors.textPrimary),
                 ),
                 subtitle: Text(

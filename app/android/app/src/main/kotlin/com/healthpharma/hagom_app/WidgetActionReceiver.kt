@@ -107,16 +107,19 @@ class WidgetActionReceiver : BroadcastReceiver() {
             }
 
             "next_mascot_stage" -> {
+                val userNickname = prefs.getString("user_nickname", "유저")?.trim().let { if (it.isNullOrEmpty()) "유저" else it }
+                val userDisplayName = "${userNickname}님"
+
                 val mascotStages = listOf(
                     Triple("1. 기대", listOf("하곰이는 언제나 여기 있어요!", "내일도 힘내서 가보자고요✨"), "hagom_widget_stage_1"),
                     Triple("2. 기다림", listOf("하곰은(뚠뚠) 오늘도(뚠뚠) 접속을~ 기다리네(뚠뚠)", "오늘 할 일도 마치고 오실 때까지, 조용히 기다릴게요!"), "hagom_widget_stage_2"),
-                    Triple("3. 부담", listOf("있죠 나 알고 있어요, 유저님은 할 수 있는 아이라는 거~", "유저니이임!! 나를 두고 어디 가신 거예요오오!!!!"), "hagom_widget_stage_3"),
+                    Triple("3. 부담", listOf("있죠 나 알고 있어요, ${userDisplayName}은 할 수 있는 아이라는 거~", "${userNickname}니이임!! 나를 두고 어디 가신 거예요오오!!!!"), "hagom_widget_stage_3"),
                     Triple("4. 당황", listOf("하곰이 조금은 슬플지도 몰라요...", "어라...? 연속 방문 기록이 깨지고 있어요😳"), "hagom_widget_stage_4"),
                     Triple("5. 분노", listOf("요즘 많이 바쁜가 봐요...!!", "충격: 하곰이 앱 이용횟수 급감해"), "hagom_widget_stage_5"),
-                    Triple("6. 슬픔", listOf("너 떠난 이곳은 잠겨 눈물로🎵", "유저님, 큰일이에요!! 애써 쌓은 기록이..."), "hagom_widget_stage_6"),
+                    Triple("6. 슬픔", listOf("너 떠난 이곳은 잠겨 눈물로🎵", "${userDisplayName}, 큰일이에요!! 애써 쌓은 기록이..."), "hagom_widget_stage_6"),
                     Triple("7. 피로", listOf("(진짜 안 올 거예요?? 아니 진짜로?)", "우리... 좋았잖아요....."), "hagom_widget_stage_7"),
-                    Triple("8. 절망", listOf("하곰이는 늘 유저님뿐이었는데ㅠ", "어쩜... 다른 앱으로 갈아타버린 거예요?"), "hagom_widget_stage_8"),
-                    Triple("9. 붕괴", listOf("그럼 하곰이... 삭제돼도 되니...?", "하... 유저님- 아니, 당신. 이런 관계 하곰이는 이제 지쳤어요."), "hagom_widget_stage_9")
+                    Triple("8. 절망", listOf("하곰이는 늘 ${userDisplayName}뿐이었는데ㅠ", "어쩜... 다른 앱으로 갈아타버린 거예요?"), "hagom_widget_stage_8"),
+                    Triple("9. 붕괴", listOf("그럼 하곰이... 삭제돼도 되니...?", "하... ${userDisplayName}- 아니, 당신. 이런 관계 하곰이는 이제 지쳤어요."), "hagom_widget_stage_9")
                 )
 
                 val isDevMode = prefs.getString("is_developer_mode", "false") == "true" ||
@@ -145,10 +148,15 @@ class WidgetActionReceiver : BroadcastReceiver() {
                     nextQuoteIndex = (currentQuoteIndex + 1) % currentStage.second.size
                 }
 
-                val nextStage = mascotStages[nextIndex]
+                val rawQuote = nextStage.second[nextQuoteIndex]
+                val formattedQuote = rawQuote
+                    .replace("유저니이이임", "${userNickname}니이이임")
+                    .replace("유저니이임", "${userNickname}니이임")
+                    .replace("유저님", userDisplayName)
+                    .replace("유저", userNickname)
 
                 editor.putString("mascot_badge", nextStage.first)
-                editor.putString("mascot_quote", nextStage.second[nextQuoteIndex])
+                editor.putString("mascot_quote", formattedQuote)
                 editor.putInt("mascot_quote_index", nextQuoteIndex)
                 editor.putInt("mascot_stage_index", nextIndex)
                 editor.putString("mascot_sub", "")

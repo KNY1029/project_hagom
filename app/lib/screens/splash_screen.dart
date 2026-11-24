@@ -123,7 +123,7 @@ class _SplashScreenState extends State<SplashScreen> {
               ),
               const SizedBox(height: 16),
               Text(
-                '하곰이가 부를 호칭 (선택)',
+                '닉네임 (선택)',
                 style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
               ),
               const SizedBox(height: 6),
@@ -131,7 +131,7 @@ class _SplashScreenState extends State<SplashScreen> {
                 controller: _initialNicknameController,
                 maxLength: 10,
                 decoration: InputDecoration(
-                  hintText: '유저 (기본값)',
+                  hintText: '유저',
                   hintStyle: TextStyle(fontSize: 12.5, color: AppColors.textMuted),
                   suffixText: '님',
                   contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
@@ -141,6 +141,11 @@ class _SplashScreenState extends State<SplashScreen> {
                   counterText: '',
                 ),
                 style: TextStyle(fontSize: 13, color: AppColors.textPrimary),
+              ),
+              const SizedBox(height: 6),
+              Text(
+                '• 닉네임은 설정에서 언제든지 바꿀 수 있어요.',
+                style: TextStyle(fontSize: 11.5, color: AppColors.textMuted),
               ),
             ],
           ),
